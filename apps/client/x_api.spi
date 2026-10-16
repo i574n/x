@@ -1,0 +1,514 @@
+///- --package .
+test x_api static =
+    open testing
+
+open sm'_operators
+open prelude
+open posts
+open cli
+open oauth1
+
+nominal json = $'serde_json::Value'
+
+nominal http_reply = $'(u16, std::rc::Rc<str>)'
+
+nominal bodiless = $'ureq::RequestBuilder<ureq::typestate::WithoutBody>'
+
+nominal bodied = $'ureq::RequestBuilder<ureq::typestate::WithBody>'
+
+inl parse_json (text : string) : json =
+    $'serde_json::from_str::<serde_json::Value>(&*!text).unwrap_or_default()'
+
+inl field (key : string) (v : json) : json = $'!v.get(&*!key).cloned().unwrap_or_default()'
+
+inl text_of (v : json) : string = $'Rc::<str>::from(!v.as_str().unwrap_or(""))'
+
+inl flag_of_json (v : json) : bool = $'!v.as_bool().unwrap_or(false)'
+
+inl count_of (v : json) : i32 = $'!v.as_array().map_or(0, |a| a.len()) as i32'
+
+inl item (i : i32) (v : json) : json = $'!v.get(!i as usize).cloned().unwrap_or_default()'
+
+inl absent (v : json) : bool = $'!v.is_null()'
+
+inl text_body (text : string) : string =
+    $'Rc::<str>::from(serde_json::json\!({"text": &*!text}).to_string())'
+
+inl get_builder (url : string) (auth : string) : bodiless =
+    $'ureq::get(&*!url).header("Authorization", &*!auth)'
+
+inl delete_builder (url : string) (auth : string) : bodiless =
+    $'ureq::delete(&*!url).header("Authorization", &*!auth)'
+
+inl post_builder (url : string) (auth : string) : bodied =
+    $'ureq::post(&*!url).header("Authorization", &*!auth).header("Content-Type", "application/json")'
+
+inl patient (g : bodiless) : bodiless =
+    $'!g.config().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(30))).build()'
+
+inl patient_bodied (g : bodied) : bodied =
+    $'!g.config().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(30))).build()'
+
+inl call_reply (g : bodiless) : http_reply =
+    $'match ureq::RequestBuilder::call(!g) { Ok(mut r) => (r.status().as_u16(), Rc::<str>::from(r.body_mut().read_to_string().unwrap_or_default())), Err(e) => (0u16, Rc::<str>::from(e.to_string())) }'
+
+inl send_reply (g : bodied) (body : string) : http_reply =
+    $'match ureq::RequestBuilder::send(!g, &*!body) { Ok(mut r) => (r.status().as_u16(), Rc::<str>::from(r.body_mut().read_to_string().unwrap_or_default())), Err(e) => (0u16, Rc::<str>::from(e.to_string())) }'
+
+inl status_of (r : http_reply) : i32 = $'!r.0 as i32'
+
+inl body_of (r : http_reply) : string = $'!r.1.clone()'
+
+nominal app_context = ()
+
+nominal user_context = ()
+
+union authorizer =
+    | BearerToken : string
+    | Signed : oauth1 * string * string
+
+type endpoint = {base : string; auth : authorizer}
+
+nominal api c = endpoint
+
+union failure =
+    | HttpStatus : {status : i32; resource : string; detail : string}
+    | Transport : {resource : string; detail : string}
+    | Undecodable : {resource : string; body : string}
+    | NoSuchAccount : string
+
+type got r = result r failure
+
+type handles = list string
+
+type ids = list string
+
+type query = {per : i32; filters : filters; depth : i32; hints : bool}
+
+nominal users_reply = {found : accounts; unknown : list string}
+
+nominal page_reply = {page : accounts; next : string}
+
+nominal posts_reply = {pool : pool; primary : list post; skipped : string}
+
+nominal created_reply = {id : string; text : string}
+
+nominal deleted_reply = {deleted : bool}
+
+union reads r =
+    | UsersNamed :: handles -> reads users_reply
+    | UsersById :: ids -> reads users_reply
+    | FollowedBy :: string * i32 * string -> reads page_reply
+    | PostsOf :: account * query -> reads posts_reply
+    | PostsById :: ids * query -> reads posts_reply
+
+union writes r =
+    | CreatePost :: string -> writes created_reply
+    | DeletePost :: string -> writes deleted_reply
+
+union verb =
+    | Read
+    | Write : string
+    | Remove
+
+inl trimmed_base (base_url : string) : string =
+    inl n : i32 = sm'.length base_url
+    if sm'.ends_with "/" base_url then sm'.slice 0i32 (n - 2i32) base_url else base_url
+
+inl endpoint_of (base_url : string) (token : string) : endpoint = {base = trimmed_base base_url; auth = BearerToken token}
+
+inl app_api (base_url : string) (token : string) : api app_context = api (endpoint_of base_url token)
+
+inl user_api (base_url : string) (token : string) : api user_context = api (endpoint_of base_url token)
+
+inl signed_api (base_url : string) (o : oauth1) (nonce : string) (stamp : string) : api user_context =
+    api {base = trimmed_base base_url; auth = Signed (o, nonce, stamp)}
+
+inl base_of forall c. (a : api c) : string =
+    match a with
+    | api e => e.base
+
+inl following_path (id : string) (size : i32) (token : string) : string =
+    inl first = "/2/users/" ++# id ++# "/following?max_results=" ++# sm'.obj_to_string size
+    if token = "" then first else first ++# "&pagination_token=" ++# token
+
+inl expansions_of (q : query) : list string =
+    listm.append (if q.depth > 0 then ["referenced_posts"; "referenced_posts.author_id"] else Nil)
+        (if q.hints then ["attachments.media_keys"] else Nil)
+
+inl expansion_params (q : query) : string =
+    inl media = if q.hints then "&media.fields=type,alt_text" else ""
+    match expansions_of q with
+    | Nil => ""
+    | names => "&expansions=" ++# sm'.concat_list "," names ++# media
+
+inl fields_params (q : query) : string =
+    "&post.fields=created_at,author_id,entities,attachments" ++# expansion_params q
+
+inl exclude_param (f : filters) : string =
+    match f.no_replies, f.no_reposts with
+    | true, true => "&exclude=replies,retweets"
+    | true, false => "&exclude=replies"
+    | false, true => "&exclude=retweets"
+    | false, false => ""
+
+inl window_params (f : filters) : string =
+    inl since = if f.since = "" then "" else "&start_time=" ++# f.since
+    since ++# (if f.until = "" then "" else "&end_time=" ++# f.until)
+
+inl posts_path (id : string) (q : query) : string =
+    "/2/users/" ++# id ++# "/tweets?max_results=" ++# sm'.obj_to_string q.per
+    ++# fields_params q ++# window_params q.filters ++# exclude_param q.filters
+
+inl joined (prefix : string) (ids : list string) : string = prefix ++# sm'.concat_list "," ids
+
+inl lookup_path (l : ids) (q : query) : string = joined "/2/tweets?ids=" l ++# fields_params q
+
+inl named_path (hs : handles) : string = joined "/2/users/by?usernames=" hs
+
+inl user_ids_path (l : ids) : string = joined "/2/users?ids=" l
+
+inl read_path forall r. (q : reads r) : string =
+    match q with
+    | UsersNamed hs => named_path hs
+    | UsersById l => user_ids_path l
+    | FollowedBy (i, n, t) => following_path i n t
+    | PostsOf (a, qy) => posts_path a.id qy
+    | PostsById (l, qy) => lookup_path l qy
+
+inl write_path forall r. (q : writes r) : string =
+    match q with
+    | CreatePost _ => "/2/tweets"
+    | DeletePost id => "/2/tweets/" ++# id
+
+inl write_verb forall r. (q : writes r) : verb =
+    match q with
+    | CreatePost text => Write (text_body text)
+    | DeletePost _ => Remove
+
+inl collect forall t. (f : json -> t) (items : json) : list t =
+    let rec from (i : i32) (acc : list t) : list t =
+        if i < 0i32 then acc else from (i - 1) (Cons (f (item i items), acc))
+    from (count_of items - 1) Nil
+
+inl texts (items : json) : list string = items |> collect text_of
+
+inl at_key (key : string) (v : json) : string = v |> field key |> text_of
+
+inl account_of (v : json) : account = {id = at_key "id" v; handle = at_key "username" v}
+
+inl reference_of (v : json) : list reference =
+    match ref_kind_of (at_key "type" v) with
+    | Some kind => [{kind id = at_key "id" v}]
+    | None => Nil
+
+inl link_of (v : json) : link =
+    {short = at_key "url" v; expanded = at_key "expanded_url" v; title = at_key "title" v}
+
+inl links_in (v : json) : list link = v |> field "entities" |> field "urls" |> collect link_of
+
+inl refs_in (v : json) : list reference = v |> field "referenced_posts" |> collect reference_of |> spread id
+
+inl keys_in (v : json) : list string = v |> field "attachments" |> field "media_keys" |> texts
+
+let post_by (author : string) (v : json) : post =
+    {id = at_key "id" v; author_id = at_key "author_id" v; author_handle = author;
+     created_at = at_key "created_at" v; text = at_key "text" v;
+     refs = refs_in v; links = links_in v; media_keys = keys_in v}
+
+inl medium_of (v : json) : medium = {key = at_key "media_key" v; kind = at_key "type" v; alt = at_key "alt_text" v}
+
+inl accounts_in (doc : json) : accounts = doc |> field "data" |> collect account_of
+
+inl named_accounts (users : json) : accounts =
+    users |> collect account_of |> keep (fun (a : account) => a.handle <> "")
+
+inl unknown_in (doc : json) : list string = doc |> field "errors" |> collect (at_key "value")
+
+inl next_in (doc : json) : string = doc |> field "meta" |> at_key "next_token"
+
+inl first_error (doc : json) : string =
+    inl e = doc |> field "errors" |> item 0i32
+    inl detail = at_key "detail" e
+    if detail <> "" then detail else at_key "title" e
+
+inl included_pool (primary : list post) (inc : json) : pool =
+    inl extra = inc |> field "posts" |> collect (post_by "")
+    {posts = listm.append primary extra; media_items = inc |> field "media" |> collect medium_of; authors = inc |> field "users" |> named_accounts}
+
+inl posts_of_doc (author : string) (doc : json) : posts_reply =
+    inl primary = doc |> field "data" |> collect (post_by author)
+    posts_reply {pool = included_pool primary (doc |> field "includes"); primary; skipped = first_error doc}
+
+inl users_of_doc (doc : json) : users_reply = users_reply {found = accounts_in doc; unknown = unknown_in doc}
+
+inl page_of_doc (doc : json) : page_reply = page_reply {page = accounts_in doc; next = next_in doc}
+
+inl decode_read forall r. (q : reads r) (doc : json) : r =
+    match q with
+    | UsersNamed _ | UsersById _ => users_of_doc doc
+    | FollowedBy _ => page_of_doc doc
+    | PostsOf (a, _) => posts_of_doc a.handle doc
+    | PostsById _ => posts_of_doc "" doc
+
+inl decode_write forall r. (q : writes r) (doc : json) : r =
+    inl d = doc |> field "data"
+    match q with
+    | CreatePost _ => created_reply {id = at_key "id" d; text = at_key "text" d}
+    | DeletePost _ => deleted_reply {deleted = d |> field "deleted" |> flag_of_json}
+
+inl clipped (n : i32) (text : string) : string =
+    if sm'.length text <= n then text else sm'.slice 0i32 (n - 1i32) text ++# "..."
+
+inl title_and_detail (title : string) (detail : string) (body : string) : string =
+    if title <> "" && detail <> "" && title <> detail then title ++# ": " ++# detail
+    elif detail <> "" then detail
+    elif title <> "" then title
+    else clipped 300i32 (single_line body)
+
+inl problem_detail (body : string) : string =
+    inl doc = parse_json body
+    title_and_detail (at_key "title" doc) (at_key "detail" doc) body
+
+inl ok_json (resource : string) (body : string) : got json =
+    inl doc = parse_json body
+    if absent doc then Error (Undecodable {resource body = clipped 300i32 body}) else Ok doc
+
+inl accepted (status : i32) : bool = status >= 200i32 && status < 300i32
+
+inl classify (resource : string) (status : i32) (body : string) : got json =
+    if status = 0i32 then Error (Transport {resource detail = body})
+    elif not (accepted status) then Error (HttpStatus {status resource detail = problem_detail body})
+    else ok_json resource body
+
+inl bodiless_reply (b : bodiless) : http_reply = b |> patient |> call_reply
+
+inl method_of (v : verb) : string =
+    match v with
+    | Read => "GET"
+    | Write _ => "POST"
+    | Remove => "DELETE"
+
+inl header_for (a : authorizer) (method : string) (url : string) : string =
+    match a with
+    | BearerToken t => "Bearer " ++# t
+    | Signed (o, nonce, stamp) => oauth_header o method url nonce stamp
+
+inl exchange (e : endpoint) (v : verb) (url : string) : http_reply =
+    inl auth = header_for e.auth (method_of v) url
+    match v with
+    | Read => get_builder url auth |> bodiless_reply
+    | Remove => delete_builder url auth |> bodiless_reply
+    | Write body => send_reply (post_builder url auth |> patient_bodied) body
+
+let reply_json (e : endpoint) (v : verb) (resource : string) : got json =
+    inl reply = exchange e v (e.base ++# resource)
+    classify resource (status_of reply) (body_of reply)
+
+let send forall r. (a : api app_context) (q : reads r) : got r =
+    match a with
+    | api e => reply_json e Read (read_path q) |> map_ok (decode_read q)
+
+let send_write forall r. (a : api user_context) (q : writes r) : got r =
+    match a with
+    | api e => reply_json e (write_verb q) (write_path q) |> map_ok (decode_write q)
+
+type app = api app_context
+
+inl wanted_of (c : following_cap) : i32 =
+    match c with
+    | AtMost n => n
+    | AllFollowing => 2147483647i32
+
+inl page_size (remaining : i32) : i32 = if remaining < 1000i32 then remaining else 1000i32
+
+inl grown (wanted : i32) (acc : accounts) (r : page_reply) : accounts * string =
+    match r with
+    | page_reply {page next} =>
+        inl acc = listm.append acc page
+        acc, (if listm.length acc >= wanted then "" else next)
+
+inl page_after (a : app) (w : account) (n : i32) (acc : accounts) (token : string) : got page_reply =
+    send a (FollowedBy (w.id, page_size (n - listm.length acc), token))
+
+let rec pages (a : app) (w : account) (n : i32) (token : string) (acc : accounts) : got accounts =
+    page_after a w n acc token |> then_ok fun r =>
+        inl acc, next = grown n acc r
+        if next = "" then Ok (take_first n acc) else pages a w n next acc
+
+inl following_of (a : app) (c : following_cap) (w : account) : got accounts =
+    pages a w (wanted_of c) "" Nil
+
+type gathered = {primary : list post; pool : pool; notes : list string; halted : option failure}
+
+inl note_skip (w : account) (why : string) (g : gathered) : gathered =
+    {g with notes = listm.append g.notes ["skipped @" ++# w.handle ++# ": " ++# why]}
+
+inl add_posts (r : posts_reply) (g : gathered) : gathered =
+    match r with
+    | posts_reply {pool primary} => {g with primary = listm.append primary g.primary; pool = merge_pools g.pool pool}
+
+inl add_reply (w : account) (r : posts_reply) (g : gathered) : gathered =
+    match r with
+    | posts_reply {primary skipped} =>
+        match primary with
+        | Nil when skipped <> "" => note_skip w skipped g
+        | _ => add_posts r g
+
+let rec gather (a : app) (q : query) (l : accounts) (g : gathered) : gathered =
+    match l with
+    | Nil => g
+    | Cons (w, rest) =>
+        match send a (PostsOf (w, q)) with
+        | Ok r => gather a q rest (add_reply w r g)
+        | Error f => {g with halted = Some f}
+
+inl ids_of (l : list post) : list string = l |> each (fun (p : post) => p.id)
+
+inl refs_of (l : list post) : list string = l |> spread (fun (p : post) => p.refs |> each (fun (r : reference) => r.id))
+
+inl distinct (l : list string) : list string =
+    listm.fold (fun acc x => if has ((=) x) acc then acc else listm.append acc [x]) Nil l
+
+inl without_ids (ids : list string) (l : list post) : list post =
+    l |> keep (fun (p : post) => not (has ((=) p.id) ids))
+
+inl absorb (old : pool) (fresh : pool) : pool =
+    merge_pools fresh {old with posts = without_ids (ids_of fresh.posts) old.posts}
+
+inl level_posts (pl : pool) (ids : list string) : list post =
+    pl.posts |> keep (fun (p : post) => has ((=) p.id) ids)
+
+let rec deepen (a : app) (q : query) (level : i32) (l : ids) (pl : pool) : got pool =
+    match distinct l with
+    | Nil => Ok pl
+    | _ when level >= q.depth => Ok pl
+    | wanted => send a (PostsById (take_first 100 wanted, q)) |> then_ok (deeper a q level wanted pl)
+
+and let deeper (a : app) (q : query) (level : i32) (wanted : ids) (pl : pool) (r : posts_reply) : got pool =
+    match r with
+    | posts_reply {pool} =>
+        inl pl = absorb pl pool
+        deepen a q (level + 1) (refs_of (level_posts pl wanted)) pl
+
+inl unnamed (pl : pool) (p : post) : bool =
+    p.author_handle = "" && not (has (fun (u : account) => u.id = p.author_id) pl.authors)
+
+inl unnamed_authors (pl : pool) : list string =
+    pl.posts |> keep (unnamed pl) |> each (fun (p : post) => p.author_id) |> distinct
+
+inl with_authors (pl : pool) (u : users_reply) : pool =
+    match u with
+    | users_reply {found} => {pl with authors = listm.append pl.authors found}
+
+inl name_authors (a : app) (pl : pool) : got pool =
+    match unnamed_authors pl with
+    | Nil => Ok pl
+    | ids => send a (UsersById (take_first 100 ids)) |> map_ok (with_authors pl)
+
+inl answered (status : i32) (resource : string) (detail : string) : string =
+    "X API answered " ++# sm'.obj_to_string status ++# " for " ++# resource ++# ": " ++# detail
+
+inl unreachable (resource : string) (detail : string) : string =
+    "could not reach the X API for " ++# resource ++# ": " ++# detail
+
+inl unexpected (resource : string) (body : string) : string =
+    "unexpected X API reply for " ++# resource ++# ": " ++# body
+
+inl no_account (h : string) : string = "no X account @" ++# h
+
+inl describe_failure (f : failure) : string =
+    match f with
+    | HttpStatus x => answered x.status x.resource x.detail
+    | Transport x => unreachable x.resource x.detail
+    | Undecodable x => unexpected x.resource x.body
+    | NoSuchAccount h => no_account h
+
+inl plain_query () : query = {per = 5i32; filters = no_filters (); depth = 0i32; hints = false}
+
+inl erin () : account = {id = "7"; handle = "erin"}
+
+inl fields_query () : string = "&post.fields=created_at,author_id,entities,attachments"
+
+inl plain_posts () : string = "/2/users/7/tweets?max_results=5" ++# fields_query ()
+
+inl expansions_query () : string =
+    "&expansions=referenced_posts,referenced_posts.author_id,attachments.media_keys&media.fields=type,alt_text"
+
+///> zig
+test users_lookup_path =
+    inl ~h = "alice"
+    read_path (UsersNamed [h; "bob"]) |> _assert_eq "/2/users/by?usernames=alice,bob"
+
+///> zig
+test following_path_carries_the_token =
+    inl ~token = "t1"
+    read_path (FollowedBy ("42", 2i32, token))
+    |> _assert_eq "/2/users/42/following?max_results=2&pagination_token=t1"
+
+///> zig
+test first_following_page_has_no_token =
+    inl ~size = 1000i32
+    read_path (FollowedBy ("42", size, "")) |> _assert_eq "/2/users/42/following?max_results=1000"
+
+///> zig
+test plain_posts_path_asks_for_no_expansions =
+    inl ~n = 5i32
+    inl q = plain_query ()
+    read_path (PostsOf (erin (), {q with per = n})) |> _assert_eq (plain_posts ())
+
+inl filtered (f : filters) : string =
+    inl q = plain_query ()
+    read_path (PostsOf (erin (), {q with filters = f}))
+
+///> zig
+test since_becomes_start_time =
+    inl ~since = "2026-10-15T00:00:00Z"
+    inl f = no_filters ()
+    filtered {f with since} |> _assert_eq (plain_posts () ++# "&start_time=" ++# since)
+
+///> zig
+test originals_exclude_replies_and_reposts =
+    inl ~on = true
+    inl f = no_filters ()
+    filtered {f with no_replies = on; no_reposts = on} |> _assert_eq (plain_posts () ++# "&exclude=replies,retweets")
+
+///> zig
+test depth_and_hints_add_expansions =
+    inl ~depth = 1i32
+    inl q = plain_query ()
+    read_path (PostsById (["1"; "2"], {q with depth; hints = true}))
+    |> _assert_eq ("/2/tweets?ids=1,2" ++# fields_query () ++# expansions_query ())
+
+///> zig
+test writes_use_their_verbs_and_paths =
+    inl ~id = "9"
+    write_path (DeletePost id) |> _assert_eq "/2/tweets/9"
+    match write_verb (DeletePost id) with
+    | Remove => ()
+    | _ => _assert_eq "Remove" "other"
+
+///> zig
+test endpoint_drops_a_trailing_slash =
+    inl ~base = "http://127.0.0.1:9/"
+    base_of (app_api base "k") |> _assert_eq "http://127.0.0.1:9"
+
+///> zig
+test page_size_never_exceeds_the_api_maximum =
+    inl ~remaining = 2147483647i32
+    page_size remaining |> _assert_eq 1000i32
+
+///> zig
+test a_users_lookup_is_not_a_posts_read fails "Expected: reads posts_reply" =
+    inl q : reads posts_reply = UsersNamed ["alice"]
+    read_path q |> ignore
+
+///> zig
+test a_deletion_does_not_reply_with_a_created_post fails "Expected: writes created_reply" =
+    inl q : writes created_reply = DeletePost "9"
+    write_path q |> ignore
+
+///> zig
+test the_app_token_cannot_write fails "Expected: api user_context" =
+    inl a : api user_context = app_api "http://127.0.0.1:9" "k"
+    a |> ignore

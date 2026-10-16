@@ -1,0 +1,16 @@
+[package]
+name = "client"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "xc"
+path = "client.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+ureq = { workspace = true }
+hmac = "0.13"
+sha1 = "0.11"
+base64 = "0.23"

@@ -1,0 +1,51 @@
+///- --package .
+test prelude static =
+    open testing
+
+inl each forall a b. (f : a -> b) (l : list a) : list b =
+    listm.foldBack (fun x acc => Cons (f x, acc)) l Nil
+
+inl keep forall t. (ok : t -> bool) (l : list t) : list t =
+    listm.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l Nil
+
+inl spread forall a b. (f : a -> list b) (l : list a) : list b =
+    listm.foldBack (fun x acc => listm.append (f x) acc) l Nil
+
+inl first_where forall t. (ok : t -> bool) (l : list t) : option t =
+    listm.foldBack (fun x acc => if ok x then Some x else acc) l None
+
+inl has forall t. (ok : t -> bool) (l : list t) : bool =
+    match first_where ok l with
+    | Some _ => true
+    | None => false
+
+inl take_first forall t. (n : i32) (l : list t) : list t =
+    let rec go (n : i32) (l : list t) : list t =
+        match l with
+        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)
+        | _ => Nil
+    go n l
+
+inl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =
+    match r with
+    | Ok x => f x
+    | Error e => Error e
+
+inl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
+
+///> zig
+test take_first_stops_at_the_limit =
+    inl ~n = 2i32
+    [1i32; 2; 3] |> take_first n |> listm.length |> _assert_eq 2i32
+
+///> zig
+test then_ok_stops_at_the_first_error =
+    inl ~e = "no"
+    Error e |> then_ok (fun (x : i32) => Ok (x + 1)) |> _assert_eq (Error "no")
+
+///> zig
+test keep_and_first_where_agree =
+    inl ~n = 2i32
+    inl l = [1i32; 2; 3; 4]
+    keep (fun x => x > n) l |> listm.length |> _assert_eq 2i32
+    first_where (fun x => x > n) l |> _assert_eq (Some 3i32)

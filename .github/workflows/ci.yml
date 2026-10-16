@@ -1,0 +1,65 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  xc-windows:
+    timeout-minutes: 30
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: moonrepo/setup-rust@v1
+        with:
+          channel: "stable"
+
+      - run: cargo build --release --package client
+
+      - run: |
+          $help = & target/release/xc.exe --help
+          if ($LASTEXITCODE -ne 0 -or !($help -match '^usage: xc timeline')) { throw "xc.exe --help failed: $help" }
+        shell: pwsh
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: xc-windows
+          path: target/release/xc.exe
+          if-no-files-found: error
+
+  build:
+    timeout-minutes: 120
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: moonrepo/setup-rust@v1
+        with:
+          channel: "stable"
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27"
+          elixir-version: "1.18"
+          gleam-version: "1.19.1"
+          rebar3-version: '3.24.0'
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.17.0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12.10"
+
+      - run: pwsh scripts/workflow.ps1

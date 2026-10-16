@@ -1,0 +1,245 @@
+///- --package .
+test posts static =
+    open testing
+
+open sm'_operators
+open prelude
+
+type account = {id : string; handle : string}
+
+type accounts = list account
+
+union ref_kind =
+    | Quoted
+    | RepliedTo
+    | Reposted
+
+type reference = {kind : ref_kind; id : string}
+
+type link = {short : string; expanded : string; title : string}
+
+type medium = {key : string; kind : string; alt : string}
+
+type post =
+    {id : string; author_id : string; author_handle : string; created_at : string; text : string;
+     refs : list reference; links : list link; media_keys : list string}
+
+type pool = {posts : list post; media_items : list medium; authors : accounts}
+
+inl empty_pool () : pool = {posts = Nil; media_items = Nil; authors = Nil}
+
+inl merge_pools (a : pool) (b : pool) : pool =
+    {posts = listm.append a.posts b.posts; media_items = listm.append a.media_items b.media_items; authors = listm.append a.authors b.authors}
+
+inl ref_kind_of (text : string) : option ref_kind =
+    if text = "quoted" then Some Quoted
+    elif text = "replied_to" then Some RepliedTo
+    elif text = "reposted" || text = "retweeted" then Some Reposted
+    else None
+
+inl ref_label (k : ref_kind) : string =
+    match k with
+    | Quoted => "quoted"
+    | RepliedTo => "replying to"
+    | Reposted => "reposted"
+
+inl second_of (stamp : string) : string =
+    if sm'.length stamp < 19i32 then stamp else sm'.slice 0i32 18i32 stamp
+
+inl later_id (a : string) (b : string) : bool =
+    inl la : i32 = sm'.length a
+    inl lb : i32 = sm'.length b
+    if la <> lb then la > lb else comp a b |> gt_is
+
+inl newer (a : post) (b : post) : bool =
+    inl sa = second_of a.created_at
+    inl sb = second_of b.created_at
+    if sa <> sb then comp sa sb |> gt_is else later_id a.id b.id
+
+let rec merge_newest (a : list post) (b : list post) : list post =
+    match a, b with
+    | Nil, _ => b
+    | _, Nil => a
+    | Cons (x, xs), Cons (y, ys) =>
+        if newer x y then Cons (x, merge_newest xs b)
+        else Cons (y, merge_newest a ys)
+
+let rec halves (l : list post) : list post * list post =
+    match l with
+    | Cons (x, Cons (y, rest)) =>
+        inl left, right = halves rest
+        Cons (x, left), Cons (y, right)
+    | _ => l, Nil
+
+let rec newest_first (l : list post) : list post =
+    match l with
+    | Nil | Cons (_, Nil) => l
+    | _ =>
+        inl left, right = halves l
+        merge_newest (newest_first left) (newest_first right)
+
+type tally = {seen : list (string * i32); kept : list post}
+
+inl count_of_author (author : string) (seen : list (string * i32)) : i32 =
+    match first_where (fun (a, _) => a = author) seen with
+    | Some (_, n) => n
+    | None => 0
+
+inl counted (author : string) (seen : list (string * i32)) : list (string * i32) =
+    Cons ((author, count_of_author author seen + 1), keep (fun (a, _) => a <> author) seen)
+
+inl tally_step (cap : i32) (t : tally) (p : post) : tally =
+    if count_of_author p.author_handle t.seen >= cap then t
+    else {seen = counted p.author_handle t.seen; kept = Cons (p, t.kept)}
+
+inl per_author (cap : i32) (l : list post) : list post =
+    if cap <= 0 then l
+    else listm.fold (tally_step cap) {seen = Nil; kept = Nil} l |> fun t => listm.rev t.kept
+
+inl single_line (text : string) : string =
+    text
+    |> sm'.replace "\r\n" " "
+    |> sm'.replace "\n" " "
+    |> sm'.replace "\r" " "
+
+inl expand_links (links : list link) (text : string) : string =
+    listm.fold (fun t (l : link) => if l.expanded = "" then t else sm'.replace l.short l.expanded t) text links
+
+let shown_text (p : post) : string = p.text |> expand_links p.links |> single_line
+
+inl minute_of (at : string) : string =
+    if sm'.length at < 16i32 then at
+    else sm'.slice 0i32 9i32 at ++# " " ++# sm'.slice 11i32 15i32 at
+
+let render_post (p : post) : string =
+    minute_of p.created_at ++# "  @" ++# p.author_handle ++# "  " ++# shown_text p
+
+inl indent (level : i32) : string =
+    listm.fold (fun s _ => s ++# "  ") "" (listm.init level id)
+
+inl medium_hint (pl : pool) (key : string) : string =
+    match first_where (fun (m : medium) => m.key = key) pl.media_items with
+    | Some m when m.alt <> "" => "[" ++# m.kind ++# "] " ++# single_line m.alt
+    | Some m => "[" ++# m.kind ++# "]"
+    | None => "[media]"
+
+inl link_hints (p : post) : list string =
+    p.links |> keep (fun (l : link) => l.title <> "") |> each (fun (l : link) => "[link] " ++# single_line l.title)
+
+let hint_lines (pl : pool) (level : i32) (p : post) : list string =
+    listm.append (p.media_keys |> each (medium_hint pl)) (link_hints p) |> each (fun h => indent level ++# h)
+
+inl author_of (pl : pool) (p : post) : string =
+    if p.author_handle <> "" then p.author_handle
+    else
+        match first_where (fun (a : account) => a.id = p.author_id) pl.authors with
+        | Some a => a.handle
+        | None => "user " ++# p.author_id
+
+let ref_line (pl : pool) (level : i32) (kind : ref_kind) (p : post) : string =
+    indent level ++# "> " ++# ref_label kind ++# " @" ++# author_of pl p ++# ": " ++# shown_text p
+
+inl find_post (pl : pool) (id : string) : option post = first_where (fun (p : post) => p.id = id) pl.posts
+
+inl missing_ref (level : i32) (r : reference) : string =
+    indent level ++# "> " ++# ref_label r.kind ++# " a post not loaded (" ++# r.id ++# ")"
+
+type view_options = {depth : i32; hints : bool}
+
+let rec post_lines (pl : pool) (o : view_options) (level : i32) (p : post) : list string =
+    inl hints = if o.hints then hint_lines pl (level + 1) p else Nil
+    if level >= o.depth then hints else listm.append hints (spread (ref_lines pl o level) p.refs)
+
+and let ref_lines (pl : pool) (o : view_options) (level : i32) (r : reference) : list string =
+    match find_post pl r.id with
+    | Some p => Cons (ref_line pl (level + 1) r.kind p, post_lines pl o (level + 1) p)
+    | None => [missing_ref (level + 1) r]
+
+inl reposted_id (p : post) : option string =
+    match p.refs with
+    | Cons ({kind id}, Nil) =>
+        match kind with
+        | Reposted => Some id
+        | _ => None
+    | _ => None
+
+inl original_of (pl : pool) (o : view_options) (p : post) : option post =
+    match reposted_id p with
+    | Some id when o.depth > 0 => find_post pl id
+    | _ => None
+
+inl repost_line (pl : pool) (p : post) (q : post) : string =
+    minute_of p.created_at ++# "  @" ++# p.author_handle ++# "  reposted @" ++# author_of pl q ++# ": " ++# shown_text q
+
+let entry_lines (pl : pool) (o : view_options) (p : post) : list string =
+    match original_of pl o p with
+    | Some q => Cons (repost_line pl p q, post_lines pl o 0 q)
+    | None => Cons (render_post p, post_lines pl o 0 p)
+
+type selection = {limit : i32; per_author : i32}
+
+let selected (s : selection) (l : list post) : list post =
+    l |> newest_first |> per_author s.per_author |> take_first s.limit
+
+inl at (id : string) (who : string) (stamp : string) : post =
+    {id author_id = "u" ++# who; author_handle = who; created_at = stamp; text = "t" ++# id; refs = Nil; links = Nil; media_keys = Nil}
+
+inl citing (kind : ref_kind) (target : string) (p : post) : post = {p with refs = [{kind id = target}]}
+
+inl quote_chain () : post * pool =
+    inl c = at "3" "c" "07:00"
+    inl b = at "2" "b" "08:00" |> citing Quoted "3"
+    inl a = at "1" "a" "09:00" |> citing RepliedTo "2"
+    inl e = empty_pool ()
+    a, {e with posts = [a; b; c]}
+
+inl ids (l : list post) : string =
+    l |> each (fun (p : post) => p.id) |> sm'.concat_list ","
+
+///> zig
+test newest_first_orders_by_time =
+    inl ~early = "2026-10-15T08:00:00.000Z"
+    [at "1" "a" early; at "2" "b" "2026-10-15T09:30:00Z"] |> newest_first |> ids |> _assert_eq "2,1"
+
+///> zig
+test same_second_orders_newer_id_first_across_formats =
+    inl ~stamp = "2026-10-15T09:30:00.000Z"
+    [at "9" "a" stamp; at "10" "b" "2026-10-15T09:30:00Z"; at "8" "c" stamp]
+    |> newest_first |> ids |> _assert_eq "10,9,8"
+
+///> zig
+test per_author_keeps_quiet_accounts_visible =
+    inl ~cap = 1i32
+    inl loud = [at "5" "loud" "09:05"; at "4" "loud" "09:04"]
+    Cons (at "1" "quiet" "08:00", loud)
+    |> selected {limit = 2; per_author = cap} |> ids |> _assert_eq "5,1"
+
+///> zig
+test links_are_expanded_and_lines_flattened =
+    inl ~short = "s1"
+    inl p = at "1" "b" "09:05"
+    render_post {p with text = "read\nthis " ++# short; links = [{short; expanded = "long1"; title = ""}]}
+    |> _assert_eq ("09:05  @" ++# "b  read this long1")
+
+///> zig
+test references_nest_to_the_requested_depth =
+    inl ~depth = 2i32
+    inl a, pl = quote_chain ()
+    entry_lines pl {depth hints = false} a |> listm.length |> _assert_eq 3i32
+
+///> zig
+test missing_posts_are_named =
+    inl ~depth = 1i32
+    inl a = at "1" "a" "09:00" |> citing Reposted "77"
+    entry_lines (empty_pool ()) {depth hints = false} a |> sm'.concat_list "|"
+    |> _assert_eq ("09:00  @" ++# "a  t1|  > reposted a post not loaded (77)")
+
+///> zig
+test a_repost_shows_its_original_once =
+    inl ~depth = 1i32
+    inl q = at "2" "orig" "08:00"
+    inl r0 = at "3" "fan" "09:00"
+    inl r = {r0 with text = "RT @" ++# "orig: trunc"} |> citing Reposted "2"
+    inl e = empty_pool ()
+    entry_lines {e with posts = [r; q]} {depth hints = false} r |> sm'.concat_list "|"
+    |> _assert_eq ("09:00  @" ++# "fan  reposted @" ++# "orig: t2")

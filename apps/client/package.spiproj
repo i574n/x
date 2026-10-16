@@ -1,0 +1,12 @@
+edition: 3
+packageDir: ../../../spiral/lib
+packages:
+    |core-
+    spiral-
+modules:
+    prelude
+    posts
+    cli
+    oauth1
+    x_api
+    client

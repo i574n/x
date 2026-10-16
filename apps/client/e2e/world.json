@@ -1,0 +1,107 @@
+{
+    "token": "e2e-token-7f3a91",
+    "user_token": "e2e-user-token-55c2",
+    "oauth1": {"consumer_key": "e2e-consumer-key", "consumer_secret": "e2e-consumer-secret", "token": "110-e2e-access-token", "token_secret": "e2e-access-token-secret"},
+    "following_page_size": 2,
+    "users": [
+        {
+            "id": "101",
+            "name": "Alice",
+            "username": "alice",
+            "posts": [
+                {"id": "1001", "created_at": "2026-10-15T08:00:00.000Z", "text": "morning run done"},
+                {"id": "1002", "created_at": "2026-10-15T12:30:00.000Z", "text": "lunch: ramen"},
+                {"id": "1003", "created_at": "2026-10-14T21:10:00.000Z", "text": "reading about typed effects https://t.co/fx1",
+                 "urls": [{"url": "https://t.co/fx1", "expanded_url": "https://example.org/effects", "display_url": "example.org/effects", "title": "Typed effects, explained"}]}
+            ]
+        },
+        {
+            "id": "102",
+            "name": "Bob",
+            "username": "bob",
+            "posts": [
+                {"id": "2001", "created_at": "2026-10-15T09:45:00.000Z", "text": "shipped v2\nrelease notes soon",
+                 "media": [{"media_key": "3_2001", "type": "photo", "alt_text": "release dashboard"}]},
+                {"id": "2002", "created_at": "2026-10-15T12:30:00.000Z", "text": "same minute as alice, newer id"},
+                {"id": "2003", "created_at": "2026-10-15T13:05:00.000Z", "text": "RT @alice: lunch: ramen", "refs": [{"type": "reposted", "id": "1002"}]},
+                {"id": "2004", "created_at": "2026-10-15T13:10:00.000Z", "text": "agreed, ramen wins", "refs": [{"type": "replied_to", "id": "1002"}]}
+            ]
+        },
+        {
+            "id": "103",
+            "name": "Carol",
+            "username": "carol",
+            "following": ["101", "102", "104", "105"],
+            "posts": [
+                {"id": "3001", "created_at": "2026-10-15T07:15:00.000Z", "text": "coffee first"},
+                {"id": "3002", "created_at": "2026-10-15T14:00:00.000Z", "text": "worth reading", "refs": [{"type": "quoted", "id": "2004"}]}
+            ]
+        },
+        {
+            "id": "104",
+            "name": "Dave",
+            "username": "dave",
+            "protected": true
+        },
+        {
+            "id": "105",
+            "name": "Erin",
+            "username": "erin",
+            "posts": [
+                {"id": "5001", "created_at": "2026-10-15T06:00:00.000Z", "text": "erin 1"},
+                {"id": "5002", "created_at": "2026-10-15T06:10:00.000Z", "text": "erin 2"},
+                {"id": "5003", "created_at": "2026-10-15T06:20:00.000Z", "text": "erin 3"},
+                {"id": "5004", "created_at": "2026-10-15T06:30:00.000Z", "text": "erin 4"},
+                {"id": "5005", "created_at": "2026-10-15T06:40:00.000Z", "text": "erin 5"},
+                {"id": "5006", "created_at": "2026-10-15T15:00:00.000Z", "text": "the whole thread", "refs": [{"type": "quoted", "id": "3002"}]}
+            ]
+        },
+        {
+            "id": "106",
+            "name": "Out Of Credits",
+            "username": "broke",
+            "status": 402,
+            "problem_title": "CreditsDepleted",
+            "problem_detail": "Your enrolled account does not have any credits to fulfill this request."
+        },
+        {
+            "id": "107",
+            "name": "Rate Limited",
+            "username": "busy",
+            "status": 429,
+            "problem_title": "Too Many Requests",
+            "problem_detail": "Too Many Requests"
+        },
+        {
+            "id": "108",
+            "name": "Behind A Broken Gateway",
+            "username": "gateway",
+            "plain_status": 502,
+            "plain_body": "Bad Gateway"
+        },
+        {
+            "id": "109",
+            "name": "Never Posted",
+            "username": "quiet",
+            "posts": []
+        },
+        {
+            "id": "110",
+            "name": "Follows Nobody",
+            "username": "loner",
+            "following": [],
+            "posts": [
+                {"id": "10001", "created_at": "2026-10-15T10:00:00.000Z", "text": "nobody to follow yet"}
+            ]
+        },
+        {
+            "id": "111",
+            "name": "Follows A Busy Account",
+            "username": "mixed",
+            "following": ["101", "107", "102"],
+            "posts": [
+                {"id": "11001", "created_at": "2026-10-15T11:00:00.000Z", "text": "reading what i can"}
+            ]
+        }
+    ]
+}

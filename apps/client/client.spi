@@ -1,0 +1,197 @@
+open sm'_operators
+open prelude
+open posts
+open cli
+open oauth1
+open x_api
+
+inl write_line (text : string) : () = $'println\!("{}", !text)'
+
+inl write_error (text : string) : () = $'eprintln\!("{}", !text)'
+
+inl arg_count () : i32 = $'std::env::args().count() as i32'
+
+inl arg_at (i : i32) : string = $'Rc::<str>::from(std::env::args().nth(!i as usize).unwrap_or_default())'
+
+inl args_list () : list string =
+    let rec from (i : i32) (acc : list string) : list string =
+        if i < 1i32 then acc else from (i - 1) (Cons (arg_at i, acc))
+    from (arg_count () - 1) Nil
+
+union outcome =
+    | Shown
+    | ShownHelp
+    | BadUsage
+    | NoKey
+    | ApiFailed
+
+inl exit_code (o : outcome) : i32 =
+    match o with
+    | Shown | ShownHelp => 0i32
+    | BadUsage => 2i32
+    | NoKey => 3i32
+    | ApiFailed => 4i32
+
+type view = {lines : list string; notes : list string; halted : option failure}
+
+inl query_of (r : request) : query = {per = r.per_account; filters = r.filters; depth = r.depth; hints = r.hints}
+
+inl nothing_note (shown : list post) : list string =
+    match shown with
+    | Nil => ["no posts matched"]
+    | _ => Nil
+
+inl options_of (r : request) : view_options = {depth = r.depth; hints = r.hints}
+
+let rendered (r : request) (g : gathered) (pl : pool) : view =
+    inl shown = g.primary |> selected {limit = r.limit; per_author = r.per_author}
+    inl notes = listm.append g.notes (match g.halted with Some _ => Nil | None => nothing_note shown)
+    {lines = shown |> spread (entry_lines pl (options_of r)); notes halted = g.halted}
+
+inl enriched (a : app) (r : request) (g : gathered) : gathered =
+    if r.depth = 0 then g
+    else
+        match deepen a (query_of r) 1i32 (refs_of g.primary) g.pool |> then_ok (name_authors a) with
+        | Ok pl => {g with pool = pl}
+        | Error f => {g with halted = Some f}
+
+inl stopped_early (g : gathered) : bool =
+    match g.halted with
+    | Some _ => true
+    | None => false
+
+let view_of (a : app) (r : request) (l : accounts) (notes : list string) : got view =
+    inl g = gather a (query_of r) l {primary = Nil; pool = empty_pool (); notes; halted = None}
+    inl g = if stopped_early g then g else enriched a r g
+    Ok (rendered r g g.pool)
+
+inl unknown_notes (hs : list string) : list string = hs |> each fun h => "no X account @" ++# h
+
+inl found_view (a : app) (r : request) (u : users_reply) : got view =
+    match u with
+    | users_reply {found unknown} =>
+        match found with
+        | Nil => Error (NoSuchAccount (sm'.concat_list ", @" unknown))
+        | _ => view_of a r found (unknown_notes unknown)
+
+inl accounts_view (a : app) (r : request) (hs : list string) : got view =
+    send a (UsersNamed hs) |> then_ok (found_view a r)
+
+inl home_note (w : account) (followed : accounts) : string =
+    inl n : i32 = listm.length followed
+    "home timeline of @" ++# w.handle ++# " from " ++# sm'.obj_to_string n ++# " followed accounts"
+
+inl followed_view (a : app) (r : request) (w : account) : got view =
+    following_of a r.cap w |> then_ok fun followed => view_of a r (Cons (w, followed)) [home_note w followed]
+
+inl first_found (h : string) (u : users_reply) : got account =
+    match u with
+    | users_reply {found} =>
+        match found with
+        | Cons (w, _) => Ok w
+        | Nil => Error (NoSuchAccount h)
+
+inl home_view (a : app) (r : request) (h : string) : got view =
+    send a (UsersNamed [h]) |> then_ok (first_found h) |> then_ok (followed_view a r)
+
+let timeline_of (a : app) (r : request) : got view =
+    match r.source with
+    | Accounts hs => accounts_view a r hs
+    | FollowingOf h => home_view a r h
+
+let failed (f : failure) : outcome =
+    write_error ("xc: " ++# describe_failure f)
+    ApiFailed
+
+let failed_after (f : failure) : outcome =
+    write_error ("xc: stopped early, showing what was read before: " ++# describe_failure f)
+    ApiFailed
+
+let show (v : view) : outcome =
+    v.notes |> listm.iter fun note => write_error ("xc: " ++# note)
+    v.lines |> listm.iter write_line
+    match v.halted, v.lines with
+    | Some f, Nil => failed f
+    | Some f, _ => failed_after f
+    | None, _ => Shown
+
+inl env_or (name : string) (fallback : string) : string =
+    inl v = env.get_environment_variable name |> sm'.trim
+    if v = "" then fallback else v
+
+inl base_url () : string = env_or "X_API_BASE_URL" "https://api.x.com"
+
+inl missing (name : string) (hint : string) : outcome =
+    write_error ("xc: " ++# name ++# " is not set; " ++# hint)
+    NoKey
+
+inl reported forall t. (show_ok : t -> outcome) (r : got t) : outcome =
+    match r with
+    | Ok v => show_ok v
+    | Error f => failed f
+
+inl bearer_hint () : string = "generate the app's bearer token at https://console.x.com"
+
+inl no_user () : outcome =
+    write_error "xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_ACCESS_TOKEN and"
+    write_error "    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_USER_TOKEN (OAuth 2.0, 2 hours)"
+    NoKey
+
+inl with_app (run : app -> outcome) : outcome =
+    inl token = env_or "X_BEARER_TOKEN" ""
+    if token = "" then missing "X_BEARER_TOKEN" (bearer_hint ()) else run (app_api (base_url ()) token)
+
+inl oauth1_of_env () : oauth1 =
+    {consumer_key = env_or "X_CONSUMER_KEY" ""; consumer_secret = env_or "X_CONSUMER_SECRET" "";
+     token = env_or "X_OAUTH1_ACCESS_TOKEN" ""; token_secret = env_or "X_OAUTH1_ACCESS_TOKEN_SECRET" ""}
+
+inl complete (o : oauth1) : bool =
+    o.consumer_key <> "" && o.consumer_secret <> "" && o.token <> "" && o.token_secret <> ""
+
+inl signed_user (o : oauth1) : api user_context =
+    inl nonce = env_or "XC_OAUTH1_NONCE" (fresh_nonce ())
+    signed_api (base_url ()) o nonce (env_or "XC_OAUTH1_TIMESTAMP" (unix_seconds ()))
+
+inl with_user (run : api user_context -> outcome) : outcome =
+    inl o = oauth1_of_env ()
+    inl token = env_or "X_USER_TOKEN" ""
+    if complete o then run (signed_user o)
+    elif token <> "" then run (user_api (base_url ()) token)
+    else no_user ()
+
+inl posted (c : created_reply) : outcome =
+    match c with
+    | created_reply {id} =>
+        write_line ("posted " ++# id)
+        Shown
+
+inl removed (id : string) (d : deleted_reply) : outcome =
+    match d with
+    | deleted_reply {deleted} =>
+        write_line ((if deleted then "deleted " else "not deleted ") ++# id)
+        if deleted then Shown else ApiFailed
+
+inl rejected (message : string) : outcome =
+    write_error ("xc: " ++# message)
+    write_error (usage ())
+    BadUsage
+
+inl helped () : outcome =
+    write_line (usage ())
+    ShownHelp
+
+inl run_timeline (r : request) : outcome = with_app fun a => timeline_of a r |> reported show
+
+inl run_post (text : string) : outcome = with_user fun a => send_write a (CreatePost text) |> reported posted
+
+inl run_delete (id : string) : outcome = with_user fun a => send_write a (DeletePost id) |> reported (removed id)
+
+let outcome_of (c : command) : outcome =
+    match c with
+    | ShowTimeline r => run_timeline r
+    | PublishPost text => run_post text
+    | RemovePost id => run_delete id
+    | Rejected message => rejected message
+    | ShowHelp => helped ()
+
+inl main () : i32 = args_list () |> parse_args |> outcome_of |> exit_code
