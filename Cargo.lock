@@ -46,17 +46,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
-name = "client"
-version = "0.0.1"
-dependencies = [
- "base64",
- "hmac",
- "serde_json",
- "sha1",
- "ureq",
-]
-
-[[package]]
 name = "cmov"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -513,6 +502,79 @@ name = "windows_x86_64_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
+
+[[package]]
+name = "xc"
+version = "0.0.1"
+dependencies = [
+ "xc_args",
+ "xc_fetch",
+ "xc_net",
+ "xc_refs",
+ "xc_users",
+ "xc_view",
+ "xc_write",
+]
+
+[[package]]
+name = "xc_args"
+version = "0.0.1"
+dependencies = [
+ "xc_checks",
+]
+
+[[package]]
+name = "xc_checks"
+version = "0.0.1"
+
+[[package]]
+name = "xc_fetch"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "xc_net",
+]
+
+[[package]]
+name = "xc_net"
+version = "0.0.1"
+dependencies = [
+ "base64",
+ "hmac",
+ "sha1",
+ "ureq",
+]
+
+[[package]]
+name = "xc_refs"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "xc_net",
+]
+
+[[package]]
+name = "xc_users"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "xc_net",
+]
+
+[[package]]
+name = "xc_view"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "xc_write"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "xc_net",
+]
 
 [[package]]
 name = "zeroize"

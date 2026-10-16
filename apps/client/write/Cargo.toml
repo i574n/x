@@ -1,0 +1,17 @@
+[package]
+name = "xc_write"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "write.spi"
+output = "write.rs"
+
+[lib]
+name = "xc_write"
+path = "write.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+xc_net = { path = "../net" }

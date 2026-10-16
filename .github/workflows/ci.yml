@@ -20,7 +20,7 @@ jobs:
         with:
           channel: "stable"
 
-      - run: cargo build --release --package client
+      - run: cargo build --release --package xc
 
       - run: |
           $help = & target/release/xc.exe --help

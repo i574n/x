@@ -1,0 +1,15 @@
+[package]
+name = "xc_checks"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "checks.spi"
+output = "checks.rs"
+
+[lib]
+name = "xc_checks"
+path = "checks.rs"
+
+[dependencies]

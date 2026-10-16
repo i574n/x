@@ -146,8 +146,11 @@ inl missing_ref (level : i32) (r : reference) : string =
 
 type view_options = {depth : i32; hints : bool}
 
+inl hints_of (pl : pool) (o : view_options) (level : i32) (p : post) : list string =
+    if o.hints then hint_lines pl (level + 1) p else Nil
+
 let rec post_lines (pl : pool) (o : view_options) (level : i32) (p : post) : list string =
-    inl hints = if o.hints then hint_lines pl (level + 1) p else Nil
+    inl hints = hints_of pl o level p
     if level >= o.depth then hints else listm.append hints (spread (ref_lines pl o level) p.refs)
 
 and let ref_lines (pl : pool) (o : view_options) (level : i32) (r : reference) : list string =
@@ -234,12 +237,17 @@ test missing_posts_are_named =
     entry_lines (empty_pool ()) {depth hints = false} a |> sm'.concat_list "|"
     |> _assert_eq ("09:00  @" ++# "a  t1|  > reposted a post not loaded (77)")
 
+inl pool_of (l : list post) : pool =
+    inl e = empty_pool ()
+    {e with posts = l}
+
+inl fan_repost () : post =
+    inl r = at "3" "fan" "09:00"
+    {r with text = "RT @" ++# "orig: trunc"} |> citing Reposted "2"
+
 ///> zig
 test a_repost_shows_its_original_once =
     inl ~depth = 1i32
-    inl q = at "2" "orig" "08:00"
-    inl r0 = at "3" "fan" "09:00"
-    inl r = {r0 with text = "RT @" ++# "orig: trunc"} |> citing Reposted "2"
-    inl e = empty_pool ()
-    entry_lines {e with posts = [r; q]} {depth hints = false} r |> sm'.concat_list "|"
+    inl r = fan_repost ()
+    entry_lines (pool_of [r; at "2" "orig" "08:00"]) {depth hints = false} r |> sm'.concat_list "|"
     |> _assert_eq ("09:00  @" ++# "fan  reposted @" ++# "orig: t2")

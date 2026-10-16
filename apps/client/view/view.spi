@@ -1,0 +1,42 @@
+open sm'_operators
+open prelude
+open posts
+open wire
+
+type rebuilt = {primary : list post; pool : pool}
+
+inl primary_entry (author : string) (doc : json) (r : rebuilt) : rebuilt =
+    match posts_of_doc author doc with
+    | posts_reply {pool primary} => {primary = listm.append primary r.primary; pool = merge_pools r.pool pool}
+
+inl lookup_entry (doc : json) (r : rebuilt) : rebuilt =
+    match posts_of_doc "" doc with
+    | posts_reply {pool} => {r with pool = absorb r.pool pool}
+
+inl users_entry (doc : json) (r : rebuilt) : rebuilt =
+    match users_of_doc doc with
+    | users_reply {found} =>
+        inl pl = r.pool
+        {r with pool = {pl with authors = listm.append pl.authors found}}
+
+let absorb_entry (r : rebuilt) (e : json) : rebuilt =
+    inl role = at_key "role" e
+    inl doc = e |> field "doc"
+    if role = "primary" then primary_entry (at_key "author" e) doc r
+    elif role = "lookup" then lookup_entry doc r
+    else users_entry doc r
+
+inl rebuilt_of (bundle : string) : rebuilt =
+    parse_json bundle |> collect id |> listm.fold absorb_entry {primary = Nil; pool = empty_pool ()}
+
+inl view_lines (r : rebuilt) (shown : list post) (o : view_options) : string =
+    shown |> spread (entry_lines r.pool o) |> sm'.concat_list "\n"
+
+let rendered (bundle : string) (limit : i32) (per_author : i32) (depth : i32) (hints : bool) : string * i32 =
+    inl r = rebuilt_of bundle
+    inl shown = r.primary |> selected {limit per_author}
+    view_lines r shown {depth hints}, listm.length shown
+
+inl main () : i32 =
+    !!!!Export("xc_view", ((fun (bundle, limit, per_author, depth, hints) => rendered bundle limit per_author depth hints) : string * i32 * i32 * i32 * bool -> string * i32))
+    0i32

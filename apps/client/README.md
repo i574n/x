@@ -17,7 +17,7 @@ Download `xc.exe` from the latest run of the `ci` workflow (artifact `xc-windows
 
 ```powershell
 pwsh scripts/init.ps1        # clones spiral beside this repository when missing
-pwsh apps/client/build.ps1   # Spiral -> client.rs -> target/release/xc.exe, then the e2e and the test blocks
+pwsh apps/client/build.ps1   # Spiral -> one Rust crate per entry -> target/release/xc.exe, then the e2e and the test blocks
 Set-Alias xc "$PWD/target/release/xc.exe"
 ```
 
@@ -398,13 +398,29 @@ Where it is going (backlog items in i574n.github/docs/backlog):
 
 ## 7. How it is built
 
+Shared modules, compiled into every crate that opens them:
+
 | Module | Role |
 | --- | --- |
 | `prelude.spi` | list and result helpers |
 | `posts.spi` | posts, references, links and media; newest-first merge sort, per-author caps, reference trees and hints |
-| `cli.spi` | arguments to a typed command (`ShowTimeline`, `PublishPost`, `RemovePost`) with filters and views |
+| `cli.spi` | arguments to a typed command (`ShowTimeline`, `PublishPost`, `RemovePost`) with filters and views; validators arrive as a `checks` record |
 | `oauth1.spi` | OAuth 1.0a: RFC 3986 percent-encoding, the signature base string, HMAC-SHA1 (`hmac`, `sha1`, `base64` crates) |
-| `x_api.spi` | `reads r` and `writes r`, GADTs indexed by their reply, so `send` returns the reply type the request determines; `api app_context` and `api user_context`, so a client built from the app token cannot write; HTTP (`ureq`) and JSON (`serde_json`) primitives; typed failures |
-| `client.spi` | entry: environment, credentials, exit codes, output |
+| `wire.spi` | `reads r` and `writes r`, GADTs indexed by their reply, so a request determines its reply type; `api app_context` and `api user_context`, so a client built from the app token cannot write; JSON (`serde_json`) primitives; typed failures |
+| `transport.spi` | requests through `xc_net`, reply classification, `id:handle` account lines |
 
-Tests: the test blocks of `prelude`, `posts`, `cli` and `x_api` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py`.
+Each entry is one Rust crate, so every generated file stays reviewable (`scripts/gate.ps1` reports generated lines against 1000). Crates exchange strings, numbers and tuples:
+
+| Crate | Entry | Role |
+| --- | --- | --- |
+| `xc_net` | `net/net.spi` | HTTP (`ureq`), OAuth 1.0a headers, nonces and clock |
+| `xc_checks` | `checks/checks.spi` | count, date and handle validators |
+| `xc_args` | `args/args.spi` | process arguments to command fields, usage text |
+| `xc_users` | `users/users.spi` | handle lookup, followed accounts with paging, lookup by id |
+| `xc_fetch` | `fetch/fetch.spi` | each account's posts, with the ids they reference |
+| `xc_refs` | `refs/refs.spi` | referenced posts, level by level up to `--depth` |
+| `xc_write` | `write/write.spi` | posting and deleting with user credentials |
+| `xc_view` | `view/view.spi` | rebuilds posts from the gathered replies, selects and renders them |
+| `xc` | `xc/xc.spi` | entry: environment, credentials, the order of calls, exit codes, output |
+
+Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py`.

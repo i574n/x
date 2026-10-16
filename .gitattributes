@@ -2,4 +2,4 @@
 
 Cargo.lock merge=ours
 
-apps/client/client.rs linguist-generated
+apps/client/*/*.rs linguist-generated

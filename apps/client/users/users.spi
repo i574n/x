@@ -1,0 +1,60 @@
+open sm'_operators
+open prelude
+open posts
+open cli
+open wire
+open transport
+
+type lookup_reply = i32 * string * string * string
+
+type listed = i32 * string * string
+
+inl failed_lookup (f : failure) : lookup_reply = 4i32, "", "", describe_failure f
+
+inl found_lookup (doc : json) : lookup_reply =
+    match users_of_doc doc with
+    | users_reply {found unknown} => 0i32, account_lines found, sm'.concat_list "," unknown, ""
+
+let named (base : string) (bearer : string) (hs : string) : lookup_reply =
+    match get_raw (app_api base bearer) (read_path (UsersNamed (pieces "," hs))) with
+    | Ok (doc, _) => found_lookup doc
+    | Error f => failed_lookup f
+
+inl grown (wanted : i32) (acc : accounts) (doc : json) : accounts * string =
+    match page_of_doc doc with
+    | page_reply {page next} =>
+        inl acc = listm.append acc page
+        acc, (if listm.length acc >= wanted then "" else next)
+
+inl page_path (id : string) (n : i32) (token : string) (acc : accounts) =
+    read_path (FollowedBy (id, page_size (n - listm.length acc), token))
+
+let rec pages (a : app) (id : string) (n : i32) (token : string) (acc : accounts) : got accounts =
+    get_raw a (page_path id n token acc) |> then_ok fun (doc, _) =>
+        inl l, more = grown n acc doc
+        if more = "" then Ok (take_first n l) else pages a id n more l
+
+inl listed_of (r : got accounts) : listed =
+    match r with
+    | Ok l => 0i32, account_lines l, ""
+    | Error f => 4i32, "", describe_failure f
+
+let followed (base : string) (bearer : string) (id : string) (cap : i32) : listed =
+    inl wanted = if cap < 0i32 then 2147483647i32 else cap
+    pages (app_api base bearer) id wanted "" Nil |> listed_of
+
+let by_ids (base : string) (bearer : string) (ids : string) : listed =
+    match get_raw (app_api base bearer) (read_path (UsersById (pieces "," ids))) with
+    | Ok (_, body) => 0i32, body, ""
+    | Error f => 4i32, "", describe_failure f
+
+type asked = string * string * string
+
+inl lookup_exports () : () =
+    !!!!Export("xc_users_named", ((fun (base, bearer, hs) => named base bearer hs) : asked -> lookup_reply))
+    !!!!Export("xc_users_by_ids", ((fun (base, bearer, ids) => by_ids base bearer ids) : asked -> listed))
+
+inl main () : i32 =
+    !!!!Export("xc_users_followed", ((fun (base, bearer, id, cap) => followed base bearer id cap) : string * string * string * i32 -> listed))
+    lookup_exports ()
+    0i32

@@ -8,5 +8,23 @@ modules:
     posts
     cli
     oauth1
-    x_api
-    client
+    wire
+    transport
+    net/
+        net
+    checks/
+        checks
+    args/
+        args
+    users/
+        users
+    fetch/
+        fetch
+    refs/
+        refs
+    write/
+        write
+    view/
+        view
+    xc/
+        xc

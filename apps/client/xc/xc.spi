@@ -1,0 +1,224 @@
+open sm'_operators
+open prelude
+open posts
+open transport
+
+inl write_line (text : string) : () = $'println\!("{}", !text)'
+
+inl write_error (text : string) : () = $'eprintln\!("{}", !text)'
+
+inl env_or (name : string) (fallback : string) : string =
+    inl v = env.get_environment_variable name |> sm'.trim
+    if v = "" then fallback else v
+
+inl env_of (name : string) : string = env_or name ""
+
+inl base_url () : string = env_or "X_API_BASE_URL" "https://api.x.com"
+
+type parsed =
+    i32 * string * bool * string * i32 * i32 * i32 * i32 * string * string * bool * bool * i32 * bool
+
+inl parsed_args () : parsed = $'xc_args::xc_parse_os_args()'
+
+inl usage () : string = $'xc_args::xc_usage()'
+
+inl fresh_nonce () : string = $'xc_net::xc_fresh_nonce()'
+
+inl unix_seconds () : string = $'xc_net::xc_unix_seconds()'
+
+type site = {base : string; bearer : string}
+
+inl users_named (s : site) (hs : string) : i32 * string * string * string =
+    inl {base bearer} = s
+    $'xc_users::xc_users_named(&*!base, &*!bearer, &*!hs)'
+
+inl users_followed (s : site) (id : string) (cap : i32) : i32 * string * string =
+    inl {base bearer} = s
+    $'xc_users::xc_users_followed(&*!base, &*!bearer, &*!id, !cap)'
+
+inl users_by_ids (s : site) (ids : string) : i32 * string * string =
+    inl {base bearer} = s
+    $'xc_users::xc_users_by_ids(&*!base, &*!bearer, &*!ids)'
+
+type window = {per : i32; since : string; until : string; nr : bool; np : bool; depth : i32; hints : bool}
+
+inl window_of (p : parsed) : window =
+    inl _, _, _, _, per, _, _, _, since, until, nr, np, depth, hints = p
+    {per since until nr np depth hints}
+
+type fetch_reply = string * string * string * string * string * string
+
+inl fetch (s : site) (lines : string) (w : window) : fetch_reply =
+    inl {base bearer} = s
+    inl {per since until nr np depth hints} = w
+    $'xc_fetch::xc_fetch(&*!base, &*!bearer, &*!lines, !per, &*!since, &*!until, !nr, !np, !depth, !hints)'
+
+inl fetch_notes (r : fetch_reply) : string =
+    inl _, notes, _, _, _, _ = r
+    notes
+
+type refs_reply = string * string * string
+
+inl refs (s : site) (r : fetch_reply) (w : window) : refs_reply =
+    inl {base bearer} = s
+    inl _, _, _, ids, authors, named = r
+    inl {depth hints} = w
+    $'xc_refs::xc_refs(&*!base, &*!bearer, &*!ids, &*!authors, &*!named, !depth, !hints)'
+
+type keys = {ck : string; cs : string; t : string; ts : string; token : string}
+
+type order = {base : string; nonce : string; stamp : string; kind : i32; payload : string}
+
+inl remote_write (k : keys) (o : order) : i32 * string =
+    inl {ck cs t ts token} = k
+    inl {base nonce stamp kind payload} = o
+    $'xc_write::xc_write(&*!base, &*!token, &*!ck, &*!cs, &*!t, &*!ts, &*!nonce, &*!stamp, !kind, &*!payload)'
+
+inl view (bundle : string) (p : parsed) : string * i32 =
+    inl _, _, _, _, _, limit, per_author, _, _, _, _, _, depth, hints = p
+    $'xc_view::xc_view(&*!bundle, !limit, !per_author, !depth, !hints)'
+
+type plan = {lines : string; notes : string; failure : string}
+
+inl failed_plan (failure : string) : plan = {lines = ""; notes = ""; failure}
+
+inl no_account (hs : string) : string = "no X account @" ++# sm'.replace "," ", @" hs
+
+inl unknown_notes (unknown : string) : string = pieces "," unknown |> each no_account |> sm'.concat_list "\n"
+
+let account_plan (s : site) (hs : string) : plan =
+    inl code, found, unknown, failure = users_named s hs
+    if code <> 0i32 then failed_plan failure
+    elif found = "" then failed_plan (no_account unknown)
+    else {lines = found; notes = unknown_notes unknown; failure = ""}
+
+inl home_note (handle : string) (followed : string) : string =
+    inl n : i32 = pieces "\n" followed |> listm.length
+    "home timeline of @" ++# handle ++# " from " ++# sm'.obj_to_string n ++# " followed accounts"
+
+inl lines_with (found : string) (followed : string) : string =
+    if followed = "" then found else found ++# "\n" ++# followed
+
+inl with_followed (w : account) (found : string) (r : i32 * string * string) : plan =
+    inl code, followed, failure = r
+    if code <> 0i32 then failed_plan failure
+    else {lines = lines_with found followed; notes = home_note w.handle followed; failure = ""}
+
+inl followed_plan (s : site) (found : string) (cap : i32) : plan =
+    inl w = account_of_line found
+    users_followed s w.id cap |> with_followed w found
+
+let home_plan (s : site) (h : string) (cap : i32) : plan =
+    inl code, found, _, failure = users_named s h
+    if code <> 0i32 then failed_plan failure
+    elif found = "" then failed_plan (no_account h)
+    else followed_plan s found cap
+
+inl users_entry (body : string) : string = ",{\"role\":\"users\",\"author\":\"\",\"doc\":" ++# body ++# "}"
+
+inl with_users (s : site) (docs : string) (unnamed : string) : string * string =
+    inl code, body, f = users_by_ids s unnamed
+    if code = 0i32 then docs ++# users_entry body, "" else docs, f
+
+inl joined_docs (a : string) (b : string) : string = if b = "" then a elif a = "" then b else a ++# "," ++# b
+
+inl named_docs (s : site) (docs : string) (r : refs_reply) : string * string =
+    inl more, failure, unnamed = r
+    inl docs = joined_docs docs more
+    if failure <> "" || unnamed = "" then docs, failure else with_users s docs unnamed
+
+let referenced_docs (s : site) (r : fetch_reply) (w : window) : string * string =
+    inl docs, _, failure, _, _, _ = r
+    if failure <> "" || w.depth = 0i32 then docs, failure else named_docs s docs (refs s r w)
+
+inl lines_of (text : string) : () =
+    if text <> "" then write_line text
+
+inl notes_of (text : string) : () =
+    if text <> "" then text |> sm'.replace "\n" "\nxc: " |> fun t => write_error ("xc: " ++# t)
+
+inl both_notes (a : string) (b : string) : string = if a = "" then b elif b = "" then a else a ++# "\n" ++# b
+
+inl failed (message : string) : i32 =
+    write_error ("xc: " ++# message)
+    4i32
+
+inl closing (failure : string) (shown : i32) : i32 =
+    if failure = "" then 0i32
+    elif shown = 0i32 then failed failure
+    else failed ("stopped early, showing what was read before: " ++# failure)
+
+inl nothing_note (failure : string) (shown : i32) : () =
+    if failure = "" && shown = 0i32 then write_error "xc: no posts matched"
+
+inl gathered (s : site) (pl : plan) (w : window) : string * string * string =
+    inl r = fetch s pl.lines w
+    inl docs, failure = referenced_docs s r w
+    docs, failure, both_notes pl.notes (fetch_notes r)
+
+let shown_timeline (s : site) (pl : plan) (p : parsed) : i32 =
+    inl docs, failure, notes = gathered s pl (window_of p)
+    inl text, shown = view ("[" ++# docs ++# "]") p
+    notes_of notes
+    nothing_note failure shown
+    lines_of text
+    closing failure shown
+
+inl missing_bearer () : i32 =
+    write_error "xc: X_BEARER_TOKEN is not set; generate the app's bearer token at https://console.x.com"
+    3i32
+
+inl site_plan (s : site) (p : parsed) : plan =
+    inl _, _, following, hs, _, _, _, cap, _, _, _, _, _, _ = p
+    if following then home_plan s hs cap else account_plan s hs
+
+let run_timeline (p : parsed) : i32 =
+    inl s = {base = base_url (); bearer = env_of "X_BEARER_TOKEN"}
+    if s.bearer = "" then missing_bearer ()
+    else
+        inl pl = site_plan s p
+        if pl.failure <> "" then failed pl.failure else shown_timeline s pl p
+
+inl no_user () : i32 =
+    write_error "xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_ACCESS_TOKEN and"
+    write_error "    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_USER_TOKEN (OAuth 2.0, 2 hours)"
+    3i32
+
+inl reported (r : i32 * string) : i32 =
+    inl code, message = r
+    if code = 0i32 then write_line message else write_error ("xc: " ++# message)
+    code
+
+inl user_keys () : keys =
+    inl ck, cs = env_of "X_CONSUMER_KEY", env_of "X_CONSUMER_SECRET"
+    {ck cs t = env_of "X_OAUTH1_ACCESS_TOKEN"; ts = env_of "X_OAUTH1_ACCESS_TOKEN_SECRET"; token = ""}
+
+inl signed (k : keys) : bool = k.ck <> "" && k.cs <> "" && k.t <> "" && k.ts <> ""
+
+inl with_user_token (k : keys) : keys = if signed k then k else {k with token = env_of "X_USER_TOKEN"}
+
+inl order_of (kind : i32) (payload : string) : order =
+    inl nonce = env_or "XC_OAUTH1_NONCE" (fresh_nonce ())
+    {nonce kind payload base = base_url (); stamp = env_or "XC_OAUTH1_TIMESTAMP" (unix_seconds ())}
+
+let run_write (kind : i32) (payload : string) : i32 =
+    inl k = user_keys () |> with_user_token
+    if not (signed k) && k.token = "" then no_user ()
+    else remote_write k (order_of kind payload) |> reported
+
+inl rejected (message : string) : i32 =
+    write_error ("xc: " ++# message)
+    write_error (usage ())
+    2i32
+
+inl helped () : i32 =
+    write_line (usage ())
+    0i32
+
+inl main () : i32 =
+    inl p = parsed_args ()
+    inl kind, payload, _, _, _, _, _, _, _, _, _, _, _, _ = p
+    if kind = 0i32 then run_timeline p
+    elif kind = 1i32 || kind = 2i32 then run_write kind payload
+    elif kind = 4i32 then rejected payload
+    else helped ()

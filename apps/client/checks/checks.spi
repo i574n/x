@@ -1,0 +1,23 @@
+open sm'_operators
+open prelude
+open cli
+
+inl count_or_none (t : string) : i32 =
+    match count_of_text t with
+    | Some n => n
+    | None => -1i32
+
+inl text_or_empty (o : option string) : string =
+    match o with
+    | Some s => s
+    | None => ""
+
+inl date_or_empty (t : string) : string = text_or_empty (date_of_text t)
+
+inl handle_or_empty (t : string) : string = text_or_empty (handle_of_text t)
+
+inl main () : i32 =
+    !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
+    !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
+    !!!!Export("xc_handle", ((fun t => handle_or_empty t) : string -> string))
+    0i32

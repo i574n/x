@@ -1,0 +1,76 @@
+open sm'_operators
+open prelude
+open posts
+open cli
+open wire
+open transport
+
+type slim = {id : string; author_id : string; refs : list string}
+
+inl slim_of (v : json) : slim =
+    {id = at_key "id" v; author_id = at_key "author_id" v; refs = v |> field "referenced_posts" |> collect (at_key "id")}
+
+type gathered = {primary : list slim; extra : list slim; named : list string; notes : list string; failure : string; bodies : list string}
+
+inl entry (role : string) (author : string) (body : string) : string =
+    "{\"role\":\"" ++# role ++# "\",\"author\":\"" ++# author ++# "\",\"doc\":" ++# body ++# "}"
+
+inl named_ids (inc : json) : list string = inc |> field "users" |> named_accounts |> each (fun (a : account) => a.id)
+
+inl absorb_doc (doc : json) (g : gathered) : gathered =
+    inl inc = doc |> field "includes"
+    {g with extra = listm.append g.extra (inc |> field "posts" |> collect slim_of); named = listm.append g.named (named_ids inc)}
+
+inl note_skip (w : account) (why : string) (g : gathered) : gathered =
+    {g with notes = listm.append g.notes ["skipped @" ++# w.handle ++# ": " ++# why]}
+
+inl with_doc (w : account) (body : string) (g : gathered) : gathered =
+    {g with bodies = listm.append g.bodies [entry "primary" w.handle body]}
+
+inl with_data (w : account) (doc : json) (data : list slim) (g : gathered) : gathered =
+    inl skipped = first_error doc
+    match data with
+    | Nil when skipped <> "" => note_skip w skipped g
+    | _ => absorb_doc doc {g with primary = listm.append data g.primary}
+
+let add_primary (w : account) (doc : json) (body : string) (g : gathered) : gathered =
+    inl data = doc |> field "data" |> collect slim_of
+    with_doc w body g |> with_data w doc data
+
+inl posts_of (a : app) (q : query) (w : account) = get_raw a (read_path (PostsOf (w, q)))
+
+inl failed_with (f : failure) (g : gathered) : gathered = {g with failure = describe_failure f}
+
+let rec gather (a : app) (q : query) (l : accounts) (g : gathered) : gathered =
+    match l with
+    | Nil => g
+    | Cons (w, rest) =>
+        match posts_of a q w with
+        | Ok (doc, body) => gather a q rest (add_primary w doc body g)
+        | Error f => failed_with f g
+
+inl csv (l : list string) : string = sm'.concat_list "," l
+
+type fetch_reply = string * string * string * string * string * string
+
+inl empty_gathered () : gathered = {primary = Nil; extra = Nil; named = Nil; notes = Nil; failure = ""; bodies = Nil}
+
+inl ref_ids (g : gathered) : string = g.primary |> spread (fun (p : slim) => p.refs) |> csv
+
+inl extra_authors (g : gathered) : string = g.extra |> each (fun (p : slim) => p.author_id) |> csv
+
+inl reply_of (g : gathered) : fetch_reply =
+    csv g.bodies, sm'.concat_list "\n" g.notes, g.failure, ref_ids g, extra_authors g, csv g.named
+
+let fetched (base : string) (bearer : string) (lines : string) (q : query) : fetch_reply =
+    gather (app_api base bearer) q (accounts_of_lines lines) (empty_gathered ()) |> reply_of
+
+type fetch_args = string * string * string * i32 * string * string * bool * bool * i32 * bool
+
+inl fetched_of (x : fetch_args) : fetch_reply =
+    inl base, bearer, lines, per, since, until, nr, np, depth, hints = x
+    fetched base bearer lines {per filters = {since until no_replies = nr; no_reposts = np}; depth hints}
+
+inl main () : i32 =
+    !!!!Export("xc_fetch", ((fun x => fetched_of x) : fetch_args -> fetch_reply))
+    0i32

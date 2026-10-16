@@ -1,0 +1,68 @@
+///- --package .
+test transport static =
+    open testing
+
+open sm'_operators
+open prelude
+open posts
+open oauth1
+open wire
+
+inl net_send (m : string) (u : string) (a : string) (b : string) : i32 * string =
+    $'xc_net::xc_send(&*!m, &*!u, &*!a, &*!b)'
+
+inl net_header (o : oauth1) (m : string) (u : string) (nonce : string) (stamp : string) : string =
+    inl ck, cs, t, ts = o.consumer_key, o.consumer_secret, o.token, o.token_secret
+    $'xc_net::xc_oauth1_header(&*!ck, &*!cs, &*!t, &*!ts, &*!m, &*!u, &*!nonce, &*!stamp)'
+
+inl header_for (a : authorizer) (method : string) (url : string) : string =
+    match a with
+    | BearerToken t => "Bearer " ++# t
+    | Signed (o, nonce, stamp) => net_header o method url nonce stamp
+
+type fetched = json * string
+
+let raw_reply (e : endpoint) (v : verb) (resource : string) : got fetched =
+    inl url = e.base ++# resource
+    inl m = method_of v
+    inl status, body = net_send m url (header_for e.auth m url) (body_of_verb v)
+    classify resource status body |> map_ok fun doc => doc, body
+
+inl bearer_of (a : authorizer) : string = match a with BearerToken t => "Bearer " ++# t | Signed _ => ""
+
+let app_reply (e : endpoint) (resource : string) : got fetched =
+    inl url = e.base ++# resource
+    inl status, body = net_send "GET" url (bearer_of e.auth) ""
+    classify resource status body |> map_ok fun doc => doc, body
+
+inl get_raw (a : app) (resource : string) : got fetched =
+    match a with
+    | api e => app_reply e resource
+
+let rec split_on (sep : string) (s : string) : list string =
+    inl i : i32 = sm'.index_of sep s
+    if i < 0i32 then [s]
+    else Cons (sm'.substring 0i32 i s, split_on sep (sm'.substring (i + 1i32) (sm'.length s - i - 1i32) s))
+
+inl pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_on sep s
+
+inl account_line (a : account) : string = a.id ++# ":" ++# a.handle
+
+inl account_lines (l : accounts) : string = l |> each account_line |> sm'.concat_list "\n"
+
+inl account_of_line (line : string) : account =
+    inl i : i32 = sm'.index_of ":" line
+    {id = sm'.substring 0i32 i line; handle = sm'.substring (i + 1i32) (sm'.length line - i - 1i32) line}
+
+inl accounts_of_lines (s : string) : accounts = pieces "\n" s |> each account_of_line
+
+///> zig
+test account_lines_round_trip =
+    inl ~h = "bob"
+    [{id = "1"; handle = "alice"}; {id = "22"; handle = h}] |> account_lines |> accounts_of_lines |> account_lines
+    |> _assert_eq "1:alice\n22:bob"
+
+///> zig
+test pieces_of_nothing_are_none =
+    inl ~s = ""
+    pieces "," s |> listm.length |> _assert_eq 0i32

@@ -1,0 +1,66 @@
+open sm'_operators
+open oauth1
+
+nominal http_reply = $'(u16, std::rc::Rc<str>)'
+
+nominal bodiless = $'ureq::RequestBuilder<ureq::typestate::WithoutBody>'
+
+nominal bodied = $'ureq::RequestBuilder<ureq::typestate::WithBody>'
+
+inl get_builder (url : string) (auth : string) : bodiless =
+    $'ureq::get(&*!url).header("Authorization", &*!auth)'
+
+inl delete_builder (url : string) (auth : string) : bodiless =
+    $'ureq::delete(&*!url).header("Authorization", &*!auth)'
+
+inl post_builder (url : string) (auth : string) : bodied =
+    $'ureq::post(&*!url).header("Authorization", &*!auth).header("Content-Type", "application/json")'
+
+inl patient (g : bodiless) : bodiless =
+    $'!g.config().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(30))).build()'
+
+inl patient_bodied (g : bodied) : bodied =
+    $'!g.config().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(30))).build()'
+
+inl call_reply (g : bodiless) : http_reply =
+    $'match ureq::RequestBuilder::call(!g) { Ok(mut r) => (r.status().as_u16(), Rc::<str>::from(r.body_mut().read_to_string().unwrap_or_default())), Err(e) => (0u16, Rc::<str>::from(e.to_string())) }'
+
+inl send_reply (g : bodied) (body : string) : http_reply =
+    $'match ureq::RequestBuilder::send(!g, &*!body) { Ok(mut r) => (r.status().as_u16(), Rc::<str>::from(r.body_mut().read_to_string().unwrap_or_default())), Err(e) => (0u16, Rc::<str>::from(e.to_string())) }'
+
+inl status_of (r : http_reply) : i32 = $'!r.0 as i32'
+
+inl body_of (r : http_reply) : string = $'!r.1.clone()'
+
+inl bodiless_reply (method : string) (url : string) (auth : string) : http_reply =
+    if method = "DELETE" then delete_builder url auth |> patient |> call_reply
+    else get_builder url auth |> patient |> call_reply
+
+inl posted (url : string) (auth : string) (body : string) : http_reply =
+    send_reply (post_builder url auth |> patient_bodied) body
+
+let exchange (method : string) (url : string) (auth : string) (body : string) : i32 * string =
+    inl reply = if method = "POST" then posted url auth body else bodiless_reply method url auth
+    status_of reply, body_of reply
+
+type sent = string * string * string * string
+
+inl sent_of (x : sent) : i32 * string =
+    inl method, url, auth, body = x
+    exchange method url auth body
+
+type signing = string * string * string * string * string * string * string * string
+
+let signed_header (x : signing) : string =
+    inl ck, cs, t, ts, method, url, nonce, stamp = x
+    oauth_header {consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts} method url nonce stamp
+
+inl clock_exports () : () =
+    !!!!Export("xc_fresh_nonce", ((fun () => fresh_nonce ()) : () -> string))
+    !!!!Export("xc_unix_seconds", ((fun () => unix_seconds ()) : () -> string))
+
+inl main () : i32 =
+    !!!!Export("xc_send", ((fun x => sent_of x) : sent -> i32 * string))
+    !!!!Export("xc_oauth1_header", ((fun x => signed_header x) : signing -> string))
+    clock_exports ()
+    0i32

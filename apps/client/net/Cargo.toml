@@ -1,15 +1,18 @@
 [package]
-name = "client"
+name = "xc_net"
 version.workspace = true
 edition.workspace = true
 repository.workspace = true
 
-[[bin]]
-name = "xc"
-path = "client.rs"
+[package.metadata.spiral]
+entry = "net.spi"
+output = "net.rs"
+
+[lib]
+name = "xc_net"
+path = "net.rs"
 
 [dependencies]
-serde_json = { workspace = true }
 ureq = { workspace = true }
 hmac = "0.13"
 sha1 = "0.11"

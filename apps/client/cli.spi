@@ -83,23 +83,31 @@ inl usage () : string =
     inl filters = usage_counts () ++# usage_filters ()
     usage_synopsis () ++# usage_environment () ++# filters ++# usage_views () ++# usage_following ()
 
-inl count_flags () : list (string * flag) =
-    [("--per-account", PerAccount); ("--limit", Limit); ("--per-author", PerAuthor); ("--depth", Depth)]
+union arg_kind =
+    | Switched : switch
+    | Valued : flag
+    | Plain
 
-inl value_flags () : list (string * flag) =
-    [("--max-following", MaxFollowing); ("--following", Following); ("--since", Since); ("--until", Until)]
+inl value_flag_of (text : string) : arg_kind =
+    if text = "--max-following" then Valued MaxFollowing
+    elif text = "--following" then Valued Following
+    elif text = "--since" then Valued Since
+    elif text = "--until" then Valued Until
+    else Plain
 
-inl flag_of (text : string) : option flag =
-    match first_where (fun (n, _) => n = text) (listm.append (count_flags ()) (value_flags ())) with
-    | Some (_, f) => Some f
-    | None => None
+inl flag_of (text : string) : arg_kind =
+    if text = "--per-account" then Valued PerAccount
+    elif text = "--limit" then Valued Limit
+    elif text = "--per-author" then Valued PerAuthor
+    elif text = "--depth" then Valued Depth
+    else value_flag_of text
 
-inl switch_of (text : string) : option switch =
-    if text = "--no-replies" then Some NoReplies
-    elif text = "--no-reposts" then Some NoReposts
-    elif text = "--originals" then Some Originals
-    elif text = "--hints" then Some Hints
-    else None
+inl kind_of (text : string) : arg_kind =
+    if text = "--no-replies" then Switched NoReplies
+    elif text = "--no-reposts" then Switched NoReposts
+    elif text = "--originals" then Switched Originals
+    elif text = "--hints" then Switched Hints
+    else flag_of text
 
 inl digit_at (i : i32) (text : string) : i32 =
     "0123456789" |> sm'.index_of (sm'.slice i i text)
@@ -149,15 +157,13 @@ inl range_of (f : flag) : i32 * i32 =
     | Depth => 0i32, 3i32
     | _ => 1i32, 100000i32
 
+type checks = {count : string -> option i32; instant : string -> option string; handle : string -> option string}
+
+inl pure_checks () : checks = {count = count_of_text; instant = date_of_text; handle = handle_of_text}
+
 inl out_of_range (name : string) (low : i32) (high : i32) (text : string) : string =
     inl range = sm'.obj_to_string low ++# " to " ++# sm'.obj_to_string high
     name ++# " expects a number from " ++# range ++# ", got '" ++# text ++# "'"
-
-let bounded (f : flag) (name : string) (text : string) : result i32 string =
-    inl low, high = range_of f
-    match count_of_text text with
-    | Some n when n >= low && n <= high => Ok n
-    | _ => Error (out_of_range name low high text)
 
 inl with_count (f : flag) (d : draft) (n : i32) : draft =
     match f with
@@ -167,10 +173,16 @@ inl with_count (f : flag) (d : draft) (n : i32) : draft =
     | Depth => {d with depth = n}
     | _ => {d with cap = AtMost n}
 
+let bounded (c : checks) (f : flag) (name : string) (text : string) (d : draft) : result draft string =
+    inl low, high = range_of f
+    match c.count text with
+    | Some n when n >= low && n <= high => Ok (with_count f d n)
+    | _ => Error (out_of_range name low high text)
+
 inl not_a_handle (text : string) : string = "not an X handle: '" ++# text ++# "'"
 
-let with_following (value : string) (d : draft) : step =
-    match handle_of_text value, d.following with
+let with_following (c : checks) (value : string) (d : draft) : step =
+    match c.handle value, d.following with
     | None, _ => Error (not_a_handle value)
     | Some _, Some _ => Error "--following given twice"
     | Some h, None => Ok {d with following = Some h}
@@ -185,19 +197,19 @@ inl dated (g : flag) (at : string) (f : filters) : filters =
     | Since => {f with since = at}
     | _ => {f with until = at}
 
-let with_date (g : flag) (name : string) (value : string) (d : draft) : step =
-    match date_of_text value with
+let with_date (c : checks) (g : flag) (name : string) (value : string) (d : draft) : step =
+    match c.instant value with
     | None => Error (date_expected name value)
     | Some at => Ok (with_filters d (dated g at d.filters))
 
 inl all_following (d : draft) : step = Ok {d with cap = AllFollowing}
 
-let apply_flag (f : flag) (n : string) (v : string) (d : draft) : step =
+let apply_flag (c : checks) (f : flag) (n : string) (v : string) (d : draft) : step =
     match f with
-    | Following => with_following v d
-    | Since | Until => with_date f n v d
+    | Following => with_following c v d
+    | Since | Until => with_date c f n v d
     | MaxFollowing when v = "all" => all_following d
-    | _ => bounded f n v |> map_ok (with_count f d)
+    | _ => bounded c f n v d
 
 inl switched (s : switch) (f : filters) : filters =
     match s with
@@ -205,13 +217,13 @@ inl switched (s : switch) (f : filters) : filters =
     | NoReposts => {f with no_reposts = true}
     | _ => {f with no_replies = true; no_reposts = true}
 
-let apply_switch (s : switch) (d : draft) : draft =
+let apply_switch (s : switch) (d : draft) : step =
     match s with
-    | Hints => {d with hints = true}
-    | _ => with_filters d (switched s d.filters)
+    | Hints => Ok {d with hints = true}
+    | _ => Ok (with_filters d (switched s d.filters))
 
-let with_handle (arg : string) (d : draft) : step =
-    match handle_of_text arg with
+let with_handle (c : checks) (arg : string) (d : draft) : step =
+    match c.handle arg with
     | _ when sm'.starts_with "-" arg => Error ("unknown option " ++# arg)
     | Some h => Ok {d with handles = Cons (h, d.handles)}
     | None => Error (not_a_handle arg)
@@ -238,32 +250,22 @@ let capped (d : draft) : command =
 
 inl is_help (arg : string) : bool = arg = "--help" || arg = "-h" || arg = "help"
 
-union arg_kind =
-    | Switched : switch
-    | Valued : flag
-    | Plain
-
-inl kind_of (a : string) : arg_kind =
-    match switch_of a, flag_of a with
-    | Some s, _ => Switched s
-    | _, Some f => Valued f
-    | _ => Plain
 
 inl needs_value (a : string) : progress = Error (a ++# " needs a value"), Nil
 
-let advance (d : draft) (a : string) (r : args) : progress =
+let advance (c : checks) (d : draft) (a : string) (r : args) : progress =
     match kind_of a, r with
-    | Switched s, _ => Ok (apply_switch s d), r
+    | Switched s, _ => apply_switch s d, r
     | Valued _, Nil => needs_value a
-    | Valued f, Cons (v, more) => apply_flag f a v d, more
-    | Plain, _ => with_handle a d, r
+    | Valued f, Cons (v, r') => apply_flag c f a v d, r'
+    | Plain, _ => with_handle c a d, r
 
-let rec parse_from (d : draft) (args : list string) : command =
+let rec parse_from (c : checks) (d : draft) (args : list string) : command =
     match args with
     | Nil => capped d
     | Cons (arg, rest) =>
-        match advance d arg rest with
-        | Ok d, more => parse_from d more
+        match advance c d arg rest with
+        | Ok d, more => parse_from c d more
         | Error message, _ => Rejected message
 
 inl no_filters () : filters = {since = ""; until = ""; no_replies = false; no_reposts = false}
@@ -281,16 +283,20 @@ inl one_value (name : string) (args : list string) (make : string -> command) : 
     | Cons (value, Nil) when value <> "" => make value
     | _ => Rejected (name ++# " takes exactly one argument")
 
-inl subcommand (sub : string) (rest : args) : command =
-    if sub = "timeline" then parse_from (initial_draft ()) rest
-    elif sub = "post" then one_value sub rest PublishPost
+inl write_command (sub : string) (rest : args) : command =
+    if sub = "post" then one_value sub rest PublishPost
     elif sub = "delete" then one_value sub rest RemovePost
     else Rejected (unknown_command sub)
 
-let parse_args (args : list string) : command =
+inl subcommand (c : checks) (start : draft) (sub : string) (rest : args) : command =
+    if sub = "timeline" then parse_from c start rest else write_command sub rest
+
+let parse_args_with (c : checks) (start : draft) (args : list string) : command =
     match args with
-    | Cons (sub, rest) when not (wants_help args) => subcommand sub rest
+    | Cons (sub, rest) when not (wants_help args) => subcommand c start sub rest
     | _ => ShowHelp
+
+inl parse_args (args : list string) : command = parse_args_with (pure_checks ()) (initial_draft ()) args
 
 inl cap_text (c : following_cap) : string =
     match c with

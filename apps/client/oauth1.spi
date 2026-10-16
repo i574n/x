@@ -59,22 +59,25 @@ inl signature (o : oauth1) (method : string) (url : string) (params : list pair)
 
 inl quoted ((k, v) : pair) : string = percent k ++# "=\"" ++# percent v ++# "\""
 
+inl signed_params (o : oauth1) (method : string) (url : string) (params : list pair) : list pair =
+    listm.append params [("oauth_signature", signature o method url params)]
+
 let oauth_header (o : oauth1) (method : string) (url : string) (nonce : string) (stamp : string) : string =
     inl params = oauth_params o nonce stamp
-    inl signed = listm.append params [("oauth_signature", signature o method url params)]
-    "OAuth " ++# (signed |> each quoted |> sm'.concat_list ", ")
+    "OAuth " ++# (signed_params o method url params |> each quoted |> sm'.concat_list ", ")
 
 inl doc_credentials () : oauth1 =
     {consumer_key = "xvz1evFS4wEEPTGEFPHBog"; consumer_secret = "kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw";
      token = "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb"; token_secret = "LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE"}
 
+inl doc_nonce () : string = "kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg"
+
 inl doc_params () : list pair =
     inl status = "Hello Ladies + Gentlemen, a signed OAuth request!"
-    inl nonce = "kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg"
-    listm.append [("include_entities", "true"); ("status", status)] (oauth_params (doc_credentials ()) nonce "1318622958")
+    listm.append [("include_entities", "true"); ("status", status)] (oauth_params (doc_credentials ()) (doc_nonce ()) "1318622958")
 
 inl doc_base_head () : string =
-    "POST&https%3A%2F%2Fapi.x.com%2F1.1%2Fstatuses%2Fupdate.json&include_entities%3Dtrue%26oauth_consumer_key%3Dxvz1evFS4wEEPTGEFPHBog"
+    "POST&https%3A%2F%2Fapi.x" ++# ".com%2F1.1%2Fstatuses%2Fupdate.json&include_entities%3Dtrue%26oauth_consumer_key%3Dxvz1evFS4wEEPTGEFPHBog"
 
 inl doc_base_middle () : string =
     "%26oauth_nonce%3DkYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1318622958"

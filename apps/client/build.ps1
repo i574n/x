@@ -8,16 +8,23 @@ Assert-SpiralBeside
 . (Join-Path $SpiralRoot 'lib/spiral/lib.ps1')
 Set-Location $PSScriptRoot
 
-if (!(BuildSpiral "client.spi" "client.rs" "x/apps/client")) {
-    throw "RUST-FAILED x/apps/client / compile"
+foreach ($manifest in Get-ChildItem $PSScriptRoot -Recurse -Depth 1 -Filter Cargo.toml) {
+    $text = [IO.File]::ReadAllText($manifest.FullName)
+    if ($text -match '(?m)^\[package\.metadata\.spiral\]\s*\r?\nentry = "([^"]+)"\s*\r?\noutput = "([^"]+)"') {
+        $crate = Split-Path $manifest.DirectoryName -Leaf
+        $entry = Join-Path $manifest.DirectoryName $Matches[1]
+        $output = Join-Path $manifest.DirectoryName $Matches[2]
+        if (!(BuildSpiral $entry $output "x/apps/client/$crate")) { throw "RUST-FAILED x/apps/client/$crate / compile" }
+    }
 }
-{ cargo build --release --package client } | Invoke-Block -Location $XRoot
+{ pwsh -NoProfile -File (Join-Path $XRoot 'scripts/gate.ps1') } | Invoke-Block
+{ cargo build --release } | Invoke-Block -Location $XRoot
 $exe = Join-Path (Get-XCargoTargetDir) "release/xc$(_exe)"
 
 { pwsh -NoProfile -File e2e/e2e.ps1 -Exe $exe -WorkDir (Join-Path (Get-XTargetDir client) 'e2e') } | Invoke-Block
 
 if (!$fast) {
-    Invoke-SpiralTests $PSScriptRoot @("prelude", "posts", "cli", "oauth1", "x_api")
+    Invoke-SpiralTests $PSScriptRoot @("prelude", "posts", "cli", "oauth1", "wire", "transport")
 }
 
 Write-Output "RUST-OK x/apps/client / $exe"

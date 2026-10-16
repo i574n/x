@@ -1,0 +1,37 @@
+open sm'_operators
+open prelude
+open oauth1
+open wire
+open transport
+
+let send_write forall r. (a : api user_context) (q : writes r) : got r =
+    match a with
+    | api e => raw_reply e (write_verb q) (write_path q) |> map_ok fun (doc, _) => decode_write q doc
+
+inl user_side (base : string) (token : string) (o : oauth1) (nonce : string) (stamp : string) : api user_context =
+    if token <> "" then user_api base token else signed_api base o nonce stamp
+
+inl posted (r : got created_reply) : i32 * string =
+    match r with
+    | Ok (created_reply {id}) => 0i32, "posted " ++# id
+    | Error f => 4i32, describe_failure f
+
+inl removed (id : string) (r : got deleted_reply) : i32 * string =
+    match r with
+    | Ok (deleted_reply {deleted}) => if deleted then 0i32, "deleted " ++# id else 4i32, "not deleted " ++# id
+    | Error f => 4i32, describe_failure f
+
+let write (a : api user_context) (kind : i32) (payload : string) : i32 * string =
+    if kind = 1i32 then send_write a (CreatePost payload) |> posted
+    else send_write a (DeletePost payload) |> removed payload
+
+type write_args = string * string * string * string * string * string * string * string * i32 * string
+
+inl written (x : write_args) : i32 * string =
+    inl base, token, ck, cs, t, ts, nonce, stamp, kind, payload = x
+    inl o = {consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts}
+    write (user_side base token o nonce stamp) kind payload
+
+inl main () : i32 =
+    !!!!Export("xc_write", ((fun x => written x) : write_args -> i32 * string))
+    0i32
