@@ -14,15 +14,15 @@ jobs:
     timeout-minutes: 30
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.1.0
 
-      - uses: moonrepo/setup-rust@v1
+      - uses: moonrepo/setup-rust@v1.3.0
         with:
           channel: "stable"
 
       - run: pwsh scripts/workflow.ps1 -Xc
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v5.0.0
         with:
           name: xc-windows
           path: target/release/xc.exe
@@ -36,24 +36,24 @@ jobs:
       matrix:
         os: [ubuntu-24.04, windows-2025]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.1.0
 
-      - uses: moonrepo/setup-rust@v1
+      - uses: moonrepo/setup-rust@v1.3.0
         with:
           channel: "stable"
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@v1.24.1
         with:
           otp-version: "27"
           elixir-version: "1.18"
           gleam-version: "1.19.1"
           rebar3-version: '3.24.0'
 
-      - uses: mlugg/setup-zig@v2
+      - uses: mlugg/setup-zig@v2.2.1
         with:
           version: 0.17.0
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v6.3.0
         with:
           python-version: "3.12.10"
 
