@@ -20,12 +20,7 @@ jobs:
         with:
           channel: "stable"
 
-      - run: cargo build --release --package xc
-
-      - run: |
-          $help = & target/release/xc.exe --help
-          if ($LASTEXITCODE -ne 0 -or !($help -match '^usage: xc timeline')) { throw "xc.exe --help failed: $help" }
-        shell: pwsh
+      - run: pwsh scripts/workflow.ps1 -Xc
 
       - uses: actions/upload-artifact@v5
         with:
