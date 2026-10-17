@@ -279,6 +279,20 @@ fn closure3() -> Rc<dyn Fn() -> Rc<str>> {
         v0.clone()
     }); } CLOSURE.with(|closure| closure.clone())
 }
+fn closure4() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
+        let mut v1: Option<jiff::Timestamp> = v0.parse::<jiff::Timestamp>().ok();
+        let mut v2: Rc<str> = v1.map_or(v0.clone(), |x| Rc::<str>::from(x.to_zoned(jiff::tz::TimeZone::system()).strftime("%Y-%m-%d %H:%M").to_string()));
+        v2.clone()
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn closure5() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
+        let mut v1: Option<jiff::Zoned> = v0.parse::<jiff::civil::Date>().ok().and_then(|d| d.to_zoned(jiff::tz::TimeZone::system()).ok());
+        let mut v2: Rc<str> = v1.map_or({ thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, |x| Rc::<str>::from(x.timestamp().strftime("%Y-%m-%dT%H:%M:%SZ").to_string()));
+        v2.clone()
+    }); } CLOSURE.with(|closure| closure.clone())
+}
 pub fn xc_send(v0: &str, v1: &str, v2: &str, v3: &str) -> (i32, Rc<str>) {
     closure0()(Rc::<str>::from(v0), Rc::<str>::from(v1), Rc::<str>::from(v2), Rc::<str>::from(v3))
 }
@@ -290,4 +304,10 @@ pub fn xc_fresh_nonce() -> Rc<str> {
 }
 pub fn xc_unix_seconds() -> Rc<str> {
     closure3()()
+}
+pub fn xc_local_minute(v0: &str) -> Rc<str> {
+    closure4()(Rc::<str>::from(v0))
+}
+pub fn xc_local_midnight(v0: &str) -> Rc<str> {
+    closure5()(Rc::<str>::from(v0))
 }

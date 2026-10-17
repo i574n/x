@@ -13,3 +13,4 @@ name = "xc_checks"
 path = "checks.rs"
 
 [dependencies]
+xc_net = { path = "../net" }

@@ -55,6 +55,27 @@ let signed_header (x : signing) : string =
     inl ck, cs, t, ts, method, url, nonce, stamp = x
     oauth_header {consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts} method url nonce stamp
 
+nominal instant = $'Option<jiff::Timestamp>'
+
+inl instant_of (stamp : string) : instant = $'!stamp.parse::<jiff::Timestamp>().ok()'
+
+inl local_minute (stamp : string) : string =
+    inl t = instant_of stamp
+    $'!t.map_or(!stamp.clone(), |x| Rc::<str>::from(x.to_zoned(jiff::tz::TimeZone::system()).strftime("%Y-%m-%d %H:%M").to_string()))'
+
+nominal day_start = $'Option<jiff::Zoned>'
+
+inl local_day_start (day : string) : day_start =
+    $'!day.parse::<jiff::civil::Date>().ok().and_then(|d| d.to_zoned(jiff::tz::TimeZone::system()).ok())'
+
+inl local_midnight (day : string) : string =
+    inl z = local_day_start day
+    $'!z.map_or(Rc::<str>::from(""), |x| Rc::<str>::from(x.timestamp().strftime("%Y-%m-%dT%H:%M:%SZ").to_string()))'
+
+inl local_exports () : () =
+    !!!!Export("xc_local_minute", ((fun s => local_minute s) : string -> string))
+    !!!!Export("xc_local_midnight", ((fun d => local_midnight d) : string -> string))
+
 inl clock_exports () : () =
     !!!!Export("xc_fresh_nonce", ((fun () => fresh_nonce ()) : () -> string))
     !!!!Export("xc_unix_seconds", ((fun () => unix_seconds ()) : () -> string))
@@ -63,4 +84,5 @@ inl main () : i32 =
     !!!!Export("xc_send", ((fun x => sent_of x) : sent -> i32 * string))
     !!!!Export("xc_oauth1_header", ((fun x => signed_header x) : signing -> string))
     clock_exports ()
+    local_exports ()
     0i32

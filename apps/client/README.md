@@ -4,7 +4,7 @@
 
 - **Read:** the latest posts of any accounts as one merged timeline, or the home timeline of an account rebuilt from the accounts it follows.
 - **Save money:** date windows and reply/repost filters are sent to the API, so posts you filter out are never returned or billed.
-- **See more per post:** expanded links, photo and video descriptions, link titles, and the posts it quotes, replies to or reposts, down to three levels.
+- **See more per post:** expanded urls, media alt text, url titles, and the posts it quotes, replies to or reposts, down to three levels.
 - **Stay fair:** `--per-author` keeps quiet accounts visible next to busy ones.
 - **Write:** `xc post` and `xc delete`, signed with OAuth 1.0a (keys that never expire) or an OAuth 2.0 user token.
 - **Script it:** errors carry the API's own explanation and stable exit codes (0 shown, 2 usage, 3 missing credentials, 4 API failure, with whatever was read before printed first).
@@ -27,9 +27,9 @@ Set-Alias xc "$PWD/target/release/xc.exe"
 | --- | --- | --- | --- |
 | Reading | `X_BEARER_TOKEN` | App-Only Authentication, Bearer Token | until regenerated |
 | Posting, OAuth 1.0a | `X_CONSUMER_KEY`, `X_CONSUMER_SECRET`, `X_OAUTH1_ACCESS_TOKEN`, `X_OAUTH1_ACCESS_TOKEN_SECRET` | OAuth 1.0 Keys: Consumer Key (API Key and Secret) and Access Token for your account | until regenerated |
-| Posting, OAuth 2.0 | `X_USER_TOKEN` | OAuth 2.0 Keys, Access Token | 2 hours (a refresh token renews it) |
+| Posting, OAuth 2.0 | `X_OAUTH2_ACCESS_TOKEN` | OAuth 2.0 Keys, Access Token | 2 hours (a refresh token renews it) |
 
-When all four OAuth 1.0a values are set, `xc` signs writes with them (HMAC-SHA1); otherwise it uses `X_USER_TOKEN`. The app-only bearer token can never write (the API answers 403). Secrets are only sent as `Authorization` headers to `X_API_BASE_URL` (default `https://api.x.com`) and are never printed.
+When all four OAuth 1.0a values are set, `xc` signs writes with them (HMAC-SHA1); otherwise it uses `X_OAUTH2_ACCESS_TOKEN`. The app-only bearer token can never write (the API answers 403). Secrets are only sent as `Authorization` headers to `X_API_BASE_URL` (default `https://api.x.com`) and are never printed.
 
 Keep them in an env file outside any repository; the `KEY=value` format is what `kubectl create secret generic --from-env-file` reads:
 
@@ -48,37 +48,37 @@ xc --help
 ```
 
 ```text
-usage: xc timeline [options] HANDLE...
-       xc timeline [options] [--max-following N|all] --following HANDLE
-       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_USER_TOKEN)
+usage: xc timeline [options] USERNAME...
+       xc timeline [options] [--max-following N|all] --following USERNAME
+       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts fetched per account, 5..100 (default 5)
        --limit N         timeline entries shown (default 20)
        --per-author N    entries shown per author (default all)
-       --since DATE      posts at or after DATE (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ)
-       --until DATE      posts before DATE
+       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)
+       --end-time DATE   posts before DATE
        --no-replies, --no-reposts, --originals (both)
        --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)
-       --hints           media and link titles under each post
-       --max-following N accounts followed by HANDLE to include, or all (default 20)
+       --hints           media alt text and url titles under each post
+       --max-following N accounts followed by USERNAME to include, or all (default 20)
 ```
 
 ### Timelines of accounts
 
-Several accounts become one timeline, newest first; posts of the same second are ordered by id, the newer first, and `t.co` links are shown expanded. A leading `@` is accepted; quote it in PowerShell, where a bare `@bob` splats the variable `$bob`:
+Several accounts become one timeline, newest first, each post ending with its reply, repost and like counts (the API's `reply_count`, `repost_count`, `like_count`); times are in the time zone of the machine running `xc` (`TZ` overrides it; this walkthrough runs with `TZ=America/Cuiaba`, UTC-4); posts of the same second are ordered by id, the newer first, and `t.co` links are shown expanded. A leading `@` is accepted; quote it in PowerShell, where a bare `@bob` splats the variable `$bob`:
 
 ```powershell
 xc timeline alice '@bob'
 ```
 
 ```text
-2026-10-15 13:10  @bob  agreed, ramen wins
-2026-10-15 13:05  @bob  RT @alice: lunch: ramen
-2026-10-15 12:30  @bob  same minute as alice, newer id
-2026-10-15 12:30  @alice  lunch: ramen
-2026-10-15 09:45  @bob  shipped v2 release notes soon
-2026-10-15 08:00  @alice  morning run done
-2026-10-14 21:10  @alice  reading about typed effects https://example.org/effects
+2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
+2026-10-15 09:05  @bob  RT @alice: lunch: ramen  [0 replies, 0 reposts, 0 likes]
+2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
+2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
+2026-10-15 05:45  @bob  shipped v2 release notes soon  [4 replies, 7 reposts, 31 likes]
+2026-10-15 04:00  @alice  morning run done  [0 replies, 0 reposts, 0 likes]
+2026-10-14 17:10  @alice  reading about typed effects https://example.org/effects  [0 replies, 0 reposts, 0 likes]
 ```
 
 Unknown accounts are reported and skipped; `--limit` cuts the merged list:
@@ -89,8 +89,8 @@ xc timeline --limit 2 alice ghost
 
 ```text
 xc: no X account @ghost
-2026-10-15 12:30  @alice  lunch: ramen
-2026-10-15 08:00  @alice  morning run done
+2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
+2026-10-15 04:00  @alice  morning run done  [0 replies, 0 reposts, 0 likes]
 ```
 
 ### Home timelines
@@ -103,15 +103,15 @@ xc timeline --following carol --max-following 2
 
 ```text
 xc: home timeline of @carol from 2 followed accounts
-2026-10-15 14:00  @carol  worth reading
-2026-10-15 13:10  @bob  agreed, ramen wins
-2026-10-15 13:05  @bob  RT @alice: lunch: ramen
-2026-10-15 12:30  @bob  same minute as alice, newer id
-2026-10-15 12:30  @alice  lunch: ramen
-2026-10-15 09:45  @bob  shipped v2 release notes soon
-2026-10-15 08:00  @alice  morning run done
-2026-10-15 07:15  @carol  coffee first
-2026-10-14 21:10  @alice  reading about typed effects https://example.org/effects
+2026-10-15 10:00  @carol  worth reading  [0 replies, 2 reposts, 5 likes]
+2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
+2026-10-15 09:05  @bob  RT @alice: lunch: ramen  [0 replies, 0 reposts, 0 likes]
+2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
+2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
+2026-10-15 05:45  @bob  shipped v2 release notes soon  [4 replies, 7 reposts, 31 likes]
+2026-10-15 04:00  @alice  morning run done  [0 replies, 0 reposts, 0 likes]
+2026-10-15 03:15  @carol  coffee first  [0 replies, 0 reposts, 0 likes]
+2026-10-14 17:10  @alice  reading about typed effects https://example.org/effects  [0 replies, 0 reposts, 0 likes]
 ```
 
 `--max-following all` reads the whole following list (paged until it ends); protected accounts are skipped with a note, and `--per-author` caps what each author shows so quieter accounts are not pushed out:
@@ -123,10 +123,10 @@ xc timeline --following carol --max-following all --per-author 1
 ```text
 xc: home timeline of @carol from 4 followed accounts
 xc: skipped @dave: Sorry, you are not authorized to see the posts of @dave.
-2026-10-15 15:00  @erin  the whole thread
-2026-10-15 14:00  @carol  worth reading
-2026-10-15 13:10  @bob  agreed, ramen wins
-2026-10-15 12:30  @alice  lunch: ramen
+2026-10-15 11:00  @erin  the whole thread  [0 replies, 0 reposts, 1 like]
+2026-10-15 10:00  @carol  worth reading  [0 replies, 2 reposts, 5 likes]
+2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
+2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
 ```
 
 An account that follows nobody gets a home timeline of its own posts:
@@ -137,36 +137,36 @@ xc timeline --following loner --max-following all
 
 ```text
 xc: home timeline of @loner from 0 followed accounts
-2026-10-15 10:00  @loner  nobody to follow yet
+2026-10-15 06:00  @loner  nobody to follow yet  [0 replies, 0 reposts, 0 likes]
 ```
 
 ### Filters that lower the bill
 
-`--since` and `--until` become the API's `start_time` and `end_time`:
+`--start-time` and `--end-time` are the API's `start_time` and `end_time`; a bare date means midnight in the local time zone:
 
 ```powershell
-xc timeline --since 2026-10-15T12:00:00Z --until 2026-10-15T13:06:00Z bob
+xc timeline --start-time 2026-10-15T12:00:00Z --end-time 2026-10-15T13:06:00Z bob
 ```
 
 ```text
-2026-10-15 13:05  @bob  RT @alice: lunch: ramen
-2026-10-15 12:30  @bob  same minute as alice, newer id
+2026-10-15 09:05  @bob  RT @alice: lunch: ramen  [0 replies, 0 reposts, 0 likes]
+2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
 ```
 
-`--originals` (or `--no-replies`, `--no-reposts`) keeps the authors' own text; `--hints` adds media descriptions and link titles:
+`--originals` (or `--no-replies`, `--no-reposts`) keeps the authors' own text; `--hints` adds media alt text and url titles:
 
 ```powershell
 xc timeline --originals --hints alice bob
 ```
 
 ```text
-2026-10-15 12:30  @bob  same minute as alice, newer id
-2026-10-15 12:30  @alice  lunch: ramen
-2026-10-15 09:45  @bob  shipped v2 release notes soon
+2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
+2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
+2026-10-15 05:45  @bob  shipped v2 release notes soon  [4 replies, 7 reposts, 31 likes]
   [photo] release dashboard
-2026-10-15 08:00  @alice  morning run done
-2026-10-14 21:10  @alice  reading about typed effects https://example.org/effects
-  [link] Typed effects, explained
+2026-10-15 04:00  @alice  morning run done  [0 replies, 0 reposts, 0 likes]
+2026-10-14 17:10  @alice  reading about typed effects https://example.org/effects  [0 replies, 0 reposts, 0 likes]
+  [url] Typed effects, explained
 ```
 
 ### Reference trees
@@ -178,10 +178,10 @@ xc timeline --depth 3 --limit 1 erin
 ```
 
 ```text
-2026-10-15 15:00  @erin  the whole thread
-  > quoted @carol: worth reading
-    > quoted @bob: agreed, ramen wins
-      > replying to @alice: lunch: ramen
+2026-10-15 11:00  @erin  the whole thread  [0 replies, 0 reposts, 1 like]
+  > quoted @carol: worth reading  [0 replies, 2 reposts, 5 likes]
+    > quoted @bob: agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
+      > replied to @alice: lunch: ramen  [2 replies, 1 repost, 14 likes]
 ```
 
 With any depth, a repost shows its original once, in full, instead of the truncated `RT @...` text:
@@ -191,9 +191,9 @@ xc timeline --depth 1 --limit 2 bob
 ```
 
 ```text
-2026-10-15 13:10  @bob  agreed, ramen wins
-  > replying to @alice: lunch: ramen
-2026-10-15 13:05  @bob  reposted @alice: lunch: ramen
+2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
+  > replied to @alice: lunch: ramen  [2 replies, 1 repost, 14 likes]
+2026-10-15 09:05  @bob  reposted @alice: lunch: ramen  [2 replies, 1 repost, 14 likes]
 ```
 
 ### Empty and partial results
@@ -216,17 +216,17 @@ xc timeline --following mixed --max-following all; $LASTEXITCODE
 
 ```text
 xc: home timeline of @mixed from 3 followed accounts
-xc: stopped early, showing what was read before: X API answered 429 for /2/users/107/tweets?max_results=5&post.fields=created_at,author_id,entities,attachments: Too Many Requests
-2026-10-15 12:30  @alice  lunch: ramen
-2026-10-15 11:00  @mixed  reading what i can
-2026-10-15 08:00  @alice  morning run done
-2026-10-14 21:10  @alice  reading about typed effects https://example.org/effects
+xc: stopped early, showing what was read before: X API answered 429 for /2/users/107/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments: Too Many Requests
+2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
+2026-10-15 07:00  @mixed  reading what i can  [0 replies, 0 reposts, 0 likes]
+2026-10-15 04:00  @alice  morning run done  [0 replies, 0 reposts, 0 likes]
+2026-10-14 17:10  @alice  reading about typed effects https://example.org/effects  [0 replies, 0 reposts, 0 likes]
 4
 ```
 
 ### Posting and deleting
 
-With an OAuth 2.0 user token (`X_USER_TOKEN`):
+With an OAuth 2.0 user token (`X_OAUTH2_ACCESS_TOKEN`):
 
 ```powershell
 xc post "hello from xc"
@@ -247,7 +247,7 @@ deleted 9001
 With OAuth 1.0a keys, every write is signed (the stub verifies the HMAC-SHA1 signature with Python's own implementation, which first reproduces X's published example):
 
 ```powershell
-$env:X_USER_TOKEN = $null; $env:X_CONSUMER_KEY = 'e2e-consumer-key'; $env:X_CONSUMER_SECRET = 'e2e-consumer-secret'; $env:X_OAUTH1_ACCESS_TOKEN = '110-e2e-access-token'; $env:X_OAUTH1_ACCESS_TOKEN_SECRET = 'e2e-access-token-secret'; xc post "signed: 100% & done"; xc delete 9002
+$env:X_OAUTH2_ACCESS_TOKEN = $null; $env:X_CONSUMER_KEY = 'e2e-consumer-key'; $env:X_CONSUMER_SECRET = 'e2e-consumer-secret'; $env:X_OAUTH1_ACCESS_TOKEN = '110-e2e-access-token'; $env:X_OAUTH1_ACCESS_TOKEN_SECRET = 'e2e-access-token-secret'; xc post "signed: 100% & done"; xc delete 9002
 ```
 
 ```text
@@ -258,7 +258,7 @@ deleted 9002
 A wrong secret makes the signature invalid:
 
 ```powershell
-$env:X_USER_TOKEN = $null; $env:X_CONSUMER_KEY = 'e2e-consumer-key'; $env:X_CONSUMER_SECRET = 'not-the-secret'; $env:X_OAUTH1_ACCESS_TOKEN = '110-e2e-access-token'; $env:X_OAUTH1_ACCESS_TOKEN_SECRET = 'e2e-access-token-secret'; xc post "forged"; $LASTEXITCODE
+$env:X_OAUTH2_ACCESS_TOKEN = $null; $env:X_CONSUMER_KEY = 'e2e-consumer-key'; $env:X_CONSUMER_SECRET = 'not-the-secret'; $env:X_OAUTH1_ACCESS_TOKEN = '110-e2e-access-token'; $env:X_OAUTH1_ACCESS_TOKEN_SECRET = 'e2e-access-token-secret'; xc post "forged"; $LASTEXITCODE
 ```
 
 ```text
@@ -269,7 +269,7 @@ xc: X API answered 401 for /2/tweets: Unauthorized
 The app-only token cannot post; the API's own refusal is shown:
 
 ```powershell
-$env:X_USER_TOKEN = $env:X_BEARER_TOKEN; xc post "with the app token"; $LASTEXITCODE
+$env:X_OAUTH2_ACCESS_TOKEN = $env:X_BEARER_TOKEN; xc post "with the app token"; $LASTEXITCODE
 ```
 
 ```text
@@ -278,12 +278,12 @@ xc: X API answered 403 for /2/tweets: Unsupported Authentication: Authenticating
 ```
 
 ```powershell
-$env:X_USER_TOKEN = $null; xc post "no user credentials"; $LASTEXITCODE
+$env:X_OAUTH2_ACCESS_TOKEN = $null; xc post "no user credentials"; $LASTEXITCODE
 ```
 
 ```text
 xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_ACCESS_TOKEN and
-    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_USER_TOKEN (OAuth 2.0, 2 hours)
+    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_OAUTH2_ACCESS_TOKEN (OAuth 2.0, 2 hours)
 3
 ```
 
@@ -294,7 +294,7 @@ xc timeline broke; $LASTEXITCODE
 ```
 
 ```text
-xc: X API answered 402 for /2/users/106/tweets?max_results=5&post.fields=created_at,author_id,entities,attachments: CreditsDepleted: Your enrolled account does not have any credits to fulfill this request.
+xc: X API answered 402 for /2/users/106/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments: CreditsDepleted: Your enrolled account does not have any credits to fulfill this request.
 4
 ```
 
@@ -313,19 +313,19 @@ xc timeline --per-account 500 alice; $LASTEXITCODE
 
 ```text
 xc: --per-account expects a number from 5 to 100, got '500'
-usage: xc timeline [options] HANDLE...
-       xc timeline [options] [--max-following N|all] --following HANDLE
-       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_USER_TOKEN)
+usage: xc timeline [options] USERNAME...
+       xc timeline [options] [--max-following N|all] --following USERNAME
+       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts fetched per account, 5..100 (default 5)
        --limit N         timeline entries shown (default 20)
        --per-author N    entries shown per author (default all)
-       --since DATE      posts at or after DATE (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ)
-       --until DATE      posts before DATE
+       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)
+       --end-time DATE   posts before DATE
        --no-replies, --no-reposts, --originals (both)
        --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)
-       --hints           media and link titles under each post
-       --max-following N accounts followed by HANDLE to include, or all (default 20)
+       --hints           media alt text and url titles under each post
+       --max-following N accounts followed by USERNAME to include, or all (default 20)
 2
 ```
 
@@ -339,51 +339,54 @@ Pay-per-use prices (docs.x.com, October 2026): $0.010 per user returned by a loo
 | `xc timeline --following h` (cap 20) | 1 lookup + 1 following page + 21 post reads | $0.01 + $0.20 + 105 posts = $0.735 |
 | `xc timeline --following h --max-following all` (500 follows) | 1 lookup + 1 following page + 501 post reads | $0.01 + $5.00 + 2,505 posts = $17.535 |
 
-`--since`, `--until` and `--originals` lower the post term; `--per-author` and `--limit` only change what is shown. `--depth N` adds up to N-1 lookups of referenced posts and one user lookup.
+Reply, repost and like counts come with every post read: they are the `public_metrics` field in the `post.fields` the requests already send, so they add no request and no billed resource, only about 120 bytes per post. The API returns six counters (`reply_count`, `repost_count`, `like_count`, `quote_count`, `bookmark_count`, `impression_count`); `xc` shows the first three.
+
+`--start-time`, `--end-time` and `--originals` lower the post term; `--per-author` and `--limit` only change what is shown. `--depth N` adds up to N-1 lookups of referenced posts and one user lookup.
 
 ## 5. Live samples
 
-Captured from the real API on 2026-10-16 00:09 (UTC-4) with this build. NASA posts are US government works.
+Captured from the real API on 2026-10-16 11:40 (UTC-4) with this build. NASA posts are US government works.
 
-Hints show the photo descriptions NASA writes and the titles of linked pages:
+Hints show the alt text NASA writes for its photos and the titles of linked pages:
 
 ```console
 > xc timeline --limit 4 --hints NASA
-2026-10-15 20:36  @NASA  @StCroixSkol 🙌
-2026-10-15 20:03  @NASA  LIVE: Tune in as agency leaders and partners discuss NASA's contributions to @JAXA_en's Martian Moons eXploration (MMX) mission, scheduled to lift off on Monday, Oct. 19. https://youtu.be/3k2mpWrOD1s https://x.com/NASA/status/2110823965954637903/photo/1
+2026-10-16 09:53  @NASA  “It was the greatest adventure that four humans can ever go on.”  Listen to Artemis II's Christina Koch and Reid Wiseman reflect on their historic, 10-day journey around the Moon in a recent episode of Houston We Have a Podcast: https://go.nasa.gov/3VTEjr2 https://x.com/NASA/status/2111093273800356092/photo/1  [61 replies, 75 reposts, 539 likes]
+  [photo] The thumbnail for Houston We Have a Podcast Episode 440, "To the Moon and Back Again With Reid and Christina." It includes Reid Wiseman and Christina Koch posing in front of imagery from the Artemis II mission, including the moment of launch and a crisp shot of the Moon.
+  [url] To the Moon and Back Again - NASA
+2026-10-15 16:36  @NASA  @StCroixSkol 🙌  [0 replies, 0 reposts, 10 likes]
+2026-10-15 16:03  @NASA  LIVE: Tune in as agency leaders and partners discuss NASA's contributions to @JAXA_en's Martian Moons eXploration (MMX) mission, scheduled to lift off on Monday, Oct. 19. https://youtu.be/3k2mpWrOD1s https://x.com/NASA/status/2110823965954637903/photo/1  [63 replies, 132 reposts, 929 likes]
   [photo] The blue NASA "meatball" insignia overlaid on top of a Martian background.
-  [link] NASA's Role in the Martain Moons eXploration (MMX) Mission (October 15, 2026)
-2026-10-15 19:30  @NASA  LIVE: Members of Crew-12 are at @NASAJohnson to discuss their mission aboard the @Space_Station and answer questions from the media. The crew spent 237 days living and working in orbit and returned to Earth on Thursday, Oct. 8. https://x.com/i/broadcasts/1qxvveyYAqWxB
-  [link] NASA
-2026-10-15 18:22  @NASA  Did you know we have a newsletter?  We send out weekly updates straight to your inbox about all that’s happening at NASA—free of charge. From space science to technology on the ground, never miss a NASA update: https://bit.ly/3TzoW6w https://x.com/NASA/status/2110798512795377741/photo/1
-  [photo] A long-exposure photo of Earth taken from aboard the International Space Station. The nighttime view of Earth shows long streaks of city lights and a soft, green airglow outlining the planet. Blurry stars fill the background, and space station hardware appears in the foreground.
+  [url] NASA's Role in the Martain Moons eXploration (MMX) Mission (October 15, 2026)
+2026-10-15 15:30  @NASA  LIVE: Members of Crew-12 are at @NASAJohnson to discuss their mission aboard the @Space_Station and answer questions from the media. The crew spent 237 days living and working in orbit and returned to Earth on Thursday, Oct. 8. https://x.com/i/broadcasts/1qxvveyYAqWxB  [77 replies, 138 reposts, 939 likes]
+  [url] NASA
 ```
 
 `--originals` dropped the reply above; `--per-author 2` lets a third account in:
 
 ```console
 > xc timeline --originals --per-author 2 --limit 4 NASA NASAWebb NASAHubble
-2026-10-15 20:03  @NASA  LIVE: Tune in as agency leaders and partners discuss NASA's contributions to @JAXA_en's Martian Moons eXploration (MMX) mission, scheduled to lift off on Monday, Oct. 19. https://youtu.be/3k2mpWrOD1s https://x.com/NASA/status/2110823965954637903/photo/1
-2026-10-15 19:30  @NASA  LIVE: Members of Crew-12 are at @NASAJohnson to discuss their mission aboard the @Space_Station and answer questions from the media. The crew spent 237 days living and working in orbit and returned to Earth on Thursday, Oct. 8. https://x.com/i/broadcasts/1qxvveyYAqWxB
-2026-10-15 16:57  @NASAHubble  @NASARoman Hubble can follow up on Roman's much wider views in greater detail, and in different types of light. Each telescope picks up complementary info!  You can think of Roman as a wide-angle camera viewing a broad landscape, and Hubble as a zoom lens in ultraviolet and visible light:
-2026-10-15 16:57  @NASAHubble  Did you catch the @NASARoman launch? 🚀  NASA’s newest space telescope is on the way to its home orbit a million miles away, where it’ll capture wide-field, infrared views of the universe!  Roman gets the big picture, while Hubble delivers the details. ⬇️ https://x.com/NASAHubble/status/2110777091495010469/photo/1
+2026-10-16 10:39  @NASAHubble  Twinkle, twinkle little galaxy…  NGC 1827 is a low-mass galaxy that was captured as part of a Hubble observing program that will help scientists test predictions of cosmological models on smaller scales: https://go.nasa.gov/4i3feRM https://x.com/NASAHubble/status/2111104814251712620/photo/1  [8 replies, 70 reposts, 403 likes]
+2026-10-16 09:53  @NASA  “It was the greatest adventure that four humans can ever go on.”  Listen to Artemis II's Christina Koch and Reid Wiseman reflect on their historic, 10-day journey around the Moon in a recent episode of Houston We Have a Podcast: https://go.nasa.gov/3VTEjr2 https://x.com/NASA/status/2111093273800356092/photo/1  [61 replies, 75 reposts, 539 likes]
+2026-10-15 16:03  @NASA  LIVE: Tune in as agency leaders and partners discuss NASA's contributions to @JAXA_en's Martian Moons eXploration (MMX) mission, scheduled to lift off on Monday, Oct. 19. https://youtu.be/3k2mpWrOD1s https://x.com/NASA/status/2110823965954637903/photo/1  [63 replies, 132 reposts, 929 likes]
+2026-10-15 12:57  @NASAHubble  @NASARoman Hubble can follow up on Roman's much wider views in greater detail, and in different types of light. Each telescope picks up complementary info!  You can think of Roman as a wide-angle camera viewing a broad landscape, and Hubble as a zoom lens in ultraviolet and visible light:  [0 replies, 12 reposts, 85 likes]
 ```
 
 Reposts show the original in full, quotes are followed:
 
 ```console
 > xc timeline --depth 2 --limit 3 NASA_Astronauts
-2025-06-20 15:03  @NASA_Astronauts  This account is now archived, but the mission continues. 🚀 For official updates about @NASA astronauts, follow @Space_Station 🛰️, @NASA_Johnson 🌍, and our individual astronaut accounts listed at http://nasa.gov/social-media. 👨‍🚀 👩‍🚀 https://x.com/NASA_Astronauts/status/1936077425344929970/photo/1
-2025-06-20 14:23  @NASA_Astronauts  reposted @JonnyKimUSA: Caught a fish! Hope you enjoy this round of space fishing for beautiful auroras. If you’re wondering what the reflections in the lower left are, I made a rookie mistake of not having the shroud completely cover the window so you can see some crew activity (the cupola is located https://x.com/JonnyKimUSA/status/1936066582217642158/video/1
-2025-06-18 19:16  @NASA_Astronauts  Lightning from Hurricane Erick, captured by @Astro_Ayers while orbiting Earth aboard the @Space_Station. 🌩 https://twitter.com/Astro_Vapor/status/1935415114402033715
-  > quoted @Astro_Vapor: We flew over Hurricane Erick this morning (last night for those on Earth), and I caught some of the lightning in the storm. I shoot these at 120 frames per second, and this bolt of lightning stuck around for over 40 frames!   In these pictures, you can see the clear bolt outline, https://x.com/Astro_Ayers/status/1935415114402033715/photo/1
+2025-06-20 11:03  @NASA_Astronauts  This account is now archived, but the mission continues. 🚀 For official updates about @NASA astronauts, follow @Space_Station 🛰️, @NASA_Johnson 🌍, and our individual astronaut accounts listed at http://nasa.gov/social-media. 👨‍🚀 👩‍🚀 https://x.com/NASA_Astronauts/status/1936077425344929970/photo/1  [62 replies, 63 reposts, 474 likes]
+2025-06-20 10:23  @NASA_Astronauts  reposted @JonnyKimUSA: Caught a fish! Hope you enjoy this round of space fishing for beautiful auroras. If you’re wondering what the reflections in the lower left are, I made a rookie mistake of not having the shroud completely cover the window so you can see some crew activity (the cupola is located https://x.com/JonnyKimUSA/status/1936066582217642158/video/1  [47 replies, 217 reposts, 1140 likes]
+2025-06-18 15:16  @NASA_Astronauts  Lightning from Hurricane Erick, captured by @Astro_Ayers while orbiting Earth aboard the @Space_Station. 🌩 https://twitter.com/Astro_Vapor/status/1935415114402033715  [7 replies, 11 reposts, 111 likes]
+  > quoted @Astro_Vapor: We flew over Hurricane Erick this morning (last night for those on Earth), and I caught some of the lightning in the storm. I shoot these at 120 frames per second, and this bolt of lightning stuck around for over 40 frames!   In these pictures, you can see the clear bolt outline, https://x.com/Astro_Ayers/status/1935415114402033715/photo/1  [14 replies, 43 reposts, 346 likes]
 ```
 
 ## 6. Possibilities
 
 What you can build on `xc` today:
 
-- **Watch accounts cheaply:** a scheduled `xc timeline --since <yesterday> --originals a b c` only pays for new original posts.
+- **Watch accounts cheaply:** a scheduled `xc timeline --start-time <yesterday> --originals a b c` only pays for new original posts.
 - **Read someone's home timeline** without their login: `--following h` rebuilds it from the accounts they follow (cap it; follows cost $0.010 each).
 - **Follow conversations:** `--depth 3` shows what a post quotes, answers or reposts.
 - **Post from scripts or CI:** `xc post` and `xc delete` with OAuth 1.0a keys that never expire, exit codes for every failure.
@@ -407,16 +410,16 @@ Shared modules, compiled into every crate that opens them:
 | `cli.spi` | arguments to a typed command (`ShowTimeline`, `PublishPost`, `RemovePost`) with filters and views; validators arrive as a `checks` record |
 | `oauth1.spi` | OAuth 1.0a: RFC 3986 percent-encoding, the signature base string, HMAC-SHA1 (`hmac`, `sha1`, `base64` crates) |
 | `wire.spi` | `reads r` and `writes r`, GADTs indexed by their reply, so a request determines its reply type; `api app_context` and `api user_context`, so a client built from the app token cannot write; JSON (`serde_json`) primitives; typed failures |
-| `transport.spi` | requests through `xc_net`, reply classification, `id:handle` account lines |
+| `transport.spi` | requests through `xc_net`, reply classification, `id:username` account lines |
 
 Each entry is one Rust crate, so every generated file stays reviewable (`scripts/gate.ps1` reports generated lines against 1000). Crates exchange strings, numbers and tuples:
 
 | Crate | Entry | Role |
 | --- | --- | --- |
-| `xc_net` | `net/net.spi` | HTTP (`ureq`), OAuth 1.0a headers, nonces and clock |
-| `xc_checks` | `checks/checks.spi` | count, date and handle validators |
+| `xc_net` | `net/net.spi` | HTTP (`ureq`), OAuth 1.0a headers, nonces, clock and local time (`jiff`) |
+| `xc_checks` | `checks/checks.spi` | count, date and username validators; a bare date becomes local midnight |
 | `xc_args` | `args/args.spi` | process arguments to command fields, usage text |
-| `xc_users` | `users/users.spi` | handle lookup, followed accounts with paging, lookup by id |
+| `xc_users` | `users/users.spi` | username lookup, followed accounts with paging, lookup by id |
 | `xc_fetch` | `fetch/fetch.spi` | each account's posts, with the ids they reference |
 | `xc_refs` | `refs/refs.spi` | referenced posts, level by level up to `--depth` |
 | `xc_write` | `write/write.spi` | posting and deleting with user credentials |

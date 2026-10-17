@@ -13,7 +13,7 @@ union following_cap =
     | AtMost : i32
     | AllFollowing
 
-type filters = {since : string; until : string; no_replies : bool; no_reposts : bool}
+type filters = {start_time : string; end_time : string; no_replies : bool; no_reposts : bool}
 
 type request =
     {source : source; per_account : i32; limit : i32; per_author : i32; cap : following_cap;
@@ -27,7 +27,7 @@ union command =
     | Rejected : string
 
 type draft =
-    {handles : list string; following : option string; per_account : i32; limit : i32; per_author : i32;
+    {usernames : list string; following : option string; per_account : i32; limit : i32; per_author : i32;
      cap : following_cap; filters : filters; depth : i32; hints : bool}
 
 type step = result draft string
@@ -42,8 +42,8 @@ union flag =
     | PerAuthor
     | MaxFollowing
     | Following
-    | Since
-    | Until
+    | StartTime
+    | EndTime
     | Depth
 
 union switch =
@@ -55,9 +55,9 @@ union switch =
 inl lookup_limit () : i32 = 100i32
 
 inl usage_synopsis () : string =
-    "usage: xc timeline [options] HANDLE...\n"
-    ++# "       xc timeline [options] [--max-following N|all] --following HANDLE\n"
-    ++# "       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_USER_TOKEN)\n"
+    "usage: xc timeline [options] USERNAME...\n"
+    ++# "       xc timeline [options] [--max-following N|all] --following USERNAME\n"
+    ++# "       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n"
 
 inl usage_environment () : string =
     "env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"
@@ -68,16 +68,16 @@ inl usage_counts () : string =
     ++# "       --per-author N    entries shown per author (default all)\n"
 
 inl usage_filters () : string =
-    "       --since DATE      posts at or after DATE (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ)\n"
-    ++# "       --until DATE      posts before DATE\n"
+    "       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n"
+    ++# "       --end-time DATE   posts before DATE\n"
     ++# "       --no-replies, --no-reposts, --originals (both)\n"
 
 inl usage_views () : string =
     "       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n"
-    ++# "       --hints           media and link titles under each post\n"
+    ++# "       --hints           media alt text and url titles under each post\n"
 
 inl usage_following () : string =
-    "       --max-following N accounts followed by HANDLE to include, or all (default 20)"
+    "       --max-following N accounts followed by USERNAME to include, or all (default 20)"
 
 inl usage () : string =
     inl filters = usage_counts () ++# usage_filters ()
@@ -91,8 +91,8 @@ union arg_kind =
 inl value_flag_of (text : string) : arg_kind =
     if text = "--max-following" then Valued MaxFollowing
     elif text = "--following" then Valued Following
-    elif text = "--since" then Valued Since
-    elif text = "--until" then Valued Until
+    elif text = "--start-time" then Valued StartTime
+    elif text = "--end-time" then Valued EndTime
     else Plain
 
 inl flag_of (text : string) : arg_kind =
@@ -136,20 +136,20 @@ inl date_of_text (text : string) : option string =
     elif shaped "9999-99-99T99:99:99Z" text then Some text
     else None
 
-inl handle_alphabet () : string =
+inl username_alphabet () : string =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
 
 inl without_at (text : string) : string =
     if sm'.starts_with "@" text then sm'.slice 1i32 (sm'.length text - 1i32) text else text
 
-let handle_chars (h : string) : bool =
+let username_chars (h : string) : bool =
     inl len : i32 = sm'.length h
-    let rec ok (i : i32) : bool = i >= len || (handle_alphabet () |> sm'.contains (char_at i h)) && ok (i + 1)
+    let rec ok (i : i32) : bool = i >= len || (username_alphabet () |> sm'.contains (char_at i h)) && ok (i + 1)
     len >= 1 && len <= 15 && ok 0
 
-inl handle_of_text (text : string) : option string =
+inl username_of_text (text : string) : option string =
     inl h = without_at text
-    if handle_chars h then Some h else None
+    if username_chars h then Some h else None
 
 inl range_of (f : flag) : i32 * i32 =
     match f with
@@ -157,9 +157,9 @@ inl range_of (f : flag) : i32 * i32 =
     | Depth => 0i32, 3i32
     | _ => 1i32, 100000i32
 
-type checks = {count : string -> option i32; instant : string -> option string; handle : string -> option string}
+type checks = {count : string -> option i32; instant : string -> option string; username : string -> option string}
 
-inl pure_checks () : checks = {count = count_of_text; instant = date_of_text; handle = handle_of_text}
+inl pure_checks () : checks = {count = count_of_text; instant = date_of_text; username = username_of_text}
 
 inl out_of_range (name : string) (low : i32) (high : i32) (text : string) : string =
     inl range = sm'.obj_to_string low ++# " to " ++# sm'.obj_to_string high
@@ -179,11 +179,11 @@ let bounded (c : checks) (f : flag) (name : string) (text : string) (d : draft) 
     | Some n when n >= low && n <= high => Ok (with_count f d n)
     | _ => Error (out_of_range name low high text)
 
-inl not_a_handle (text : string) : string = "not an X handle: '" ++# text ++# "'"
+inl not_a_username (text : string) : string = "not an X username: '" ++# text ++# "'"
 
 let with_following (c : checks) (value : string) (d : draft) : step =
-    match c.handle value, d.following with
-    | None, _ => Error (not_a_handle value)
+    match c.username value, d.following with
+    | None, _ => Error (not_a_username value)
     | Some _, Some _ => Error "--following given twice"
     | Some h, None => Ok {d with following = Some h}
 
@@ -194,8 +194,8 @@ inl date_expected (name : string) (value : string) : string =
 
 inl dated (g : flag) (at : string) (f : filters) : filters =
     match g with
-    | Since => {f with since = at}
-    | _ => {f with until = at}
+    | StartTime => {f with start_time = at}
+    | _ => {f with end_time = at}
 
 let with_date (c : checks) (g : flag) (name : string) (value : string) (d : draft) : step =
     match c.instant value with
@@ -207,7 +207,7 @@ inl all_following (d : draft) : step = Ok {d with cap = AllFollowing}
 let apply_flag (c : checks) (f : flag) (n : string) (v : string) (d : draft) : step =
     match f with
     | Following => with_following c v d
-    | Since | Until => with_date c f n v d
+    | StartTime | EndTime => with_date c f n v d
     | MaxFollowing when v = "all" => all_following d
     | _ => bounded c f n v d
 
@@ -222,22 +222,22 @@ let apply_switch (s : switch) (d : draft) : step =
     | Hints => Ok {d with hints = true}
     | _ => Ok (with_filters d (switched s d.filters))
 
-let with_handle (c : checks) (arg : string) (d : draft) : step =
-    match c.handle arg with
+let with_username (c : checks) (arg : string) (d : draft) : step =
+    match c.username arg with
     | _ when sm'.starts_with "-" arg => Error ("unknown option " ++# arg)
-    | Some h => Ok {d with handles = Cons (h, d.handles)}
-    | None => Error (not_a_handle arg)
+    | Some h => Ok {d with usernames = Cons (h, d.usernames)}
+    | None => Error (not_a_username arg)
 
 inl request_of (d : draft) (s : source) : command =
     inl {per_account limit per_author cap filters depth hints} = d
     ShowTimeline {source = s; per_account limit per_author cap filters depth hints}
 
-inl following_alone () : string = "--following takes one account and no other handles"
+inl following_alone () : string = "--following takes one account and no other usernames"
 
-inl nothing_named () : string = "name at least one account, or --following HANDLE"
+inl nothing_named () : string = "name at least one account, or --following USERNAME"
 
 let finish (d : draft) : command =
-    match d.following, listm.rev d.handles with
+    match d.following, listm.rev d.usernames with
     | Some h, Nil => request_of d (FollowingOf h)
     | Some _, _ => Rejected (following_alone ())
     | None, Nil => Rejected (nothing_named ())
@@ -246,7 +246,7 @@ let finish (d : draft) : command =
 inl too_many () : string = "at most " ++# sm'.obj_to_string (lookup_limit ()) ++# " accounts per run"
 
 let capped (d : draft) : command =
-    if listm.length d.handles > lookup_limit () then Rejected (too_many ()) else finish d
+    if listm.length d.usernames > lookup_limit () then Rejected (too_many ()) else finish d
 
 inl is_help (arg : string) : bool = arg = "--help" || arg = "-h" || arg = "help"
 
@@ -258,7 +258,7 @@ let advance (c : checks) (d : draft) (a : string) (r : args) : progress =
     | Switched s, _ => apply_switch s d, r
     | Valued _, Nil => needs_value a
     | Valued f, Cons (v, r') => apply_flag c f a v d, r'
-    | Plain, _ => with_handle c a d, r
+    | Plain, _ => with_username c a d, r
 
 let rec parse_from (c : checks) (d : draft) (args : list string) : command =
     match args with
@@ -268,10 +268,10 @@ let rec parse_from (c : checks) (d : draft) (args : list string) : command =
         | Ok d, more => parse_from c d more
         | Error message, _ => Rejected message
 
-inl no_filters () : filters = {since = ""; until = ""; no_replies = false; no_reposts = false}
+inl no_filters () : filters = {start_time = ""; end_time = ""; no_replies = false; no_reposts = false}
 
 inl initial_draft () : draft =
-    {handles = Nil; following = None; per_account = 5i32; limit = 20i32; per_author = 0i32;
+    {usernames = Nil; following = None; per_account = 5i32; limit = 20i32; per_author = 0i32;
      cap = AtMost 20i32; filters = no_filters (); depth = 0i32; hints = false}
 
 inl unknown_command (arg : string) : string = "unknown command " ++# arg ++# "; try: xc timeline"
@@ -309,7 +309,7 @@ inl source_text (s : source) : string =
     | FollowingOf h => "following-of " ++# h
 
 inl flags_text (f : filters) : string =
-    (if f.since = "" then "" else " since=" ++# f.since) ++# (if f.until = "" then "" else " until=" ++# f.until)
+    (if f.start_time = "" then "" else " start_time=" ++# f.start_time) ++# (if f.end_time = "" then "" else " end_time=" ++# f.end_time)
     ++# (if f.no_replies then " no-replies" else "") ++# (if f.no_reposts then " no-reposts" else "")
 
 inl counts_text (r : request) : string =
@@ -347,8 +347,8 @@ test following_with_every_option =
 ///> zig
 test filters_are_collected =
     inl ~day = "2026-10-15"
-    parsed ["timeline"; "--since"; day; "--originals"; "a"]
-    |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 since=2026-10-15T00:00:00Z no-replies no-reposts"
+    parsed ["timeline"; "--start-time"; day; "--originals"; "a"]
+    |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 start_time=2026-10-15T00:00:00Z no-replies no-reposts"
 
 ///> zig
 test views_are_collected =
@@ -359,8 +359,8 @@ test views_are_collected =
 ///> zig
 test dates_must_be_well_formed =
     inl ~day = "2026-10-5"
-    parsed ["timeline"; "--until"; day; "a"]
-    |> _assert_eq "rejected: --until expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '2026-10-5'"
+    parsed ["timeline"; "--end-time"; day; "a"]
+    |> _assert_eq "rejected: --end-time expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '2026-10-5'"
 
 ///> zig
 test depth_is_capped_at_three =
@@ -374,15 +374,15 @@ test per_account_below_the_api_minimum_is_rejected =
     |> _assert_eq "rejected: --per-account expects a number from 5 to 100, got '4'"
 
 ///> zig
-test following_excludes_other_handles =
+test following_excludes_other_usernames =
     inl ~h = "alice"
     parsed ["timeline"; "--following"; "carol"; h]
-    |> _assert_eq "rejected: --following takes one account and no other handles"
+    |> _assert_eq "rejected: --following takes one account and no other usernames"
 
 ///> zig
-test handles_are_validated =
+test usernames_are_validated =
     inl ~h = "al-ice"
-    parsed ["timeline"; h] |> _assert_eq "rejected: not an X handle: 'al-ice'"
+    parsed ["timeline"; h] |> _assert_eq "rejected: not an X username: 'al-ice'"
 
 ///> zig
 test a_flag_needs_a_value =

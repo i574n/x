@@ -162,8 +162,8 @@ enum US8 {
     US8_PerAuthor,
     US8_MaxFollowing,
     US8_Following,
-    US8_Since,
-    US8_Until,
+    US8_StartTime,
+    US8_EndTime,
     US8_Depth,
 }
 impl US8 {
@@ -174,8 +174,8 @@ impl US8 {
             US8::US8_PerAuthor => 2,
             US8::US8_MaxFollowing => 3,
             US8::US8_Following => 4,
-            US8::US8_Since => 5,
-            US8::US8_Until => 6,
+            US8::US8_StartTime => 5,
+            US8::US8_EndTime => 6,
             US8::US8_Depth => 7,
         }
     }
@@ -243,7 +243,7 @@ fn closure2() -> Rc<dyn Fn(Rc<str>) -> US1> {
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>) -> US1> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> US1> = Rc::new(move |mut v0: Rc<str>| -> US1 {
-        let mut v1: Rc<str> = xc_checks::xc_handle(&*v0);
+        let mut v1: Rc<str> = xc_checks::xc_username(&*v0);
         let mut v2: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         if v2 {
             US1::US1_None
@@ -252,7 +252,7 @@ fn closure3() -> Rc<dyn Fn(Rc<str>) -> US1> {
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn with_handle_5(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<str>, mut v4: Rc<UH0>, mut v5: US1, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: US2, mut v10: Rc<str>, mut v11: Rc<str>, mut v12: bool, mut v13: bool, mut v14: i32, mut v15: bool) -> US5 {
+fn with_username_5(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<str>, mut v4: Rc<UH0>, mut v5: US1, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: US2, mut v10: Rc<str>, mut v11: Rc<str>, mut v12: bool, mut v13: bool, mut v14: i32, mut v15: bool) -> US5 {
     let mut v16: US1 = v2(v3.clone());
     let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
     let mut v18: bool = v3.starts_with(&*v17);
@@ -263,7 +263,7 @@ fn with_handle_5(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) 
     } else {
         match &v16 {
             US1::US1_None => {
-                let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an X handle: '"); } LIT.with(|lit| lit.clone()) };
+                let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an X username: '"); } LIT.with(|lit| lit.clone()) };
                 let mut v26: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v3));
                 let mut v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
                 let mut v28: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v27));
@@ -303,11 +303,36 @@ fn apply_switch_6(mut v0: US7, mut v1: Rc<UH0>, mut v2: US1, mut v3: i32, mut v4
         }
     }
 }
-fn with_following_8(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<str>, mut v4: Rc<UH0>, mut v5: US1, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: US2, mut v10: Rc<str>, mut v11: Rc<str>, mut v12: bool, mut v13: bool, mut v14: i32, mut v15: bool) -> US5 {
+fn with_date_8(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US8, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool) -> US5 {
+    let mut v18: US1 = v1(v5.clone());
+    match &v18 {
+        US1::US1_None => {
+            let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '"); } LIT.with(|lit| lit.clone()) };
+            let mut v20: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v19));
+            let mut v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v5));
+            let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
+            let mut v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
+            US5::US5_Error(v23.clone())
+        }
+        US1::US1_Some(v25) => {
+            let mut v25: Rc<str> = v25.clone();
+            let (mut v26, mut v27, mut v28, mut v29): (Rc<str>, Rc<str>, bool, bool) = match &v3 {
+                US8::US8_StartTime => {
+                    (v25.clone(), v13.clone(), v14, v15)
+                }
+                _ => {
+                    (v12.clone(), v25.clone(), v14, v15)
+                }
+            };
+            US5::US5_Ok(v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v26.clone(), v27.clone(), v28, v29, v16, v17)
+        }
+    }
+}
+fn with_following_9(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<str>, mut v4: Rc<UH0>, mut v5: US1, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: US2, mut v10: Rc<str>, mut v11: Rc<str>, mut v12: bool, mut v13: bool, mut v14: i32, mut v15: bool) -> US5 {
     let mut v16: US1 = v2(v3.clone());
     match &v16 {
         US1::US1_None => {
-            let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an X handle: '"); } LIT.with(|lit| lit.clone()) };
+            let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an X username: '"); } LIT.with(|lit| lit.clone()) };
             let mut v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v3));
             let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
             let mut v20: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v19));
@@ -329,7 +354,7 @@ fn with_following_8(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str
         }
     }
 }
-fn bounded_9(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US8, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool) -> US5 {
+fn bounded_10(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US8, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool) -> US5 {
     let (mut v20, mut v21): (i32, i32) = match &v3 {
         US8::US8_Depth => {
             (0i32, 3i32)
@@ -422,35 +447,13 @@ fn bounded_9(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
         }
     }
 }
-fn with_date_10(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US8, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool) -> US5 {
-    let mut v18: US1 = v1(v5.clone());
-    match &v18 {
-        US1::US1_None => {
-            let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '"); } LIT.with(|lit| lit.clone()) };
-            let mut v20: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v19));
-            let mut v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v5));
-            let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
-            let mut v23: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v22));
-            US5::US5_Error(v23.clone())
-        }
-        US1::US1_Some(v25) => {
-            let mut v25: Rc<str> = v25.clone();
-            let (mut v26, mut v27, mut v28, mut v29): (Rc<str>, Rc<str>, bool, bool) = match &v3 {
-                US8::US8_Since => {
-                    (v25.clone(), v13.clone(), v14, v15)
-                }
-                _ => {
-                    (v12.clone(), v25.clone(), v14, v15)
-                }
-            };
-            US5::US5_Ok(v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v26.clone(), v27.clone(), v28, v29, v16, v17)
-        }
-    }
-}
 fn apply_flag_7(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US8, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool) -> US5 {
     match &v3 {
+        US8::US8_EndTime => {
+            with_date_8(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
+        }
         US8::US8_Following => {
-            with_following_8(v0.clone(), v1.clone(), v2.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
+            with_following_9(v0.clone(), v1.clone(), v2.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
         }
         US8::US8_MaxFollowing => {
             let mut v21: bool = v5.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("all"); } LIT.with(|lit| lit.clone()) };
@@ -458,17 +461,14 @@ fn apply_flag_7(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -
                 let mut v22: US2 = US2::US2_AllFollowing;
                 US5::US5_Ok(v6.clone(), v7.clone(), v8, v9, v10, v22.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
             } else {
-                bounded_9(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
+                bounded_10(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
             }
         }
-        US8::US8_Since => {
-            with_date_10(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
-        }
-        US8::US8_Until => {
-            with_date_10(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
+        US8::US8_StartTime => {
+            with_date_8(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
         }
         _ => {
-            bounded_9(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
+            bounded_10(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17)
         }
     }
 }
@@ -523,14 +523,14 @@ fn advance_4(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
                                             let mut v45: US8 = US8::US8_Following;
                                             US6::US6_Valued(v45.clone())
                                         } else {
-                                            let mut v47: bool = v15.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--since"); } LIT.with(|lit| lit.clone()) };
+                                            let mut v47: bool = v15.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--start-time"); } LIT.with(|lit| lit.clone()) };
                                             if v47 {
-                                                let mut v48: US8 = US8::US8_Since;
+                                                let mut v48: US8 = US8::US8_StartTime;
                                                 US6::US6_Valued(v48.clone())
                                             } else {
-                                                let mut v50: bool = v15.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--until"); } LIT.with(|lit| lit.clone()) };
+                                                let mut v50: bool = v15.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--end-time"); } LIT.with(|lit| lit.clone()) };
                                                 if v50 {
-                                                    let mut v51: US8 = US8::US8_Until;
+                                                    let mut v51: US8 = US8::US8_EndTime;
                                                     US6::US6_Valued(v51.clone())
                                                 } else {
                                                     US6::US6_Plain
@@ -548,7 +548,7 @@ fn advance_4(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
     };
     match &v65 {
         US6::US6_Plain => {
-            let mut v80: US5 = with_handle_5(v0.clone(), v1.clone(), v2.clone(), v15.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14);
+            let mut v80: US5 = with_username_5(v0.clone(), v1.clone(), v2.clone(), v15.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14);
             (v80.clone(), v16.clone())
         }
         US6::US6_Switched(v66) => {
@@ -599,7 +599,7 @@ fn finish_12(mut v0: Rc<UH0>, mut v1: US1, mut v2: i32, mut v3: i32, mut v4: i32
         US1::US1_None => {
             match &*v13 {
                 UH0::UH0_Nil => {
-                    let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("name at least one account, or --following HANDLE"); } LIT.with(|lit| lit.clone()) };
+                    let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("name at least one account, or --following USERNAME"); } LIT.with(|lit| lit.clone()) };
                     US3::US3_Rejected(v20.clone())
                 }
                 _ => {
@@ -616,7 +616,7 @@ fn finish_12(mut v0: Rc<UH0>, mut v1: US1, mut v2: i32, mut v3: i32, mut v4: i32
                     US3::US3_ShowTimeline(v15.clone(), v2, v3, v4, v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11)
                 }
                 _ => {
-                    let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--following takes one account and no other handles"); } LIT.with(|lit| lit.clone()) };
+                    let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--following takes one account and no other usernames"); } LIT.with(|lit| lit.clone()) };
                     US3::US3_Rejected(v17.clone())
                 }
             }
@@ -963,26 +963,26 @@ fn closure4() -> Rc<dyn Fn() -> Rc<str>> {
         let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n"); } LIT.with(|lit| lit.clone()) };
         let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --per-author N    entries shown per author (default all)\n"); } LIT.with(|lit| lit.clone()) };
         let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --since DATE      posts at or after DATE (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --until DATE      posts before DATE\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --since DATE      posts at or after DATE (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ)\n       --until DATE      posts before DATE\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --end-time DATE   posts before DATE\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n"); } LIT.with(|lit| lit.clone()) };
         let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --no-replies, --no-reposts, --originals (both)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --since DATE      posts at or after DATE (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ)\n       --until DATE      posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --since DATE      posts at or after DATE (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ)\n       --until DATE      posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] HANDLE...\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc timeline [options] [--max-following N|all] --following HANDLE\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] HANDLE...\n       xc timeline [options] [--max-following N|all] --following HANDLE\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_USER_TOKEN)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] HANDLE...\n       xc timeline [options] [--max-following N|all] --following HANDLE\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_USER_TOKEN)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc timeline [options] [--max-following N|all] --following USERNAME\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n"); } LIT.with(|lit| lit.clone()) };
         let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] HANDLE...\n       xc timeline [options] [--max-following N|all] --following HANDLE\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_USER_TOKEN)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] HANDLE...\n       xc timeline [options] [--max-following N|all] --following HANDLE\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_USER_TOKEN)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --since DATE      posts at or after DATE (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ)\n       --until DATE      posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n"); } LIT.with(|lit| lit.clone()) };
         let mut v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --hints           media and link titles under each post\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n       --hints           media and link titles under each post\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] HANDLE...\n       xc timeline [options] [--max-following N|all] --following HANDLE\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_USER_TOKEN)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --since DATE      posts at or after DATE (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ)\n       --until DATE      posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n       --hints           media and link titles under each post\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --max-following N accounts followed by HANDLE to include, or all (default 20)"); } LIT.with(|lit| lit.clone()) };
-        let mut v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] HANDLE...\n       xc timeline [options] [--max-following N|all] --following HANDLE\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_USER_TOKEN)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --since DATE      posts at or after DATE (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ)\n       --until DATE      posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n       --hints           media and link titles under each post\n       --max-following N accounts followed by HANDLE to include, or all (default 20)"); } LIT.with(|lit| lit.clone()) };
+        let mut v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --hints           media alt text and url titles under each post\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n       --hints           media alt text and url titles under each post\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n       --hints           media alt text and url titles under each post\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --max-following N accounts followed by USERNAME to include, or all (default 20)"); } LIT.with(|lit| lit.clone()) };
+        let mut v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n       --hints           media alt text and url titles under each post\n       --max-following N accounts followed by USERNAME to include, or all (default 20)"); } LIT.with(|lit| lit.clone()) };
         v24.clone()
     }); } CLOSURE.with(|closure| closure.clone())
 }

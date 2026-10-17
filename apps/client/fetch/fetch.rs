@@ -250,7 +250,7 @@ fn posts_path_4(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<str>, 
             v37.clone()
         }
     };
-    let mut v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&post.fields=created_at,author_id,entities,attachments"); } LIT.with(|lit| lit.clone()) };
+    let mut v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&post.fields=created_at,author_id,public_metrics,entities,attachments"); } LIT.with(|lit| lit.clone()) };
     let mut v40: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v38));
     let mut v41: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v40));
     let mut v42: bool = v2.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };

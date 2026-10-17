@@ -19,6 +19,8 @@ inl text_of (v : json) : string = $'Rc::<str>::from(!v.as_str().unwrap_or(""))'
 
 inl flag_of_json (v : json) : bool = $'!v.as_bool().unwrap_or(false)'
 
+inl number_of (v : json) : i32 = $'!v.as_i64().unwrap_or(0) as i32'
+
 inl count_of (v : json) : i32 = $'!v.as_array().map_or(0, |a| a.len()) as i32'
 
 inl item (i : i32) (v : json) : json = $'!v.get(!i as usize).cloned().unwrap_or_default()'
@@ -50,15 +52,15 @@ union failure =
 
 type got r = result r failure
 
-type handles = list string
+type usernames = list string
 
 type ids = list string
 
-type query = {per : i32; filters : filters; depth : i32; hints : bool}
+type query = {max_results : i32; filters : filters; depth : i32; hints : bool}
 
 nominal users_reply = {found : accounts; unknown : list string}
 
-nominal page_reply = {page : accounts; next : string}
+nominal page_reply = {page : accounts; next_token : string}
 
 nominal posts_reply = {pool : pool; primary : list post; skipped : string}
 
@@ -67,7 +69,7 @@ nominal created_reply = {id : string; text : string}
 nominal deleted_reply = {deleted : bool}
 
 union reads r =
-    | UsersNamed :: handles -> reads users_reply
+    | UsersNamed :: usernames -> reads users_reply
     | UsersById :: ids -> reads users_reply
     | FollowedBy :: string * i32 * string -> reads page_reply
     | PostsOf :: account * query -> reads posts_reply
@@ -99,9 +101,9 @@ inl base_of forall c. (a : api c) : string =
     match a with
     | api e => e.base
 
-inl following_path (id : string) (size : i32) (token : string) : string =
+inl following_path (id : string) (size : i32) (pagination_token : string) : string =
     inl first = "/2/users/" ++# id ++# "/following?max_results=" ++# sm'.obj_to_string size
-    if token = "" then first else first ++# "&pagination_token=" ++# token
+    if pagination_token = "" then first else first ++# "&pagination_token=" ++# pagination_token
 
 inl expansions_of (q : query) : list string =
     listm.append (if q.depth > 0 then ["referenced_posts"; "referenced_posts.author_id"] else Nil)
@@ -114,7 +116,7 @@ inl expansion_params (q : query) : string =
     | names => "&expansions=" ++# sm'.concat_list "," names ++# media
 
 inl fields_params (q : query) : string =
-    "&post.fields=created_at,author_id,entities,attachments" ++# expansion_params q
+    "&post.fields=created_at,author_id,public_metrics,entities,attachments" ++# expansion_params q
 
 inl exclude_param (f : filters) : string =
     match f.no_replies, f.no_reposts with
@@ -124,18 +126,18 @@ inl exclude_param (f : filters) : string =
     | false, false => ""
 
 inl window_params (f : filters) : string =
-    inl since = if f.since = "" then "" else "&start_time=" ++# f.since
-    since ++# (if f.until = "" then "" else "&end_time=" ++# f.until)
+    inl start_time = if f.start_time = "" then "" else "&start_time=" ++# f.start_time
+    start_time ++# (if f.end_time = "" then "" else "&end_time=" ++# f.end_time)
 
 let posts_path (id : string) (q : query) : string =
-    "/2/users/" ++# id ++# "/tweets?max_results=" ++# sm'.obj_to_string q.per
+    "/2/users/" ++# id ++# "/tweets?max_results=" ++# sm'.obj_to_string q.max_results
     ++# fields_params q ++# window_params q.filters ++# exclude_param q.filters
 
 inl joined (prefix : string) (ids : list string) : string = prefix ++# sm'.concat_list "," ids
 
 let lookup_path (l : ids) (q : query) : string = joined "/2/tweets?ids=" l ++# fields_params q
 
-inl named_path (hs : handles) : string = joined "/2/users/by?usernames=" hs
+inl named_path (hs : usernames) : string = joined "/2/users/by?usernames=" hs
 
 inl user_ids_path (l : ids) : string = joined "/2/users?ids=" l
 
@@ -177,37 +179,45 @@ inl texts (items : json) : list string = items |> collect text_of
 
 inl at_key (key : string) (v : json) : string = v |> field key |> text_of
 
-inl account_of (v : json) : account = {id = at_key "id" v; handle = at_key "username" v}
+inl account_of (v : json) : account = {id = at_key "id" v; username = at_key "username" v}
 
 inl reference_of (v : json) : list reference =
     match ref_kind_of (at_key "type" v) with
     | Some kind => [{kind id = at_key "id" v}]
     | None => Nil
 
-inl link_of (v : json) : link =
-    {short = at_key "url" v; expanded = at_key "expanded_url" v; title = at_key "title" v}
+inl url_entity_of (v : json) : url_entity =
+    {url = at_key "url" v; expanded_url = at_key "expanded_url" v; title = at_key "title" v}
 
-inl links_in (v : json) : list link = v |> field "entities" |> field "urls" |> collect link_of
+inl urls_in (v : json) : list url_entity = v |> field "entities" |> field "urls" |> collect url_entity_of
 
 inl refs_in (v : json) : list reference = v |> field "referenced_posts" |> collect reference_of |> spread id
 
 inl keys_in (v : json) : list string = v |> field "attachments" |> field "media_keys" |> texts
 
-let post_by (author : string) (v : json) : post =
-    {id = at_key "id" v; author_id = at_key "author_id" v; author_handle = author;
-     created_at = at_key "created_at" v; text = at_key "text" v;
-     refs = refs_in v; links = links_in v; media_keys = keys_in v}
+inl public_metrics_in (v : json) : public_metrics =
+    inl m = v |> field "public_metrics"
+    inl n (key : string) : i32 = m |> field key |> number_of
+    {reply_count = n "reply_count"; repost_count = n "repost_count"; like_count = n "like_count"}
 
-inl medium_of (v : json) : medium = {key = at_key "media_key" v; kind = at_key "type" v; alt = at_key "alt_text" v}
+inl post_texts (v : json) : string * string * string * string =
+    at_key "id" v, at_key "author_id" v, at_key "created_at" v, at_key "text" v
+
+let post_by (author : string) (v : json) : post =
+    inl id, author_id, created_at, text = post_texts v
+    {id author_id created_at text author_username = author; public_metrics = public_metrics_in v;
+     refs = refs_in v; urls = urls_in v; media_keys = keys_in v}
+
+inl medium_of (v : json) : medium = {media_key = at_key "media_key" v; kind = at_key "type" v; alt_text = at_key "alt_text" v}
 
 inl accounts_in (doc : json) : accounts = doc |> field "data" |> collect account_of
 
 inl named_accounts (users : json) : accounts =
-    users |> collect account_of |> keep (fun (a : account) => a.handle <> "")
+    users |> collect account_of |> keep (fun (a : account) => a.username <> "")
 
 inl unknown_in (doc : json) : list string = doc |> field "errors" |> collect (at_key "value")
 
-inl next_in (doc : json) : string = doc |> field "meta" |> at_key "next_token"
+inl next_token_in (doc : json) : string = doc |> field "meta" |> at_key "next_token"
 
 inl first_error (doc : json) : string =
     inl e = doc |> field "errors" |> item 0i32
@@ -216,7 +226,7 @@ inl first_error (doc : json) : string =
 
 inl included_pool (primary : list post) (inc : json) : pool =
     inl extra = inc |> field "posts" |> collect (post_by "")
-    {posts = listm.append primary extra; media_items = inc |> field "media" |> collect medium_of; authors = inc |> field "users" |> named_accounts}
+    {posts = listm.append primary extra; media = inc |> field "media" |> collect medium_of; users = inc |> field "users" |> named_accounts}
 
 let posts_of_doc (author : string) (doc : json) : posts_reply =
     inl primary = doc |> field "data" |> collect (post_by author)
@@ -224,13 +234,13 @@ let posts_of_doc (author : string) (doc : json) : posts_reply =
 
 inl users_of_doc (doc : json) : users_reply = users_reply {found = accounts_in doc; unknown = unknown_in doc}
 
-inl page_of_doc (doc : json) : page_reply = page_reply {page = accounts_in doc; next = next_in doc}
+inl page_of_doc (doc : json) : page_reply = page_reply {page = accounts_in doc; next_token = next_token_in doc}
 
 inl decode_read forall r. (q : reads r) (doc : json) : r =
     match q with
     | UsersNamed _ | UsersById _ => users_of_doc doc
     | FollowedBy _ => page_of_doc doc
-    | PostsOf (a, _) => posts_of_doc a.handle doc
+    | PostsOf (a, _) => posts_of_doc a.username doc
     | PostsById _ => posts_of_doc "" doc
 
 inl decode_write forall r. (q : writes r) (doc : json) : r =
@@ -301,11 +311,11 @@ inl describe_failure (f : failure) : string =
     | Undecodable x => unexpected x.resource x.body
     | NoSuchAccount h => no_account h
 
-inl plain_query () : query = {per = 5i32; filters = no_filters (); depth = 0i32; hints = false}
+inl plain_query () : query = {max_results = 5i32; filters = no_filters (); depth = 0i32; hints = false}
 
-inl erin () : account = {id = "7"; handle = "erin"}
+inl erin () : account = {id = "7"; username = "erin"}
 
-inl fields_query () : string = "&post.fields=created_at,author_id,entities,attachments"
+inl fields_query () : string = "&post.fields=created_at,author_id,public_metrics,entities,attachments"
 
 inl plain_posts () : string = "/2/users/7/tweets?max_results=5" ++# fields_query ()
 
@@ -319,8 +329,8 @@ test users_lookup_path =
 
 ///> zig
 test following_path_carries_the_token =
-    inl ~token = "t1"
-    read_path (FollowedBy ("42", 2i32, token))
+    inl ~pagination_token = "t1"
+    read_path (FollowedBy ("42", 2i32, pagination_token))
     |> _assert_eq "/2/users/42/following?max_results=2&pagination_token=t1"
 
 ///> zig
@@ -332,17 +342,17 @@ test first_following_page_has_no_token =
 test plain_posts_path_asks_for_no_expansions =
     inl ~n = 5i32
     inl q = plain_query ()
-    read_path (PostsOf (erin (), {q with per = n})) |> _assert_eq (plain_posts ())
+    read_path (PostsOf (erin (), {q with max_results = n})) |> _assert_eq (plain_posts ())
 
 inl filtered (f : filters) : string =
     inl q = plain_query ()
     read_path (PostsOf (erin (), {q with filters = f}))
 
 ///> zig
-test since_becomes_start_time =
-    inl ~since = "2026-10-15T00:00:00Z"
+test start_time_is_sent =
+    inl ~start_time = "2026-10-15T00:00:00Z"
     inl f = no_filters ()
-    filtered {f with since} |> _assert_eq (plain_posts () ++# "&start_time=" ++# since)
+    filtered {f with start_time} |> _assert_eq (plain_posts () ++# "&start_time=" ++# start_time)
 
 ///> zig
 test originals_exclude_replies_and_reposts =

@@ -14,3 +14,4 @@ path = "view.rs"
 
 [dependencies]
 serde_json = { workspace = true }
+xc_net = { path = "../net" }

@@ -164,32 +164,43 @@ fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
         } else {
             false
         };
-        let mut v16: US1 = if v5 {
-            let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("T00:00:00Z"); } LIT.with(|lit| lit.clone()) };
-            let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v6));
-            US1::US1_Some(v7.clone())
+        if v5 {
+            let mut v6: Rc<str> = xc_net::xc_local_midnight(&*v0);
+            v6.clone()
         } else {
-            let mut v9: bool = v1 == 20i32;
-            let mut v12: bool = if v9 {
-                let mut v10: i32 = 0i32;
-                go_2(v0.clone(), v10)
+            let mut v9: bool = if v2 {
+                let mut v7: i32 = 0i32;
+                go_1(v0.clone(), v7)
             } else {
                 false
             };
-            if v12 {
-                US1::US1_Some(v0.clone())
+            let mut v20: US1 = if v9 {
+                let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("T00:00:00Z"); } LIT.with(|lit| lit.clone()) };
+                let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v10));
+                US1::US1_Some(v11.clone())
             } else {
-                US1::US1_None
-            }
-        };
-        match &v16 {
-            US1::US1_None => {
-                let mut v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v18.clone()
-            }
-            US1::US1_Some(v17) => {
-                let mut v17: Rc<str> = v17.clone();
-                v17.clone()
+                let mut v13: bool = v1 == 20i32;
+                let mut v16: bool = if v13 {
+                    let mut v14: i32 = 0i32;
+                    go_2(v0.clone(), v14)
+                } else {
+                    false
+                };
+                if v16 {
+                    US1::US1_Some(v0.clone())
+                } else {
+                    US1::US1_None
+                }
+            };
+            match &v20 {
+                US1::US1_None => {
+                    let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    v22.clone()
+                }
+                US1::US1_Some(v21) => {
+                    let mut v21: Rc<str> = v21.clone();
+                    v21.clone()
+                }
             }
         }
     }); } CLOSURE.with(|closure| closure.clone())
@@ -213,7 +224,7 @@ fn ok_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
         }
     }
 }
-fn handle_chars_3(mut v0: Rc<str>) -> bool {
+fn username_chars_3(mut v0: Rc<str>) -> bool {
     let mut v1: i32 = (v0.clone().len() as i32);
     let mut v2: bool = v1 >= 1i32;
     let mut v4: bool = if v2 {
@@ -241,7 +252,7 @@ fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
         } else {
             v0.clone()
         };
-        let mut v7: bool = handle_chars_3(v6.clone());
+        let mut v7: bool = username_chars_3(v6.clone());
         let mut v10: US1 = if v7 {
             US1::US1_Some(v6.clone())
         } else {
@@ -265,6 +276,6 @@ pub fn xc_count(v0: &str) -> i32 {
 pub fn xc_date(v0: &str) -> Rc<str> {
     closure1()(Rc::<str>::from(v0))
 }
-pub fn xc_handle(v0: &str) -> Rc<str> {
+pub fn xc_username(v0: &str) -> Rc<str> {
     closure2()(Rc::<str>::from(v0))
 }

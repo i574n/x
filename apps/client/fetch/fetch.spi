@@ -22,10 +22,10 @@ inl absorb_doc (doc : json) (g : gathered) : gathered =
     {g with extra = listm.append g.extra (inc |> field "posts" |> collect slim_of); named = listm.append g.named (named_ids inc)}
 
 inl note_skip (w : account) (why : string) (g : gathered) : gathered =
-    {g with notes = listm.append g.notes ["skipped @" ++# w.handle ++# ": " ++# why]}
+    {g with notes = listm.append g.notes ["skipped @" ++# w.username ++# ": " ++# why]}
 
 inl with_doc (w : account) (body : string) (g : gathered) : gathered =
-    {g with bodies = listm.append g.bodies [entry "primary" w.handle body]}
+    {g with bodies = listm.append g.bodies [entry "primary" w.username body]}
 
 inl with_data (w : account) (doc : json) (data : list slim) (g : gathered) : gathered =
     inl skipped = first_error doc
@@ -68,8 +68,8 @@ let fetched (base : string) (bearer : string) (lines : string) (q : query) : fet
 type fetch_args = string * string * string * i32 * string * string * bool * bool * i32 * bool
 
 inl fetched_of (x : fetch_args) : fetch_reply =
-    inl base, bearer, lines, per, since, until, nr, np, depth, hints = x
-    fetched base bearer lines {per filters = {since until no_replies = nr; no_reposts = np}; depth hints}
+    inl base, bearer, lines, max_results, start_time, end_time, nr, np, depth, hints = x
+    fetched base bearer lines {max_results filters = {start_time end_time no_replies = nr; no_reposts = np}; depth hints}
 
 inl main () : i32 =
     !!!!Export("xc_fetch", ((fun x => fetched_of x) : fetch_args -> fetch_reply))

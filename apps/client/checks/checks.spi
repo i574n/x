@@ -12,12 +12,15 @@ inl text_or_empty (o : option string) : string =
     | Some s => s
     | None => ""
 
-inl date_or_empty (t : string) : string = text_or_empty (date_of_text t)
+inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
 
-inl handle_or_empty (t : string) : string = text_or_empty (handle_of_text t)
+inl date_or_empty (t : string) : string =
+    if shaped "9999-99-99" t then local_midnight t else text_or_empty (date_of_text t)
+
+inl username_or_empty (t : string) : string = text_or_empty (username_of_text t)
 
 inl main () : i32 =
     !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
     !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
-    !!!!Export("xc_handle", ((fun t => handle_or_empty t) : string -> string))
+    !!!!Export("xc_username", ((fun t => username_or_empty t) : string -> string))
     0i32

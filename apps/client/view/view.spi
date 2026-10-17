@@ -3,6 +3,8 @@ open prelude
 open posts
 open wire
 
+inl local_minute (stamp : string) : string = $'xc_net::xc_local_minute(&*!stamp)'
+
 type rebuilt = {primary : list post; pool : pool}
 
 inl primary_entry (author : string) (doc : json) (r : rebuilt) : rebuilt =
@@ -17,7 +19,7 @@ inl users_entry (doc : json) (r : rebuilt) : rebuilt =
     match users_of_doc doc with
     | users_reply {found} =>
         inl pl = r.pool
-        {r with pool = {pl with authors = listm.append pl.authors found}}
+        {r with pool = {pl with users = listm.append pl.users found}}
 
 let absorb_entry (r : rebuilt) (e : json) : rebuilt =
     inl role = at_key "role" e
@@ -35,7 +37,7 @@ inl view_lines (r : rebuilt) (shown : list post) (o : view_options) : string =
 let rendered (bundle : string) (limit : i32) (per_author : i32) (depth : i32) (hints : bool) : string * i32 =
     inl r = rebuilt_of bundle
     inl shown = r.primary |> selected {limit per_author}
-    view_lines r shown {depth hints}, listm.length shown
+    view_lines r shown {depth hints minute = local_minute}, listm.length shown
 
 inl main () : i32 =
     !!!!Export("xc_view", ((fun (bundle, limit, per_author, depth, hints) => rendered bundle limit per_author depth hints) : string * i32 * i32 * i32 * bool -> string * i32))

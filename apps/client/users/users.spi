@@ -22,15 +22,15 @@ let named (base : string) (bearer : string) (hs : string) : lookup_reply =
 
 inl grown (wanted : i32) (acc : accounts) (doc : json) : accounts * string =
     match page_of_doc doc with
-    | page_reply {page next} =>
+    | page_reply {page next_token} =>
         inl acc = listm.append acc page
-        acc, (if listm.length acc >= wanted then "" else next)
+        acc, (if listm.length acc >= wanted then "" else next_token)
 
-inl page_path (id : string) (n : i32) (token : string) (acc : accounts) =
-    read_path (FollowedBy (id, page_size (n - listm.length acc), token))
+inl page_path (id : string) (n : i32) (cursor : string) (acc : accounts) =
+    read_path (FollowedBy (id, page_size (n - listm.length acc), cursor))
 
-let rec pages (a : app) (id : string) (n : i32) (token : string) (acc : accounts) : got accounts =
-    get_raw a (page_path id n token acc) |> then_ok fun (doc, _) =>
+let rec pages (a : app) (id : string) (n : i32) (cursor : string) (acc : accounts) : got accounts =
+    get_raw a (page_path id n cursor acc) |> then_ok fun (doc, _) =>
         inl l, more = grown n acc doc
         if more = "" then Ok (take_first n l) else pages a id n more l
 

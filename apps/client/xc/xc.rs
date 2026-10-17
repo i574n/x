@@ -556,7 +556,7 @@ fn run_write_12(mut v0: i32, mut v1: Rc<str>) -> i32 {
         let mut v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         (v14.clone(), v27.clone(), v40.clone(), v53.clone(), v65.clone())
     } else {
-        let mut v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X_USER_TOKEN"); } LIT.with(|lit| lit.clone()) };
+        let mut v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X_OAUTH2_ACCESS_TOKEN"); } LIT.with(|lit| lit.clone()) };
         let mut v67: Rc<str> = get_environment_variable_3(v66.clone());
         let mut v68: i32 = (v67.clone().len() as i32);
         let mut v69: i32 = 0i32;
@@ -608,7 +608,7 @@ fn run_write_12(mut v0: i32, mut v1: Rc<str>) -> i32 {
     if v97 {
         let mut v98: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_ACCESS_TOKEN and"); } LIT.with(|lit| lit.clone()) };
         eprintln!("{}", v98);
-        let mut v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_USER_TOKEN (OAuth 2.0, 2 hours)"); } LIT.with(|lit| lit.clone()) };
+        let mut v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_OAUTH2_ACCESS_TOKEN (OAuth 2.0, 2 hours)"); } LIT.with(|lit| lit.clone()) };
         eprintln!("{}", v99);
         3i32
     } else {

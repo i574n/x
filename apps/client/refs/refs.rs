@@ -312,7 +312,7 @@ fn lookup_path_7(mut v0: Rc<UH0>, mut v1: i32, mut v2: Rc<str>, mut v3: bool, mu
             v32.clone()
         }
     };
-    let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&post.fields=created_at,author_id,entities,attachments"); } LIT.with(|lit| lit.clone()) };
+    let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&post.fields=created_at,author_id,public_metrics,entities,attachments"); } LIT.with(|lit| lit.clone()) };
     let mut v35: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v33));
     let mut v36: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v35));
     v36.clone()

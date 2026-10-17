@@ -46,20 +46,20 @@ let rec split_on (sep : string) (s : string) : list string =
 
 inl pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_on sep s
 
-inl account_line (a : account) : string = a.id ++# ":" ++# a.handle
+inl account_line (a : account) : string = a.id ++# ":" ++# a.username
 
 inl account_lines (l : accounts) : string = l |> each account_line |> sm'.concat_list "\n"
 
 inl account_of_line (line : string) : account =
     inl i : i32 = sm'.index_of ":" line
-    {id = sm'.substring 0i32 i line; handle = sm'.substring (i + 1i32) (sm'.length line - i - 1i32) line}
+    {id = sm'.substring 0i32 i line; username = sm'.substring (i + 1i32) (sm'.length line - i - 1i32) line}
 
 inl accounts_of_lines (s : string) : accounts = pieces "\n" s |> each account_of_line
 
 ///> zig
 test account_lines_round_trip =
     inl ~h = "bob"
-    [{id = "1"; handle = "alice"}; {id = "22"; handle = h}] |> account_lines |> accounts_of_lines |> account_lines
+    [{id = "1"; username = "alice"}; {id = "22"; username = h}] |> account_lines |> accounts_of_lines |> account_lines
     |> _assert_eq "1:alice\n22:bob"
 
 ///> zig

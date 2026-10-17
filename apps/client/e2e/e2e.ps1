@@ -24,7 +24,8 @@ function Invoke-Step([string] $Script, [string] $Token, [string] $UserToken = $w
     $info.RedirectStandardError = $true
     $info.UseShellExecute = $false
     $info.Environment["X_BEARER_TOKEN"] = $Token
-    $info.Environment["X_USER_TOKEN"] = $UserToken
+    $info.Environment["X_OAUTH2_ACCESS_TOKEN"] = $UserToken
+    $info.Environment["TZ"] = "America/Cuiaba"
     $info.Environment["X_API_BASE_URL"] = "http://127.0.0.1:$port"
     $before = (Read-Requests).Count
     $process = [System.Diagnostics.Process]::Start($info)
@@ -70,7 +71,7 @@ try {
         Write-Output "x e2e / tutorial / $script / $(if ($r.Text -ceq $expected) { 'same' } else { 'DIFFERENT' }) / $($r.Requests.Count) request(s)"
     }
 
-    $postsPath = "/2/users/{0}/tweets?max_results=5&post.fields=created_at,author_id,entities,attachments"
+    $postsPath = "/2/users/{0}/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments"
     $extra = @(
         @{ Script = "xc timeline alice"; Token = "wrong-token"; Text = "xc: X API answered 401 for /2/users/by?usernames=alice: Unauthorized"; Exit = 4 },
         @{ Script = "xc timeline busy"; Token = $world.token; Text = "xc: X API answered 429 for $($postsPath -f 107): Too Many Requests"; Exit = 4 },
@@ -90,7 +91,7 @@ try {
     Check ($all -contains "GET /2/users/103/following?max_results=1000&pagination_token=p2") "--max-following all did not follow next_token: $($all -join ' ')"
     $capped = @((Step-Of $results 'max-following 2').Requests | Where-Object { $_.path -like '*/following' })
     Check ($capped.Count -eq 1 -and $capped[0].query -eq "max_results=2") "--max-following 2 read more than one page of 2"
-    Check (@(Queries-Of (Step-Of $results '--since') | Where-Object { $_ -match 'start_time=2026-10-15T12:00:00Z&end_time=2026-10-15T13:06:00Z' }).Count -eq 1) "--since/--until did not become start_time/end_time"
+    Check (@(Queries-Of (Step-Of $results '--start-time') | Where-Object { $_ -match 'start_time=2026-10-15T12:00:00Z&end_time=2026-10-15T13:06:00Z' }).Count -eq 1) "--start-time/--end-time did not become start_time/end_time"
     Check (@(Queries-Of (Step-Of $results '--originals') | Where-Object { $_ -match 'exclude=replies,retweets' }).Count -eq 2) "--originals did not exclude replies and reposts at the API"
     $deep = Queries-Of (Step-Of $results '--depth 3')
     Check (($deep -match '^GET /2/tweets\?ids=').Count -eq 2 -and ($deep -match '^GET /2/users\?ids=').Count -eq 1) "--depth 3 did not look up two levels and name authors once: $($deep -join ' ')"

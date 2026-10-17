@@ -69,12 +69,17 @@ def kinds(post):
     return {r["type"] for r in post.get("refs", [])}
 
 
+METRICS = ("bookmark_count", "impression_count", "like_count", "quote_count", "reply_count", "repost_count")
+
+
 def rendered(post, fields):
     out = {"id": post["id"], "text": post["text"], "edit_history_post_ids": [post["id"]]}
     if "created_at" in fields:
         out["created_at"] = post["created_at"]
     if "author_id" in fields:
         out["author_id"] = post["author_id"]
+    if "public_metrics" in fields:
+        out["public_metrics"] = {k: post.get("metrics", {}).get(k, 0) for k in METRICS}
     if "entities" in fields and post.get("urls"):
         out["entities"] = {"urls": post["urls"]}
     if "attachments" in fields and post.get("media"):

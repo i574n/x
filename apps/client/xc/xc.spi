@@ -40,18 +40,18 @@ inl users_by_ids (s : site) (ids : string) : i32 * string * string =
     inl {base bearer} = s
     $'xc_users::xc_users_by_ids(&*!base, &*!bearer, &*!ids)'
 
-type window = {per : i32; since : string; until : string; nr : bool; np : bool; depth : i32; hints : bool}
+type window = {max_results : i32; start_time : string; end_time : string; nr : bool; np : bool; depth : i32; hints : bool}
 
 inl window_of (p : parsed) : window =
-    inl _, _, _, _, per, _, _, _, since, until, nr, np, depth, hints = p
-    {per since until nr np depth hints}
+    inl _, _, _, _, max_results, _, _, _, start_time, end_time, nr, np, depth, hints = p
+    {max_results start_time end_time nr np depth hints}
 
 type fetch_reply = string * string * string * string * string * string
 
 inl fetch (s : site) (lines : string) (w : window) : fetch_reply =
     inl {base bearer} = s
-    inl {per since until nr np depth hints} = w
-    $'xc_fetch::xc_fetch(&*!base, &*!bearer, &*!lines, !per, &*!since, &*!until, !nr, !np, !depth, !hints)'
+    inl {max_results start_time end_time nr np depth hints} = w
+    $'xc_fetch::xc_fetch(&*!base, &*!bearer, &*!lines, !max_results, &*!start_time, &*!end_time, !nr, !np, !depth, !hints)'
 
 inl fetch_notes (r : fetch_reply) : string =
     inl _, notes, _, _, _, _ = r
@@ -65,12 +65,15 @@ inl refs (s : site) (r : fetch_reply) (w : window) : refs_reply =
     inl {depth hints} = w
     $'xc_refs::xc_refs(&*!base, &*!bearer, &*!ids, &*!authors, &*!named, !depth, !hints)'
 
-type keys = {ck : string; cs : string; t : string; ts : string; token : string}
+type keys = {consumer_key : string; consumer_secret : string; access_token : string; access_token_secret : string; oauth2_access_token : string}
 
 type order = {base : string; nonce : string; stamp : string; kind : i32; payload : string}
 
+inl key_parts (k : keys) : string * string * string * string * string =
+    k.consumer_key, k.consumer_secret, k.access_token, k.access_token_secret, k.oauth2_access_token
+
 inl remote_write (k : keys) (o : order) : i32 * string =
-    inl {ck cs t ts token} = k
+    inl ck, cs, t, ts, token = key_parts k
     inl {base nonce stamp kind payload} = o
     $'xc_write::xc_write(&*!base, &*!token, &*!ck, &*!cs, &*!t, &*!ts, &*!nonce, &*!stamp, !kind, &*!payload)'
 
@@ -92,9 +95,9 @@ let account_plan (s : site) (hs : string) : plan =
     elif found = "" then failed_plan (no_account unknown)
     else {lines = found; notes = unknown_notes unknown; failure = ""}
 
-inl home_note (handle : string) (followed : string) : string =
+inl home_note (username : string) (followed : string) : string =
     inl n : i32 = pieces "\n" followed |> listm.length
-    "home timeline of @" ++# handle ++# " from " ++# sm'.obj_to_string n ++# " followed accounts"
+    "home timeline of @" ++# username ++# " from " ++# sm'.obj_to_string n ++# " followed accounts"
 
 inl lines_with (found : string) (followed : string) : string =
     if followed = "" then found else found ++# "\n" ++# followed
@@ -102,7 +105,7 @@ inl lines_with (found : string) (followed : string) : string =
 inl with_followed (w : account) (found : string) (r : i32 * string * string) : plan =
     inl code, followed, failure = r
     if code <> 0i32 then failed_plan failure
-    else {lines = lines_with found followed; notes = home_note w.handle followed; failure = ""}
+    else {lines = lines_with found followed; notes = home_note w.username followed; failure = ""}
 
 inl followed_plan (s : site) (found : string) (cap : i32) : plan =
     inl w = account_of_line found
@@ -181,7 +184,7 @@ let run_timeline (p : parsed) : i32 =
 
 inl no_user () : i32 =
     write_error "xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_ACCESS_TOKEN and"
-    write_error "    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_USER_TOKEN (OAuth 2.0, 2 hours)"
+    write_error "    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_OAUTH2_ACCESS_TOKEN (OAuth 2.0, 2 hours)"
     3i32
 
 inl reported (r : i32 * string) : i32 =
@@ -189,21 +192,24 @@ inl reported (r : i32 * string) : i32 =
     if code = 0i32 then write_line message else write_error ("xc: " ++# message)
     code
 
+inl oauth1_keys () : string * string * string * string =
+    env_of "X_CONSUMER_KEY", env_of "X_CONSUMER_SECRET", env_of "X_OAUTH1_ACCESS_TOKEN", env_of "X_OAUTH1_ACCESS_TOKEN_SECRET"
+
 inl user_keys () : keys =
-    inl ck, cs = env_of "X_CONSUMER_KEY", env_of "X_CONSUMER_SECRET"
-    {ck cs t = env_of "X_OAUTH1_ACCESS_TOKEN"; ts = env_of "X_OAUTH1_ACCESS_TOKEN_SECRET"; token = ""}
+    inl consumer_key, consumer_secret, access_token, access_token_secret = oauth1_keys ()
+    {consumer_key consumer_secret access_token access_token_secret oauth2_access_token = ""}
 
-inl signed (k : keys) : bool = k.ck <> "" && k.cs <> "" && k.t <> "" && k.ts <> ""
+inl signed (k : keys) : bool = k.consumer_key <> "" && k.consumer_secret <> "" && k.access_token <> "" && k.access_token_secret <> ""
 
-inl with_user_token (k : keys) : keys = if signed k then k else {k with token = env_of "X_USER_TOKEN"}
+inl with_oauth2_token (k : keys) : keys = if signed k then k else {k with oauth2_access_token = env_of "X_OAUTH2_ACCESS_TOKEN"}
 
 inl order_of (kind : i32) (payload : string) : order =
     inl nonce = env_or "XC_OAUTH1_NONCE" (fresh_nonce ())
     {nonce kind payload base = base_url (); stamp = env_or "XC_OAUTH1_TIMESTAMP" (unix_seconds ())}
 
 let run_write (kind : i32) (payload : string) : i32 =
-    inl k = user_keys () |> with_user_token
-    if not (signed k) && k.token = "" then no_user ()
+    inl k = user_keys () |> with_oauth2_token
+    if not (signed k) && k.oauth2_access_token = "" then no_user ()
     else remote_write k (order_of kind payload) |> reported
 
 inl rejected (message : string) : i32 =

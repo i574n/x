@@ -10,7 +10,7 @@
             "username": "alice",
             "posts": [
                 {"id": "1001", "created_at": "2026-10-15T08:00:00.000Z", "text": "morning run done"},
-                {"id": "1002", "created_at": "2026-10-15T12:30:00.000Z", "text": "lunch: ramen"},
+                {"id": "1002", "created_at": "2026-10-15T12:30:00.000Z", "text": "lunch: ramen", "metrics": {"reply_count": 2, "repost_count": 1, "like_count": 14}},
                 {"id": "1003", "created_at": "2026-10-14T21:10:00.000Z", "text": "reading about typed effects https://t.co/fx1",
                  "urls": [{"url": "https://t.co/fx1", "expanded_url": "https://example.org/effects", "display_url": "example.org/effects", "title": "Typed effects, explained"}]}
             ]
@@ -20,11 +20,11 @@
             "name": "Bob",
             "username": "bob",
             "posts": [
-                {"id": "2001", "created_at": "2026-10-15T09:45:00.000Z", "text": "shipped v2\nrelease notes soon",
+                {"id": "2001", "created_at": "2026-10-15T09:45:00.000Z", "text": "shipped v2\nrelease notes soon", "metrics": {"reply_count": 4, "repost_count": 7, "like_count": 31, "impression_count": 920},
                  "media": [{"media_key": "3_2001", "type": "photo", "alt_text": "release dashboard"}]},
                 {"id": "2002", "created_at": "2026-10-15T12:30:00.000Z", "text": "same minute as alice, newer id"},
                 {"id": "2003", "created_at": "2026-10-15T13:05:00.000Z", "text": "RT @alice: lunch: ramen", "refs": [{"type": "reposted", "id": "1002"}]},
-                {"id": "2004", "created_at": "2026-10-15T13:10:00.000Z", "text": "agreed, ramen wins", "refs": [{"type": "replied_to", "id": "1002"}]}
+                {"id": "2004", "created_at": "2026-10-15T13:10:00.000Z", "text": "agreed, ramen wins", "metrics": {"reply_count": 1, "like_count": 3}, "refs": [{"type": "replied_to", "id": "1002"}]}
             ]
         },
         {
@@ -34,7 +34,7 @@
             "following": ["101", "102", "104", "105"],
             "posts": [
                 {"id": "3001", "created_at": "2026-10-15T07:15:00.000Z", "text": "coffee first"},
-                {"id": "3002", "created_at": "2026-10-15T14:00:00.000Z", "text": "worth reading", "refs": [{"type": "quoted", "id": "2004"}]}
+                {"id": "3002", "created_at": "2026-10-15T14:00:00.000Z", "text": "worth reading", "metrics": {"repost_count": 2, "like_count": 5, "quote_count": 1}, "refs": [{"type": "quoted", "id": "2004"}]}
             ]
         },
         {
@@ -53,7 +53,7 @@
                 {"id": "5003", "created_at": "2026-10-15T06:20:00.000Z", "text": "erin 3"},
                 {"id": "5004", "created_at": "2026-10-15T06:30:00.000Z", "text": "erin 4"},
                 {"id": "5005", "created_at": "2026-10-15T06:40:00.000Z", "text": "erin 5"},
-                {"id": "5006", "created_at": "2026-10-15T15:00:00.000Z", "text": "the whole thread", "refs": [{"type": "quoted", "id": "3002"}]}
+                {"id": "5006", "created_at": "2026-10-15T15:00:00.000Z", "text": "the whole thread", "metrics": {"like_count": 1}, "refs": [{"type": "quoted", "id": "3002"}]}
             ]
         },
         {
