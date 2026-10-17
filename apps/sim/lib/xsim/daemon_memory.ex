@@ -35,7 +35,7 @@ defmodule Xsim.DaemonMemory do
       :gen_tcp.close(sock)
 
       case String.split(String.trim(line), "\t") do
-        ["spiral-kino", _version, pid | _] -> parse_pid(pid)
+        ["spiral-cells", _version, pid | _] -> parse_pid(pid)
         _ -> nil
       end
     else

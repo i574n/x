@@ -1,7 +1,7 @@
 defmodule Mix.Tasks.Xsim.Run do
   use Mix.Task
 
-  @shortdoc "Replay a seeded X-like scenario built from a .spi against an executor and check Kino's invariants"
+  @shortdoc "Replay a seeded X-like scenario built from a .spi against an executor and check Cells's invariants"
 
   @impl Mix.Task
   def run(args) do
@@ -23,7 +23,7 @@ defmodule Mix.Tasks.Xsim.Run do
     tally = Xsim.Executors.memo_tally()
     executor = executor(opts[:executor] || "fake", spi, memo: Keyword.get(opts, :memo, false), memo_tally: tally)
     baseline = executor(opts[:executor] || "fake", spi, memo: false)
-    sampler = if opts[:daemon_memory], do: elem(Xsim.DaemonMemory.start(Spiral.Kino.CompilerDaemon.port()), 1)
+    sampler = if opts[:daemon_memory], do: elem(Xsim.DaemonMemory.start(Spiral.Cells.CompilerDaemon.port()), 1)
 
     runs =
       for schedule <- 1..(opts[:schedules] || 2) do
@@ -61,7 +61,7 @@ defmodule Mix.Tasks.Xsim.Run do
 
   defp cells_of(spi, limit) do
     spir = Path.rootname(spi) <> "_real.spir"
-    doc = Spiral.Kino.Document.parse_spi(File.read!(spi), if(File.regular?(spir), do: File.read!(spir), else: ""))
+    doc = Spiral.Cells.Document.parse_spi(File.read!(spi), if(File.regular?(spir), do: File.read!(spir), else: ""))
     cells = for %{kind: :spiral, source: source} <- doc.cells, do: source
     if limit, do: Enum.take(cells, limit), else: cells
   end

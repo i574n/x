@@ -32,7 +32,7 @@ $list = Join-Path (Get-XTargetDir sim) "corpus-$PID.txt"
 Remove-Item $list -ErrorAction Ignore
 
 if (!$fast) {
-    $env:SPIRAL_KINO_COMPILER_PORT = '13950'
+    $env:SPIRAL_CELLS_COMPILER_PORT = '13950'
     try {
         { mix xsim.run --spi (Join-Path $lib 'math.spi') --cells 3 --users 2 --edits 0 --schedules 1 --executor kino --max-concurrency 2 } | Invoke-Block
     } finally {
@@ -42,6 +42,6 @@ if (!$fast) {
         } elseif (Get-Command fuser -ErrorAction Ignore) {
             fuser -k 13950/tcp 2>$null
         }
-        $env:SPIRAL_KINO_COMPILER_PORT = $null
+        $env:SPIRAL_CELLS_COMPILER_PORT = $null
     }
 }

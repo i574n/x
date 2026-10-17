@@ -1,7 +1,7 @@
 defmodule Xsim.Frames do
   @limit 280
 
-  defdelegate weight(text), to: Spiral.Kino.XCompat
+  defdelegate weight(text), to: Spiral.Cells.XCompat
 
   def header(id, k, n), do: "#{id} #{k}/#{n}\n"
 

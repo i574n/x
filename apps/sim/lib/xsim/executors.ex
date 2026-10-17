@@ -36,7 +36,7 @@ defmodule Xsim.Executors do
       doc = %{cells: Enum.map(sources, &%{kind: :spiral, source: &1})}
       last = length(sources) - 1
 
-      case apply(Spiral.Kino.Notebook, :evaluate, [doc, opts]) do
+      case apply(Spiral.Cells.Notebook, :evaluate, [doc, opts]) do
         %{status: status, outputs: outputs} = result ->
           if tally, do: count_memo(tally, Map.get(result, :memo, %{}))
           verdict = result |> Map.get(:verdicts, %{}) |> Map.get(last)

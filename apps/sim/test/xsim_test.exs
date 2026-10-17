@@ -216,9 +216,9 @@ defmodule XsimTest do
   end
 
   test "a Rust panic's OS thread id does not make two runs of one revision differ" do
-    run = fn id -> %{status: :error, out: "thread '<unnamed>' (#{id}) panicked at C:\\Temp/spiral_kino/17919-#{id}/main.rs:71:9"} end
+    run = fn id -> %{status: :error, out: "thread '<unnamed>' (#{id}) panicked at C:\\Temp/spiral_cells/17919-#{id}/main.rs:71:9"} end
     assert Invariants.comparable(run.(52388)) == Invariants.comparable(run.(27552))
-    refute Invariants.comparable(run.(1)) == Invariants.comparable(%{status: :error, out: "thread '<unnamed>' (1) panicked at C:\\Temp/spiral_kino/17919-1/main.rs:72:9"})
+    refute Invariants.comparable(run.(1)) == Invariants.comparable(%{status: :error, out: "thread '<unnamed>' (1) panicked at C:\\Temp/spiral_cells/17919-1/main.rs:72:9"})
   end
 
   test "replies and edits that arrive before their post wait for it" do

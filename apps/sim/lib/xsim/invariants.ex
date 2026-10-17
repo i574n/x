@@ -61,7 +61,7 @@ defmodule Xsim.Invariants do
   defp verdict(bad), do: {:violations, Enum.take(bad, 5)}
 
   def comparable(%{status: status, out: out}) do
-    out = Regex.replace(~r/spiral_kino[\\\/][0-9]+-[0-9]+/, out, "spiral_kino/_")
+    out = Regex.replace(~r/spiral_cells[\\\/][0-9]+-[0-9]+/, out, "spiral_cells/_")
     {status, Regex.replace(~r/(thread '[^']*') \([0-9]+\) panicked/, out, "\\1 (_) panicked")}
   end
   def comparable(other), do: other

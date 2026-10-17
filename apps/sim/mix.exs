@@ -7,8 +7,8 @@ defmodule Xsim.MixProject do
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
-      deps: [{:spiral_kino, path: "../../../spiral/apps/kino"}],
-      description: "Deterministic X-like event simulator that battle-tests Kino"
+      deps: [{:spiral_cells, path: "../../../spiral/apps/cells"}],
+      description: "Deterministic X-like event simulator that battle-tests Cells"
     ]
   end
 

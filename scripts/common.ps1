@@ -20,14 +20,14 @@ function Get-XCargoTargetDir {
 function Invoke-SpiralTests([Parameter(Mandatory)] [string] $AppDir, [Parameter(Mandatory)] [string[]] $Modules) {
     $notebooks = Join-Path (Get-XTargetDir (Split-Path $AppDir -Leaf)) 'notebooks'
     New-Item -ItemType Directory -Force $notebooks | Out-Null
-    $saved = $env:SPIRAL_KINO_COMPILER, $env:SPIRAL_KINO_WARM
-    $env:SPIRAL_KINO_COMPILER, $env:SPIRAL_KINO_WARM = 'process', '0'
+    $saved = $env:SPIRAL_CELLS_COMPILER, $env:SPIRAL_CELLS_WARM
+    $env:SPIRAL_CELLS_COMPILER, $env:SPIRAL_CELLS_WARM = 'process', '0'
     try {
         foreach ($module in $Modules) {
-            $runner = Join-Path $SpiralRoot 'apps/kino/spi/run_notebook.ps1'
+            $runner = Join-Path $SpiralRoot 'apps/cells/spi/run_notebook.ps1'
             { pwsh -NoProfile -File $runner --path (Join-Path $AppDir "$module.spi") --output-path (Join-Path $notebooks "$module.spi.ipynb") --no-html } | Invoke-Block
         }
     } finally {
-        $env:SPIRAL_KINO_COMPILER, $env:SPIRAL_KINO_WARM = $saved
+        $env:SPIRAL_CELLS_COMPILER, $env:SPIRAL_CELLS_WARM = $saved
     }
 }

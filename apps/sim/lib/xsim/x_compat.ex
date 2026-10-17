@@ -1,5 +1,5 @@
 defmodule Xsim.XCompat do
-  alias Spiral.Kino.XCompat, as: Shared
+  alias Spiral.Cells.XCompat, as: Shared
   alias Xsim.Frames
 
   def check(source, opts \\ []) do
