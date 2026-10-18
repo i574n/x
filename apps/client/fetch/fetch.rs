@@ -15,72 +15,20 @@ enum US0 {
     US0_BearerToken(Rc<str>),
     US0_Signed(Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>),
 }
-impl US0 {
-    fn tag(&self) -> i32 {
-        match self {
-            US0::US0_BearerToken(..) => 0,
-            US0::US0_Signed(..) => 1,
-        }
-    }
-}
-impl Default for US0 {
-    fn default() -> Self {
-        US0::US0_BearerToken({ thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) })
-    }
-}
 #[derive(Clone)]
 enum UH0 {
     UH0_Nil,
     UH0_Cons(Rc<str>, Rc<UH0>),
-}
-impl UH0 {
-    fn tag(&self) -> i32 {
-        match self {
-            UH0::UH0_Nil => 0,
-            UH0::UH0_Cons(..) => 1,
-        }
-    }
-}
-impl Default for UH0 {
-    fn default() -> Self {
-        UH0::UH0_Nil
-    }
 }
 #[derive(Clone)]
 enum UH1 {
     UH1_Nil,
     UH1_Cons(Rc<str>, Rc<str>, Rc<UH1>),
 }
-impl UH1 {
-    fn tag(&self) -> i32 {
-        match self {
-            UH1::UH1_Nil => 0,
-            UH1::UH1_Cons(..) => 1,
-        }
-    }
-}
-impl Default for UH1 {
-    fn default() -> Self {
-        UH1::UH1_Nil
-    }
-}
 #[derive(Clone)]
 enum UH2 {
     UH2_Nil,
     UH2_Cons(Rc<str>, Rc<str>, Rc<UH0>, Rc<UH2>),
-}
-impl UH2 {
-    fn tag(&self) -> i32 {
-        match self {
-            UH2::UH2_Nil => 0,
-            UH2::UH2_Cons(..) => 1,
-        }
-    }
-}
-impl Default for UH2 {
-    fn default() -> Self {
-        UH2::UH2_Nil
-    }
 }
 #[derive(Clone)]
 enum US2 {
@@ -89,46 +37,15 @@ enum US2 {
     US2_Undecodable(Rc<str>, Rc<str>),
     US2_NoSuchAccount(Rc<str>),
 }
-impl US2 {
-    fn tag(&self) -> i32 {
-        match self {
-            US2::US2_HttpStatus(..) => 0,
-            US2::US2_Transport(..) => 1,
-            US2::US2_Undecodable(..) => 2,
-            US2::US2_NoSuchAccount(..) => 3,
-        }
-    }
-}
-impl Default for US2 {
-    fn default() -> Self {
-        US2::US2_HttpStatus(<i32>::default(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) })
-    }
-}
 #[derive(Clone)]
 enum US1 {
     US1_Ok(serde_json::Value, Rc<str>),
     US1_Error(US2),
 }
-impl US1 {
-    fn tag(&self) -> i32 {
-        match self {
-            US1::US1_Ok(..) => 0,
-            US1::US1_Error(..) => 1,
-        }
-    }
-}
 #[derive(Clone)]
 enum US3 {
     US3_Ok(serde_json::Value),
     US3_Error(US2),
-}
-impl US3 {
-    fn tag(&self) -> i32 {
-        match self {
-            US3::US3_Ok(..) => 0,
-            US3::US3_Error(..) => 1,
-        }
-    }
 }
 fn split_on_1(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<UH0> {
     let mut v2: i32 = v1.find(&*v0).map(|i| i as i32).unwrap_or(-1);
@@ -317,7 +234,7 @@ fn app_reply_7(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>) -> US1 {
     let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
     let (mut v18, mut v19): (i32, Rc<str>) = xc_net::xc_send(&*v16, &*v3, &*v15, &*v17);
     let mut v20: bool = v18 == 0i32;
-    let mut v78: US3 = if v20 {
+    let mut v80: US3 = if v20 {
         let mut v21: US2 = US2::US2_Transport(v2.clone(), v19.clone());
         US3::US3_Error(v21.clone())
     } else {
@@ -353,7 +270,7 @@ fn app_reply_7(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>) -> US1 {
             } else {
                 false
             };
-            let mut v62: Rc<str> = if v41 {
+            let mut v64: Rc<str> = if v41 {
                 let mut v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
                 let mut v43: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v42));
                 let mut v44: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v33));
@@ -374,50 +291,52 @@ fn app_reply_7(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>) -> US1 {
                         let mut v51: Rc<str> = Rc::<str>::from(v49.replace(&*v50, &*v48));
                         let mut v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
                         let mut v53: Rc<str> = Rc::<str>::from(v51.replace(&*v52, &*v48));
-                        let mut v54: i32 = (v53.clone().len() as i32);
-                        let mut v55: bool = v54 <= 300i32;
-                        if v55 {
-                            v53.clone()
+                        let mut v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
+                        let mut v55: Rc<str> = Rc::<str>::from(v53.replace(&*v54, &*v48));
+                        let mut v56: i32 = (v55.clone().len() as i32);
+                        let mut v57: bool = v56 <= 300i32;
+                        if v57 {
+                            v55.clone()
                         } else {
-                            let mut v56: Rc<str> = string_slice(&v53.clone(), 0i32 as i64, 299i32 as i64);
-                            let mut v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
-                            let mut v58: Rc<str> = Rc::<str>::from(format!("{}{}", v56, v57));
-                            v58.clone()
+                            let mut v58: Rc<str> = string_slice(&v55.clone(), 0i32 as i64, 299i32 as i64);
+                            let mut v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
+                            let mut v60: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v59));
+                            v60.clone()
                         }
                     }
                 }
             };
-            let mut v63: US2 = US2::US2_HttpStatus(v18, v2.clone(), v62.clone());
-            US3::US3_Error(v63.clone())
+            let mut v65: US2 = US2::US2_HttpStatus(v18, v2.clone(), v64.clone());
+            US3::US3_Error(v65.clone())
         } else {
-            let mut v65: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v19).unwrap_or_default();
-            let mut v66: bool = v65.is_null();
-            if v66 {
-                let mut v67: i32 = (v19.clone().len() as i32);
-                let mut v68: bool = v67 <= 300i32;
-                let mut v72: Rc<str> = if v68 {
+            let mut v67: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v19).unwrap_or_default();
+            let mut v68: bool = v67.is_null();
+            if v68 {
+                let mut v69: i32 = (v19.clone().len() as i32);
+                let mut v70: bool = v69 <= 300i32;
+                let mut v74: Rc<str> = if v70 {
                     v19.clone()
                 } else {
-                    let mut v69: Rc<str> = string_slice(&v19.clone(), 0i32 as i64, 299i32 as i64);
-                    let mut v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
-                    let mut v71: Rc<str> = Rc::<str>::from(format!("{}{}", v69, v70));
-                    v71.clone()
+                    let mut v71: Rc<str> = string_slice(&v19.clone(), 0i32 as i64, 299i32 as i64);
+                    let mut v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
+                    let mut v73: Rc<str> = Rc::<str>::from(format!("{}{}", v71, v72));
+                    v73.clone()
                 };
-                let mut v73: US2 = US2::US2_Undecodable(v2.clone(), v72.clone());
-                US3::US3_Error(v73.clone())
+                let mut v75: US2 = US2::US2_Undecodable(v2.clone(), v74.clone());
+                US3::US3_Error(v75.clone())
             } else {
-                US3::US3_Ok(v65.clone())
+                US3::US3_Ok(v67.clone())
             }
         }
     };
-    match &v78 {
-        US3::US3_Error(v81) => {
-            let mut v81: US2 = v81.clone();
-            US1::US1_Error(v81.clone())
+    match &v80 {
+        US3::US3_Error(v83) => {
+            let mut v83: US2 = v83.clone();
+            US1::US1_Error(v83.clone())
         }
-        US3::US3_Ok(v79) => {
-            let mut v79: serde_json::Value = v79.clone();
-            US1::US1_Ok(v79.clone(), v19.clone())
+        US3::US3_Ok(v81) => {
+            let mut v81: serde_json::Value = v81.clone();
+            US1::US1_Ok(v81.clone(), v19.clone())
         }
     }
 }

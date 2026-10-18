@@ -1,0 +1,95 @@
+open sm'_operators
+open prelude
+open posts
+open wire
+open oauth1
+
+nominal file_text = $'std::io::Result<String>'
+
+inl read_text (path : string) : file_text = $'std::fs::read_to_string(&*!path)'
+
+inl text_read (r : file_text) : bool = $'!r.is_ok()'
+
+inl text_of_file (r : file_text) : string = $'Rc::<str>::from(!r.as_deref().unwrap_or(""))'
+
+inl write_text (path : string) (text : string) : bool = $'std::fs::write(&*!path, (!text).as_bytes()).is_ok()'
+
+type tokens = {access_token : string; refresh_token : string; expires_in : string}
+
+inl tokens_of (doc : json) : tokens =
+    inl expires_in = sm'.obj_to_string (doc |> field "expires_in" |> number_of)
+    {access_token = at_key "access_token" doc; refresh_token = at_key "refresh_token" doc; expires_in}
+
+inl token_form (client_id : string) (refresh_token : string) : string =
+    "grant_type=refresh_token&refresh_token=" ++# percent refresh_token ++# "&client_id=" ++# percent client_id
+
+inl token_path () : string = "/2/oauth2/token"
+
+inl post_form (url : string) (user : string) (password : string) (body : string) : i32 * string =
+    $'xc_net::xc_post_form(&*!url, &*!user, &*!password, &*!body)'
+
+inl refusal_detail (body : string) : string =
+    inl doc = parse_json body
+    inl why, code = at_key "error_description" doc, at_key "error" doc
+    if why <> "" then why elif code <> "" then code else body
+
+inl refusal (status : i32) (body : string) : string =
+    inl detail = refusal_detail body
+    "X API answered " ++# sm'.obj_to_string status ++# " for " ++# token_path () ++# ": " ++# detail
+
+inl key_line (key : string) (value : string) (line : string) : string =
+    inl cr = if sm'.ends_with "\r" line then "\r" else ""
+    if sm'.starts_with (key ++# "=") line then key ++# "=" ++# value ++# cr else line
+
+inl has_key (key : string) (lines : list string) : bool = has (sm'.starts_with (key ++# "=")) lines
+
+inl with_key (key : string) (value : string) (lines : list string) : list string =
+    if has_key key lines then lines |> each (key_line key value) else listm.append lines [key ++# "=" ++# value]
+
+inl trailing (lines : list string) : list string =
+    match listm.rev lines with
+    | Cons ("", rest) => listm.rev rest
+    | _ => lines
+
+let rewritten (text : string) (t : tokens) : string =
+    inl lines = split_on "\n" text |> trailing
+    inl lines = lines |> with_key "X_OAUTH2_ACCESS_TOKEN" t.access_token |> with_key "X_OAUTH2_REFRESH_TOKEN" t.refresh_token
+    sm'.concat_list "\n" lines ++# "\n"
+
+inl renewed (path : string) (t : tokens) : string =
+    "renewed X_OAUTH2_ACCESS_TOKEN and X_OAUTH2_REFRESH_TOKEN in " ++# path ++# "; the access token expires in " ++# t.expires_in ++# " s"
+
+inl no_tokens () : string = "the token reply had no access_token or refresh_token"
+
+inl saved (path : string) (text : string) (t : tokens) : i32 * string =
+    if t.access_token = "" || t.refresh_token = "" then 4i32, no_tokens ()
+    elif write_text path (rewritten text t) then 0i32, renewed path t
+    else 4i32, "could not write " ++# path
+
+type refresh_args = string * string * string * string * string
+
+inl unreachable_token (body : string) : string = "cannot reach " ++# token_path () ++# ": " ++# body
+
+inl answered (path : string) (text : string) (reply : i32 * string) : i32 * string =
+    inl status, body = reply
+    if accepted status then saved path text (tokens_of (parse_json body))
+    elif status = 0i32 then 4i32, unreachable_token body
+    else 4i32, refusal status body
+
+type client = {base : string; client_id : string; client_secret : string}
+
+inl exchanged (c : client) (refresh_token : string) (path : string) (text : string) : i32 * string =
+    inl form = token_form c.client_id refresh_token
+    post_form (c.base ++# token_path ()) c.client_id c.client_secret form |> answered path text
+
+inl unread (path : string) : i32 * string = 3i32, "cannot read " ++# path
+
+let refreshed (x : refresh_args) : i32 * string =
+    inl base, client_id, client_secret, refresh_token, path = x
+    inl file = read_text path
+    if not (text_read file) then unread path
+    else exchanged {base client_id client_secret} refresh_token path (text_of_file file)
+
+inl main () : i32 =
+    !!!!Export("xc_refresh", ((fun x => refreshed x) : refresh_args -> i32 * string))
+    0i32

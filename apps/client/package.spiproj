@@ -24,7 +24,13 @@ modules:
         refs
     write/
         write
+    digest/
+        digest
     view/
         view
+    jsonl/
+        jsonl
+    token/
+        token
     xc/
         xc

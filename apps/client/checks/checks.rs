@@ -15,36 +15,10 @@ enum US0 {
     US0_Some(i32),
     US0_None,
 }
-impl US0 {
-    fn tag(&self) -> i32 {
-        match self {
-            US0::US0_Some(..) => 0,
-            US0::US0_None => 1,
-        }
-    }
-}
-impl Default for US0 {
-    fn default() -> Self {
-        US0::US0_Some(<i32>::default())
-    }
-}
 #[derive(Clone)]
 enum US1 {
     US1_Some(Rc<str>),
     US1_None,
-}
-impl US1 {
-    fn tag(&self) -> i32 {
-        match self {
-            US1::US1_Some(..) => 0,
-            US1::US1_None => 1,
-        }
-    }
-}
-impl Default for US1 {
-    fn default() -> Self {
-        US1::US1_Some({ thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) })
-    }
 }
 fn digits_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> US0 {
     loop {

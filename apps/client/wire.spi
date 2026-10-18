@@ -181,10 +181,7 @@ inl at_key (key : string) (v : json) : string = v |> field key |> text_of
 
 inl account_of (v : json) : account = {id = at_key "id" v; username = at_key "username" v}
 
-inl reference_of (v : json) : list reference =
-    match ref_kind_of (at_key "type" v) with
-    | Some kind => [{kind id = at_key "id" v}]
-    | None => Nil
+inl reference_of (v : json) : list reference = reference_as (at_key "type" v) (at_key "id" v)
 
 inl url_entity_of (v : json) : url_entity =
     {url = at_key "url" v; expanded_url = at_key "expanded_url" v; title = at_key "title" v}
@@ -205,7 +202,7 @@ inl post_texts (v : json) : string * string * string * string =
 
 let post_by (author : string) (v : json) : post =
     inl id, author_id, created_at, text = post_texts v
-    {id author_id created_at text author_username = author; public_metrics = public_metrics_in v;
+    heap {id author_id author_username = author; created_at text public_metrics = public_metrics_in v;
      refs = refs_in v; urls = urls_in v; media_keys = keys_in v}
 
 inl medium_of (v : json) : medium = {media_key = at_key "media_key" v; kind = at_key "type" v; alt_text = at_key "alt_text" v}
@@ -399,3 +396,52 @@ test a_deletion_does_not_reply_with_a_created_post fails "Expected: writes creat
 test the_app_token_cannot_write fails "Expected: api user_context" =
     inl a : api user_context = app_api "http://127.0.0.1:9" "k"
     a |> ignore
+
+inl quoted_text (s : string) : string = "\"" ++# s ++# "\""
+
+inl member (k : string) (v : string) : string = quoted_text k ++# ":" ++# v
+
+inl object (l : list string) : string = "{" ++# sm'.concat_list "," l ++# "}"
+
+inl items (l : list string) : string = "[" ++# sm'.concat_list "," l ++# "]"
+
+inl metrics_json () : string = object [member "reply_count" "2"; member "repost_count" "1"; member "like_count" "14"]
+
+inl quote_json () : string = items [object [member "type" (quoted_text "quoted"); member "id" (quoted_text "2")]]
+
+inl post_json () : string =
+    inl named = [member "id" (quoted_text "1"); member "author_id" (quoted_text "7"); member "text" (quoted_text "hi")]
+    object (listm.append named [member "public_metrics" (metrics_json ()); member "referenced_posts" (quote_json ())])
+
+inl posts_doc () : json = parse_json (object [member "data" (items [post_json ()])])
+
+inl post_summary (p : post) : string =
+    inl refs = p.refs |> each (fun (r : reference) => ref_word r.kind ++# ":" ++# r.id) |> sm'.concat_list ","
+    p.id ++# " " ++# p.author_username ++# " " ++# sm'.obj_to_string p.public_metrics.like_count ++# " " ++# refs
+
+///> rust -d serde_json
+test posts_decode_ids_counts_and_references =
+    match posts_of_doc "erin" (posts_doc ()) with
+    | posts_reply {primary} => primary |> each post_summary |> sm'.concat_list "|" |> _assert_eq "1 erin 14 quoted:2"
+
+inl account_names (l : accounts) : string = l |> each (fun (a : account) => a.id ++# ":" ++# a.username) |> sm'.concat_list ","
+
+inl users_doc () : json =
+    inl bob = object [member "id" (quoted_text "9"); member "username" (quoted_text "bob")]
+    parse_json (object [member "data" (items [bob]); member "errors" (items [object [member "value" (quoted_text "ghost")]])])
+
+///> rust -d serde_json
+test users_lookup_names_found_and_unknown =
+    match users_of_doc (users_doc ()) with
+    | users_reply {found unknown} => account_names found ++# " " ++# sm'.concat_list "," unknown |> _assert_eq "9:bob ghost"
+
+///> rust -d serde_json
+test a_page_carries_its_next_token =
+    inl doc = parse_json (object [member "data" (items []); member "meta" (object [member "next_token" (quoted_text "n2")])])
+    match page_of_doc doc with
+    | page_reply {next_token} => next_token |> _assert_eq "n2"
+
+///> rust -d serde_json
+test errors_prefer_their_detail =
+    inl problem = object [member "title" (quoted_text "T"); member "detail" (quoted_text "D")]
+    parse_json (object [member "errors" (items [problem])]) |> first_error |> _assert_eq "D"

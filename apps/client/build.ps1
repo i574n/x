@@ -18,6 +18,8 @@ foreach ($manifest in Get-ChildItem $PSScriptRoot -Recurse -Depth 1 -Filter Carg
     }
 }
 { pwsh -NoProfile -File (Join-Path $XRoot 'scripts/gate.ps1') } | Invoke-Block
+$spiral = Ensure-SpiralCompiler | Select-Object -Last 1
+& $spiral.Dotnet $spiral.Compiler --x-compat $PSScriptRoot | ForEach-Object { "x/apps/client / $_" }
 { cargo build --release } | Invoke-Block -Location $XRoot
 $exe = Join-Path (Get-XCargoTargetDir) "release/xc$(_exe)"
 

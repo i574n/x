@@ -17,18 +17,19 @@ type filters = {start_time : string; end_time : string; no_replies : bool; no_re
 
 type request =
     {source : source; per_account : i32; limit : i32; per_author : i32; cap : following_cap;
-     filters : filters; depth : i32; hints : bool}
+     filters : filters; depth : i32; hints : bool; json : bool}
 
 union command =
     | ShowTimeline : request
     | PublishPost : string
     | RemovePost : string
+    | RefreshToken : string
     | ShowHelp
     | Rejected : string
 
 type draft =
     {usernames : list string; following : option string; per_account : i32; limit : i32; per_author : i32;
-     cap : following_cap; filters : filters; depth : i32; hints : bool}
+     cap : following_cap; filters : filters; depth : i32; hints : bool; json : bool}
 
 type step = result draft string
 
@@ -51,13 +52,17 @@ union switch =
     | NoReposts
     | Originals
     | Hints
+    | Json
 
 inl lookup_limit () : i32 = 100i32
 
 inl usage_synopsis () : string =
     "usage: xc timeline [options] USERNAME...\n"
     ++# "       xc timeline [options] [--max-following N|all] --following USERNAME\n"
-    ++# "       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n"
+
+inl usage_writes () : string =
+    "       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n"
+    ++# "       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n"
 
 inl usage_environment () : string =
     "env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"
@@ -76,12 +81,15 @@ inl usage_views () : string =
     "       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n"
     ++# "       --hints           media alt text and url titles under each post\n"
 
+inl usage_output () : string = "       --json            one JSON object per entry (JSON Lines) instead of text\n"
+
 inl usage_following () : string =
     "       --max-following N accounts followed by USERNAME to include, or all (default 20)"
 
 inl usage () : string =
     inl filters = usage_counts () ++# usage_filters ()
-    usage_synopsis () ++# usage_environment () ++# filters ++# usage_views () ++# usage_following ()
+    inl views = usage_views () ++# usage_output ()
+    usage_synopsis () ++# usage_writes () ++# usage_environment () ++# filters ++# views ++# usage_following ()
 
 union arg_kind =
     | Switched : switch
@@ -102,12 +110,14 @@ inl flag_of (text : string) : arg_kind =
     elif text = "--depth" then Valued Depth
     else value_flag_of text
 
+inl output_kind (text : string) : arg_kind = if text = "--json" then Switched Json else flag_of text
+
 inl kind_of (text : string) : arg_kind =
     if text = "--no-replies" then Switched NoReplies
     elif text = "--no-reposts" then Switched NoReposts
     elif text = "--originals" then Switched Originals
     elif text = "--hints" then Switched Hints
-    else flag_of text
+    else output_kind text
 
 inl digit_at (i : i32) (text : string) : i32 =
     "0123456789" |> sm'.index_of (sm'.slice i i text)
@@ -220,6 +230,7 @@ inl switched (s : switch) (f : filters) : filters =
 let apply_switch (s : switch) (d : draft) : step =
     match s with
     | Hints => Ok {d with hints = true}
+    | Json => Ok {d with json = true}
     | _ => Ok (with_filters d (switched s d.filters))
 
 let with_username (c : checks) (arg : string) (d : draft) : step =
@@ -229,8 +240,8 @@ let with_username (c : checks) (arg : string) (d : draft) : step =
     | None => Error (not_a_username arg)
 
 inl request_of (d : draft) (s : source) : command =
-    inl {per_account limit per_author cap filters depth hints} = d
-    ShowTimeline {source = s; per_account limit per_author cap filters depth hints}
+    inl {per_account limit per_author cap filters depth hints json} = d
+    ShowTimeline {source = s; per_account limit per_author cap filters depth hints json}
 
 inl following_alone () : string = "--following takes one account and no other usernames"
 
@@ -272,7 +283,7 @@ inl no_filters () : filters = {start_time = ""; end_time = ""; no_replies = fals
 
 inl initial_draft () : draft =
     {usernames = Nil; following = None; per_account = 5i32; limit = 20i32; per_author = 0i32;
-     cap = AtMost 20i32; filters = no_filters (); depth = 0i32; hints = false}
+     cap = AtMost 20i32; filters = no_filters (); depth = 0i32; hints = false; json = false}
 
 inl unknown_command (arg : string) : string = "unknown command " ++# arg ++# "; try: xc timeline"
 
@@ -286,6 +297,7 @@ inl one_value (name : string) (args : list string) (make : string -> command) : 
 inl write_command (sub : string) (rest : args) : command =
     if sub = "post" then one_value sub rest PublishPost
     elif sub = "delete" then one_value sub rest RemovePost
+    elif sub = "refresh" then one_value sub rest RefreshToken
     else Rejected (unknown_command sub)
 
 inl subcommand (c : checks) (start : draft) (sub : string) (rest : args) : command =
@@ -320,16 +332,22 @@ inl views_text (r : request) : string =
     view ++# " cap=" ++# cap_text r.cap
 
 let request_text (r : request) : string =
-    inl hints = if r.hints then " hints" else ""
+    inl hints = (if r.hints then " hints" else "") ++# (if r.json then " json" else "")
     source_text r.source ++# counts_text r ++# views_text r ++# flags_text r.filters ++# hints
+
+inl described_write (c : command) : string =
+    match c with
+    | PublishPost text => "post " ++# text
+    | RemovePost id => "delete " ++# id
+    | RefreshToken path => "refresh " ++# path
+    | _ => ""
 
 inl describe (c : command) : string =
     match c with
     | ShowHelp => "help"
     | Rejected message => "rejected: " ++# message
-    | PublishPost text => "post " ++# text
-    | RemovePost id => "delete " ++# id
     | ShowTimeline r => request_text r
+    | _ => described_write c
 
 inl parsed (args : list string) : string = parse_args args |> describe
 
@@ -406,3 +424,9 @@ test post_and_delete_take_one_argument =
 test help_wins_anywhere =
     inl ~h = "-h"
     parsed ["timeline"; "alice"; h] |> _assert_eq "help"
+
+///> zig
+test json_and_refresh_are_parsed =
+    inl ~path = "x-api.env"
+    parsed ["timeline"; "--json"; "a"] |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 json"
+    parsed ["refresh"; path] |> _assert_eq "refresh x-api.env"

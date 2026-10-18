@@ -47,6 +47,23 @@ def oauth1_valid(header, method, url):
     params = [(k, v) for k, v in fields.items() if k != "oauth_signature"]
     return fields.get("oauth_signature") == oauth1_signature(method, url, params, o["consumer_secret"], o["token_secret"])
 next_id = [9001]
+refresh_tokens = [world["oauth2"]["refresh_token"]]
+
+
+def client_basic():
+    pair = world["oauth2"]["client_id"] + ":" + world["oauth2"]["client_secret"]
+    return "Basic " + base64.b64encode(pair.encode("utf-8")).decode("ascii")
+
+
+def renewed(raw):
+    form = parse_qs(raw)
+    sent = form.get("refresh_token", [""])[0]
+    if form.get("grant_type", [""])[0] != "refresh_token" or sent != refresh_tokens[-1]:
+        return 400, {"error": "invalid_request", "error_description": "Value passed for the token was invalid."}
+    turn = len(refresh_tokens)
+    refresh_tokens.append(world["oauth2"]["refresh_token"] + "-" + str(turn))
+    access = world["oauth2"]["access_token"] + "-" + str(turn)
+    return 200, {"token_type": "bearer", "expires_in": 7200, "access_token": access, "scope": "tweet.read tweet.write users.read offline.access", "refresh_token": refresh_tokens[-1]}
 
 
 def public(user):
@@ -219,6 +236,8 @@ class Handler(BaseHTTPRequestHandler):
             return "app"
         if auth == "Bearer " + world["user_token"]:
             return "user"
+        if auth == client_basic() and urlsplit(self.path).path == "/2/oauth2/token":
+            return "client"
         if auth.startswith("OAuth ") and oauth1_valid(auth, self.command, "http://" + self.headers.get("Host", "") + urlsplit(self.path).path):
             return "oauth1"
         return None
@@ -251,6 +270,8 @@ class Handler(BaseHTTPRequestHandler):
         url, kind = self.logged("POST", {"body": raw})
         if kind is None:
             status, body = problem(401, "Unauthorized", "Unauthorized")
+        elif kind == "client":
+            status, body = renewed(raw)
         elif kind not in ("user", "oauth1"):
             status, body = user_context_only()
         elif url.path == "/2/tweets":

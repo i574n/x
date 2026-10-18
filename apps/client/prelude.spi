@@ -2,6 +2,8 @@
 test prelude static =
     open testing
 
+open sm'_operators
+
 inl each forall a b. (f : a -> b) (l : list a) : list b =
     listm.foldBack (fun x acc => Cons (f x, acc)) l Nil
 
@@ -33,6 +35,12 @@ inl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =
 
 inl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
 
+let rec split_on (sep : string) (s : string) : list string =
+    inl i : i32 = sm'.index_of sep s
+    if i < 0i32 then [s]
+    else Cons (sm'.substring 0i32 i s, split_on sep (sm'.substring (i + 1i32) (sm'.length s - i - 1i32) s))
+
+inl pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_on sep s
 ///> zig
 test take_first_stops_at_the_limit =
     inl ~n = 2i32

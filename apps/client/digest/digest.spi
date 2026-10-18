@@ -1,0 +1,40 @@
+open sm'_operators
+open prelude
+open posts
+open wire
+
+type rebuilt = {primary : list post; pool : pool}
+
+inl primary_entry (author : string) (doc : json) (r : rebuilt) : rebuilt =
+    match posts_of_doc author doc with
+    | posts_reply {pool primary} => {primary = listm.append primary r.primary; pool = merge_pools r.pool pool}
+
+inl lookup_entry (doc : json) (r : rebuilt) : rebuilt =
+    match posts_of_doc "" doc with
+    | posts_reply {pool} => {r with pool = absorb r.pool pool}
+
+inl users_entry (doc : json) (r : rebuilt) : rebuilt =
+    match users_of_doc doc with
+    | users_reply {found} =>
+        inl pl = r.pool
+        {r with pool = {pl with users = listm.append pl.users found}}
+
+let absorb_entry (r : rebuilt) (e : json) : rebuilt =
+    inl role = at_key "role" e
+    inl doc = e |> field "doc"
+    if role = "primary" then primary_entry (at_key "author" e) doc r
+    elif role = "lookup" then lookup_entry doc r
+    else users_entry doc r
+
+inl rebuilt_of (bundle : string) : rebuilt =
+    parse_json bundle |> collect id |> listm.fold absorb_entry {primary = Nil; pool = empty_pool ()}
+
+inl entry_lines_of (role : string) (pl : pool) (l : list post) : list string = l |> each (entry_of pl >> entry_line role)
+
+let digested (bundle : string) : string =
+    inl r = rebuilt_of bundle
+    listm.append (entry_lines_of "p" r.pool r.primary) (entry_lines_of "r" r.pool r.pool.posts) |> sm'.concat_list "\n"
+
+inl main () : i32 =
+    !!!!Export("xc_digest", ((fun bundle => digested bundle) : string -> string))
+    0i32

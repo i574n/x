@@ -103,7 +103,7 @@ try {
     Check ($signed.Count -eq 2 -and @($signed | Where-Object { $_.context -eq 'oauth1' }).Count -eq 2 -and $signed[0].body -eq '{"text":"signed: 100% & done"}') "OAuth 1.0a post and delete were not both accepted as signed requests"
     $unauthorized = @(Read-Requests | Where-Object { !$_.authorized }).Count
     Check ($unauthorized -eq 2) "expected exactly two unauthorized requests (the wrong bearer token and the forged signature), got $unauthorized"
-    $leaks = @($outputs | Where-Object { $_.Contains($world.token) -or $_.Contains($world.user_token) -or $_.Contains($world.oauth1.token_secret) -or $_.Contains($world.oauth1.consumer_secret) })
+    $leaks = @($outputs | Where-Object { $_.Contains($world.token) -or $_.Contains($world.user_token) -or $_.Contains($world.oauth1.token_secret) -or $_.Contains($world.oauth1.consumer_secret) -or $_.Contains($world.oauth2.client_secret) -or $_.Contains($world.oauth2.refresh_token) -or $_.Contains($world.oauth2.access_token) })
     Check ($leaks.Count -eq 0) "a token appeared in program output"
     Write-Output "x e2e / $((Read-Requests).Count) requests to the stub on port $port"
 } finally {

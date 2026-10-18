@@ -39,12 +39,6 @@ inl get_raw (a : app) (resource : string) : got fetched =
     match a with
     | api e => app_reply e resource
 
-let rec split_on (sep : string) (s : string) : list string =
-    inl i : i32 = sm'.index_of sep s
-    if i < 0i32 then [s]
-    else Cons (sm'.substring 0i32 i s, split_on sep (sm'.substring (i + 1i32) (sm'.length s - i - 1i32) s))
-
-inl pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_on sep s
 
 inl account_line (a : account) : string = a.id ++# ":" ++# a.username
 

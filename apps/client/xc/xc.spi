@@ -16,7 +16,7 @@ inl env_of (name : string) : string = env_or name ""
 inl base_url () : string = env_or "X_API_BASE_URL" "https://api.x.com"
 
 type parsed =
-    i32 * string * bool * string * i32 * i32 * i32 * i32 * string * string * bool * bool * i32 * bool
+    i32 * string * bool * string * i32 * i32 * i32 * i32 * string * string * bool * bool * i32 * bool * bool
 
 inl parsed_args () : parsed = $'xc_args::xc_parse_os_args()'
 
@@ -43,7 +43,7 @@ inl users_by_ids (s : site) (ids : string) : i32 * string * string =
 type window = {max_results : i32; start_time : string; end_time : string; nr : bool; np : bool; depth : i32; hints : bool}
 
 inl window_of (p : parsed) : window =
-    inl _, _, _, _, max_results, _, _, _, start_time, end_time, nr, np, depth, hints = p
+    inl _, _, _, _, max_results, _, _, _, start_time, end_time, nr, np, depth, hints, _ = p
     {max_results start_time end_time nr np depth hints}
 
 type fetch_reply = string * string * string * string * string * string
@@ -77,9 +77,17 @@ inl remote_write (k : keys) (o : order) : i32 * string =
     inl {base nonce stamp kind payload} = o
     $'xc_write::xc_write(&*!base, &*!token, &*!ck, &*!cs, &*!t, &*!ts, &*!nonce, &*!stamp, !kind, &*!payload)'
 
-inl view (bundle : string) (p : parsed) : string * i32 =
-    inl _, _, _, _, _, limit, per_author, _, _, _, _, _, depth, hints = p
-    $'xc_view::xc_view(&*!bundle, !limit, !per_author, !depth, !hints)'
+inl digest (bundle : string) : string = $'xc_digest::xc_digest(&*!bundle)'
+
+inl text_view (text : string) (limit : i32) (per_author : i32) (depth : i32) (hints : bool) : string * i32 =
+    $'xc_view::xc_view(&*!text, !limit, !per_author, !depth, !hints)'
+
+inl json_view (text : string) (limit : i32) (per_author : i32) (depth : i32) : string * i32 =
+    $'xc_jsonl::xc_jsonl(&*!text, !limit, !per_author, !depth)'
+
+inl view (text : string) (p : parsed) : string * i32 =
+    inl _, _, _, _, _, limit, per_author, _, _, _, _, _, depth, hints, json = p
+    if json then json_view text limit per_author depth else text_view text limit per_author depth hints
 
 type plan = {lines : string; notes : string; failure : string}
 
@@ -161,7 +169,7 @@ inl gathered (s : site) (pl : plan) (w : window) : string * string * string =
 
 let shown_timeline (s : site) (pl : plan) (p : parsed) : i32 =
     inl docs, failure, notes = gathered s pl (window_of p)
-    inl text, shown = view ("[" ++# docs ++# "]") p
+    inl text, shown = view (digest ("[" ++# docs ++# "]")) p
     notes_of notes
     nothing_note failure shown
     lines_of text
@@ -172,7 +180,7 @@ inl missing_bearer () : i32 =
     3i32
 
 inl site_plan (s : site) (p : parsed) : plan =
-    inl _, _, following, hs, _, _, _, cap, _, _, _, _, _, _ = p
+    inl _, _, following, hs, _, _, _, cap, _, _, _, _, _, _, _ = p
     if following then home_plan s hs cap else account_plan s hs
 
 let run_timeline (p : parsed) : i32 =
@@ -212,6 +220,20 @@ let run_write (kind : i32) (payload : string) : i32 =
     if not (signed k) && k.oauth2_access_token = "" then no_user ()
     else remote_write k (order_of kind payload) |> reported
 
+inl refresh (path : string) : i32 * string =
+    inl base, id, secret = base_url (), env_of "X_OAUTH2_CLIENT_ID", env_of "X_OAUTH2_CLIENT_SECRET"
+    inl token = env_of "X_OAUTH2_REFRESH_TOKEN"
+    $'xc_token::xc_refresh(&*!base, &*!id, &*!secret, &*!token, &*!path)'
+
+inl no_client () : i32 =
+    write_error "xc: refresh needs X_OAUTH2_CLIENT_ID, X_OAUTH2_CLIENT_SECRET and X_OAUTH2_REFRESH_TOKEN"
+    3i32
+
+inl client_set () : bool =
+    env_of "X_OAUTH2_CLIENT_ID" <> "" && env_of "X_OAUTH2_CLIENT_SECRET" <> "" && env_of "X_OAUTH2_REFRESH_TOKEN" <> ""
+
+let run_refresh (path : string) : i32 = if client_set () then refresh path |> reported else no_client ()
+
 inl rejected (message : string) : i32 =
     write_error ("xc: " ++# message)
     write_error (usage ())
@@ -221,10 +243,12 @@ inl helped () : i32 =
     write_line (usage ())
     0i32
 
+inl run_user (kind : i32) (payload : string) : i32 = if kind = 5i32 then run_refresh payload else run_write kind payload
+
 inl main () : i32 =
     inl p = parsed_args ()
-    inl kind, payload, _, _, _, _, _, _, _, _, _, _, _, _ = p
+    inl kind, payload, _, _, _, _, _, _, _, _, _, _, _, _, _ = p
     if kind = 0i32 then run_timeline p
-    elif kind = 1i32 || kind = 2i32 then run_write kind payload
+    elif kind = 3i32 then helped ()
     elif kind = 4i32 then rejected payload
-    else helped ()
+    else run_user kind payload

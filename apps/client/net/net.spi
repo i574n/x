@@ -43,6 +43,20 @@ let exchange (method : string) (url : string) (auth : string) (body : string) : 
     inl reply = if method = "POST" then posted url auth body else bodiless_reply method url auth
     status_of reply, body_of reply
 
+inl form_builder (url : string) (auth : string) : bodied =
+    $'ureq::post(&*!url).header("Authorization", &*!auth).header("Content-Type", "application/x-www-form-urlencoded")'
+
+inl basic_auth (user : string) (password : string) : string =
+    inl pair = user ++# ":" ++# password
+    "Basic " ++# $'Rc::<str>::from(base64::Engine::encode(&base64::engine::general_purpose::STANDARD, (!pair).as_bytes()))'
+
+type form_post = string * string * string * string
+
+let form_exchange (x : form_post) : i32 * string =
+    inl url, user, password, body = x
+    inl reply = send_reply (form_builder url (basic_auth user password) |> patient_bodied) body
+    status_of reply, body_of reply
+
 type sent = string * string * string * string
 
 inl sent_of (x : sent) : i32 * string =
@@ -76,6 +90,8 @@ inl local_exports () : () =
     !!!!Export("xc_local_minute", ((fun s => local_minute s) : string -> string))
     !!!!Export("xc_local_midnight", ((fun d => local_midnight d) : string -> string))
 
+inl form_exports () : () = !!!!Export("xc_post_form", ((fun x => form_exchange x) : form_post -> i32 * string))
+
 inl clock_exports () : () =
     !!!!Export("xc_fresh_nonce", ((fun () => fresh_nonce ()) : () -> string))
     !!!!Export("xc_unix_seconds", ((fun () => unix_seconds ()) : () -> string))
@@ -83,6 +99,7 @@ inl clock_exports () : () =
 inl main () : i32 =
     !!!!Export("xc_send", ((fun x => sent_of x) : sent -> i32 * string))
     !!!!Export("xc_oauth1_header", ((fun x => signed_header x) : signing -> string))
+    form_exports ()
     clock_exports ()
     local_exports ()
     0i32

@@ -13,11 +13,11 @@ inl process_args () : list string =
 
 type command_fields =
     {kind : i32; payload : string; following : bool; usernames : string; max_results : i32; limit : i32; per_author : i32;
-     cap : i32; start_time : string; end_time : string; no_replies : bool; no_reposts : bool; depth : i32; hints : bool}
+     cap : i32; start_time : string; end_time : string; no_replies : bool; no_reposts : bool; depth : i32; hints : bool; json : bool}
 
 inl blank () : command_fields =
-    {kind = 3i32; payload = ""; following = false; usernames = ""; max_results = 5i32; limit = 20i32; per_author = 0i32;
-     cap = 20i32; start_time = ""; end_time = ""; no_replies = false; no_reposts = false; depth = 0i32; hints = false}
+    {kind = 3; payload = ""; following = false; usernames = ""; max_results = 5; limit = 20; per_author = 0;
+     cap = 20; start_time = ""; end_time = ""; no_replies = false; no_reposts = false; depth = 0; hints = false; json = false}
 
 inl cap_number (c : following_cap) : i32 =
     match c with
@@ -36,20 +36,27 @@ inl filter_fields (r : request) (f : command_fields) : command_fields =
     inl x = r.filters
     {f with start_time = x.start_time; end_time = x.end_time; no_replies = x.no_replies; no_reposts = x.no_reposts; depth = r.depth; hints = r.hints}
 
+inl output_fields (r : request) (f : command_fields) : command_fields = {f with json = r.json}
+
 inl request_fields (r : request) : command_fields =
-    blank () |> counts_fields r |> filter_fields r |> source_fields r.source
+    blank () |> counts_fields r |> filter_fields r |> output_fields r |> source_fields r.source
 
 inl with_payload (kind : i32) (payload : string) : command_fields =
     inl z = blank ()
     {z with kind = kind; payload = payload}
 
+inl payload_of (c : command) : i32 * string =
+    match c with
+    | PublishPost text => 1i32, text
+    | RemovePost id => 2i32, id
+    | Rejected message => 4i32, message
+    | RefreshToken path => 5i32, path
+    | _ => 3i32, ""
+
 let fields_of (c : command) : command_fields =
     match c with
     | ShowTimeline r => request_fields r
-    | PublishPost text => with_payload 1i32 text
-    | RemovePost id => with_payload 2i32 id
-    | ShowHelp => blank ()
-    | Rejected message => with_payload 4i32 message
+    | _ => payload_of c |> fun (kind, payload) => with_payload kind payload
 
 inl runtime_empty () : string = $'Rc::<str>::from(String::new())'
 

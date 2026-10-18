@@ -51,6 +51,7 @@ xc --help
 usage: xc timeline [options] USERNAME...
        xc timeline [options] [--max-following N|all] --following USERNAME
        xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)
+       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts fetched per account, 5..100 (default 5)
        --limit N         timeline entries shown (default 20)
@@ -60,6 +61,7 @@ env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --no-replies, --no-reposts, --originals (both)
        --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)
        --hints           media alt text and url titles under each post
+       --json            one JSON object per entry (JSON Lines) instead of text
        --max-following N accounts followed by USERNAME to include, or all (default 20)
 ```
 
@@ -196,6 +198,19 @@ xc timeline --depth 1 --limit 2 bob
 2026-10-15 09:05  @bob  reposted @alice: lunch: ramen  [2 replies, 1 repost, 14 likes]
 ```
 
+### Output for programs
+
+`--json` prints one JSON object per entry (JSON Lines) instead of text, with the counts as numbers, references as `{type, id}` and, with `--depth`, the referenced posts as further objects whose `via` names the post that cites them:
+
+```powershell
+xc timeline --json --depth 1 --limit 1 bob
+```
+
+```text
+{"id":"2004","username":"bob","created_at":"2026-10-15T13:10:00.000Z","text":"agreed, ramen wins","reply_count":1,"repost_count":0,"like_count":3,"refs":[{"type":"replied_to","id":"1002"}],"hints":[],"level":0,"via":""}
+{"id":"1002","username":"alice","created_at":"2026-10-15T12:30:00.000Z","text":"lunch: ramen","reply_count":2,"repost_count":1,"like_count":14,"refs":[],"hints":[],"level":1,"via":"2004"}
+```
+
 ### Empty and partial results
 
 An empty result says so:
@@ -287,6 +302,42 @@ xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_
 3
 ```
 
+### Renewing the OAuth 2.0 token
+
+An OAuth 2.0 access token lasts 2 hours. `xc refresh FILE` trades `X_OAUTH2_REFRESH_TOKEN` for a new access token and a new refresh token (X accepts each refresh token once) and rewrites those two lines of the env file in place, keeping every other line; nothing secret is printed:
+
+```powershell
+Push-Location ([IO.Path]::GetTempPath()); Set-Content xc-refresh.env "X_BEARER_TOKEN=kept`nX_OAUTH2_ACCESS_TOKEN=old`nX_OAUTH2_REFRESH_TOKEN=e2e-refresh-token"; $env:X_OAUTH2_CLIENT_ID = 'e2e-client-id'; $env:X_OAUTH2_CLIENT_SECRET = 'e2e-client-secret'; $env:X_OAUTH2_REFRESH_TOKEN = 'e2e-refresh-token'; xc refresh xc-refresh.env; (Get-Content xc-refresh.env) -replace '=.*', '=...'; Pop-Location
+```
+
+```text
+renewed X_OAUTH2_ACCESS_TOKEN and X_OAUTH2_REFRESH_TOKEN in xc-refresh.env; the access token expires in 7200 s
+X_BEARER_TOKEN=...
+X_OAUTH2_ACCESS_TOKEN=...
+X_OAUTH2_REFRESH_TOKEN=...
+```
+
+The spent refresh token is refused:
+
+```powershell
+Push-Location ([IO.Path]::GetTempPath()); $env:X_OAUTH2_CLIENT_ID = 'e2e-client-id'; $env:X_OAUTH2_CLIENT_SECRET = 'e2e-client-secret'; $env:X_OAUTH2_REFRESH_TOKEN = 'e2e-refresh-token'; xc refresh xc-refresh.env; $LASTEXITCODE; Pop-Location
+```
+
+```text
+xc: X API answered 400 for /2/oauth2/token: Value passed for the token was invalid.
+4
+```
+
+The file now holds the next refresh token, so loading it again is all the next renewal needs:
+
+```powershell
+Push-Location ([IO.Path]::GetTempPath()); $env:X_OAUTH2_CLIENT_ID = 'e2e-client-id'; $env:X_OAUTH2_CLIENT_SECRET = 'e2e-client-secret'; $env:X_OAUTH2_REFRESH_TOKEN = (Get-Content xc-refresh.env | Where-Object { $_ -like 'X_OAUTH2_REFRESH_TOKEN=*' }) -replace '^[^=]*=', ''; xc refresh xc-refresh.env; Remove-Item xc-refresh.env; Pop-Location
+```
+
+```text
+renewed X_OAUTH2_ACCESS_TOKEN and X_OAUTH2_REFRESH_TOKEN in xc-refresh.env; the access token expires in 7200 s
+```
+
 ### Errors and exit codes
 
 ```powershell
@@ -316,6 +367,7 @@ xc: --per-account expects a number from 5 to 100, got '500'
 usage: xc timeline [options] USERNAME...
        xc timeline [options] [--max-following N|all] --following USERNAME
        xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)
+       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts fetched per account, 5..100 (default 5)
        --limit N         timeline entries shown (default 20)
@@ -325,6 +377,7 @@ env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --no-replies, --no-reposts, --originals (both)
        --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)
        --hints           media alt text and url titles under each post
+       --json            one JSON object per entry (JSON Lines) instead of text
        --max-following N accounts followed by USERNAME to include, or all (default 20)
 2
 ```
@@ -405,14 +458,14 @@ Shared modules, compiled into every crate that opens them:
 
 | Module | Role |
 | --- | --- |
-| `prelude.spi` | list and result helpers |
-| `posts.spi` | posts, references, links and media; newest-first merge sort, per-author caps, reference trees and hints |
+| `prelude.spi` | list, result and text-splitting helpers |
+| `posts.spi` | posts, references, urls and media; display entries and their one-line form between crates; newest-first merge sort, per-author caps, reference trees and hints |
 | `cli.spi` | arguments to a typed command (`ShowTimeline`, `PublishPost`, `RemovePost`) with filters and views; validators arrive as a `checks` record |
 | `oauth1.spi` | OAuth 1.0a: RFC 3986 percent-encoding, the signature base string, HMAC-SHA1 (`hmac`, `sha1`, `base64` crates) |
 | `wire.spi` | `reads r` and `writes r`, GADTs indexed by their reply, so a request determines its reply type; `api app_context` and `api user_context`, so a client built from the app token cannot write; JSON (`serde_json`) primitives; typed failures |
 | `transport.spi` | requests through `xc_net`, reply classification, `id:username` account lines |
 
-Each entry is one Rust crate, so every generated file stays reviewable (`scripts/gate.ps1` reports generated lines against 1000). Crates exchange strings, numbers and tuples:
+Each entry is one Rust crate, so every generated file stays reviewable (`scripts/gate.ps1` reports generated lines against 1000), and the build reports the compiler's `--x-compat` findings, so every top-level definition fits one 280-weight post. Crates exchange strings, numbers and tuples:
 
 | Crate | Entry | Role |
 | --- | --- | --- |
@@ -423,7 +476,10 @@ Each entry is one Rust crate, so every generated file stays reviewable (`scripts
 | `xc_fetch` | `fetch/fetch.spi` | each account's posts, with the ids they reference |
 | `xc_refs` | `refs/refs.spi` | referenced posts, level by level up to `--depth` |
 | `xc_write` | `write/write.spi` | posting and deleting with user credentials |
-| `xc_view` | `view/view.spi` | rebuilds posts from the gathered replies, selects and renders them |
+| `xc_digest` | `digest/digest.spi` | rebuilds posts from the gathered replies and writes each as a display entry line (author, text, counts, hints, references) |
+| `xc_view` | `view/view.spi` | reads entry lines, selects them and renders the timeline with its reference trees |
+| `xc_jsonl` | `jsonl/jsonl.spi` | the same selection as JSON Lines (`--json`) |
+| `xc_token` | `token/token.spi` | OAuth 2.0 token renewal and the in-place env file rewrite (`xc refresh`) |
 | `xc` | `xc/xc.spi` | entry: environment, credentials, the order of calls, exit codes, output |
 
-Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py`.
+Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py`.

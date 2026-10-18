@@ -6,36 +6,10 @@ enum UH0 {
     UH0_Nil,
     UH0_Cons(Rc<str>, Rc<str>, Rc<UH0>),
 }
-impl UH0 {
-    fn tag(&self) -> i32 {
-        match self {
-            UH0::UH0_Nil => 0,
-            UH0::UH0_Cons(..) => 1,
-        }
-    }
-}
-impl Default for UH0 {
-    fn default() -> Self {
-        UH0::UH0_Nil
-    }
-}
 #[derive(Clone)]
 enum UH1 {
     UH1_Nil,
     UH1_Cons(Rc<str>, Rc<UH1>),
-}
-impl UH1 {
-    fn tag(&self) -> i32 {
-        match self {
-            UH1::UH1_Nil => 0,
-            UH1::UH1_Cons(..) => 1,
-        }
-    }
-}
-impl Default for UH1 {
-    fn default() -> Self {
-        UH1::UH1_Nil
-    }
 }
 fn exchange_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> (i32, Rc<str>) {
     let mut v4: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("POST"); } LIT.with(|lit| lit.clone()) };
@@ -266,27 +240,46 @@ fn closure1() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>,
         signed_header_1(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn closure2() -> Rc<dyn Fn() -> Rc<str>> {
+fn form_exchange_6(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>) -> (i32, Rc<str>) {
+    let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
+    let mut v5: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v4));
+    let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v2));
+    let mut v7: Rc<str> = Rc::<str>::from(base64::Engine::encode(&base64::engine::general_purpose::STANDARD, (v6).as_bytes()));
+    let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Basic "); } LIT.with(|lit| lit.clone()) };
+    let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v7));
+    let mut v10: ureq::RequestBuilder<ureq::typestate::WithBody> = ureq::post(&*v0).header("Authorization", &*v9).header("Content-Type", "application/x-www-form-urlencoded");
+    let mut v11: ureq::RequestBuilder<ureq::typestate::WithBody> = v10.config().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(30))).build();
+    let mut v12: (u16, std::rc::Rc<str>) = match ureq::RequestBuilder::send(v11, &*v3) { Ok(mut r) => (r.status().as_u16(), Rc::<str>::from(r.body_mut().read_to_string().unwrap_or_default())), Err(e) => (0u16, Rc::<str>::from(e.to_string())) };
+    let mut v13: i32 = v12.0 as i32;
+    let mut v14: Rc<str> = v12.1.clone();
+    (v13, v14.clone())
+}
+fn closure2() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>)> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>)> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>| -> (i32, Rc<str>) {
+        form_exchange_6(v0.clone(), v1.clone(), v2.clone(), v3.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn closure3() -> Rc<dyn Fn() -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> Rc<str>> = Rc::new(move || -> Rc<str> {
         let mut v0: Rc<str> = Rc::<str>::from(format!("{}-{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos(), std::process::id()));
         let mut v1: Rc<str> = Rc::<str>::from(<sha1::Sha1 as sha1::Digest>::digest(v0.as_bytes()).iter().map(|b| format!("{:02x}", b)).collect::<String>());
         v1.clone()
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn closure3() -> Rc<dyn Fn() -> Rc<str>> {
+fn closure4() -> Rc<dyn Fn() -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> Rc<str>> = Rc::new(move || -> Rc<str> {
         let mut v0: Rc<str> = Rc::<str>::from(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs().to_string());
         v0.clone()
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn closure4() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
+fn closure5() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
         let mut v1: Option<jiff::Timestamp> = v0.parse::<jiff::Timestamp>().ok();
         let mut v2: Rc<str> = v1.map_or(v0.clone(), |x| Rc::<str>::from(x.to_zoned(jiff::tz::TimeZone::system()).strftime("%Y-%m-%d %H:%M").to_string()));
         v2.clone()
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn closure5() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
+fn closure6() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
         let mut v1: Option<jiff::Zoned> = v0.parse::<jiff::civil::Date>().ok().and_then(|d| d.to_zoned(jiff::tz::TimeZone::system()).ok());
         let mut v2: Rc<str> = v1.map_or({ thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }, |x| Rc::<str>::from(x.timestamp().strftime("%Y-%m-%dT%H:%M:%SZ").to_string()));
@@ -299,15 +292,18 @@ pub fn xc_send(v0: &str, v1: &str, v2: &str, v3: &str) -> (i32, Rc<str>) {
 pub fn xc_oauth1_header(v0: &str, v1: &str, v2: &str, v3: &str, v4: &str, v5: &str, v6: &str, v7: &str) -> Rc<str> {
     closure1()(Rc::<str>::from(v0), Rc::<str>::from(v1), Rc::<str>::from(v2), Rc::<str>::from(v3), Rc::<str>::from(v4), Rc::<str>::from(v5), Rc::<str>::from(v6), Rc::<str>::from(v7))
 }
-pub fn xc_fresh_nonce() -> Rc<str> {
-    closure2()()
+pub fn xc_post_form(v0: &str, v1: &str, v2: &str, v3: &str) -> (i32, Rc<str>) {
+    closure2()(Rc::<str>::from(v0), Rc::<str>::from(v1), Rc::<str>::from(v2), Rc::<str>::from(v3))
 }
-pub fn xc_unix_seconds() -> Rc<str> {
+pub fn xc_fresh_nonce() -> Rc<str> {
     closure3()()
 }
+pub fn xc_unix_seconds() -> Rc<str> {
+    closure4()()
+}
 pub fn xc_local_minute(v0: &str) -> Rc<str> {
-    closure4()(Rc::<str>::from(v0))
+    closure5()(Rc::<str>::from(v0))
 }
 pub fn xc_local_midnight(v0: &str) -> Rc<str> {
-    closure5()(Rc::<str>::from(v0))
+    closure6()(Rc::<str>::from(v0))
 }
