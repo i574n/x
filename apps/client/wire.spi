@@ -33,7 +33,9 @@ inl text_body (text : string) : string =
 inl reply_body (text : string) (to : string) : string =
     $'Rc::<str>::from(serde_json::json\!({"text": &*!text, "reply": {"in_reply_to_tweet_id": &*!to}}).to_string())'
 
-inl unescaped (t : string) : string = t |> sm'.replace "&lt;" "<" |> sm'.replace "&gt;" ">" |> sm'.replace "&amp;" "&"
+inl defused_dot () : string = $'Rc::<str>::from(char::from_u32(0x200B).unwrap().to_string() + ".")'
+
+inl unescaped (t : string) : string = $'Rc::<str>::from((&*!t).replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&"))'
 
 nominal app_context = ()
 
@@ -73,7 +75,7 @@ nominal created_reply = {id : string; text : string}
 
 nominal deleted_reply = {deleted : bool}
 
-type framed = {id : string; text : string; history : list string; urls : list url_entity}
+type framed = {id : string; text : string; history : list string; urls : list url_entity; parent : string}
 
 nominal root_reply = {conversation_id : string; author_id : string; created_at : string; missing : string}
 
@@ -165,7 +167,7 @@ inl search_head (s : thread_search) : string =
     "/2/tweets/search/all?query=conversation_id%3A" ++# s.conversation_id ++# "%20from%3A" ++# s.author_id ++# "&start_time=" ++# s.start_time
 
 inl page_path (s : thread_search) (token : string) : string =
-    inl first = search_head s ++# "&max_results=100&post.fields=conversation_id,entities"
+    inl first = search_head s ++# "&max_results=100&post.fields=conversation_id,entities,referenced_posts"
     if token = "" then first else first ++# "&next_token=" ++# token
 
 inl thread_path forall r. (q : threads r) : string =
@@ -266,8 +268,12 @@ inl users_of_doc (doc : json) : users_reply = users_reply {found = accounts_in d
 
 inl page_of_doc (doc : json) : page_reply = page_reply {page = accounts_in doc; next_token = next_token_in doc}
 
+inl replied_to_in (v : json) : string =
+    v |> field "referenced_posts" |> collect (fun r => if at_key "type" r = "replied_to" then at_key "id" r else "")
+    |> listm.fold (fun found id => if found = "" then id else found) ""
+
 inl framed_of (v : json) : framed =
-    {id = at_key "id" v; text = unescaped (at_key "text" v); history = v |> field "edit_history_post_ids" |> texts; urls = urls_in v}
+    {id = at_key "id" v; text = unescaped (at_key "text" v); history = v |> field "edit_history_post_ids" |> texts; urls = urls_in v; parent = replied_to_in v}
 
 inl root_of (doc : json) : root_reply =
     inl d = doc |> field "data"
@@ -285,10 +291,12 @@ inl decode_read forall r. (q : reads r) (doc : json) : r =
     | PostsOf (a, _) => posts_of_doc a.username doc
     | PostsById _ => posts_of_doc "" doc
 
+inl created_of (d : json) : created_reply = created_reply {id = at_key "id" d; text = at_key "text" d}
+
 inl decode_write forall r. (q : writes r) (doc : json) : r =
     inl d = doc |> field "data"
     match q with
-    | CreatePost _ | ReplyPost _ => created_reply {id = at_key "id" d; text = at_key "text" d}
+    | CreatePost _ | ReplyPost _ => created_of d
     | DeletePost _ => deleted_reply {deleted = d |> field "deleted" |> flag_of_json}
 
 inl clipped (n : i32) (text : string) : string =
@@ -398,7 +406,7 @@ test start_time_is_sent =
 
 inl archive_page (start_time : string) : string =
     "/2/tweets/search/all?query=conversation_id%3A7%20from%3A5&start_time=" ++# start_time
-    ++# "&max_results=100&post.fields=conversation_id,entities"
+    ++# "&max_results=100&post.fields=conversation_id,entities,referenced_posts"
 
 ///> zig
 test thread_pages_search_the_archive_from_the_root =
@@ -502,7 +510,10 @@ test errors_prefer_their_detail =
     parse_json (object [member "errors" (items [problem])]) |> first_error |> _assert_eq "D"
 
 ///> rust -d serde_json
-test text_comes_back_unescaped_and_replies_name_their_parent =
+test text_comes_back_unescaped =
     inl ~escaped = "a |&gt; b &amp;&amp; c &lt;d&gt; &amp;lt;"
     unescaped escaped |> _assert_eq "a |> b && c <d> &lt;"
+
+///> rust -d serde_json
+test replies_name_their_parent =
     write_verb (ReplyPost ("hi", "7")) |> body_of_verb |> _assert_eq "{\"reply\":{\"in_reply_to_tweet_id\":\"7\"},\"text\":\"hi\"}"

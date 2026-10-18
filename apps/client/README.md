@@ -41,7 +41,7 @@ Add-Content $secrets "X_BEARER_TOKEN=$(Get-Clipboard)"
 
 ## 3. Walkthrough
 
-Each command is followed by its exact output: notes and errors (stderr) first, then the timeline (stdout). The accounts are the stub's (`e2e/world.json`).
+Each command is followed by its exact output: notes and errors (stderr) first, then the timeline (stdout), with empty lines left out. The accounts are the stub's (`e2e/world.json`).
 
 ```powershell
 xc --help
@@ -53,6 +53,7 @@ usage: xc timeline [options] USERNAME...
        xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)
        xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN
        xc thread ID          the program a thread of framed posts (CELL k/n) carries
+       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts fetched per account, 5..100 (default 5)
        --limit N         timeline entries shown (default 20)
@@ -214,7 +215,7 @@ xc timeline --json --depth 1 --limit 1 bob
 
 ### Programs posted as threads
 
-A program can travel as a thread: each cell is split into posts of at most 280 weighted characters, each post starting with a `CELL k/n` line (the cell's name and the post's place in it, such as `p2 1/6`), and each post replies to the one before it. `xc thread ID` reads the author's posts of that conversation (`conversation_id:` and `from:` in one full-archive search from the root post's `created_at`, paged, so a thread of any age is found: `search/recent` only sees 7 days and `search/all` defaults to 30), keeps the latest version of every edited post (the last id in `edit_history_post_ids`), expands `t.co` links back from the entities and prints the cells in posting order. This thread was posted by the simulator (`apps/sim`, `mix xsim.world`) from the first cells of `prelude.spi`:
+A program can travel as a thread: each cell is split into posts of at most 280 weighted characters, each post starting with a `CELL k/n` line (the cell's name and the post's place in it, such as `p2 1/6`), and each post replies to the one before it. `xc thread ID` reads the author's posts of that conversation (`conversation_id:` and `from:` in one full-archive search from the root post's `created_at`, paged, so a thread of any age is found: `search/recent` only sees 7 days and `search/all` defaults to 30), keeps the latest version of every edited post (the last id in `edit_history_post_ids`), expands `t.co` links back from the entities, undoes the API's HTML escaping (`&amp;`, `&lt;`, `&gt;`), removes the zero-width spaces `xc post-thread` puts before dots and prints the cells in posting order. This thread was posted by the simulator (`apps/sim`, `mix xsim.world`) from the first cells of `prelude.spi`:
 
 ```powershell
 xc thread 3000001
@@ -266,7 +267,7 @@ xc: X API answered 404 for /2/tweets/999?post.fields=conversation_id,author_id,c
 4
 ```
 
-A cell with a missing post is left out and named, and the exit code is 4. The e2e also reads back a thread of all of `posts.spi` with 3 rounds of edits and editing personas (one cell spans 48 posts and is rebuilt from its latest versions), and a copy of the thread above with a lost post, and checks each program byte for byte against the simulator's own record of what it posted.
+A cell with a missing post is left out and named, and the exit code is 4. A cell lost with all its posts cannot be named, but the cell after it replies to a post that is not in the thread, so that cell is named instead (exit 4); a lost cell nothing replies to stays invisible. The e2e also reads back a thread of all of `posts.spi` with 3 rounds of edits and editing personas (one cell spans 48 posts and is rebuilt from its latest versions), and a copy of the thread above with a lost post, and checks each program byte for byte against the simulator's own record of what it posted.
 
 ### Empty and partial results
 
@@ -361,14 +362,50 @@ xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_
 
 ### Posting a program as a thread
 
-`xc post-thread FILE` is the other half of `xc thread`: it cuts FILE into cells at each blank line that comes before a line starting at column 0, splits each cell into `CELL k/n` posts of at most 280 weighted characters (CJK and emoji weigh 2, anything X would autolink counts as a 23-character link), cuts between words, never ends a post on whitespace (X trims it), and posts them as one reply chain. `--dry-run` shows the posts and what creating them costs without sending anything:
+`xc post-thread FILE` is the other half of `xc thread`: it cuts FILE into cells at each blank line that comes before a line starting at column 0, splits each cell into `CELL k/n` posts of at most 280 weighted characters (CJK and emoji weigh 2), cuts between words, never ends a post on whitespace (X trims it), and posts them as one reply chain. X turns anything that looks like a domain into a `t.co` link and keeps no trace of how it was written (`listm.map` and `https://listm.map` come back with the same entities), so a dot between a letter or digit and a letter gets a zero-width space (U+200B, weight 1) before it: X links nothing and `xc thread` removes the spaces. `--dry-run` shows the posts and what creating them costs without sending anything:
 
 ```powershell
 xc post-thread --dry-run e2e/thread-sample.txt
 ```
 
 ```text
-blessed by the e2e
+--- post 1 of 9, weight 68
+c1 1/1
+///- --package .
+test thread_sample static =
+    open testing
+--- post 2 of 9, weight 25
+c2 1/1
+open sm'_operators
+--- post 3 of 9, weight 62
+c3 1/1
+inl greeting () : string = "안녕하세요, 世界 and hello"
+--- post 4 of 9, weight 93
+c4 1/1
+inl doubled (l : list i32) : list i32 = l |> listm.map (fun x => x * 2)
+--- post 5 of 9, weight 53
+c5 1/1
+inl both (a : bool) (b : bool) : bool = a && b
+--- post 6 of 9, weight 272
+c6 1/2
+inl words () : list string =
+    ["alpha"; "beta"; "gamma"; "delta"; "epsilon"; "zeta"; "eta"; "theta"; "iota"; "kappa"; "lambda"; "mu"; "nu"; "xi"; "omicron"; "pi"; "rho"; "sigma"; "tau"; "upsilon"; "phi"; "chi"; "psi"; "omega"; "aleph"; "beth"; "gimel"; "daleth";
+--- post 7 of 9, weight 53
+c6 2/2
+ "he"; "vav"; "zayin"; "heth"; "teth"; "yodh"]
+--- post 8 of 9, weight 114
+c7 1/1
+inl clamp (lo : i32) (hi : i32) (x : i32) : i32 =
+    if x < lo then lo
+    elif x > hi then hi
+    else x
+--- post 9 of 9, weight 109
+c8 1/1
+///> zig
+test clamp_keeps_values_in_range =
+    inl ~x = 7i32
+    clamp 0i32 5i32 x |> _assert_eq 5i32
+--- 9 posts, $0.135 to create
 ```
 
 With user credentials it posts, one line per post with its id:
@@ -378,7 +415,15 @@ xc post-thread e2e/thread-sample.txt
 ```
 
 ```text
-blessed by the e2e
+posted 9003 c1 1/1
+posted 9004 c2 1/1
+posted 9005 c3 1/1
+posted 9006 c4 1/1
+posted 9007 c5 1/1
+posted 9008 c6 1/2
+posted 9009 c6 2/2
+posted 9010 c7 1/1
+posted 9011 c8 1/1
 ```
 
 Reading the thread back gives the file again, with the trailing whitespace X drops at the end of a cell removed:
@@ -388,7 +433,23 @@ xc thread 9003
 ```
 
 ```text
-blessed by the e2e
+///- --package .
+test thread_sample static =
+    open testing
+open sm'_operators
+inl greeting () : string = "안녕하세요, 世界 and hello"
+inl doubled (l : list i32) : list i32 = l |> listm.map (fun x => x * 2)
+inl both (a : bool) (b : bool) : bool = a && b
+inl words () : list string =
+    ["alpha"; "beta"; "gamma"; "delta"; "epsilon"; "zeta"; "eta"; "theta"; "iota"; "kappa"; "lambda"; "mu"; "nu"; "xi"; "omicron"; "pi"; "rho"; "sigma"; "tau"; "upsilon"; "phi"; "chi"; "psi"; "omega"; "aleph"; "beth"; "gimel"; "daleth"; "he"; "vav"; "zayin"; "heth"; "teth"; "yodh"]
+inl clamp (lo : i32) (hi : i32) (x : i32) : i32 =
+    if x < lo then lo
+    elif x > hi then hi
+    else x
+///> zig
+test clamp_keeps_values_in_range =
+    inl ~x = 7i32
+    clamp 0i32 5i32 x |> _assert_eq 5i32
 ```
 
 ### Renewing the OAuth 2.0 token
@@ -458,6 +519,7 @@ usage: xc timeline [options] USERNAME...
        xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)
        xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN
        xc thread ID          the program a thread of framed posts (CELL k/n) carries
+       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts fetched per account, 5..100 (default 5)
        --limit N         timeline entries shown (default 20)
@@ -533,15 +595,16 @@ What you can build on `xc` today:
 - **Watch accounts cheaply:** a scheduled `xc timeline --start-time <yesterday> --originals a b c` only pays for new original posts.
 - **Read someone's home timeline** without their login: `--following h` rebuilds it from the accounts they follow (cap it; follows cost $0.010 each).
 - **Follow conversations:** `--depth 3` shows what a post quotes, answers or reposts.
-- **Post from scripts or CI:** `xc post` and `xc delete` with OAuth 1.0a keys that never expire, exit codes for every failure.
+- **Post from scripts or CI:** `xc post` and `xc delete` with OAuth 1.0a keys that never expire, exit codes for every failure; `xc refresh` renews an OAuth 2.0 user token in place.
+- **Publish a program as a thread:** `xc post-thread FILE` (try `--dry-run` first), and anyone reads it back with `xc thread ID`: any age, latest edits, missing posts and missing cells named. Every top-level definition of `xc` itself fits one 280-weight post (`edition: 3`), so its own source can travel this way.
+- **Agents as users:** `--json` gives one JSON object per entry, so an agent can call `xc` as a tool.
 - **Run anywhere:** one static binary; credentials only from environment variables, so a Kubernetes secret maps onto it directly.
 
 Where it is going (backlog items in i574n.github/docs/backlog):
 
-- **Programs as threads** (X-CLIENT-THREADS): read a thread, expand its links, reassemble the Spiral source posted across it, compile and run it. Every top-level definition of `xc` itself already fits one 280-weight post (`edition: 3`), so its own source can travel this way.
-- **The simulated world** (`apps/sim`): many users posting, editing, liking and breaking Spiral cells, with delayed and duplicated deliveries; the live client is its real-world counterpart.
-- **Agents as users** (X-CLIENT-AGENT-JSON): machine-readable output so an agent can call `xc` as a tool.
-- **Token refresh** (X-CLIENT-TOKEN-REFRESH) for OAuth 2.0 user tokens, and provenance of posted programs on NEAR (X-NEAR-PROVENANCE).
+- **Running what a thread carries** (X-CLIENT-THREADS): hand the rebuilt program to Cells and report its test results.
+- **The simulated world** (`apps/sim`, SIM-IN-SPIRAL): many users posting, editing, liking and breaking Spiral cells, with delayed and duplicated deliveries, recorded as a versioned event stream (`apps/sim/fixtures`); the live client is its real-world counterpart. Rewritten in Spiral alongside Cells.
+- **X as NEAR contracts** (X-ON-NEAR, X-FEDERATION-BRIDGES): the simulator as spec and oracle for a contract rewrite that stays Mastodon and Bluesky compatible.
 
 ## 7. How it is built
 
@@ -572,7 +635,8 @@ Each entry is one Rust crate, so every generated file stays reviewable (`scripts
 | `xc_jsonl` | `jsonl/jsonl.spi` | the same selection as JSON Lines (`--json`) |
 | `xc_thread` | `thread/thread.spi` | a thread's root post and the author's posts of its conversation, paged (`xc thread`) |
 | `xc_assemble` | `assemble/assemble.spi` | `CELL k/n` frames to cells: latest edit versions, posting order, missing frames named |
+| `xc_frames` | `frames/frames.spi` | a file to `CELL k/n` posts: cells, X weights (twitter-text v3), link dots defused, cuts between words, `--dry-run` preview |
 | `xc_token` | `token/token.spi` | OAuth 2.0 token renewal and the in-place env file rewrite (`xc refresh`) |
 | `xc` | `xc/xc.spi` | entry: environment, credentials, the order of calls, exit codes, output |
 
-Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Bless` rewrites its outputs after an intended change; review the diff), whose world includes three threads the simulator posted (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Bless` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`).
+Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Accept` rewrites its outputs after an intended change; review the diff), whose world includes four threads the simulator posted (complete, edited three times, missing one post, missing a whole cell) (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`); `xc post-thread` must write exactly the posts the simulator's own splitter makes of `e2e/thread-sample.txt` (`e2e/thread-sample.expected.json`, from `mix xsim.frames`), each replying to the one before, and `xc thread` must read the file back. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>` HTML-escaped.

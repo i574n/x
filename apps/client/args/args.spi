@@ -45,16 +45,20 @@ inl with_payload (kind : i32) (payload : string) : command_fields =
     inl z = blank ()
     {z with kind = kind; payload = payload}
 
+inl thread_payload (c : command) : i32 * string =
+    match c with
+    | ReadThread id => 6i32, id
+    | PostThread path => 7i32, path
+    | PreviewThread path => 8i32, path
+    | _ => 3i32, ""
+
 inl payload_of (c : command) : i32 * string =
     match c with
     | PublishPost text => 1i32, text
     | RemovePost id => 2i32, id
     | Rejected message => 4i32, message
     | RefreshToken path => 5i32, path
-    | ReadThread id => 6i32, id
-    | PostThread path => 7i32, path
-    | PreviewThread path => 8i32, path
-    | _ => 3i32, ""
+    | _ => thread_payload c
 
 let fields_of (c : command) : command_fields =
     match c with

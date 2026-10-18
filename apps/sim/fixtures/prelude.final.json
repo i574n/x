@@ -1,0 +1,42 @@
+{
+    "cells": [
+        {
+            "parent": null,
+            "post": "p0",
+            "source": "///- --package ."
+        },
+        {
+            "parent": "p0",
+            "post": "p1",
+            "source": "///- --test static\n\nopen testing"
+        },
+        {
+            "parent": "p1",
+            "post": "p2",
+            "source": "open sm'_operators\n\ninl each forall a b. (f : a -> b) (l : list a) : list b =\n    listm.foldBack (fun x acc => Cons (f x, acc)) l Nil\n\ninl keep forall t. (ok : t -> bool) (l : list t) : list t =\n    listm.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l Nil\n\ninl spread forall a b. (f : a -> list b) (l : list a) : list b =\n    listm.foldBack (fun x acc => listm.append (f x) acc) l Nil\n\ninl first_where forall t. (ok : t -> bool) (l : list t) : option t =\n    listm.foldBack (fun x acc => if ok x then Some x else acc) l None\n\ninl has forall t. (ok : t -> bool) (l : list t) : bool =\n    match first_where ok l with\n    | Some _ => true\n    | None => false\n\ninl take_first forall t. (n : i32) (l : list t) : list t =\n    let rec go (n : i32) (l : list t) : list t =\n        match l with\n        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)\n        | _ => Nil\n    go n l\n\ninl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =\n    match r with\n    | Ok x => f x\n    | Error e => Error e\n\ninl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\nlet rec split_on (sep : string) (s : string) : list string =\n    inl i : i32 = sm'.index_of sep s\n    if i < 0i32 then [s]\n    else Cons (sm'.substring 0i32 i s, split_on sep (sm'.substring (i + 1i32) (sm'.length s - i - 1i32) s))\n\ninl pieces (sep : string) (s : string) : list string = if s = \"\" then Nil else split_on sep s\n"
+        },
+        {
+            "parent": "p2",
+            "post": "p3",
+            "source": "///- --test\n///> zig\n\ninl ~n = 2i32\n[1i32; 2; 3] |> take_first n |> listm.length |> _assert_eq 2i32"
+        },
+        {
+            "parent": "p3",
+            "post": "p4",
+            "source": "///- --test\n///> zig\n\ninl ~e = \"no\"\nError e |> then_ok (fun (x : i32) => Ok (x + 1)) |> _assert_eq (Error \"no\")"
+        },
+        {
+            "parent": "p4",
+            "post": "p5",
+            "source": "///- --test\n///> zig\n\ninl ~n = 2i32\ninl l = [1i32; 2; 3; 4]\nkeep (fun x => x > n) l |> listm.length |> _assert_eq 2i32\nfirst_where (fun x => x > n) l |> _assert_eq (Some 3i32)"
+        }
+    ],
+    "likes": {
+        "p0": 3,
+        "p1": 2,
+        "p2": 2,
+        "p3": 1,
+        "p4": 2,
+        "p5": 1
+    }
+}

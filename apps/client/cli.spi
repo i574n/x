@@ -353,15 +353,19 @@ let request_text (r : request) : string =
     inl hints = (if r.hints then " hints" else "") ++# (if r.json then " json" else "")
     source_text r.source ++# counts_text r ++# views_text r ++# flags_text r.filters ++# hints
 
+inl described_thread (c : command) : string =
+    match c with
+    | ReadThread id => "thread " ++# id
+    | PostThread path => "post-thread " ++# path
+    | PreviewThread path => "post-thread --dry-run " ++# path
+    | _ => ""
+
 inl described_write (c : command) : string =
     match c with
     | PublishPost text => "post " ++# text
     | RemovePost id => "delete " ++# id
     | RefreshToken path => "refresh " ++# path
-    | ReadThread id => "thread " ++# id
-    | PostThread path => "post-thread " ++# path
-    | PreviewThread path => "post-thread --dry-run " ++# path
-    | _ => ""
+    | _ => described_thread c
 
 inl describe (c : command) : string =
     match c with
@@ -457,4 +461,8 @@ test post_thread_takes_a_file_and_an_optional_dry_run =
     inl ~path = "prelude.spi"
     parsed ["post-thread"; path] |> _assert_eq "post-thread prelude.spi"
     parsed ["post-thread"; "--dry-run"; path] |> _assert_eq "post-thread --dry-run prelude.spi"
-    parsed ["post-thread"] |> _assert_eq "rejected: post-thread takes exactly one argument"
+
+///> zig
+test post_thread_needs_a_file =
+    inl ~sub = "post-thread"
+    parsed [sub] |> _assert_eq "rejected: post-thread takes exactly one argument"

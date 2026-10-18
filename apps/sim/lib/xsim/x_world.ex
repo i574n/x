@@ -1,5 +1,5 @@
 defmodule Xsim.XWorld do
-  defstruct ids: 0, clock: 0, frames: %{}, order: [], last_frame: %{}, root: nil, lost: []
+  defstruct ids: 0, clock: 0, frames: %{}, order: [], last_frame: %{}, root: nil, lost: [], gone: []
 
   def final_cells(events) do
     Enum.reduce(events, {[], %{}, %{}}, fn
@@ -34,7 +34,24 @@ defmodule Xsim.XWorld do
     base = Keyword.fetch!(opts, :id_base)
     world = Enum.reduce(cells, %__MODULE__{ids: base}, &post_cell/2)
     world = Enum.reduce(cells, world, &edit_cell/2)
-    lose(world, cells, Keyword.get(opts, :lost, 0))
+    world |> lose(cells, Keyword.get(opts, :lost, 0)) |> lose_cells(cells, Keyword.get(opts, :lost_cells, 0))
+  end
+
+  defp lose_cells(world, _cells, 0), do: world
+
+  defp lose_cells(world, cells, count) do
+    parents = MapSet.new(cells, & &1.parent)
+    chosen = Enum.take(for(%{id: id} <- tl(cells), id in parents, id not in world.lost, do: id), count)
+
+    Enum.reduce(chosen, world, fn id, world ->
+      ks = for {{cell, k}, _} <- world.frames, cell == id, do: k
+      %{Enum.reduce(ks, world, &drop_frame(&2, id, &1)) | gone: world.gone ++ [id]}
+    end)
+  end
+
+  def gaps(world) do
+    originals = world.frames |> Map.values() |> MapSet.new(& &1.original)
+    for key <- world.order, frame = world.frames[key], frame.k == 1, frame.reply_to, not MapSet.member?(originals, frame.reply_to), do: frame.cell
   end
 
   defp next_id(world), do: {Integer.to_string(world.ids + 1), %{world | ids: world.ids + 1, clock: world.clock + 1}}
@@ -123,7 +140,7 @@ defmodule Xsim.XWorld do
   defp laid_out(items, open, close, _level), do: open <> Enum.join(items, ", ") <> close
 
   def program(cells, world) do
-    complete = for %{id: id, revisions: revisions} <- cells, id not in world.lost, do: rebuilt(id, world) || List.last(revisions)
+    complete = for %{id: id, revisions: revisions} <- cells, id not in world.lost, id not in world.gone, do: rebuilt(id, world) || List.last(revisions)
     Enum.join(complete, "\n\n")
   end
 
@@ -136,7 +153,7 @@ defmodule Xsim.XWorld do
     {_, _, text} = List.last(frame.versions)
 
     case String.split(text, "\n", parts: 2) do
-      [_, body] -> body
+      [_, body] -> Xsim.Frames.restored(body)
       [_] -> ""
     end
   end

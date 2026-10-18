@@ -13,7 +13,6 @@ name = "xc_frames"
 path = "frames.rs"
 
 [dependencies]
-fancy-regex = "0.19"
 serde_json = { workspace = true }
 unicode-normalization = "0.1"
 unicode-segmentation = "1.13"

@@ -23,14 +23,20 @@ defmodule Xsim.Frames do
 
   defp digits(n), do: n |> Integer.to_string() |> String.length()
 
+  @defused_dot "\u200B."
+
   defp posted_units(text) do
-    text
-    |> Xsim.XCompat.segments()
-    |> Enum.flat_map(fn
-      {:link, link} -> [{link, Xsim.XCompat.shortened_url_weight()}]
-      {:text, plain} -> plain |> String.graphemes() |> Enum.map(&{&1, weight(&1)})
-    end)
+    glyphs = String.graphemes(text)
+    Enum.zip_with([[nil | glyphs], glyphs, tl(glyphs ++ [nil])], fn [prev, glyph, next] -> posted_unit(prev, glyph, next) end)
   end
+
+  defp posted_unit(prev, ".", next) when is_binary(prev) and is_binary(next) do
+    if prev =~ ~r/^[A-Za-z0-9_-]$/ and next =~ ~r/^[A-Za-z]$/, do: {@defused_dot, weight(@defused_dot)}, else: {".", 1}
+  end
+
+  defp posted_unit(_prev, glyph, _next), do: {glyph, weight(glyph)}
+
+  def restored(text), do: String.replace(text, @defused_dot, ".")
 
   defp chunk([], _budget, current, _used, acc), do: Enum.reverse(flush(current, acc))
 
@@ -79,7 +85,7 @@ defmodule Xsim.Frames do
   defp frames_or_empty([]), do: [{1, 1, ""}]
   defp frames_or_empty(frames), do: frames
 
-  def rebuild(frames), do: frames |> Enum.sort_by(&elem(&1, 0)) |> Enum.map_join(&elem(&1, 2))
+  def rebuild(frames), do: frames |> Enum.sort_by(&elem(&1, 0)) |> Enum.map_join(&elem(&1, 2)) |> restored()
 
   def explode_posts(events, limit \\ @limit) do
     Enum.flat_map(events, fn

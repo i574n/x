@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory)] [string] $Exe,
     [Parameter(Mandatory)] [string] $WorkDir,
     [string] $Tutorial = (Join-Path $PSScriptRoot "../README.md"),
-    [switch] $Bless
+    [switch] $Accept
 )
 $ErrorActionPreference = "Stop"
 
@@ -63,7 +63,7 @@ try {
     $steps = [regex]::Matches($tutorialText, '(?s)```powershell\n((?:(?!```).)*?)\n```\n\n```text\n((?:(?!```).)*?)\n```')
     Check ($steps.Count -ge 21) "expected at least 21 checked steps in the tutorial, found $($steps.Count)"
     $outputs = [System.Collections.Generic.List[string]]::new()
-    $blessed = [System.Collections.Generic.List[object]]::new()
+    $accepted = [System.Collections.Generic.List[object]]::new()
     $results = @{}
     foreach ($step in $steps) {
         $script = $step.Groups[1].Value
@@ -71,8 +71,8 @@ try {
         $r = Invoke-Step $script $world.token
         $results[$script] = $r
         $outputs.Add($r.Text)
-        $blessed.Add([pscustomobject]@{ Index = $step.Groups[2].Index; Length = $step.Groups[2].Length; Text = $r.Text })
-        Check ($Bless -or $r.Text -ceq $expected) "tutorial step '$script'`n--- expected`n$expected`n--- actual`n$($r.Text)"
+        $accepted.Add([pscustomobject]@{ Index = $step.Groups[2].Index; Length = $step.Groups[2].Length; Text = $r.Text })
+        Check ($Accept -or $r.Text -ceq $expected) "tutorial step '$script'`n--- expected`n$expected`n--- actual`n$($r.Text)"
         if ($script -notmatch 'LASTEXITCODE') { Check ($r.Exit -eq 0) "tutorial step '$script' exited $($r.Exit)" }
         Write-Output "x e2e / tutorial / $script / $(if ($r.Text -ceq $expected) { 'same' } else { 'DIFFERENT' }) / $($r.Requests.Count) request(s)"
     }
@@ -92,7 +92,7 @@ try {
         Write-Output "x e2e / extra / $($case.Script) / exit $($r.Exit)"
     }
 
-    foreach ($sim in @(@{ Name = 'sim-small'; Exit = 0 }, @{ Name = 'sim-stress'; Exit = 0 }, @{ Name = 'sim-lost'; Exit = 4 })) {
+    foreach ($sim in @(@{ Name = 'sim-small'; Exit = 0 }, @{ Name = 'sim-stress'; Exit = 0 }, @{ Name = 'sim-lost'; Exit = 4 }, @{ Name = 'sim-gap'; Exit = 4 })) {
         $expected = Get-Content -Raw (Join-Path $PSScriptRoot "$($sim.Name).expected.json") | ConvertFrom-Json
         $r = Invoke-Step "xc thread $($expected.root)" $world.token
         $outputs.Add($r.Text)
@@ -101,6 +101,7 @@ try {
         Check ($r.Raw -ceq $want) "xc thread $($expected.root) did not rebuild the $($sim.Name) program the sim posted ($($r.Raw.Length) vs $($want.Length) chars)"
         Check ($r.Exit -eq $sim.Exit) "xc thread $($expected.root) exited $($r.Exit), expected $($sim.Exit)"
         foreach ($cell in @($expected.incomplete)) { Check ($r.Errors -match "cell $cell is missing frame") "xc thread $($expected.root) did not name the incomplete cell $cell" }
+        foreach ($cell in @($expected.gaps)) { Check ($r.Errors -match "cell $cell replies to \d+, which is not in the thread") "xc thread $($expected.root) did not name the gap before cell $cell" }
         Write-Output "x e2e / sim / $($sim.Name) / thread $($expected.root) / $($r.Requests.Count) request(s) / exit $($r.Exit)"
     }
 
@@ -144,11 +145,11 @@ try {
     if (!$stub.HasExited) { Stop-Process -Id $stub.Id -Force }
 }
 
-if ($Bless) {
+if ($Accept) {
     $doc = $tutorialText
-    foreach ($b in ($blessed | Sort-Object Index -Descending)) { $doc = $doc.Substring(0, $b.Index) + $b.Text + $doc.Substring($b.Index + $b.Length) }
+    foreach ($b in ($accepted | Sort-Object Index -Descending)) { $doc = $doc.Substring(0, $b.Index) + $b.Text + $doc.Substring($b.Index + $b.Length) }
     if ($doc -cne $tutorialText) { [IO.File]::WriteAllText((Resolve-Path $Tutorial).Path, $doc) }
-    Write-Output "x e2e / blessed $(@($blessed | Where-Object { $tutorialText.Substring($_.Index, $_.Length) -cne $_.Text }).Count) of $($blessed.Count) tutorial outputs in $Tutorial"
+    Write-Output "x e2e / accepted $(@($accepted | Where-Object { $tutorialText.Substring($_.Index, $_.Length) -cne $_.Text }).Count) of $($accepted.Count) tutorial outputs in $Tutorial"
 }
 
 if ($failures.Count) {

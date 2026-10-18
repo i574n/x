@@ -200,7 +200,7 @@ fn paged_3(mut v0: Rc<str>, mut v1: US0, mut v2: Rc<str>, mut v3: Rc<str>, mut v
         let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&start_time="); } LIT.with(|lit| lit.clone()) };
         let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v12));
         let mut v14: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v4));
-        let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&max_results=100&post.fields=conversation_id,entities"); } LIT.with(|lit| lit.clone()) };
+        let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&max_results=100&post.fields=conversation_id,entities,referenced_posts"); } LIT.with(|lit| lit.clone()) };
         let mut v16: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v15));
         let mut v17: bool = v5.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let mut v21: Rc<str> = if v17 {

@@ -4,7 +4,7 @@ open posts
 open cli
 open wire
 
-type frame_fields = {cell : string; k : i32; n : i32; body : string; original : string}
+type frame_fields = {cell : string; k : i32; n : i32; body : string; original : string; parent : string}
 
 type frame = heap frame_fields
 
@@ -25,7 +25,9 @@ inl count_or_zero (t : string) : i32 =
     | Some n => n
     | None => 0i32
 
-inl header_of (text : string) (i : i32) : list string = if i < 0i32 then Nil else split_on " " (sm'.substring 0i32 i text)
+inl header_end (i : i32) (text : string) : i32 = if i < 0i32 then sm'.length text else i
+
+inl header_of (text : string) (i : i32) : list string = split_on " " (sm'.substring 0i32 (header_end i text) text)
 
 inl sound (f : framed) (header : list string) (k : i32) (n : i32) : bool =
     latest f && listm.length header = 2i32 && k >= 1i32 && k <= n
@@ -35,14 +37,16 @@ inl position_of (header : list string) : i32 * i32 =
     count_or_zero (field_at 0 part), count_or_zero (field_at 1 part)
 
 inl frame_from (f : framed) (header : list string) (body : string) (k : i32) (n : i32) : frame =
-    heap {cell = field_at 0 header; k n body original = first_of f.history f.id}
+    heap {cell = field_at 0 header; k n body original = first_of f.history f.id; parent = f.parent}
+
+inl body_at (i : i32) (text : string) : string = if i < 0i32 then "" else after i text |> sm'.replace (defused_dot ()) "."
 
 let frames_of (f : framed) : list frame =
     inl text = expand_urls f.urls f.text
     inl i : i32 = sm'.index_of "\n" text
-    inl header = header_of text (if i < 0i32 then sm'.length text else i)
+    inl header = header_of text i
     inl k, n = position_of header
-    if sound f header k n then [frame_from f header (if i < 0i32 then "" else after i text) k n] else Nil
+    if sound f header k n then [frame_from f header (body_at i text) k n] else Nil
 
 type cell_frames = {cell : string; n : i32; first : string; frames : list frame}
 
@@ -81,9 +85,27 @@ inl with_cell (p : program) (c : cell_frames) : program =
     | Nil => {p with sources = listm.append p.sources [source_of c]}
     | _ => {p with notes = listm.append p.notes [missing_note c]}
 
+inl gap_note (c : cell_frames) (parent : string) : string =
+    "cell " ++# c.cell ++# " replies to " ++# parent ++# ", which is not in the thread: posts before it are missing"
+
+inl gap_notes (known : list string) (c : cell_frames) : list string =
+    frame_at c 1i32 |> keep (fun (f : frame) => f.parent <> "" && not (has (fun x => x = f.parent) known))
+    |> each (fun (f : frame) => gap_note c f.parent)
+
+inl gaps (known : list string) (cells : list cell_frames) : list string =
+    match cells with
+    | Cons (_, rest) => rest |> spread (gap_notes known)
+    | Nil => Nil
+
+inl ordered (l : list framed) : list cell_frames =
+    l |> spread frames_of |> listm.fold grouped Nil |> listm.fold (fun acc c => placed c acc) Nil
+
+inl known_ids (l : list framed) : list string = l |> spread (fun (f : framed) => Cons (f.id, f.history))
+
 let assembled (l : list framed) : program =
-    inl cells = l |> spread frames_of |> listm.fold grouped Nil
-    cells |> listm.fold (fun acc c => placed c acc) Nil |> listm.fold with_cell {sources = Nil; notes = Nil}
+    inl cells = ordered l
+    inl p = cells |> listm.fold with_cell {sources = Nil; notes = Nil}
+    {p with notes = listm.append p.notes (gaps (known_ids l) cells)}
 
 inl framed_in (page : json) : list framed = page |> field "data" |> collect framed_of
 

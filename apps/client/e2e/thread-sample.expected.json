@@ -3,7 +3,7 @@
         "c1 1/1\n///- --package .\ntest thread_sample static =\n    open testing",
         "c2 1/1\nopen sm'_operators",
         "c3 1/1\ninl greeting () : string = \"안녕하세요, 世界 and hello\"",
-        "c4 1/1\n\ninl doubled (l : list i32) : list i32 = l |> listm.map (fun x => x * 2)",
+        "c4 1/1\n\ninl doubled (l : list i32) : list i32 = l |> listm​.map (fun x => x * 2)",
         "c5 1/1\ninl both (a : bool) (b : bool) : bool = a && b",
         "c6 1/2\ninl words () : list string =\n    [\"alpha\"; \"beta\"; \"gamma\"; \"delta\"; \"epsilon\"; \"zeta\"; \"eta\"; \"theta\"; \"iota\"; \"kappa\"; \"lambda\"; \"mu\"; \"nu\"; \"xi\"; \"omicron\"; \"pi\"; \"rho\"; \"sigma\"; \"tau\"; \"upsilon\"; \"phi\"; \"chi\"; \"psi\"; \"omega\"; \"aleph\"; \"beth\"; \"gimel\"; \"daleth\";",
         "c6 2/2\n \"he\"; \"vav\"; \"zayin\"; \"heth\"; \"teth\"; \"yodh\"]",

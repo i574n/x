@@ -114,6 +114,22 @@ defmodule XsimTest do
     assert Xsim.Frames.rebuild(frames) == source
   end
 
+  test "dots that could start an X link are defused with a zero-width space and restored on reading" do
+    source = "l |> listm.map f; go x.io; 1.5; a..b"
+    [{1, 1, body}] = Xsim.Frames.split("p1", source)
+    assert body == "l |> listm​.map f; go x​.io; 1.5; a..b"
+    assert Xsim.XCompat.x_weight(body) == Xsim.Frames.weight(body)
+    assert Xsim.Frames.rebuild([{1, 1, body}]) == source
+  end
+
+  test "a cell lost with all its posts leaves the cells that reply to it pointing at a missing post" do
+    cells = [%{id: "a", parent: nil, revisions: ["inl a = 1"]}, %{id: "b", parent: "a", revisions: ["inl b = a"]}, %{id: "c", parent: "b", revisions: ["inl c = b"]}]
+    world = Xsim.XWorld.materialize(cells, id_base: 100, lost_cells: 1)
+    assert world.gone == ["b"]
+    assert Xsim.XWorld.gaps(world) == ["c"]
+    assert Xsim.XWorld.program(cells, world) == "inl a = 1\n\ninl c = b"
+  end
+
   test "a file's cells start at a column-0 line after a blank line, extra blank lines lead the next cell" do
     assert Xsim.Frames.file_cells("a\n\n\nb\n\n  c\n\nd  \n") == ["a", "\nb\n\n  c", "d"]
     assert Xsim.Frames.file_cells("\n\nfoo\n") == ["\n\nfoo"]
@@ -158,6 +174,16 @@ defmodule XsimTest do
     deliveries = Scenario.deliveries(scenario, duplicates: 0.0)
     assert Invariants.breaking_edits_fail(Runner.run(deliveries, honest), scenario.broken) == :ok
     assert match?({:violations, _}, Invariants.breaking_edits_fail(Runner.run(deliveries, lenient), scenario.broken))
+  end
+
+  test "the event stream is versioned JSON lines with named, sorted fields and reads back exactly" do
+    scenario = Scenario.from_cells(@cells, seed: 5, users: 3, edits: 2)
+    deliveries = Scenario.deliveries(%{scenario | events: Xsim.Frames.explode_posts(scenario.events, 60)}, duplicates: 0.3)
+    [header, first | _] = deliveries |> Xsim.Log.encode() |> String.split("\n")
+    assert header == ~s({"format":"xsim-events","version":1})
+    assert first =~ ~r/^\{"at":\d+,.*"kind":"/
+    assert Xsim.Log.decode(Xsim.Log.encode(deliveries)) == deliveries
+    assert_raise ArgumentError, fn -> Xsim.Log.decode(~s({"format":"xsim-events","version":2}\n)) end
   end
 
   test "personas toggle demand, revert rewrites and fix breaking edits back without breaking an invariant" do

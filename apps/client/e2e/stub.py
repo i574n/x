@@ -108,6 +108,8 @@ def rendered(post, fields):
         out["author_id"] = post["author_id"]
     if "public_metrics" in fields:
         out["public_metrics"] = {k: post.get("metrics", {}).get(k, 0) for k in METRICS}
+    if "referenced_posts" in fields and post.get("refs"):
+        out["referenced_posts"] = post["refs"]
     if "entities" in fields and post.get("urls"):
         out["entities"] = {"urls": post["urls"]}
     if "attachments" in fields and post.get("media"):

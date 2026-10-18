@@ -1,6 +1,6 @@
 param(
     $fast,
-    [switch] $Bless
+    [switch] $Accept
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot '../../scripts/common.ps1')
@@ -30,12 +30,14 @@ New-Item -ItemType Directory -Force $fresh | Out-Null
 $worlds = @(
     @{ Name = 'sim-small'; Args = @('--spi', (Join-Path $client 'prelude.spi'), '--cells', '3', '--id-base', '3000000', '--user-id', '500', '--username', 'spiralposts') },
     @{ Name = 'sim-stress'; Args = @('--spi', (Join-Path $client 'posts.spi'), '--seed', '7', '--edits', '3', '--personas', 'editor=2+breaker=1', '--id-base', '4000000', '--user-id', '501', '--username', 'spiralstress') },
-    @{ Name = 'sim-lost'; Args = @('--spi', (Join-Path $client 'prelude.spi'), '--cells', '3', '--lost', '1', '--base-time', '2026-08-01T08:00:00Z', '--id-base', '5000000', '--user-id', '502', '--username', 'spirallost') }
+    @{ Name = 'sim-lost'; Args = @('--spi', (Join-Path $client 'prelude.spi'), '--cells', '3', '--lost', '1', '--base-time', '2026-08-01T08:00:00Z', '--id-base', '5000000', '--user-id', '502', '--username', 'spirallost') },
+    @{ Name = 'sim-gap'; Args = @('--spi', (Join-Path $client 'prelude.spi'), '--lost-cells', '1', '--id-base', '6000000', '--user-id', '503', '--username', 'spiralgap') }
 )
-function Confirm-Fixture([string] $Name) {
-    $fixture = Join-Path $fixtures $Name
-    if ($Bless) { Copy-Item (Join-Path $fresh $Name) $fixture; Write-Output "xsim / blessed apps/client/e2e/$Name" }
-    elseif (!(Test-Path $fixture) -or [IO.File]::ReadAllText((Join-Path $fresh $Name)) -cne [IO.File]::ReadAllText($fixture)) { throw "xsim / $Name differs from apps/client/e2e/$Name; rerun apps/sim/build.ps1 -Bless and review the diff" }
+function Confirm-Fixture([string] $Name, [string] $Dir = $fixtures) {
+    $fixture = Join-Path $Dir $Name
+    $shown = [IO.Path]::GetRelativePath($XRoot, $fixture).Replace('\', '/')
+    if ($Accept) { Copy-Item (Join-Path $fresh $Name) $fixture; Write-Output "xsim / accepted $shown" }
+    elseif (!(Test-Path $fixture) -or [IO.File]::ReadAllText((Join-Path $fresh $Name)) -cne [IO.File]::ReadAllText($fixture)) { throw "xsim / $Name differs from $shown; rerun apps/sim/build.ps1 -Accept and review the diff" }
 }
 foreach ($w in $worlds) {
     $world, $expected = (Join-Path $fresh "$($w.Name).world.json"), (Join-Path $fresh "$($w.Name).expected.json")
@@ -48,6 +50,11 @@ $argv = @('xsim.frames', '--file', (Join-Path $fixtures 'thread-sample.txt'), '-
 & mix @argv
 if ($LASTEXITCODE -ne 0) { throw "mix xsim.frames / exit $LASTEXITCODE" }
 Confirm-Fixture 'thread-sample.expected.json'
+$streams = Join-Path $PSScriptRoot 'fixtures'
+$argv = @('xsim.events', '--spi', (Join-Path $client 'prelude.spi'), '--seed', '3', '--users', '3', '--edits', '2', '--personas', 'fickle=1+editor=1', '--frames', '--out', (Join-Path $fresh 'prelude.events.jsonl'), '--expected', (Join-Path $fresh 'prelude.final.json'))
+& mix @argv
+if ($LASTEXITCODE -ne 0) { throw "mix xsim.events / exit $LASTEXITCODE" }
+foreach ($name in 'prelude.events.jsonl', 'prelude.final.json') { Confirm-Fixture $name $streams }
 
 $lib = Join-Path $SpiralRoot 'lib/spiral'
 $corpus = Get-ChildItem $lib -Recurse -Filter *.spi |
