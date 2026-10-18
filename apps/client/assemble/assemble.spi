@@ -40,9 +40,9 @@ inl frame_from (f : framed) (header : list string) (body : string) (k : i32) (n 
 let frames_of (f : framed) : list frame =
     inl text = expand_urls f.urls f.text
     inl i : i32 = sm'.index_of "\n" text
-    inl header = header_of text i
+    inl header = header_of text (if i < 0i32 then sm'.length text else i)
     inl k, n = position_of header
-    if sound f header k n then [frame_from f header (after i text) k n] else Nil
+    if sound f header k n then [frame_from f header (if i < 0i32 then "" else after i text) k n] else Nil
 
 type cell_frames = {cell : string; n : i32; first : string; frames : list frame}
 

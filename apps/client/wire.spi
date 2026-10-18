@@ -30,6 +30,11 @@ inl absent (v : json) : bool = $'!v.is_null()'
 inl text_body (text : string) : string =
     $'Rc::<str>::from(serde_json::json\!({"text": &*!text}).to_string())'
 
+inl reply_body (text : string) (to : string) : string =
+    $'Rc::<str>::from(serde_json::json\!({"text": &*!text, "reply": {"in_reply_to_tweet_id": &*!to}}).to_string())'
+
+inl unescaped (t : string) : string = t |> sm'.replace "&lt;" "<" |> sm'.replace "&gt;" ">" |> sm'.replace "&amp;" "&"
+
 nominal app_context = ()
 
 nominal user_context = ()
@@ -89,6 +94,7 @@ union reads r =
 
 union writes r =
     | CreatePost :: string -> writes created_reply
+    | ReplyPost :: string * string -> writes created_reply
     | DeletePost :: string -> writes deleted_reply
 
 union verb =
@@ -177,12 +183,13 @@ inl read_path forall r. (q : reads r) : string =
 
 inl write_path forall r. (q : writes r) : string =
     match q with
-    | CreatePost _ => "/2/tweets"
+    | CreatePost _ | ReplyPost _ => "/2/tweets"
     | DeletePost id => "/2/tweets/" ++# id
 
 inl write_verb forall r. (q : writes r) : verb =
     match q with
     | CreatePost text => Write (text_body text)
+    | ReplyPost (text, to) => Write (reply_body text to)
     | DeletePost _ => Remove
 
 inl method_of (v : verb) : string =
@@ -224,7 +231,7 @@ inl public_metrics_in (v : json) : public_metrics =
     {reply_count = n "reply_count"; repost_count = n "repost_count"; like_count = n "like_count"}
 
 inl post_texts (v : json) : string * string * string * string =
-    at_key "id" v, at_key "author_id" v, at_key "created_at" v, at_key "text" v
+    at_key "id" v, at_key "author_id" v, at_key "created_at" v, unescaped (at_key "text" v)
 
 let post_by (author : string) (v : json) : post =
     inl id, author_id, created_at, text = post_texts v
@@ -260,7 +267,7 @@ inl users_of_doc (doc : json) : users_reply = users_reply {found = accounts_in d
 inl page_of_doc (doc : json) : page_reply = page_reply {page = accounts_in doc; next_token = next_token_in doc}
 
 inl framed_of (v : json) : framed =
-    {id = at_key "id" v; text = at_key "text" v; history = v |> field "edit_history_post_ids" |> texts; urls = urls_in v}
+    {id = at_key "id" v; text = unescaped (at_key "text" v); history = v |> field "edit_history_post_ids" |> texts; urls = urls_in v}
 
 inl root_of (doc : json) : root_reply =
     inl d = doc |> field "data"
@@ -281,7 +288,7 @@ inl decode_read forall r. (q : reads r) (doc : json) : r =
 inl decode_write forall r. (q : writes r) (doc : json) : r =
     inl d = doc |> field "data"
     match q with
-    | CreatePost _ => created_reply {id = at_key "id" d; text = at_key "text" d}
+    | CreatePost _ | ReplyPost _ => created_reply {id = at_key "id" d; text = at_key "text" d}
     | DeletePost _ => deleted_reply {deleted = d |> field "deleted" |> flag_of_json}
 
 inl clipped (n : i32) (text : string) : string =
@@ -389,11 +396,15 @@ test start_time_is_sent =
     inl f = no_filters ()
     filtered {f with start_time} |> _assert_eq (plain_posts () ++# "&start_time=" ++# start_time)
 
+inl archive_page (start_time : string) : string =
+    "/2/tweets/search/all?query=conversation_id%3A7%20from%3A5&start_time=" ++# start_time
+    ++# "&max_results=100&post.fields=conversation_id,entities"
+
 ///> zig
 test thread_pages_search_the_archive_from_the_root =
     inl ~start_time = "2026-09-01T18:12:00Z"
     thread_path (ThreadPage ({conversation_id = "7"; author_id = "5"; start_time}, "t2"))
-    |> _assert_eq ("/2/tweets/search/all?query=conversation_id%3A7%20from%3A5&start_time=" ++# start_time ++# "&max_results=100&post.fields=conversation_id,entities&next_token=t2")
+    |> _assert_eq (archive_page start_time ++# "&next_token=t2")
 
 ///> zig
 test originals_exclude_replies_and_reposts =
@@ -489,3 +500,9 @@ test a_page_carries_its_next_token =
 test errors_prefer_their_detail =
     inl problem = object [member "title" (quoted_text "T"); member "detail" (quoted_text "D")]
     parse_json (object [member "errors" (items [problem])]) |> first_error |> _assert_eq "D"
+
+///> rust -d serde_json
+test text_comes_back_unescaped_and_replies_name_their_parent =
+    inl ~escaped = "a |&gt; b &amp;&amp; c &lt;d&gt; &amp;lt;"
+    unescaped escaped |> _assert_eq "a |> b && c <d> &lt;"
+    write_verb (ReplyPost ("hi", "7")) |> body_of_verb |> _assert_eq "{\"reply\":{\"in_reply_to_tweet_id\":\"7\"},\"text\":\"hi\"}"

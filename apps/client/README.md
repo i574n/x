@@ -262,7 +262,7 @@ xc thread 999; $LASTEXITCODE
 ```
 
 ```text
-xc: X API answered 404 for /2/tweets/999?post.fields=conversation_id,author_id: Could not find post with id: [999].
+xc: X API answered 404 for /2/tweets/999?post.fields=conversation_id,author_id,created_at: Could not find post with id: [999].
 4
 ```
 
@@ -357,6 +357,38 @@ $env:X_OAUTH2_ACCESS_TOKEN = $null; xc post "no user credentials"; $LASTEXITCODE
 xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_ACCESS_TOKEN and
     X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_OAUTH2_ACCESS_TOKEN (OAuth 2.0, 2 hours)
 3
+```
+
+### Posting a program as a thread
+
+`xc post-thread FILE` is the other half of `xc thread`: it cuts FILE into cells at each blank line that comes before a line starting at column 0, splits each cell into `CELL k/n` posts of at most 280 weighted characters (CJK and emoji weigh 2, anything X would autolink counts as a 23-character link), cuts between words, never ends a post on whitespace (X trims it), and posts them as one reply chain. `--dry-run` shows the posts and what creating them costs without sending anything:
+
+```powershell
+xc post-thread --dry-run e2e/thread-sample.txt
+```
+
+```text
+blessed by the e2e
+```
+
+With user credentials it posts, one line per post with its id:
+
+```powershell
+xc post-thread e2e/thread-sample.txt
+```
+
+```text
+blessed by the e2e
+```
+
+Reading the thread back gives the file again, with the trailing whitespace X drops at the end of a cell removed:
+
+```powershell
+xc thread 9003
+```
+
+```text
+blessed by the e2e
 ```
 
 ### Renewing the OAuth 2.0 token

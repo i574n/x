@@ -25,6 +25,8 @@ union command =
     | RemovePost : string
     | RefreshToken : string
     | ReadThread : string
+    | PostThread : string
+    | PreviewThread : string
     | ShowHelp
     | Rejected : string
 
@@ -65,7 +67,9 @@ inl usage_writes () : string =
     "       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n"
     ++# "       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n"
 
-inl usage_reads () : string = "       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n"
+inl usage_reads () : string =
+    "       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n"
+    ++# "       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"
 
 inl usage_environment () : string =
     "env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"
@@ -298,9 +302,15 @@ inl one_value (name : string) (args : list string) (make : string -> command) : 
     | Cons (value, Nil) when value <> "" => make value
     | _ => Rejected (name ++# " takes exactly one argument")
 
+inl thread_post_command (rest : args) : command =
+    match rest with
+    | Cons (flag, Cons (path, Nil)) when flag = "--dry-run" => PreviewThread path
+    | _ => one_value "post-thread" rest PostThread
+
 inl other_command (sub : string) (rest : args) : command =
     if sub = "refresh" then one_value sub rest RefreshToken
     elif sub = "thread" then one_value sub rest ReadThread
+    elif sub = "post-thread" then thread_post_command rest
     else Rejected (unknown_command sub)
 
 inl write_command (sub : string) (rest : args) : command =
@@ -349,6 +359,8 @@ inl described_write (c : command) : string =
     | RemovePost id => "delete " ++# id
     | RefreshToken path => "refresh " ++# path
     | ReadThread id => "thread " ++# id
+    | PostThread path => "post-thread " ++# path
+    | PreviewThread path => "post-thread --dry-run " ++# path
     | _ => ""
 
 inl describe (c : command) : string =
@@ -439,3 +451,10 @@ test json_and_refresh_are_parsed =
     inl ~path = "x-api.env"
     parsed ["timeline"; "--json"; "a"] |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 json"
     parsed ["refresh"; path] |> _assert_eq "refresh x-api.env"
+
+///> zig
+test post_thread_takes_a_file_and_an_optional_dry_run =
+    inl ~path = "prelude.spi"
+    parsed ["post-thread"; path] |> _assert_eq "post-thread prelude.spi"
+    parsed ["post-thread"; "--dry-run"; path] |> _assert_eq "post-thread --dry-run prelude.spi"
+    parsed ["post-thread"] |> _assert_eq "rejected: post-thread takes exactly one argument"

@@ -678,7 +678,7 @@ fn run_thread_13(mut v0: Rc<str>) -> i32 {
         v37
     }
 }
-fn run_write_14(mut v0: i32, mut v1: Rc<str>) -> i32 {
+fn run_write_15(mut v0: i32, mut v1: Rc<str>) -> i32 {
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X_CONSUMER_KEY"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = get_environment_variable_3(v2.clone());
     let mut v4: i32 = (v3.clone().len() as i32);
@@ -895,6 +895,30 @@ fn run_write_14(mut v0: i32, mut v1: Rc<str>) -> i32 {
         v139
     }
 }
+fn run_post_thread_14(mut v0: bool, mut v1: Rc<str>) -> i32 {
+    let mut v2: bool = std::path::Path::new(&*v1).is_file();
+    let mut v3: bool = v2 == false;
+    if v3 {
+        let mut v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no such file "); } LIT.with(|lit| lit.clone()) };
+        let mut v5: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v1));
+        let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("xc: "); } LIT.with(|lit| lit.clone()) };
+        let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v5));
+        eprintln!("{}", v7);
+        4i32
+    } else {
+        if v0 {
+            let mut v8: Rc<str> = Rc::<str>::from(std::fs::read_to_string(&*v1).unwrap_or_default());
+            let mut v9: Rc<str> = xc_frames::xc_preview(&*v8);
+            println!("{}", v9);
+            0i32
+        } else {
+            let mut v10: i32 = 7i32;
+            let mut v11: Rc<str> = Rc::<str>::from(std::fs::read_to_string(&*v1).unwrap_or_default());
+            let mut v12: Rc<str> = xc_frames::xc_frames(&*v11);
+            run_write_15(v10, v12.clone())
+        }
+    }
+}
 fn spiral_main() -> i32 {
     let (mut v0, mut v1, mut v2, mut v3, mut v4, mut v5, mut v6, mut v7, mut v8, mut v9, mut v10, mut v11, mut v12, mut v13, mut v14): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = xc_args::xc_parse_os_args();
     let mut v15: bool = v0 == 0i32;
@@ -924,7 +948,19 @@ fn spiral_main() -> i32 {
                     if v25 {
                         run_thread_13(v1.clone())
                     } else {
-                        run_write_14(v0, v1.clone())
+                        let mut v27: bool = v0 == 7i32;
+                        let mut v29: bool = if v27 {
+                            true
+                        } else {
+                            let mut v28: bool = v0 == 8i32;
+                            v28
+                        };
+                        if v29 {
+                            let mut v30: bool = v0 == 8i32;
+                            run_post_thread_14(v30, v1.clone())
+                        } else {
+                            run_write_15(v0, v1.clone())
+                        }
                     }
                 }
             }

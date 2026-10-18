@@ -27,10 +27,33 @@ let write (a : api user_context) (kind : i32) (payload : string) : i32 * string 
 
 type write_args = string * string * string * string * string * string * string * string * i32 * string
 
-inl written (x : write_args) : i32 * string =
-    inl base, token, ck, cs, t, ts, nonce, stamp, kind, payload = x
+inl side_of (x : write_args) (k : i32) : api user_context =
+    inl base, token, ck, cs, t, ts, nonce, stamp, _, _ = x
     inl o = {consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts}
-    write (user_side base token o nonce stamp) kind payload
+    user_side base token o (if k = 0i32 then nonce else nonce ++# sm'.obj_to_string k) stamp
+
+inl next_post (prev : string) (text : string) : writes created_reply = if prev = "" then CreatePost text else ReplyPost (text, prev)
+
+inl header_line (text : string) : string =
+    inl i : i32 = sm'.index_of "\n" text
+    if i < 0i32 then text else sm'.substring 0i32 i text
+
+inl stopped (ids : list string) (f : failure) : i32 * string =
+    inl before = if listm.length ids = 0i32 then "" else "; posted before it: " ++# sm'.concat_list " " (listm.rev ids)
+    4i32, describe_failure f ++# before
+
+let rec chained (side : i32 -> api user_context) (posts : list string) (k : i32) (prev : string) (lines : list string) (ids : list string) : i32 * string =
+    match posts with
+    | Nil => 0i32, sm'.concat_list "\n" (listm.rev lines)
+    | Cons (text, rest) =>
+        match send_write (side k) (next_post prev text) with
+        | Ok (created_reply {id}) => chained side rest (k + 1i32) id (Cons ("posted " ++# id ++# " " ++# header_line text, lines)) (Cons (id, ids))
+        | Error f => stopped ids f
+
+inl written (x : write_args) : i32 * string =
+    inl _, _, _, _, _, _, _, _, kind, payload = x
+    if kind = 7i32 then chained (side_of x) (parse_json payload |> collect (at_key "text")) 1i32 "" Nil Nil
+    else write (side_of x 0i32) kind payload
 
 inl main () : i32 =
     !!!!Export("xc_write", ((fun x => written x) : write_args -> i32 * string))

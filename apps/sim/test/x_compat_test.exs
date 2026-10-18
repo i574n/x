@@ -55,7 +55,8 @@ defmodule Xsim.XCompatTest do
     assert length(frames) >= 100
     assert Xsim.Frames.rebuild(frames) == source
     refute Enum.any?(XCompat.check(source, id: "main.spi"), &(&1.kind == :over_limit))
-    assert Enum.all?(frames, fn {_, _, body} -> body |> String.last() |> String.trim() == "" end)
+    assert Enum.all?(Enum.drop(frames, 1), fn {_, _, body} -> body |> String.first() |> String.trim() == "" end)
+    assert Enum.all?(Enum.drop(frames, -1), fn {_, _, body} -> String.trim_trailing(body) == body end)
   end
 
   test "segments keep autolinks whole" do

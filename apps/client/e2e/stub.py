@@ -94,8 +94,12 @@ def kinds(post):
 METRICS = ("bookmark_count", "impression_count", "like_count", "quote_count", "reply_count", "repost_count")
 
 
+def escaped(text):
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 def rendered(post, fields):
-    out = {"id": post["id"], "text": post["text"], "edit_history_post_ids": post.get("edit_history", [post["id"]])}
+    out = {"id": post["id"], "text": escaped(post["text"]), "edit_history_post_ids": post.get("edit_history", [post["id"]])}
     if "conversation_id" in fields:
         out["conversation_id"] = post.get("conversation_id", post["id"])
     if "created_at" in fields:
@@ -260,20 +264,33 @@ def user_context_only():
     return 403, {"title": "Unsupported Authentication", "detail": "Authenticating with OAuth 2.0 Application-Only is forbidden for this endpoint.  Supported authentication types are [OAuth 1.0a User Context, OAuth 2.0 User Context].", "type": "https://api.x.com/2/problems/unsupported-authentication", "status": 403}
 
 
+def stamp_after(seconds):
+    now = datetime.fromisoformat(world["now"].replace("Z", "+00:00"))
+    return (now + timedelta(seconds=seconds)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+
 def create(body):
-    text = json.loads(body or "{}").get("text", "")
+    sent = json.loads(body or "{}")
+    text = sent.get("text", "").rstrip()
+    parent = sent.get("reply", {}).get("in_reply_to_tweet_id")
     if not text or len(text) > 280:
         return problem(400, "Invalid Request", "text must be 1 to 280 characters")
+    if parent and parent not in posts_by_id:
+        return problem(400, "Invalid Request", f"in_reply_to_tweet_id {parent} does not exist")
     post_id = str(next_id[0])
     next_id[0] += 1
     created[post_id] = text
-    return 201, {"data": {"id": post_id, "text": text, "edit_history_post_ids": [post_id]}}
+    conversation = posts_by_id[parent].get("conversation_id", parent) if parent else post_id
+    refs = [{"type": "replied_to", "id": parent}] if parent else []
+    posts_by_id[post_id] = {"id": post_id, "text": text, "author_id": world["me"], "created_at": stamp_after(len(created)), "conversation_id": conversation, "refs": refs}
+    return 201, {"data": {"id": post_id, "text": escaped(text), "edit_history_post_ids": [post_id]}}
 
 
 def delete(post_id):
     if post_id not in created:
         return problem(404, "Not Found Error", f"Could not find post with id: [{post_id}].")
     del created[post_id]
+    del posts_by_id[post_id]
     return 200, {"data": {"deleted": True}}
 
 

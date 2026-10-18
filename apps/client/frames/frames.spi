@@ -1,0 +1,199 @@
+open sm'_operators
+open prelude
+open wire
+
+type weighed = {glyph : string; weight : i32}
+
+inl light (cp : i32) : bool =
+    cp <= 4351i32 || (cp >= 8192i32 && cp <= 8205i32) || (cp >= 8208i32 && cp <= 8223i32) || (cp >= 8242i32 && cp <= 8247i32)
+
+inl code_points (s : string) : json = $'serde_json::Value::from((&*!s).chars().map(|c| c as i64).collect::<Vec<_>>())'
+
+inl plain_weight (s : string) : i32 =
+    code_points s |> collect number_of |> listm.fold (fun total cp => total + (if light cp then 1i32 else 2i32)) 0i32
+
+inl graphemes (s : string) : list string =
+    ($'serde_json::Value::from(unicode_segmentation::UnicodeSegmentation::graphemes(&*!s, true).collect::<Vec<_>>())' : json) |> texts
+
+inl plain_units (s : string) : list weighed = graphemes s |> each fun g => {glyph = g; weight = plain_weight g}
+
+nominal pattern = $'fancy_regex::Regex'
+
+inl domain_text () : string =
+    "(?<![\\p{L}\\p{N}@\\-_./])(?:[A-Za-z0-9](?:[A-Za-z0-9\\-_]*[A-Za-z0-9])?\\.)+([A-Za-z]{2,63})(?![\\p{L}\\p{N}_\\-])"
+
+inl compiled (t : string) : pattern = $'fancy_regex::Regex::new(&*!t).unwrap()'
+
+inl candidates (p : pattern) (s : string) : json =
+    $'serde_json::Value::from((!p).captures_iter(&*!s).filter_map(|c| c.ok()).map(|c| serde_json::json\!([c.get(0).map_or(0, |m| m.start()), c.get(0).map_or(0, |m| m.end()), c.get(1).map_or("", |m| m.as_str())])).collect::<Vec<_>>())'
+
+inl byte_slice (s : string) (from : i32) (upto : i32) : string = $'Rc::<str>::from(&(&*!s)[!from as usize..!upto as usize])'
+
+inl byte_length (s : string) : i32 = $'(&*!s).len() as i32'
+
+inl char_count (s : string) : i32 = $'(&*!s).chars().count() as i32'
+
+inl lowered (s : string) : string = $'Rc::<str>::from((&*!s).to_lowercase())'
+
+inl known_tld (tld : string) : bool = $'include_str\!("tlds.txt").lines().any(|l| l == &*!tld)'
+
+inl label_before_tld (link : string) : i32 =
+    match split_on "." link |> listm.rev with
+    | Cons (_, Cons (label, _)) => char_count label
+    | _ => 0i32
+
+inl x_link (link : string) (tld : string) : bool =
+    inl t = lowered tld
+    known_tld t && (lowered link = "t.co" || char_count t <> 2i32 || label_before_tld link > 2i32)
+
+inl shortened_url_weight () : i32 = 23i32
+
+inl linked (s : string) (at : i32) (start : i32) (link : string) (acc : list weighed) : list weighed =
+    listm.append acc (listm.append (plain_units (byte_slice s at start)) [{glyph = link; weight = shortened_url_weight ()}])
+
+let units_of (s : string) : list weighed =
+    inl found = candidates (compiled (domain_text ())) s
+    let rec walk (i : i32) (at : i32) (acc : list weighed) : list weighed =
+        if i >= count_of found then listm.append acc (plain_units (byte_slice s at (byte_length s)))
+        else
+            inl c = item i found
+            inl start, stop = number_of (item 0i32 c), number_of (item 1i32 c)
+            inl link = byte_slice s start stop
+            if x_link link (text_of (item 2i32 c)) then walk (i + 1i32) stop (linked s at start link acc) else walk (i + 1i32) at acc
+    walk 0i32 0i32 Nil
+
+inl blank (s : string) : bool = $'(&*!s).trim().is_empty()'
+
+inl has_units (l : list weighed) : bool =
+    match l with
+    | Nil => false
+    | _ => true
+
+let rec taken_while (ok : weighed -> bool) (l : list weighed) (acc : list weighed) : list weighed * list weighed =
+    match l with
+    | Cons (u, rest) when ok u => taken_while ok rest (Cons (u, acc))
+    | _ => listm.rev acc, l
+
+inl word_reach () : i32 = 60i32
+
+inl spaced (u : weighed) : bool = blank u.glyph
+
+inl space_carried (current : list weighed) : list weighed * list weighed =
+    inl space, kept = taken_while spaced current Nil
+    if has_units kept then space, kept else Nil, current
+
+let cut (current : list weighed) : list weighed * list weighed =
+    inl word, rest = taken_while (fun u => not (spaced u)) current Nil
+    inl space, kept = taken_while spaced rest Nil
+    if has_units kept && listm.length word + listm.length space <= word_reach () then listm.append word space, kept
+    else space_carried current
+
+inl flushed (current : list weighed) (acc : list string) : list string =
+    match current with
+    | Nil => acc
+    | _ => Cons (current |> listm.rev |> each (fun u => u.glyph) |> sm'.concat_list "", acc)
+
+let rec chunk (budget : i32) (units : list weighed) (current : list weighed) (used : i32) (acc : list string) : list string =
+    match units with
+    | Nil => listm.rev (flushed current acc)
+    | Cons (u, rest) =>
+        if used + u.weight > budget && has_units current then
+            inl carried, kept = cut current
+            chunk budget (listm.append (listm.rev carried) units) Nil 0i32 (flushed kept acc)
+        else chunk budget rest (Cons (u, current)) (used + u.weight) acc
+
+inl post_limit () : i32 = 280i32
+
+inl header (id : string) (k : i32) (n : i32) : string =
+    id ++# " " ++# sm'.obj_to_string k ++# "/" ++# sm'.obj_to_string n ++# "\n"
+
+inl digits (n : i32) : i32 = char_count (sm'.obj_to_string n)
+
+let rec chunks_of (id : string) (units : list weighed) (assumed : i32) : list string =
+    inl budget = post_limit () - plain_weight (header id assumed assumed)
+    inl chunks = chunk budget units Nil 0i32 Nil
+    inl posts = listm.length chunks
+    if digits posts > digits assumed then chunks_of id units posts else chunks
+
+inl trimmed_end (s : string) : string = $'Rc::<str>::from((&*!s).trim_end())'
+
+inl nfc (s : string) : string = $'Rc::<str>::from(unicode_normalization::UnicodeNormalization::nfc(&*!s).collect::<String>())'
+
+inl indented (line : string) : bool = sm'.starts_with " " line || sm'.starts_with "\t" line
+
+let rec with_blanks (n : i32) (acc : list string) : list string = if n <= 0i32 then acc else with_blanks (n - 1i32) (Cons ("", acc))
+
+type cutting = {cells : list string; current : list string; blanks : i32; seen : bool}
+
+inl finished (c : cutting) : list string = Cons (c.current |> listm.rev |> sm'.concat_list "\n" |> trimmed_end, c.cells)
+
+inl opened (c : cutting) (line : string) : cutting =
+    {cells = finished c; current = Cons (line, with_blanks (c.blanks - 1i32) Nil); blanks = 0i32; seen = true}
+
+let step (c : cutting) (line : string) : cutting =
+    if line = "" then {c with blanks = c.blanks + 1i32}
+    elif c.blanks > 0i32 && c.seen && not (indented line) then opened c line
+    else {c with current = Cons (line, with_blanks c.blanks c.current); blanks = 0i32; seen = true}
+
+inl without_final_newline (t : string) : string = if sm'.ends_with "\n" t then byte_slice t 0i32 (byte_length t - 1i32) else t
+
+let file_cells (text : string) : list string =
+    inl plain = sm'.replace "\r\n" "\n" text |> without_final_newline
+    if plain = "" then Nil
+    else
+        inl c = split_on "\n" plain |> listm.fold step {cells = Nil; current = Nil; blanks = 0i32; seen = false}
+        listm.rev (finished {c with current = with_blanks c.blanks c.current})
+
+inl frames_or_empty (chunks : list string) : list string =
+    match chunks with
+    | Nil => [""]
+    | _ => chunks
+
+let rec numbered (id : string) (n : i32) (k : i32) (l : list string) (acc : list string) : list string =
+    match l with
+    | Nil => listm.rev acc
+    | Cons (body, rest) => numbered id n (k + 1i32) rest (Cons (trimmed_end (header id k n ++# body), acc))
+
+let cell_posts (i : i32) (cell : string) : list string =
+    inl id = "c" ++# sm'.obj_to_string i
+    inl chunks = chunks_of id (units_of (nfc cell)) 99i32 |> frames_or_empty
+    numbered id (listm.length chunks) 1i32 chunks Nil
+
+let rec thread_of (i : i32) (cells : list string) (acc : list string) : list string =
+    match cells with
+    | Nil => acc
+    | Cons (cell, rest) => thread_of (i + 1i32) rest (listm.append acc (cell_posts i cell))
+
+inl x_weight (t : string) : i32 = units_of t |> listm.fold (fun total (u : weighed) => total + u.weight) 0i32
+
+inl post_json (t : string) : string =
+    inl w = x_weight t
+    $'Rc::<str>::from(serde_json::json\!({"text": &*!t, "weight": !w}).to_string())'
+
+let framed_json (text : string) : string = "[" ++# (thread_of 1i32 (file_cells text) Nil |> each post_json |> sm'.concat_list ",") ++# "]"
+
+inl post_price_thousandths () : i32 = 15i32
+
+inl dollars (thousandths : i32) : string =
+    inl rest = thousandths % 1000i32
+    inl pad = if rest < 10i32 then "00" elif rest < 100i32 then "0" else ""
+    "$" ++# sm'.obj_to_string (thousandths / 1000i32) ++# "." ++# pad ++# sm'.obj_to_string rest
+
+inl previewed (n : i32) (k : i32) (t : string) : string =
+    "--- post " ++# sm'.obj_to_string k ++# " of " ++# sm'.obj_to_string n ++# ", weight " ++# sm'.obj_to_string (x_weight t) ++# "\n" ++# t
+
+let rec previews (n : i32) (k : i32) (l : list string) (acc : list string) : list string =
+    match l with
+    | Nil => listm.rev acc
+    | Cons (t, rest) => previews n (k + 1i32) rest (Cons (previewed n k t, acc))
+
+let preview (text : string) : string =
+    inl posts = thread_of 1i32 (file_cells text) Nil
+    inl n = listm.length posts
+    inl cost = dollars (n * post_price_thousandths ())
+    sm'.concat_list "\n" (previews n 1i32 posts Nil) ++# "\n--- " ++# sm'.obj_to_string n ++# " posts, " ++# cost ++# " to create"
+
+inl main () : i32 =
+    !!!!Export("xc_frames", ((fun t => framed_json t) : string -> string))
+    !!!!Export("xc_preview", ((fun t => preview t) : string -> string))
+    0i32

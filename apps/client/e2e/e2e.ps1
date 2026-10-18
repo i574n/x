@@ -24,6 +24,7 @@ function Invoke-Step([string] $Script, [string] $Token, [string] $UserToken = $w
     $info.RedirectStandardOutput = $true
     $info.RedirectStandardError = $true
     $info.UseShellExecute = $false
+    $info.WorkingDirectory = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
     $info.Environment["X_BEARER_TOKEN"] = $Token
     $info.Environment["X_OAUTH2_ACCESS_TOKEN"] = $UserToken
     $info.Environment["TZ"] = "America/Cuiaba"
@@ -102,6 +103,22 @@ try {
         foreach ($cell in @($expected.incomplete)) { Check ($r.Errors -match "cell $cell is missing frame") "xc thread $($expected.root) did not name the incomplete cell $cell" }
         Write-Output "x e2e / sim / $($sim.Name) / thread $($expected.root) / $($r.Requests.Count) request(s) / exit $($r.Exit)"
     }
+
+    $oracle = Get-Content -Raw (Join-Path $PSScriptRoot 'thread-sample.expected.json') | ConvertFrom-Json
+    $wrote = Invoke-Step "xc post-thread e2e/thread-sample.txt" $world.token
+    $outputs.Add($wrote.Text)
+    $sent = @($wrote.Requests | Where-Object { $_.method -eq 'POST' } | ForEach-Object { $_.body | ConvertFrom-Json })
+    $ids = @($wrote.Raw -split "`n" | Where-Object { $_ -match '^posted (\d+) ' } | ForEach-Object { ($_ -split ' ')[1] })
+    Check ($wrote.Exit -eq 0 -and $sent.Count -eq @($oracle.posts).Count) "xc post-thread sent $($sent.Count) posts, the sim splits the sample into $(@($oracle.posts).Count) (exit $($wrote.Exit))"
+    for ($i = 0; $i -lt [Math]::Min($sent.Count, @($oracle.posts).Count); $i++) {
+        Check ($sent[$i].text -ceq @($oracle.posts)[$i]) "post $($i + 1) differs from the sim's split:`n--- sim`n$(@($oracle.posts)[$i])`n--- xc`n$($sent[$i].text)"
+        $parent = if ($i -eq 0) { $null } else { $ids[$i - 1] }
+        Check ($sent[$i].reply.in_reply_to_tweet_id -eq $parent) "post $($i + 1) replies to '$($sent[$i].reply.in_reply_to_tweet_id)', expected '$parent'"
+    }
+    $back = Invoke-Step "xc thread $($ids[0])" $world.token
+    $want = (@($oracle.program) -join "`n") + "`n"
+    Check ($back.Exit -eq 0 -and $back.Raw -ceq $want) "xc thread $($ids[0]) did not read back the posted sample ($($back.Raw.Length) vs $($want.Length) chars)`n$($back.Raw)"
+    Write-Output "x e2e / post-thread / $($sent.Count) posts / read back $($back.Raw.Length) chars / exit $($back.Exit)"
 
     Check ((Step-Of $results 'X_BEARER_TOKEN = \$null').Requests.Count -eq 0) "a run without X_BEARER_TOKEN sent requests"
     $all = Queries-Of (Step-Of $results 'following carol --max-following all')

@@ -106,6 +106,21 @@ defmodule XsimTest do
     assert Xsim.Frames.rebuild(Enum.shuffle(frames)) == :unicode.characters_to_nfc_binary(korean)
   end
 
+  test "frames never end in whitespace, which X trims, and still rebuild exactly" do
+    source = String.duplicate("inl square x = x * x  \n    |> fun y => y\n", 25)
+    frames = Xsim.Frames.split("p3", source)
+    assert length(frames) > 1
+    assert Enum.all?(Enum.drop(frames, -1), fn {_, _, body} -> String.trim_trailing(body) == body end)
+    assert Xsim.Frames.rebuild(frames) == source
+  end
+
+  test "a file's cells start at a column-0 line after a blank line, extra blank lines lead the next cell" do
+    assert Xsim.Frames.file_cells("a\n\n\nb\n\n  c\n\nd  \n") == ["a", "\nb\n\n  c", "d"]
+    assert Xsim.Frames.file_cells("\n\nfoo\n") == ["\n\nfoo"]
+    assert Xsim.Frames.thread_posts("") == []
+    assert Xsim.Frames.thread_posts("x\n\ny\n") == ["c1 1/1\nx", "c2 1/1\ny"]
+  end
+
   test "framed posts delivered out of order and duplicated keep every invariant" do
     scenario = Scenario.from_cells(@cells ++ [String.duplicate("inl long_name_#{1} = 1\n", 40)], seed: 7, users: 3, edits: 2)
     framed = %{scenario | events: Xsim.Frames.explode_posts(scenario.events, 120)}

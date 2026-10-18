@@ -44,8 +44,14 @@ defmodule Xsim.Frames do
   end
 
   defp cut_at_word_boundary(current) do
-    {carried, kept} = Enum.split_while(current, fn {text, _} -> not whitespace?(text) end)
-    if kept != [] and length(carried) <= @word_cut_reach, do: {carried, kept}, else: {[], current}
+    {word, rest} = Enum.split_while(current, fn {text, _} -> not whitespace?(text) end)
+    {space, kept} = Enum.split_while(rest, fn {text, _} -> whitespace?(text) end)
+    if kept != [] and length(word) + length(space) <= @word_cut_reach, do: {word ++ space, kept}, else: space_carried(current)
+  end
+
+  defp space_carried(current) do
+    {space, kept} = Enum.split_while(current, fn {text, _} -> whitespace?(text) end)
+    if kept != [], do: {space, kept}, else: {[], current}
   end
 
   defp whitespace?(text), do: String.trim(text) == ""
@@ -54,6 +60,24 @@ defmodule Xsim.Frames do
   defp flush(current, acc), do: [current |> Enum.reverse() |> Enum.map_join(&elem(&1, 0)) | acc]
 
   def frame_text(id, {k, n, body}), do: header(id, k, n) <> body
+
+  def stored(text), do: String.trim_trailing(text)
+
+  @cell_boundary ~r/(?<=[^\n])\n\n(?=\n*[^ \t\n])/
+
+  def file_cells(text) do
+    case text |> String.replace("\r\n", "\n") |> String.replace_suffix("\n", "") do
+      "" -> []
+      plain -> plain |> String.split(@cell_boundary) |> Enum.map(&String.trim_trailing/1)
+    end
+  end
+
+  def thread_posts(text) do
+    for {cell, i} <- text |> file_cells() |> Enum.with_index(1), id = "c#{i}", frame <- frames_or_empty(split(id, cell)), do: stored(frame_text(id, frame))
+  end
+
+  defp frames_or_empty([]), do: [{1, 1, ""}]
+  defp frames_or_empty(frames), do: frames
 
   def rebuild(frames), do: frames |> Enum.sort_by(&elem(&1, 0)) |> Enum.map_join(&elem(&1, 2))
 

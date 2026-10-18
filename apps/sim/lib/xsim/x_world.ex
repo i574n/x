@@ -46,7 +46,7 @@ defmodule Xsim.XWorld do
     Enum.reduce(parts, world, fn {k, n, body}, world ->
       {id, world} = next_id(world)
       reply_to = if k == 1, do: Map.get(world.last_frame, cell.parent), else: world.frames[{cell.id, k - 1}].original
-      frame = %{original: id, cell: cell.id, k: k, n: n, reply_to: reply_to, versions: [{id, world.clock, Xsim.Frames.frame_text(cell.id, {k, n, body})}]}
+      frame = %{original: id, cell: cell.id, k: k, n: n, reply_to: reply_to, versions: [{id, world.clock, Xsim.Frames.stored(Xsim.Frames.frame_text(cell.id, {k, n, body}))}]}
       world = %{world | frames: Map.put(world.frames, {cell.id, k}, frame), order: world.order ++ [{cell.id, k}], root: world.root || id}
       %{world | last_frame: Map.put(world.last_frame, cell.id, id)}
     end)
@@ -62,7 +62,7 @@ defmodule Xsim.XWorld do
       world = Enum.reduce(Enum.filter(old, &(&1 > n)), world, fn k, world -> drop_frame(world, cell.id, k) end)
 
       Enum.reduce(parts, world, fn {k, n, body}, world ->
-        text = Xsim.Frames.frame_text(cell.id, {k, n, body})
+        text = Xsim.Frames.stored(Xsim.Frames.frame_text(cell.id, {k, n, body}))
         {id, world} = next_id(world)
 
         case world.frames[{cell.id, k}] do
@@ -134,7 +134,10 @@ defmodule Xsim.XWorld do
 
   defp body_of(frame) do
     {_, _, text} = List.last(frame.versions)
-    [_, body] = String.split(text, "\n", parts: 2)
-    body
+
+    case String.split(text, "\n", parts: 2) do
+      [_, body] -> body
+      [_] -> ""
+    end
   end
 end

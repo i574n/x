@@ -1,0 +1,41 @@
+{
+    "posts": [
+        "c1 1/1\n///- --package .\ntest thread_sample static =\n    open testing",
+        "c2 1/1\nopen sm'_operators",
+        "c3 1/1\ninl greeting () : string = \"안녕하세요, 世界 and hello\"",
+        "c4 1/1\n\ninl doubled (l : list i32) : list i32 = l |> listm.map (fun x => x * 2)",
+        "c5 1/1\ninl both (a : bool) (b : bool) : bool = a && b",
+        "c6 1/2\ninl words () : list string =\n    [\"alpha\"; \"beta\"; \"gamma\"; \"delta\"; \"epsilon\"; \"zeta\"; \"eta\"; \"theta\"; \"iota\"; \"kappa\"; \"lambda\"; \"mu\"; \"nu\"; \"xi\"; \"omicron\"; \"pi\"; \"rho\"; \"sigma\"; \"tau\"; \"upsilon\"; \"phi\"; \"chi\"; \"psi\"; \"omega\"; \"aleph\"; \"beth\"; \"gimel\"; \"daleth\";",
+        "c6 2/2\n \"he\"; \"vav\"; \"zayin\"; \"heth\"; \"teth\"; \"yodh\"]",
+        "c7 1/1\ninl clamp (lo : i32) (hi : i32) (x : i32) : i32 =\n    if x < lo then lo\n\n    elif x > hi then hi\n    else x",
+        "c8 1/1\n///> zig\ntest clamp_keeps_values_in_range =\n    inl ~x = 7i32\n    clamp 0i32 5i32 x |> _assert_eq 5i32"
+    ],
+    "program": [
+        "///- --package .",
+        "test thread_sample static =",
+        "    open testing",
+        "",
+        "open sm'_operators",
+        "",
+        "inl greeting () : string = \"안녕하세요, 世界 and hello\"",
+        "",
+        "",
+        "inl doubled (l : list i32) : list i32 = l |> listm.map (fun x => x * 2)",
+        "",
+        "inl both (a : bool) (b : bool) : bool = a && b",
+        "",
+        "inl words () : list string =",
+        "    [\"alpha\"; \"beta\"; \"gamma\"; \"delta\"; \"epsilon\"; \"zeta\"; \"eta\"; \"theta\"; \"iota\"; \"kappa\"; \"lambda\"; \"mu\"; \"nu\"; \"xi\"; \"omicron\"; \"pi\"; \"rho\"; \"sigma\"; \"tau\"; \"upsilon\"; \"phi\"; \"chi\"; \"psi\"; \"omega\"; \"aleph\"; \"beth\"; \"gimel\"; \"daleth\"; \"he\"; \"vav\"; \"zayin\"; \"heth\"; \"teth\"; \"yodh\"]",
+        "",
+        "inl clamp (lo : i32) (hi : i32) (x : i32) : i32 =",
+        "    if x < lo then lo",
+        "",
+        "    elif x > hi then hi",
+        "    else x",
+        "",
+        "///> zig",
+        "test clamp_keeps_values_in_range =",
+        "    inl ~x = 7i32",
+        "    clamp 0i32 5i32 x |> _assert_eq 5i32"
+    ]
+}

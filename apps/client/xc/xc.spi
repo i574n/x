@@ -263,8 +263,26 @@ let run_thread (id : string) : i32 =
     inl s = {base = base_url (); bearer = env_of "X_BEARER_TOKEN"}
     if s.bearer = "" then missing_bearer () else thread s id |> printed_thread
 
+inl file_text (path : string) : string = $'Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default())'
+
+inl is_file (path : string) : bool = $'std::path::Path::new(&*!path).is_file()'
+
+inl framed (text : string) : string = $'xc_frames::xc_frames(&*!text)'
+
+inl preview (text : string) : string = $'xc_frames::xc_preview(&*!text)'
+
+let run_post_thread (dry : bool) (path : string) : i32 =
+    if not (is_file path) then failed ("no such file " ++# path)
+    elif dry then
+        write_line (preview (file_text path))
+        0i32
+    else run_write 7i32 (framed (file_text path))
+
 inl run_user (kind : i32) (payload : string) : i32 =
-    if kind = 5i32 then run_refresh payload elif kind = 6i32 then run_thread payload else run_write kind payload
+    if kind = 5i32 then run_refresh payload
+    elif kind = 6i32 then run_thread payload
+    elif kind = 7i32 || kind = 8i32 then run_post_thread (kind = 8i32) payload
+    else run_write kind payload
 
 inl main () : i32 =
     inl p = parsed_args ()

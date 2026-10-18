@@ -32,18 +32,22 @@ $worlds = @(
     @{ Name = 'sim-stress'; Args = @('--spi', (Join-Path $client 'posts.spi'), '--seed', '7', '--edits', '3', '--personas', 'editor=2+breaker=1', '--id-base', '4000000', '--user-id', '501', '--username', 'spiralstress') },
     @{ Name = 'sim-lost'; Args = @('--spi', (Join-Path $client 'prelude.spi'), '--cells', '3', '--lost', '1', '--base-time', '2026-08-01T08:00:00Z', '--id-base', '5000000', '--user-id', '502', '--username', 'spirallost') }
 )
+function Confirm-Fixture([string] $Name) {
+    $fixture = Join-Path $fixtures $Name
+    if ($Bless) { Copy-Item (Join-Path $fresh $Name) $fixture; Write-Output "xsim / blessed apps/client/e2e/$Name" }
+    elseif (!(Test-Path $fixture) -or [IO.File]::ReadAllText((Join-Path $fresh $Name)) -cne [IO.File]::ReadAllText($fixture)) { throw "xsim / $Name differs from apps/client/e2e/$Name; rerun apps/sim/build.ps1 -Bless and review the diff" }
+}
 foreach ($w in $worlds) {
     $world, $expected = (Join-Path $fresh "$($w.Name).world.json"), (Join-Path $fresh "$($w.Name).expected.json")
     $argv = @('xsim.world') + $w.Args + @('--out', $world, '--expected', $expected)
     & mix @argv
     if ($LASTEXITCODE -ne 0) { throw "mix xsim.world / $($w.Name) / exit $LASTEXITCODE" }
-    foreach ($kind in 'world', 'expected') {
-        $name = "$($w.Name).$kind.json"
-        $fixture = Join-Path $fixtures $name
-        if ($Bless) { Copy-Item (Join-Path $fresh $name) $fixture; Write-Output "xsim.world / blessed apps/client/e2e/$name" }
-        elseif (!(Test-Path $fixture) -or [IO.File]::ReadAllText((Join-Path $fresh $name)) -cne [IO.File]::ReadAllText($fixture)) { throw "xsim.world / $name differs from apps/client/e2e/$name; rerun apps/sim/build.ps1 -Bless and review the diff" }
-    }
+    foreach ($kind in 'world', 'expected') { Confirm-Fixture "$($w.Name).$kind.json" }
 }
+$argv = @('xsim.frames', '--file', (Join-Path $fixtures 'thread-sample.txt'), '--out', (Join-Path $fresh 'thread-sample.expected.json'))
+& mix @argv
+if ($LASTEXITCODE -ne 0) { throw "mix xsim.frames / exit $LASTEXITCODE" }
+Confirm-Fixture 'thread-sample.expected.json'
 
 $lib = Join-Path $SpiralRoot 'lib/spiral'
 $corpus = Get-ChildItem $lib -Recurse -Filter *.spi |

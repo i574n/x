@@ -52,6 +52,8 @@ inl payload_of (c : command) : i32 * string =
     | Rejected message => 4i32, message
     | RefreshToken path => 5i32, path
     | ReadThread id => 6i32, id
+    | PostThread path => 7i32, path
+    | PreviewThread path => 8i32, path
     | _ => 3i32, ""
 
 let fields_of (c : command) : command_fields =

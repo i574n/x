@@ -1,5 +1,6 @@
 {
     "now": "2026-10-18T12:00:00Z",
+    "me": "110",
     "include": ["sim-small.world.json", "sim-stress.world.json", "sim-lost.world.json"],
     "token": "e2e-token-7f3a91",
     "user_token": "e2e-user-token-55c2",
