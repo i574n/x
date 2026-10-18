@@ -5,6 +5,7 @@ defmodule Xsim.Log do
     post: [:post, :parent, :source],
     frame: [:post, :parent, :k, :n, :body],
     edit: [:post, :source],
+    edit_frame: [:post, :rev, :k, :n, :body],
     delete: [:post],
     like: [:post, :user],
     unlike: [:post, :user]

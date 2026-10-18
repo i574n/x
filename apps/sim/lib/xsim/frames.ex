@@ -88,9 +88,26 @@ defmodule Xsim.Frames do
   def rebuild(frames), do: frames |> Enum.sort_by(&elem(&1, 0)) |> Enum.map_join(&elem(&1, 2)) |> restored()
 
   def explode_posts(events, limit \\ @limit) do
-    Enum.flat_map(events, fn
-      {:post, id, parent, source} -> for {k, n, body} <- split(id, source, limit), do: {:frame, id, parent, k, n, body}
-      other -> [other]
-    end)
+    {exploded, _} =
+      Enum.flat_map_reduce(events, %{}, fn
+        {:post, id, parent, source}, revs ->
+          {for({k, n, body} <- framed(id, source, limit), do: {:frame, id, parent, k, n, body}), revs}
+
+        {:edit, id, source}, revs ->
+          rev = Map.get(revs, id, 0) + 1
+          {for({k, n, body} <- framed(id, source, limit), do: {:edit_frame, id, rev, k, n, body}), Map.put(revs, id, rev)}
+
+        other, revs ->
+          {[other], revs}
+      end)
+
+    exploded
+  end
+
+  defp framed(id, source, limit) do
+    case split(id, source, limit) do
+      [] -> [{1, 1, ""}]
+      frames -> frames
+    end
   end
 end

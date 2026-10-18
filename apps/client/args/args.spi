@@ -50,6 +50,7 @@ inl thread_payload (c : command) : i32 * string =
     | ReadThread id => 6i32, id
     | PostThread path => 7i32, path
     | PreviewThread path => 8i32, path
+    | DeleteThread id => 9i32, id
     | _ => 3i32, ""
 
 inl payload_of (c : command) : i32 * string =

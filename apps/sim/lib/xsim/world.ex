@@ -9,6 +9,7 @@ defmodule Xsim.World do
             dirty: MapSet.new(),
             frames: %{},
             framed: 0,
+            framed_edits: 0,
             duplicates: 0,
             buffered: 0
 
@@ -57,20 +58,11 @@ defmodule Xsim.World do
   end
 
   defp apply_event(world, index, {:frame, id, parent, k, n, body}) do
-    entry = Map.get(world.frames, id, %{parts: %{}, first: index})
-    entry = %{entry | parts: Map.put(entry.parts, k, {k, n, body}), first: min(entry.first, index)}
+    gathered(world, id, index, {k, n, body}, fn world, source -> {%{world | framed: world.framed + 1}, {:post, id, parent, source}} end)
+  end
 
-    if map_size(entry.parts) == n do
-      world = %{world | frames: Map.delete(world.frames, id), framed: world.framed + 1}
-      post = {:post, id, parent, Xsim.Frames.rebuild(Map.values(entry.parts))}
-
-      case apply_event(world, entry.first, post) do
-        {:applied, world} -> {:applied, world}
-        :waiting -> {:applied, %{world | pending: [{entry.first, post} | world.pending], buffered: world.buffered + 1}}
-      end
-    else
-      {:applied, %{world | frames: Map.put(world.frames, id, entry)}}
-    end
+  defp apply_event(world, index, {:edit_frame, id, rev, k, n, body}) do
+    gathered(world, {:edit, id, rev}, index, {k, n, body}, fn world, source -> {%{world | framed_edits: world.framed_edits + 1}, {:edit, id, source}} end)
   end
 
   defp apply_event(world, index, {:edit, id, source}) do
@@ -95,6 +87,22 @@ defmodule Xsim.World do
       end
     else
       :waiting
+    end
+  end
+
+  defp gathered(world, key, index, {k, n, _} = part, complete) do
+    entry = Map.get(world.frames, key, %{parts: %{}, first: index})
+    entry = %{entry | parts: Map.put(entry.parts, k, part), first: min(entry.first, index)}
+
+    if map_size(entry.parts) == n do
+      {world, event} = complete.(%{world | frames: Map.delete(world.frames, key)}, Xsim.Frames.rebuild(Map.values(entry.parts)))
+
+      case apply_event(world, entry.first, event) do
+        {:applied, world} -> {:applied, world}
+        :waiting -> {:applied, %{world | pending: [{entry.first, event} | world.pending], buffered: world.buffered + 1}}
+      end
+    else
+      {:applied, %{world | frames: Map.put(world.frames, key, entry)}}
     end
   end
 

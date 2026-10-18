@@ -105,12 +105,12 @@ try {
         Write-Output "x e2e / sim / $($sim.Name) / thread $($expected.root) / $($r.Requests.Count) request(s) / exit $($r.Exit)"
     }
 
-    $oracle = Get-Content -Raw (Join-Path $PSScriptRoot 'thread-sample.expected.json') | ConvertFrom-Json
-    $wrote = Invoke-Step "xc post-thread e2e/thread-sample.txt" $world.token
+    $oracle = Get-Content -Raw (Join-Path $PSScriptRoot 'thread-oauth1.expected.json') | ConvertFrom-Json
+    $wrote = Invoke-Step "xc post-thread oauth1.spi" $world.token
     $outputs.Add($wrote.Text)
     $sent = @($wrote.Requests | Where-Object { $_.method -eq 'POST' } | ForEach-Object { $_.body | ConvertFrom-Json })
     $ids = @($wrote.Raw -split "`n" | Where-Object { $_ -match '^posted (\d+) ' } | ForEach-Object { ($_ -split ' ')[1] })
-    Check ($wrote.Exit -eq 0 -and $sent.Count -eq @($oracle.posts).Count) "xc post-thread sent $($sent.Count) posts, the sim splits the sample into $(@($oracle.posts).Count) (exit $($wrote.Exit))"
+    Check ($wrote.Exit -eq 0 -and $sent.Count -eq @($oracle.posts).Count) "xc post-thread sent $($sent.Count) posts, the sim splits oauth1.spi into $(@($oracle.posts).Count) (exit $($wrote.Exit))"
     for ($i = 0; $i -lt [Math]::Min($sent.Count, @($oracle.posts).Count); $i++) {
         Check ($sent[$i].text -ceq @($oracle.posts)[$i]) "post $($i + 1) differs from the sim's split:`n--- sim`n$(@($oracle.posts)[$i])`n--- xc`n$($sent[$i].text)"
         $parent = if ($i -eq 0) { $null } else { $ids[$i - 1] }
@@ -118,8 +118,13 @@ try {
     }
     $back = Invoke-Step "xc thread $($ids[0])" $world.token
     $want = (@($oracle.program) -join "`n") + "`n"
-    Check ($back.Exit -eq 0 -and $back.Raw -ceq $want) "xc thread $($ids[0]) did not read back the posted sample ($($back.Raw.Length) vs $($want.Length) chars)`n$($back.Raw)"
+    Check ($back.Exit -eq 0 -and $back.Raw -ceq $want) "xc thread $($ids[0]) did not read back the posted oauth1.spi ($($back.Raw.Length) vs $($want.Length) chars)`n$($back.Raw)"
     Write-Output "x e2e / post-thread / $($sent.Count) posts / read back $($back.Raw.Length) chars / exit $($back.Exit)"
+    $gone = Invoke-Step "xc delete-thread $($ids[0])" $world.token
+    $deletes = @($gone.Requests | Where-Object { $_.method -eq 'DELETE' })
+    Check ($gone.Exit -eq 0 -and $deletes.Count -eq $sent.Count) "xc delete-thread deleted $($deletes.Count) of $($sent.Count) posts (exit $($gone.Exit))"
+    Check ((Invoke-Step "xc thread $($ids[0])" $world.token).Exit -eq 4) "the thread still reads after xc delete-thread"
+    Write-Output "x e2e / delete-thread / $($deletes.Count) deleted / exit $($gone.Exit)"
 
     Check ((Step-Of $results 'X_BEARER_TOKEN = \$null').Requests.Count -eq 0) "a run without X_BEARER_TOKEN sent requests"
     $all = Queries-Of (Step-Of $results 'following carol --max-following all')

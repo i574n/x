@@ -12,6 +12,9 @@ defmodule Xsim.Runner do
             cancelled: %{},
             evicted: %{},
             evicting: false,
+            doomed: %{},
+            clock: 0,
+            rescues: 0,
             peak_results: 0,
             post_key: %{},
             owner: %{},
@@ -27,11 +30,11 @@ defmodule Xsim.Runner do
 
     state =
       Enum.reduce(deliveries, state, fn delivery, state ->
-        state = %{state | world: World.apply_delivery(state.world, delivery)}
+        state = %{state | world: World.apply_delivery(state.world, delivery), clock: state.clock + 1} |> expire(false)
         state |> reconcile(executor, limit, faults) |> harvest(0, naive)
       end)
 
-    state |> drain(executor, limit, naive) |> settle()
+    state |> drain(executor, limit, naive) |> expire(true) |> settle()
   end
 
   defp reconcile(state, executor, limit, faults) do
@@ -64,7 +67,7 @@ defmodule Xsim.Runner do
       %{state | refs: Map.put(state.refs, key, count)}
     else
       state = %{state | refs: Map.delete(state.refs, key), queue: List.delete(state.queue, key)}
-      state = if faults.evict, do: evict(state, key), else: state
+      state = doom(state, key, faults.evict)
 
       case {faults.cancel, state.tasks[key]} do
         {true, %{task: task}} ->
@@ -77,6 +80,23 @@ defmodule Xsim.Runner do
     end
   end
 
+  defp doom(state, _key, false), do: state
+  defp doom(state, key, true), do: evict(state, key)
+  defp doom(state, key, {:grace, deliveries}), do: %{state | doomed: Map.put(state.doomed, key, state.clock + deliveries)}
+
+  defp expire(%{doomed: doomed} = state, _all) when map_size(doomed) == 0, do: state
+
+  defp expire(state, all) do
+    due = for {key, deadline} <- state.doomed, all or deadline <= state.clock, do: key
+    Enum.reduce(due, %{state | doomed: Map.drop(state.doomed, due)}, fn key, state -> if Map.has_key?(state.refs, key), do: state, else: evict(state, key) end)
+  end
+
+  defp rescued(state, key) do
+    if Map.has_key?(state.doomed, key),
+      do: %{state | doomed: Map.delete(state.doomed, key), rescues: state.rescues + if(Map.has_key?(state.results, key), do: 1, else: 0)},
+      else: state
+  end
+
   defp evict(state, key) do
     if Map.has_key?(state.results, key),
       do: %{state | results: Map.delete(state.results, key), evicted: Map.update(state.evicted, key, 1, &(&1 + 1))},
@@ -87,6 +107,7 @@ defmodule Xsim.Runner do
 
   defp acquire(state, key, id) do
     count = Map.get(state.refs, key, 0) + 1
+    state = rescued(state, key)
     state = %{state | refs: Map.put(state.refs, key, count), owner: Map.put(state.owner, key, id)}
 
     if count == 1 and not Map.has_key?(state.results, key) and not Map.has_key?(state.tasks, key) and key not in state.queue do

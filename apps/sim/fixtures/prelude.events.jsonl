@@ -26,20 +26,26 @@
 {"at":17,"kind":"like","post":"p3","user":"u1"}
 {"at":17,"kind":"like","post":"p3","user":"u1"}
 {"at":21,"kind":"like","post":"p5","user":"u1"}
-{"at":22,"kind":"edit","post":"p0","source":"///- --package .\n"}
-{"at":23,"kind":"edit","post":"p2","source":"open sm'_operators\n\ninl each forall a b. (f : a -> b) (l : list a) : list b =\n    listm.foldBack (fun x acc => Cons (f x, acc)) l Nil\n\ninl keep forall t. (ok : t -> bool) (l : list t) : list t =\n    listm.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l Nil\n\ninl spread forall a b. (f : a -> list b) (l : list a) : list b =\n    listm.foldBack (fun x acc => listm.append (f x) acc) l Nil\n\ninl first_where forall t. (ok : t -> bool) (l : list t) : option t =\n    listm.foldBack (fun x acc => if ok x then Some x else acc) l None\n\ninl has forall t. (ok : t -> bool) (l : list t) : bool =\n    match first_where ok l with\n    | Some _ => true\n    | None => false\n\ninl take_first forall t. (n : i32) (l : list t) : list t =\n    let rec go (n : i32) (l : list t) : list t =\n        match l with\n        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)\n        | _ => Nil\n    go n l\n\ninl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =\n    match r with\n    | Ok x => f x\n    | Error e => Error e\n\ninl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\nlet rec split_on (sep : string) (s : string) : list string =\n    inl i : i32 = sm'.index_of sep s\n    if i < 0i32 then [s]\n    else Cons (sm'.substring 0i32 i s, split_on sep (sm'.substring (i + 1i32) (sm'.length s - i - 1i32) s))\n\ninl pieces (sep : string) (s : string) : list string = if s = \"\" then Nil else split_on sep s\n"}
-{"at":23,"kind":"edit","post":"p2","source":"open sm'_operators\n\ninl each forall a b. (f : a -> b) (l : list a) : list b =\n    listm.foldBack (fun x acc => Cons (f x, acc)) l Nil\n\ninl keep forall t. (ok : t -> bool) (l : list t) : list t =\n    listm.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l Nil\n\ninl spread forall a b. (f : a -> list b) (l : list a) : list b =\n    listm.foldBack (fun x acc => listm.append (f x) acc) l Nil\n\ninl first_where forall t. (ok : t -> bool) (l : list t) : option t =\n    listm.foldBack (fun x acc => if ok x then Some x else acc) l None\n\ninl has forall t. (ok : t -> bool) (l : list t) : bool =\n    match first_where ok l with\n    | Some _ => true\n    | None => false\n\ninl take_first forall t. (n : i32) (l : list t) : list t =\n    let rec go (n : i32) (l : list t) : list t =\n        match l with\n        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)\n        | _ => Nil\n    go n l\n\ninl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =\n    match r with\n    | Ok x => f x\n    | Error e => Error e\n\ninl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\nlet rec split_on (sep : string) (s : string) : list string =\n    inl i : i32 = sm'.index_of sep s\n    if i < 0i32 then [s]\n    else Cons (sm'.substring 0i32 i s, split_on sep (sm'.substring (i + 1i32) (sm'.length s - i - 1i32) s))\n\ninl pieces (sep : string) (s : string) : list string = if s = \"\" then Nil else split_on sep s\n"}
-{"at":24,"kind":"unlike","post":"p4","user":"u2"}
-{"at":26,"kind":"like","post":"p5","user":"fickle1"}
-{"at":27,"kind":"like","post":"p0","user":"editor2"}
-{"at":28,"kind":"unlike","post":"p5","user":"fickle1"}
-{"at":25,"kind":"unlike","post":"p5","user":"u1"}
-{"at":29,"kind":"edit","post":"p0","source":"///- --package . \n"}
-{"at":30,"kind":"like","post":"p5","user":"fickle1"}
-{"at":34,"kind":"like","post":"p5","user":"fickle1"}
-{"at":32,"kind":"unlike","post":"p5","user":"fickle1"}
-{"at":31,"kind":"edit","post":"p0","source":"///- --package .  \n"}
-{"at":32,"kind":"unlike","post":"p5","user":"fickle1"}
-{"at":33,"kind":"edit","post":"p0","source":"///- --package .   \n"}
-{"at":33,"kind":"edit","post":"p0","source":"///- --package .   \n"}
-{"at":35,"kind":"edit","post":"p0","source":"///- --package ."}
+{"at":22,"body":"///- --package .\n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":1}
+{"at":23,"body":"open sm'_operators\n\ninl each forall a b. (f : a -> b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => Cons (f x, acc)) l Nil\n\ninl keep forall t. (ok : t -> bool) (l : list t) : list t =\n    listm​.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l","k":1,"kind":"edit_frame","n":6,"post":"p2","rev":1}
+{"at":23,"body":"open sm'_operators\n\ninl each forall a b. (f : a -> b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => Cons (f x, acc)) l Nil\n\ninl keep forall t. (ok : t -> bool) (l : list t) : list t =\n    listm​.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l","k":1,"kind":"edit_frame","n":6,"post":"p2","rev":1}
+{"at":24,"body":" Nil\n\ninl spread forall a b. (f : a -> list b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => listm​.append (f x) acc) l Nil\n\ninl first_where forall t. (ok : t -> bool) (l : list t) : option t =\n    listm​.foldBack (fun x acc => if ok x then Some x else acc)","k":2,"kind":"edit_frame","n":6,"post":"p2","rev":1}
+{"at":26,"body":"\n        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)\n        | _ => Nil\n    go n l\n\ninl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =\n    match r with\n    | Ok x => f x\n    | Error e => Error e\n\ninl map_ok forall a b e. (f : a ->","k":4,"kind":"edit_frame","n":6,"post":"p2","rev":1}
+{"at":27,"body":" b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\nlet rec split_on (sep : string) (s : string) : list string =\n    inl i : i32 = sm'.index_of sep s\n    if i < 0i32 then [s]\n    else Cons (sm'.substring 0i32 i s, split_on sep (sm'.substring (i + 1i32) (sm'.length","k":5,"kind":"edit_frame","n":6,"post":"p2","rev":1}
+{"at":28,"body":" s - i - 1i32) s))\n\ninl pieces (sep : string) (s : string) : list string = if s = \"\" then Nil else split_on sep s\n","k":6,"kind":"edit_frame","n":6,"post":"p2","rev":1}
+{"at":25,"body":" l None\n\ninl has forall t. (ok : t -> bool) (l : list t) : bool =\n    match first_where ok l with\n    | Some _ => true\n    | None => false\n\ninl take_first forall t. (n : i32) (l : list t) : list t =\n    let rec go (n : i32) (l : list t) : list t =\n        match l with","k":3,"kind":"edit_frame","n":6,"post":"p2","rev":1}
+{"at":29,"kind":"unlike","post":"p4","user":"u2"}
+{"at":30,"kind":"unlike","post":"p5","user":"u1"}
+{"at":34,"body":"///- --package . \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":2}
+{"at":32,"kind":"like","post":"p0","user":"editor2"}
+{"at":31,"kind":"like","post":"p5","user":"fickle1"}
+{"at":32,"kind":"like","post":"p0","user":"editor2"}
+{"at":33,"kind":"unlike","post":"p5","user":"fickle1"}
+{"at":36,"body":"///- --package .  \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":3}
+{"at":33,"kind":"unlike","post":"p5","user":"fickle1"}
+{"at":36,"body":"///- --package .  \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":3}
+{"at":37,"kind":"unlike","post":"p5","user":"fickle1"}
+{"at":38,"body":"///- --package .   \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":4}
+{"at":35,"kind":"like","post":"p5","user":"fickle1"}
+{"at":39,"kind":"like","post":"p5","user":"fickle1"}
+{"at":40,"body":"///- --package .","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":5}

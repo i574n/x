@@ -27,6 +27,7 @@ union command =
     | ReadThread : string
     | PostThread : string
     | PreviewThread : string
+    | DeleteThread : string
     | ShowHelp
     | Rejected : string
 
@@ -67,9 +68,11 @@ inl usage_writes () : string =
     "       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n"
     ++# "       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n"
 
-inl usage_reads () : string =
-    "       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n"
-    ++# "       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"
+inl usage_reads () : string = "       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n"
+
+inl usage_thread_writes () : string =
+    "       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"
+    ++# "       xc delete-thread ID   delete your posts of that thread (user credentials)\n"
 
 inl usage_environment () : string =
     "env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"
@@ -93,7 +96,7 @@ inl usage_output () : string = "       --json            one JSON object per ent
 inl usage_following () : string =
     "       --max-following N accounts followed by USERNAME to include, or all (default 20)"
 
-inl usage_commands () : string = usage_synopsis () ++# usage_writes () ++# usage_reads ()
+inl usage_commands () : string = usage_synopsis () ++# usage_writes () ++# usage_reads () ++# usage_thread_writes ()
 
 inl usage () : string =
     inl filters, views = usage_counts () ++# usage_filters (), usage_views () ++# usage_output ()
@@ -297,7 +300,7 @@ inl unknown_command (arg : string) : string = "unknown command " ++# arg ++# "; 
 
 inl wants_help (args : list string) : bool = listm.fold (fun seen a => seen || is_help a) false args
 
-inl one_value (name : string) (args : list string) (make : string -> command) : command =
+let one_value (name : string) (args : list string) (make : string -> command) : command =
     match args with
     | Cons (value, Nil) when value <> "" => make value
     | _ => Rejected (name ++# " takes exactly one argument")
@@ -307,13 +310,17 @@ inl thread_post_command (rest : args) : command =
     | Cons (flag, Cons (path, Nil)) when flag = "--dry-run" => PreviewThread path
     | _ => one_value "post-thread" rest PostThread
 
-inl other_command (sub : string) (rest : args) : command =
-    if sub = "refresh" then one_value sub rest RefreshToken
-    elif sub = "thread" then one_value sub rest ReadThread
-    elif sub = "post-thread" then thread_post_command rest
+let thread_command (sub : string) (rest : args) : command =
+    if sub = "post-thread" then thread_post_command rest
+    elif sub = "delete-thread" then one_value sub rest DeleteThread
     else Rejected (unknown_command sub)
 
-inl write_command (sub : string) (rest : args) : command =
+let other_command (sub : string) (rest : args) : command =
+    if sub = "refresh" then one_value sub rest RefreshToken
+    elif sub = "thread" then one_value sub rest ReadThread
+    else thread_command sub rest
+
+let write_command (sub : string) (rest : args) : command =
     if sub = "post" then one_value sub rest PublishPost
     elif sub = "delete" then one_value sub rest RemovePost
     else other_command sub rest
@@ -358,6 +365,7 @@ inl described_thread (c : command) : string =
     | ReadThread id => "thread " ++# id
     | PostThread path => "post-thread " ++# path
     | PreviewThread path => "post-thread --dry-run " ++# path
+    | DeleteThread id => "delete-thread " ++# id
     | _ => ""
 
 inl described_write (c : command) : string =

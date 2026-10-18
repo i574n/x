@@ -1,15 +1,6 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
-fn string_slice(value: &str, from: i64, to: i64) -> Rc<str> {
-    let bytes = value.as_bytes();
-    let length = bytes.len() as i64;
-    if from < 0 || from > length || to < from - 1 || to >= length { std::process::abort(); }
-    if to < from { return { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) }; }
-    if (bytes[from as usize] & 0xC0) == 0x80 || (to + 1 < length && (bytes[(to + 1) as usize] & 0xC0) == 0x80) { std::process::exit(3); }
-    let slice = &bytes[from as usize..(to + 1) as usize];
-    match std::str::from_utf8(slice) { Ok(text) => Rc::<str>::from(text), Err(error) => Rc::<str>::from(std::str::from_utf8(&slice[..error.valid_up_to()]).unwrap_or("")) }
-}
 #[derive(Clone)]
 enum UH1 {
     UH1_Nil,
@@ -369,7 +360,7 @@ fn merge_newest_16(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
                     let mut v10: Rc<str> = if v8 {
                         v6.clone()
                     } else {
-                        let mut v9: Rc<str> = string_slice(&v6.clone(), 0i32 as i64, 18i32 as i64);
+                        let mut v9: Rc<str> = Rc::<str>::from(&(v6)[((0i32) as usize)..(((0i32) + (19i32)) as usize)]);
                         v9.clone()
                     };
                     let mut v11: Rc<str> = v4.l2.clone();
@@ -378,7 +369,7 @@ fn merge_newest_16(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
                     let mut v15: Rc<str> = if v13 {
                         v11.clone()
                     } else {
-                        let mut v14: Rc<str> = string_slice(&v11.clone(), 0i32 as i64, 18i32 as i64);
+                        let mut v14: Rc<str> = Rc::<str>::from(&(v11)[((0i32) as usize)..(((0i32) + (19i32)) as usize)]);
                         v14.clone()
                     };
                     let mut v16: bool = v10.clone() == v15.clone();

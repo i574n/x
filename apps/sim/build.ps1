@@ -46,10 +46,10 @@ foreach ($w in $worlds) {
     if ($LASTEXITCODE -ne 0) { throw "mix xsim.world / $($w.Name) / exit $LASTEXITCODE" }
     foreach ($kind in 'world', 'expected') { Confirm-Fixture "$($w.Name).$kind.json" }
 }
-$argv = @('xsim.frames', '--file', (Join-Path $fixtures 'thread-sample.txt'), '--out', (Join-Path $fresh 'thread-sample.expected.json'))
+$argv = @('xsim.frames', '--file', (Join-Path $client 'oauth1.spi'), '--out', (Join-Path $fresh 'thread-oauth1.expected.json'))
 & mix @argv
 if ($LASTEXITCODE -ne 0) { throw "mix xsim.frames / exit $LASTEXITCODE" }
-Confirm-Fixture 'thread-sample.expected.json'
+Confirm-Fixture 'thread-oauth1.expected.json'
 $streams = Join-Path $PSScriptRoot 'fixtures'
 $argv = @('xsim.events', '--spi', (Join-Path $client 'prelude.spi'), '--seed', '3', '--users', '3', '--edits', '2', '--personas', 'fickle=1+editor=1', '--frames', '--out', (Join-Path $fresh 'prelude.events.jsonl'), '--expected', (Join-Path $fresh 'prelude.final.json'))
 & mix @argv

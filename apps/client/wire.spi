@@ -269,8 +269,8 @@ inl users_of_doc (doc : json) : users_reply = users_reply {found = accounts_in d
 inl page_of_doc (doc : json) : page_reply = page_reply {page = accounts_in doc; next_token = next_token_in doc}
 
 inl replied_to_in (v : json) : string =
-    v |> field "referenced_posts" |> collect (fun r => if at_key "type" r = "replied_to" then at_key "id" r else "")
-    |> listm.fold (fun found id => if found = "" then id else found) ""
+    inl refs = v |> field "referenced_posts"
+    $'Rc::<str>::from(!refs.as_array().and_then(|a| a.iter().find(|r| r["type"] == "replied_to")).and_then(|r| r["id"].as_str()).unwrap_or(""))'
 
 inl framed_of (v : json) : framed =
     {id = at_key "id" v; text = unescaped (at_key "text" v); history = v |> field "edit_history_post_ids" |> texts; urls = urls_in v; parent = replied_to_in v}

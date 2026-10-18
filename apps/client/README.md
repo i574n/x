@@ -365,53 +365,50 @@ xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_
 `xc post-thread FILE` is the other half of `xc thread`: it cuts FILE into cells at each blank line that comes before a line starting at column 0, splits each cell into `CELL k/n` posts of at most 280 weighted characters (CJK and emoji weigh 2), cuts between words, never ends a post on whitespace (X trims it), and posts them as one reply chain. X turns anything that looks like a domain into a `t.co` link and keeps no trace of how it was written (`listm.map` and `https://listm.map` come back with the same entities), so a dot between a letter or digit and a letter gets a zero-width space (U+200B, weight 1) before it: X links nothing and `xc thread` removes the spaces. `--dry-run` shows the posts and what creating them costs without sending anything:
 
 ```powershell
-xc post-thread --dry-run e2e/thread-sample.txt
+xc post-thread --dry-run checks/checks.spi
 ```
 
 ```text
---- post 1 of 9, weight 68
+--- post 1 of 7, weight 47
 c1 1/1
-///- --package .
-test thread_sample static =
-    open testing
---- post 2 of 9, weight 25
-c2 1/1
 open sm'_operators
---- post 3 of 9, weight 62
+open prelude
+open cli
+--- post 2 of 7, weight 114
+c2 1/1
+inl count_or_none (t : string) : i32 =
+    match count_of_text t with
+    | Some n => n
+    | None => -1i32
+--- post 3 of 7, weight 107
 c3 1/1
-inl greeting () : string = "안녕하세요, 世界 and hello"
---- post 4 of 9, weight 93
+inl text_or_empty (o : option string) : string =
+    match o with
+    | Some s => s
+    | None => ""
+--- post 4 of 7, weight 88
 c4 1/1
-inl doubled (l : list i32) : list i32 = l |> listm.map (fun x => x * 2)
---- post 5 of 9, weight 53
+inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
+--- post 5 of 7, weight 135
 c5 1/1
-inl both (a : bool) (b : bool) : bool = a && b
---- post 6 of 9, weight 272
+inl date_or_empty (t : string) : string =
+    if shaped "9999-99-99" t then local_midnight t else text_or_empty (date_of_text t)
+--- post 6 of 7, weight 273
 c6 1/2
-inl words () : list string =
-    ["alpha"; "beta"; "gamma"; "delta"; "epsilon"; "zeta"; "eta"; "theta"; "iota"; "kappa"; "lambda"; "mu"; "nu"; "xi"; "omicron"; "pi"; "rho"; "sigma"; "tau"; "upsilon"; "phi"; "chi"; "psi"; "omega"; "aleph"; "beth"; "gimel"; "daleth";
---- post 7 of 9, weight 53
+inl main () : i32 =
+    !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
+    !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
+    !!!!Export("xc_username", ((fun t => username_of_text t |> text_or_empty) : string -> string))
+--- post 7 of 7, weight 16
 c6 2/2
- "he"; "vav"; "zayin"; "heth"; "teth"; "yodh"]
---- post 8 of 9, weight 114
-c7 1/1
-inl clamp (lo : i32) (hi : i32) (x : i32) : i32 =
-    if x < lo then lo
-    elif x > hi then hi
-    else x
---- post 9 of 9, weight 109
-c8 1/1
-///> zig
-test clamp_keeps_values_in_range =
-    inl ~x = 7i32
-    clamp 0i32 5i32 x |> _assert_eq 5i32
---- 9 posts, $0.135 to create
+    0i32
+--- 7 posts, $0.105 to create
 ```
 
 With user credentials it posts, one line per post with its id:
 
 ```powershell
-xc post-thread e2e/thread-sample.txt
+xc post-thread checks/checks.spi
 ```
 
 ```text
@@ -422,8 +419,6 @@ posted 9006 c4 1/1
 posted 9007 c5 1/1
 posted 9008 c6 1/2
 posted 9009 c6 2/2
-posted 9010 c7 1/1
-posted 9011 c8 1/1
 ```
 
 Reading the thread back gives the file again, with the trailing whitespace X drops at the end of a cell removed:
@@ -433,23 +428,35 @@ xc thread 9003
 ```
 
 ```text
-///- --package .
-test thread_sample static =
-    open testing
 open sm'_operators
-inl greeting () : string = "안녕하세요, 世界 and hello"
-inl doubled (l : list i32) : list i32 = l |> listm.map (fun x => x * 2)
-inl both (a : bool) (b : bool) : bool = a && b
-inl words () : list string =
-    ["alpha"; "beta"; "gamma"; "delta"; "epsilon"; "zeta"; "eta"; "theta"; "iota"; "kappa"; "lambda"; "mu"; "nu"; "xi"; "omicron"; "pi"; "rho"; "sigma"; "tau"; "upsilon"; "phi"; "chi"; "psi"; "omega"; "aleph"; "beth"; "gimel"; "daleth"; "he"; "vav"; "zayin"; "heth"; "teth"; "yodh"]
-inl clamp (lo : i32) (hi : i32) (x : i32) : i32 =
-    if x < lo then lo
-    elif x > hi then hi
-    else x
-///> zig
-test clamp_keeps_values_in_range =
-    inl ~x = 7i32
-    clamp 0i32 5i32 x |> _assert_eq 5i32
+open prelude
+open cli
+inl count_or_none (t : string) : i32 =
+    match count_of_text t with
+    | Some n => n
+    | None => -1i32
+inl text_or_empty (o : option string) : string =
+    match o with
+    | Some s => s
+    | None => ""
+inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
+inl date_or_empty (t : string) : string =
+    if shaped "9999-99-99" t then local_midnight t else text_or_empty (date_of_text t)
+inl main () : i32 =
+    !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
+    !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
+    !!!!Export("xc_username", ((fun t => username_of_text t |> text_or_empty) : string -> string))
+    0i32
+```
+
+`xc delete-thread ID` removes your posts of the thread again, replies first:
+
+```powershell
+xc delete-thread 9003
+```
+
+```text
+accepted by the e2e
 ```
 
 ### Renewing the OAuth 2.0 token
@@ -596,7 +603,7 @@ What you can build on `xc` today:
 - **Read someone's home timeline** without their login: `--following h` rebuilds it from the accounts they follow (cap it; follows cost $0.010 each).
 - **Follow conversations:** `--depth 3` shows what a post quotes, answers or reposts.
 - **Post from scripts or CI:** `xc post` and `xc delete` with OAuth 1.0a keys that never expire, exit codes for every failure; `xc refresh` renews an OAuth 2.0 user token in place.
-- **Publish a program as a thread:** `xc post-thread FILE` (try `--dry-run` first), and anyone reads it back with `xc thread ID`: any age, latest edits, missing posts and missing cells named. Every top-level definition of `xc` itself fits one 280-weight post (`edition: 3`), so its own source can travel this way.
+- **Publish a program as a thread:** `xc post-thread FILE` (try `--dry-run` first, remove it with `xc delete-thread ID`), and anyone reads it back with `xc thread ID`: any age, latest edits, missing posts and missing cells named. Every top-level definition of `xc` itself fits one 280-weight post (`edition: 3`), so its own source can travel this way.
 - **Agents as users:** `--json` gives one JSON object per entry, so an agent can call `xc` as a tool.
 - **Run anywhere:** one static binary; credentials only from environment variables, so a Kubernetes secret maps onto it directly.
 
@@ -639,4 +646,4 @@ Each entry is one Rust crate, so every generated file stays reviewable (`scripts
 | `xc_token` | `token/token.spi` | OAuth 2.0 token renewal and the in-place env file rewrite (`xc refresh`) |
 | `xc` | `xc/xc.spi` | entry: environment, credentials, the order of calls, exit codes, output |
 
-Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Accept` rewrites its outputs after an intended change; review the diff), whose world includes four threads the simulator posted (complete, edited three times, missing one post, missing a whole cell) (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`); `xc post-thread` must write exactly the posts the simulator's own splitter makes of `e2e/thread-sample.txt` (`e2e/thread-sample.expected.json`, from `mix xsim.frames`), each replying to the one before, and `xc thread` must read the file back. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>` HTML-escaped.
+Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Accept` rewrites its outputs after an intended change; review the diff), whose world includes four threads the simulator posted (complete, edited three times, missing one post, missing a whole cell) (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`); `xc post-thread` must write exactly the posts the simulator's own splitter makes of `oauth1.spi` (`e2e/thread-oauth1.expected.json`, from `mix xsim.frames`), each replying to the one before, and `xc thread` must read the file back. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>` HTML-escaped.

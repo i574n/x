@@ -186,6 +186,39 @@ defmodule XsimTest do
     assert_raise ArgumentError, fn -> Xsim.Log.decode(~s({"format":"xsim-events","version":2}\n)) end
   end
 
+  test "a grace window keeps a result through a short lapse of demand and frees it after" do
+    personas = Xsim.Personas.parse("fickle=4+editor=1")
+    scenario = Scenario.from_cells(@cells, seed: 23, users: 3, edits: 2, churn: 2, personas: personas)
+    deliveries = Scenario.deliveries(scenario, duplicates: 0.2, window: 8)
+    kept = Runner.run(deliveries, Executors.fake())
+    graced = Runner.run(deliveries, Executors.fake(), evict: {:grace, 12})
+    assert Enum.all?(verdicts(graced), fn {_, v} -> v == :ok end)
+    assert Invariants.commute(graced, kept) == :ok
+    assert graced.doomed == %{}
+  end
+
+  test "edits travel as frames too, arrive shuffled and duplicated, and end where the unframed run ends" do
+    scenario = Scenario.from_cells(@cells, seed: 11, users: 3, edits: 3, breaking: 1)
+    framed = %{scenario | events: Xsim.Frames.explode_posts(scenario.events, 20)}
+    edits = Enum.count(scenario.events, &match?({:edit, _, _}, &1))
+    assert edits > 0 and Enum.any?(framed.events, &match?({:edit_frame, _, _, 2, _, _}, &1))
+    state = Runner.run(Scenario.deliveries(framed, duplicates: 0.3, window: 12), Executors.fake())
+    plain = Runner.run(Scenario.deliveries(scenario), Executors.fake())
+    assert state.world.framed_edits == edits
+    assert Enum.all?(verdicts(state), fn {_, v} -> v == :ok end)
+    assert Invariants.commute(state, plain) == :ok
+  end
+
+  test "replaying the event stream fixture reaches the final state recorded next to it" do
+    deliveries = Xsim.Log.read(Path.expand("../fixtures/prelude.events.jsonl", __DIR__))
+    final = Path.expand("../fixtures/prelude.final.json", __DIR__) |> File.read!() |> JSON.decode!()
+    world = Enum.reduce(deliveries, Xsim.World.new(), &Xsim.World.apply_delivery(&2, &1))
+    live = for {id, post} <- world.posts, not post.deleted, into: %{}, do: {id, {post.parent, Xsim.World.current_source(post)}}
+    assert live == Map.new(final["cells"], &{&1["post"], {&1["parent"], &1["source"]}})
+    likes = Map.new(live, fn {id, _} -> {id, world.demand |> Map.get(id, MapSet.new()) |> MapSet.size()} end)
+    assert likes == Map.new(live, fn {id, _} -> {id, Map.get(final["likes"], id, 0)} end)
+  end
+
   test "personas toggle demand, revert rewrites and fix breaking edits back without breaking an invariant" do
     personas = Xsim.Personas.parse("lurker=2,fickle=3,editor=2,breaker=2")
     scenario = Scenario.from_cells(@cells, seed: 17, users: 2, edits: 0, personas: personas)

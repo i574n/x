@@ -20,10 +20,7 @@ inl first_of (l : list string) (fallback : string) : string =
 
 inl latest (f : framed) : bool = last_of f.history f.id = f.id
 
-inl count_or_zero (t : string) : i32 =
-    match count_of_text t with
-    | Some n => n
-    | None => 0i32
+inl count_or_zero (t : string) : i32 = $'(&*!t).parse::<i32>().unwrap_or(0)'
 
 inl header_end (i : i32) (text : string) : i32 = if i < 0i32 then sm'.length text else i
 

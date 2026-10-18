@@ -278,11 +278,27 @@ let run_post_thread (dry : bool) (path : string) : i32 =
         0i32
     else run_write 7i32 (framed (file_text path))
 
+inl thread_ids (s : site) (id : string) : i32 * string * string =
+    inl {base bearer} = s
+    $'xc_thread::xc_thread_ids(&*!base, &*!bearer, &*!id)'
+
+inl deleted_all (ids : string) : i32 = pieces "\n" ids |> listm.fold (fun worst post => if run_write 2i32 post <> 0i32 then 4i32 else worst) 0i32
+
+inl deleted_from (r : i32 * string * string) : i32 =
+    inl code, ids, failure = r
+    if code <> 0i32 then failed failure else deleted_all ids
+
+let run_delete_thread (id : string) : i32 =
+    inl s = {base = base_url (); bearer = env_of "X_BEARER_TOKEN"}
+    if s.bearer = "" then missing_bearer () else thread_ids s id |> deleted_from
+
+inl run_thread_kind (kind : i32) (payload : string) : i32 =
+    if kind = 6i32 then run_thread payload
+    elif kind = 9i32 then run_delete_thread payload
+    else run_post_thread (kind = 8i32) payload
+
 inl run_user (kind : i32) (payload : string) : i32 =
-    if kind = 5i32 then run_refresh payload
-    elif kind = 6i32 then run_thread payload
-    elif kind = 7i32 || kind = 8i32 then run_post_thread (kind = 8i32) payload
-    else run_write kind payload
+    if kind = 5i32 then run_refresh payload elif kind >= 6i32 then run_thread_kind kind payload else run_write kind payload
 
 inl main () : i32 =
     inl p = parsed_args ()

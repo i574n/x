@@ -35,6 +35,7 @@ enum US3 {
     US3_ReadThread(Rc<str>),
     US3_PostThread(Rc<str>),
     US3_PreviewThread(Rc<str>),
+    US3_DeleteThread(Rc<str>),
     US3_ShowHelp,
     US3_Rejected(Rc<str>),
 }
@@ -563,7 +564,154 @@ fn parse_from_3(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -
         }
     }
 }
-fn method15(mut v0: Rc<UH0>, mut v1: bool) -> bool {
+fn one_value_16(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<dyn Fn(Rc<str>) -> US3>) -> US3 {
+    match &*v1 {
+        UH0::UH0_Cons(v3, v4) => {
+            let mut v3: Rc<str> = v3.clone();
+            let mut v4: Rc<UH0> = v4.clone();
+            match &*v4 {
+                UH0::UH0_Nil => {
+                    let mut v5: bool = v3.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    let mut v6: bool = v5 != true;
+                    if v6 {
+                        v2(v3.clone())
+                    } else {
+                        let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
+                        let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v8));
+                        US3::US3_Rejected(v9.clone())
+                    }
+                }
+                _ => {
+                    let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
+                    let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v12));
+                    US3::US3_Rejected(v13.clone())
+                }
+            }
+        }
+        _ => {
+            let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
+            let mut v17: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v16));
+            US3::US3_Rejected(v17.clone())
+        }
+    }
+}
+fn closure4() -> Rc<dyn Fn(Rc<str>) -> US3> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> US3> = Rc::new(move |mut v0: Rc<str>| -> US3 {
+        US3::US3_PostThread(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn closure5() -> Rc<dyn Fn(Rc<str>) -> US3> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> US3> = Rc::new(move |mut v0: Rc<str>| -> US3 {
+        US3::US3_DeleteThread(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn thread_command_18(mut v0: Rc<str>, mut v1: Rc<UH0>) -> US3 {
+    let mut v2: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
+    if v2 {
+        match &*v1 {
+            UH0::UH0_Cons(v3, v4) => {
+                let mut v3: Rc<str> = v3.clone();
+                let mut v4: Rc<UH0> = v4.clone();
+                match &*v4 {
+                    UH0::UH0_Cons(v5, v6) => {
+                        let mut v5: Rc<str> = v5.clone();
+                        let mut v6: Rc<UH0> = v6.clone();
+                        match &*v6 {
+                            UH0::UH0_Nil => {
+                                let mut v7: bool = v3.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--dry-run"); } LIT.with(|lit| lit.clone()) };
+                                if v7 {
+                                    US3::US3_PreviewThread(v5.clone())
+                                } else {
+                                    let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
+                                    let mut v10: Rc<dyn Fn(Rc<str>) -> US3> = closure4();
+                                    one_value_16(v9.clone(), v1.clone(), v10.clone())
+                                }
+                            }
+                            _ => {
+                                let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
+                                let mut v14: Rc<dyn Fn(Rc<str>) -> US3> = closure4();
+                                one_value_16(v13.clone(), v1.clone(), v14.clone())
+                            }
+                        }
+                    }
+                    _ => {
+                        let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
+                        let mut v18: Rc<dyn Fn(Rc<str>) -> US3> = closure4();
+                        one_value_16(v17.clone(), v1.clone(), v18.clone())
+                    }
+                }
+            }
+            _ => {
+                let mut v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
+                let mut v22: Rc<dyn Fn(Rc<str>) -> US3> = closure4();
+                one_value_16(v21.clone(), v1.clone(), v22.clone())
+            }
+        }
+    } else {
+        let mut v25: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("delete-thread"); } LIT.with(|lit| lit.clone()) };
+        if v25 {
+            let mut v26: Rc<dyn Fn(Rc<str>) -> US3> = closure5();
+            one_value_16(v0.clone(), v1.clone(), v26.clone())
+        } else {
+            let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown command "); } LIT.with(|lit| lit.clone()) };
+            let mut v29: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v0));
+            let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; try: xc timeline"); } LIT.with(|lit| lit.clone()) };
+            let mut v31: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v30));
+            US3::US3_Rejected(v31.clone())
+        }
+    }
+}
+fn closure6() -> Rc<dyn Fn(Rc<str>) -> US3> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> US3> = Rc::new(move |mut v0: Rc<str>| -> US3 {
+        US3::US3_RefreshToken(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn closure7() -> Rc<dyn Fn(Rc<str>) -> US3> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> US3> = Rc::new(move |mut v0: Rc<str>| -> US3 {
+        US3::US3_ReadThread(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn other_command_17(mut v0: Rc<str>, mut v1: Rc<UH0>) -> US3 {
+    let mut v2: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("refresh"); } LIT.with(|lit| lit.clone()) };
+    if v2 {
+        let mut v3: Rc<dyn Fn(Rc<str>) -> US3> = closure6();
+        one_value_16(v0.clone(), v1.clone(), v3.clone())
+    } else {
+        let mut v5: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("thread"); } LIT.with(|lit| lit.clone()) };
+        if v5 {
+            let mut v6: Rc<dyn Fn(Rc<str>) -> US3> = closure7();
+            one_value_16(v0.clone(), v1.clone(), v6.clone())
+        } else {
+            thread_command_18(v0.clone(), v1.clone())
+        }
+    }
+}
+fn closure8() -> Rc<dyn Fn(Rc<str>) -> US3> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> US3> = Rc::new(move |mut v0: Rc<str>| -> US3 {
+        US3::US3_PublishPost(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn closure9() -> Rc<dyn Fn(Rc<str>) -> US3> {
+    thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> US3> = Rc::new(move |mut v0: Rc<str>| -> US3 {
+        US3::US3_RemovePost(v0.clone())
+    }); } CLOSURE.with(|closure| closure.clone())
+}
+fn write_command_15(mut v0: Rc<str>, mut v1: Rc<UH0>) -> US3 {
+    let mut v2: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post"); } LIT.with(|lit| lit.clone()) };
+    if v2 {
+        let mut v3: Rc<dyn Fn(Rc<str>) -> US3> = closure8();
+        one_value_16(v0.clone(), v1.clone(), v3.clone())
+    } else {
+        let mut v5: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("delete"); } LIT.with(|lit| lit.clone()) };
+        if v5 {
+            let mut v6: Rc<dyn Fn(Rc<str>) -> US3> = closure9();
+            one_value_16(v0.clone(), v1.clone(), v6.clone())
+        } else {
+            other_command_17(v0.clone(), v1.clone())
+        }
+    }
+}
+fn method19(mut v0: Rc<UH0>, mut v1: bool) -> bool {
     loop {
         match &*v0 {
             UH0::UH0_Cons(v2, v3) => {
@@ -601,203 +749,14 @@ fn parse_args_with_2(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<st
             let mut v17: Rc<str> = v17.clone();
             let mut v18: Rc<UH0> = v18.clone();
             let mut v19: bool = false;
-            let mut v20: bool = method15(v16.clone(), v19);
+            let mut v20: bool = method19(v16.clone(), v19);
             let mut v21: bool = v20 == false;
             if v21 {
                 let mut v22: bool = v17.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("timeline"); } LIT.with(|lit| lit.clone()) };
                 if v22 {
                     parse_from_3(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15, v18.clone())
                 } else {
-                    let mut v24: bool = v17.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post"); } LIT.with(|lit| lit.clone()) };
-                    if v24 {
-                        match &*v18 {
-                            UH0::UH0_Cons(v25, v26) => {
-                                let mut v25: Rc<str> = v25.clone();
-                                let mut v26: Rc<UH0> = v26.clone();
-                                match &*v26 {
-                                    UH0::UH0_Nil => {
-                                        let mut v27: bool = v25.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                        let mut v28: bool = v27 != true;
-                                        if v28 {
-                                            US3::US3_PublishPost(v25.clone())
-                                        } else {
-                                            let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                            let mut v31: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v30));
-                                            US3::US3_Rejected(v31.clone())
-                                        }
-                                    }
-                                    _ => {
-                                        let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                        let mut v35: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v34));
-                                        US3::US3_Rejected(v35.clone())
-                                    }
-                                }
-                            }
-                            _ => {
-                                let mut v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                let mut v39: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v38));
-                                US3::US3_Rejected(v39.clone())
-                            }
-                        }
-                    } else {
-                        let mut v42: bool = v17.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("delete"); } LIT.with(|lit| lit.clone()) };
-                        if v42 {
-                            match &*v18 {
-                                UH0::UH0_Cons(v43, v44) => {
-                                    let mut v43: Rc<str> = v43.clone();
-                                    let mut v44: Rc<UH0> = v44.clone();
-                                    match &*v44 {
-                                        UH0::UH0_Nil => {
-                                            let mut v45: bool = v43.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                            let mut v46: bool = v45 != true;
-                                            if v46 {
-                                                US3::US3_RemovePost(v43.clone())
-                                            } else {
-                                                let mut v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                let mut v49: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v48));
-                                                US3::US3_Rejected(v49.clone())
-                                            }
-                                        }
-                                        _ => {
-                                            let mut v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                            let mut v53: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v52));
-                                            US3::US3_Rejected(v53.clone())
-                                        }
-                                    }
-                                }
-                                _ => {
-                                    let mut v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                    let mut v57: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v56));
-                                    US3::US3_Rejected(v57.clone())
-                                }
-                            }
-                        } else {
-                            let mut v60: bool = v17.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("refresh"); } LIT.with(|lit| lit.clone()) };
-                            if v60 {
-                                match &*v18 {
-                                    UH0::UH0_Cons(v61, v62) => {
-                                        let mut v61: Rc<str> = v61.clone();
-                                        let mut v62: Rc<UH0> = v62.clone();
-                                        match &*v62 {
-                                            UH0::UH0_Nil => {
-                                                let mut v63: bool = v61.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                                let mut v64: bool = v63 != true;
-                                                if v64 {
-                                                    US3::US3_RefreshToken(v61.clone())
-                                                } else {
-                                                    let mut v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                    let mut v67: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v66));
-                                                    US3::US3_Rejected(v67.clone())
-                                                }
-                                            }
-                                            _ => {
-                                                let mut v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                let mut v71: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v70));
-                                                US3::US3_Rejected(v71.clone())
-                                            }
-                                        }
-                                    }
-                                    _ => {
-                                        let mut v74: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                        let mut v75: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v74));
-                                        US3::US3_Rejected(v75.clone())
-                                    }
-                                }
-                            } else {
-                                let mut v78: bool = v17.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("thread"); } LIT.with(|lit| lit.clone()) };
-                                if v78 {
-                                    match &*v18 {
-                                        UH0::UH0_Cons(v79, v80) => {
-                                            let mut v79: Rc<str> = v79.clone();
-                                            let mut v80: Rc<UH0> = v80.clone();
-                                            match &*v80 {
-                                                UH0::UH0_Nil => {
-                                                    let mut v81: bool = v79.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                                    let mut v82: bool = v81 != true;
-                                                    if v82 {
-                                                        US3::US3_ReadThread(v79.clone())
-                                                    } else {
-                                                        let mut v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                        let mut v85: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v84));
-                                                        US3::US3_Rejected(v85.clone())
-                                                    }
-                                                }
-                                                _ => {
-                                                    let mut v88: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                    let mut v89: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v88));
-                                                    US3::US3_Rejected(v89.clone())
-                                                }
-                                            }
-                                        }
-                                        _ => {
-                                            let mut v92: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                            let mut v93: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v92));
-                                            US3::US3_Rejected(v93.clone())
-                                        }
-                                    }
-                                } else {
-                                    let mut v96: bool = v17.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
-                                    if v96 {
-                                        match &*v18 {
-                                            UH0::UH0_Cons(v97, v98) => {
-                                                let mut v97: Rc<str> = v97.clone();
-                                                let mut v98: Rc<UH0> = v98.clone();
-                                                match &*v98 {
-                                                    UH0::UH0_Cons(v99, v100) => {
-                                                        let mut v99: Rc<str> = v99.clone();
-                                                        let mut v100: Rc<UH0> = v100.clone();
-                                                        match &*v100 {
-                                                            UH0::UH0_Nil => {
-                                                                let mut v101: bool = v97.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--dry-run"); } LIT.with(|lit| lit.clone()) };
-                                                                if v101 {
-                                                                    US3::US3_PreviewThread(v99.clone())
-                                                                } else {
-                                                                    let mut v103: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
-                                                                    let mut v104: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                                    let mut v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                                    US3::US3_Rejected(v105.clone())
-                                                                }
-                                                            }
-                                                            _ => {
-                                                                let mut v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
-                                                                let mut v109: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                                let mut v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                                US3::US3_Rejected(v110.clone())
-                                                            }
-                                                        }
-                                                    }
-                                                    UH0::UH0_Nil => {
-                                                        let mut v113: bool = v97.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                                        let mut v114: bool = v113 != true;
-                                                        if v114 {
-                                                            US3::US3_PostThread(v97.clone())
-                                                        } else {
-                                                            let mut v116: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
-                                                            let mut v117: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                            let mut v118: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                            US3::US3_Rejected(v118.clone())
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            _ => {
-                                                let mut v123: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
-                                                let mut v124: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                let mut v125: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
-                                                US3::US3_Rejected(v125.clone())
-                                            }
-                                        }
-                                    } else {
-                                        let mut v128: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown command "); } LIT.with(|lit| lit.clone()) };
-                                        let mut v129: Rc<str> = Rc::<str>::from(format!("{}{}", v128, v17));
-                                        let mut v130: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; try: xc timeline"); } LIT.with(|lit| lit.clone()) };
-                                        let mut v131: Rc<str> = Rc::<str>::from(format!("{}{}", v129, v130));
-                                        US3::US3_Rejected(v131.clone())
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    write_command_15(v17.clone(), v18.clone())
                 }
             } else {
                 US3::US3_ShowHelp
@@ -808,12 +767,12 @@ fn parse_args_with_2(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<st
         }
     }
 }
-fn method17(mut v0: Rc<UH0>, mut v1: Rc<str>) -> (Rc<str>, Rc<str>) {
+fn method21(mut v0: Rc<UH0>, mut v1: Rc<str>) -> (Rc<str>, Rc<str>) {
     let (mut v11, mut v12): (Rc<str>, Rc<str>) = match &*v0 {
         UH0::UH0_Cons(v2, v3) => {
             let mut v2: Rc<str> = v2.clone();
             let mut v3: Rc<UH0> = v3.clone();
-            let (mut v4, mut v5): (Rc<str>, Rc<str>) = method17(v3.clone(), v1.clone());
+            let (mut v4, mut v5): (Rc<str>, Rc<str>) = method21(v3.clone(), v1.clone());
             let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v5));
             let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v4));
             let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
@@ -831,8 +790,8 @@ fn method17(mut v0: Rc<UH0>, mut v1: Rc<str>) -> (Rc<str>, Rc<str>) {
     };
     (v11.clone(), v12.clone())
 }
-fn fields_of_16(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) {
-    let (mut v75, mut v76, mut v77, mut v78, mut v79, mut v80, mut v81, mut v82, mut v83, mut v84, mut v85, mut v86, mut v87, mut v88, mut v89): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = match &v0 {
+fn fields_of_20(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) {
+    let (mut v78, mut v79, mut v80, mut v81, mut v82, mut v83, mut v84, mut v85, mut v86, mut v87, mut v88, mut v89, mut v90, mut v91, mut v92): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = match &v0 {
         US3::US3_ShowTimeline(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12) => {
             let mut v1: US4 = v1.clone();
             let mut v2: i32 = *v2;
@@ -859,7 +818,7 @@ fn fields_of_16(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
                 US4::US4_Accounts(v16) => {
                     let mut v16: Rc<UH0> = v16.clone();
                     let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let (mut v18, mut v19): (Rc<str>, Rc<str>) = method17(v16.clone(), v17.clone());
+                    let (mut v18, mut v19): (Rc<str>, Rc<str>) = method21(v16.clone(), v17.clone());
                     (0i32, v17.clone(), false, v18.clone(), v2, v3, v4, v15, v6.clone(), v7.clone(), v8, v9, v10, v11, v12)
                 }
                 _ => {
@@ -876,7 +835,11 @@ fn fields_of_16(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
             }
         }
         _ => {
-            let (mut v72, mut v73): (i32, Rc<str>) = match &v0 {
+            let (mut v75, mut v76): (i32, Rc<str>) = match &v0 {
+                US3::US3_DeleteThread(v59) => {
+                    let mut v59: Rc<str> = v59.clone();
+                    (9i32, v59.clone())
+                }
                 US3::US3_PostThread(v57) => {
                     let mut v57: Rc<str> = v57.clone();
                     (7i32, v57.clone())
@@ -906,15 +869,15 @@ fn fields_of_16(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
                     (2i32, v53.clone())
                 }
                 _ => {
-                    let mut v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    (3i32, v59.clone())
+                    let mut v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    (3i32, v60.clone())
                 }
             };
-            let mut v74: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (v72, v73.clone(), false, v74.clone(), 5i32, 20i32, 0i32, 20i32, v74.clone(), v74.clone(), false, false, 0i32, false, false)
+            let mut v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            (v75, v76.clone(), false, v77.clone(), 5i32, 20i32, 0i32, 20i32, v77.clone(), v77.clone(), false, false, 0i32, false, false)
         }
     };
-    (v75, v76.clone(), v77, v78.clone(), v79, v80, v81, v82, v83.clone(), v84.clone(), v85, v86, v87, v88, v89)
+    (v78, v79.clone(), v80, v81.clone(), v82, v83, v84, v85, v86.clone(), v87.clone(), v88, v89, v90, v91, v92)
 }
 fn parsed_fields_0() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) {
     let mut v0: i32 = std::env::args().count() as i32;
@@ -939,7 +902,7 @@ fn parsed_fields_0() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str
     let mut v19: bool = false;
     let mut v20: bool = false;
     let mut v21: US3 = parse_args_with_2(v4.clone(), v5.clone(), v6.clone(), v9.clone(), v10.clone(), v11, v12, v13, v15.clone(), v7.clone(), v8.clone(), v16, v17, v18, v19, v20, v3.clone());
-    let (mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = fields_of_16(v21.clone());
+    let (mut v22, mut v23, mut v24, mut v25, mut v26, mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = fields_of_20(v21.clone());
     (v22, v23.clone(), v24, v25.clone(), v26, v27, v28, v29, v30.clone(), v31.clone(), v32, v33, v34, v35, v36)
 }
 fn closure0() -> Rc<dyn Fn() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool)> {
@@ -948,7 +911,7 @@ fn closure0() -> Rc<dyn Fn() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
         (v0, v1.clone(), v2, v3.clone(), v4, v5, v6, v7, v8.clone(), v9.clone(), v10, v11, v12, v13, v14)
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn closure4() -> Rc<dyn Fn() -> Rc<str>> {
+fn closure10() -> Rc<dyn Fn() -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> Rc<str>> = Rc::new(move || -> Rc<str> {
         let mut v0: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --per-account N   posts fetched per account, 5..100 (default 5)\n"); } LIT.with(|lit| lit.clone()) };
         let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --limit N         timeline entries shown (default 20)\n"); } LIT.with(|lit| lit.clone()) };
@@ -974,21 +937,23 @@ fn closure4() -> Rc<dyn Fn() -> Rc<str>> {
         let mut v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n"); } LIT.with(|lit| lit.clone()) };
         let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n"); } LIT.with(|lit| lit.clone()) };
         let mut v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n       --hints           media alt text and url titles under each post\n       --json            one JSON object per entry (JSON Lines) instead of text\n"); } LIT.with(|lit| lit.clone()) };
-        let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --max-following N accounts followed by USERNAME to include, or all (default 20)"); } LIT.with(|lit| lit.clone()) };
-        let mut v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n       --hints           media alt text and url titles under each post\n       --json            one JSON object per entry (JSON Lines) instead of text\n       --max-following N accounts followed by USERNAME to include, or all (default 20)"); } LIT.with(|lit| lit.clone()) };
-        v32.clone()
+        let mut v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc delete-thread ID   delete your posts of that thread (user credentials)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n       xc delete-thread ID   delete your posts of that thread (user credentials)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n       xc delete-thread ID   delete your posts of that thread (user credentials)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n       xc delete-thread ID   delete your posts of that thread (user credentials)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n       xc delete-thread ID   delete your posts of that thread (user credentials)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n       xc delete-thread ID   delete your posts of that thread (user credentials)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n       --hints           media alt text and url titles under each post\n       --json            one JSON object per entry (JSON Lines) instead of text\n"); } LIT.with(|lit| lit.clone()) };
+        let mut v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("       --max-following N accounts followed by USERNAME to include, or all (default 20)"); } LIT.with(|lit| lit.clone()) };
+        let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("usage: xc timeline [options] USERNAME...\n       xc timeline [options] [--max-following N|all] --following USERNAME\n       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n       xc delete-thread ID   delete your posts of that thread (user credentials)\nenv:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n       --per-account N   posts fetched per account, 5..100 (default 5)\n       --limit N         timeline entries shown (default 20)\n       --per-author N    entries shown per author (default all)\n       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n       --end-time DATE   posts before DATE\n       --no-replies, --no-reposts, --originals (both)\n       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n       --hints           media alt text and url titles under each post\n       --json            one JSON object per entry (JSON Lines) instead of text\n       --max-following N accounts followed by USERNAME to include, or all (default 20)"); } LIT.with(|lit| lit.clone()) };
+        v34.clone()
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn xc_parse_os_args() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) {
     closure0()()
 }
 pub fn xc_usage() -> Rc<str> {
-    closure4()()
+    closure10()()
 }

@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Xsim.Run do
 
     {opts, _} =
       OptionParser.parse!(args,
-        strict: [spi: :string, spi_file: :string, cells: :integer, breaking: :integer, frames: :boolean, churn: :integer, save: :string, replay: :string, seed: :integer, users: :integer, edits: :integer, schedules: :integer, executor: :string, max_concurrency: :integer, duplicates: :float, memo: :boolean, personas: :string, evict: :boolean, daemon_memory: :boolean]
+        strict: [spi: :string, spi_file: :string, cells: :integer, breaking: :integer, frames: :boolean, churn: :integer, save: :string, replay: :string, seed: :integer, users: :integer, edits: :integer, schedules: :integer, executor: :string, max_concurrency: :integer, duplicates: :float, memo: :boolean, personas: :string, evict: :boolean, evict_grace: :integer, daemon_memory: :boolean]
       )
 
     files =
@@ -34,7 +34,7 @@ defmodule Mix.Tasks.Xsim.Run do
 
         if opts[:save], do: Xsim.Log.write(String.replace(opts[:save], "{schedule}", Integer.to_string(schedule)), deliveries)
         started = System.monotonic_time(:millisecond)
-        state = Xsim.Runner.run(deliveries, executor, max_concurrency: opts[:max_concurrency] || 4, evict: Keyword.get(opts, :evict, false))
+        state = Xsim.Runner.run(deliveries, executor, max_concurrency: opts[:max_concurrency] || 4, evict: eviction(opts))
         ms = System.monotonic_time(:millisecond) - started
         verdicts = Xsim.Invariants.check(state, baseline)
         verdicts = if opts[:executor] == "cells", do: verdicts ++ [{:breaking_edits_fail, Xsim.Invariants.breaking_edits_fail(state, scenario.broken)}], else: verdicts
@@ -66,6 +66,13 @@ defmodule Mix.Tasks.Xsim.Run do
     if limit, do: Enum.take(cells, limit), else: cells
   end
 
+  defp eviction(opts) do
+    cond do
+      opts[:evict_grace] -> {:grace, opts[:evict_grace]}
+      true -> Keyword.get(opts, :evict, false)
+    end
+  end
+
   defp executor("fake", _spi, _memo), do: Xsim.Executors.fake()
   defp executor("fake-leak", _spi, _memo), do: Xsim.Executors.fake(:leak)
   defp executor("cells", spi, memo), do: Xsim.Executors.cells([root: Path.dirname(Path.expand(spi)), spiral_lib: Path.dirname(Path.expand(spi))] ++ memo)
@@ -80,10 +87,12 @@ defmodule Mix.Tasks.Xsim.Run do
       duplicates: state.world.duplicates,
       buffered: state.world.buffered,
       framed: state.world.framed,
+      framed_edits: state.world.framed_edits,
       starts: state.starts |> Map.values() |> Enum.sum(),
       prefixes: map_size(state.results),
       peak_results: state.peak_results,
       evictions: state.evicted |> Map.values() |> Enum.sum(),
+      rescues: state.rescues,
       cancels: state.cancels,
       visible: map_size(state.visible),
       peak_inflight: state.peak_inflight,

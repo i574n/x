@@ -167,7 +167,7 @@ let digest_of (text : string) : digest =
     {primary = listm.rev d.primary; pool = listm.rev d.pool}
 
 inl second_of (stamp : string) : string =
-    if sm'.length stamp < 19i32 then stamp else sm'.slice 0i32 18i32 stamp
+    if sm'.length stamp < 19i32 then stamp else sm'.substring 0i32 19i32 stamp
 
 inl later_id (a : string) (b : string) : bool =
     inl la : i32 = sm'.length a
@@ -226,7 +226,7 @@ let selected (s : selection) (l : list entry) : list entry =
 
 inl utc_minute (at : string) : string =
     if sm'.length at < 16i32 then at
-    else sm'.slice 0i32 9i32 at ++# " " ++# sm'.slice 11i32 15i32 at
+    else sm'.substring 0i32 10i32 at ++# " " ++# sm'.substring 11i32 5i32 at
 
 let quantity (n : string) (one : string) (many : string) : string = n ++# " " ++# (if n = "1" then one else many)
 
