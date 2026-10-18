@@ -91,7 +91,11 @@ type assembled_reply = i32 * string * string
 
 inl reply_of (p : program) : assembled_reply =
     inl code = match p.notes with Nil => 0i32 | _ => 4i32
-    code, sm'.concat_list "\n\n" p.sources, sm'.concat_list "\n" p.notes
+    code, sm'.concat_list """
+
+
+
+        """ p.sources, sm'.concat_list "\n" p.notes
 
 let assembled_of (bundle : string) : assembled_reply =
     parse_json bundle |> collect id |> spread framed_in |> assembled |> reply_of

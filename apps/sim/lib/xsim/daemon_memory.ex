@@ -16,7 +16,7 @@ defmodule Xsim.DaemonMemory do
   }
   """
 
-  def start(kino_port, interval_ms \\ 1_000), do: GenServer.start(__MODULE__, {kino_port, interval_ms})
+  def start(daemon_port, interval_ms \\ 1_000), do: GenServer.start(__MODULE__, {daemon_port, interval_ms})
 
   def start_tree(os_pid, interval_ms \\ 1_000), do: GenServer.start(__MODULE__, {:tree, os_pid, interval_ms})
 
@@ -28,8 +28,8 @@ defmodule Xsim.DaemonMemory do
     reading
   end
 
-  def daemon_pid(kino_port) do
-    with {:ok, sock} <- :gen_tcp.connect(~c"127.0.0.1", kino_port, [:binary, packet: :line, active: false], 1_000),
+  def daemon_pid(daemon_port) do
+    with {:ok, sock} <- :gen_tcp.connect(~c"127.0.0.1", daemon_port, [:binary, packet: :line, active: false], 1_000),
          :ok <- :gen_tcp.send(sock, "hello\n"),
          {:ok, line} <- :gen_tcp.recv(sock, 0, 2_000) do
       :gen_tcp.close(sock)
@@ -56,14 +56,14 @@ defmodule Xsim.DaemonMemory do
   @impl true
   def init({:tree, os_pid, interval_ms}), do: {:ok, sampling(empty(nil, interval_ms), os_pid)}
 
-  def init({kino_port, interval_ms}) do
+  def init({daemon_port, interval_ms}) do
     send(self(), :find_daemon)
-    {:ok, empty(kino_port, interval_ms)}
+    {:ok, empty(daemon_port, interval_ms)}
   end
 
   @impl true
   def handle_info(:find_daemon, %{port: nil} = state) do
-    case daemon_pid(state.kino_port) do
+    case daemon_pid(state.daemon_port) do
       nil ->
         Process.send_after(self(), :find_daemon, state.interval_ms)
         {:noreply, state}
@@ -101,7 +101,7 @@ defmodule Xsim.DaemonMemory do
   end
 
   def handle_info({port, {:exit_status, _}}, %{port: port} = state) do
-    if state.kino_port, do: Process.send_after(self(), :find_daemon, state.interval_ms)
+    if state.daemon_port, do: Process.send_after(self(), :find_daemon, state.interval_ms)
     {:noreply, %{state | port: nil}}
   end
 
@@ -129,8 +129,8 @@ defmodule Xsim.DaemonMemory do
     :ok
   end
 
-  defp empty(kino_port, interval_ms) do
-    %{kino_port: kino_port, interval_ms: interval_ms, port: nil, daemon: nil, peak_mb: 0, last_mb: 0, procs: 0, samples: 0, samples_file: nil, read_bytes: 0}
+  defp empty(daemon_port, interval_ms) do
+    %{daemon_port: daemon_port, interval_ms: interval_ms, port: nil, daemon: nil, peak_mb: 0, last_mb: 0, procs: 0, samples: 0, samples_file: nil, read_bytes: 0}
   end
 
   defp sampling(state, os_pid) do

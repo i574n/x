@@ -651,11 +651,13 @@ name = "xc"
 version = "0.0.1"
 dependencies = [
  "xc_args",
+ "xc_assemble",
  "xc_digest",
  "xc_fetch",
  "xc_jsonl",
  "xc_net",
  "xc_refs",
+ "xc_thread",
  "xc_token",
  "xc_users",
  "xc_view",
@@ -667,6 +669,13 @@ name = "xc_args"
 version = "0.0.1"
 dependencies = [
  "xc_checks",
+]
+
+[[package]]
+name = "xc_assemble"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]
@@ -711,6 +720,14 @@ dependencies = [
 
 [[package]]
 name = "xc_refs"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "xc_net",
+]
+
+[[package]]
+name = "xc_thread"
 version = "0.0.1"
 dependencies = [
  "serde_json",

@@ -22,9 +22,11 @@ defmodule Mix.Tasks.Xsim.World do
     {:ok, base_time, _} = DateTime.from_iso8601("2026-10-18T08:00:00Z")
     username = opts[:username] || "spiralposts"
     user = %{id: opts[:user_id] || "500", name: username, username: username, posts: Xsim.XWorld.posts(world, likes, base_time)}
-    File.write!(opts[:out] || Mix.raise("missing --out"), JSON.encode!(%{users: [user]}) <> "\n")
-    expected = %{root: world.root, program: Xsim.XWorld.program(live, world), incomplete: world.lost}
-    File.write!(opts[:expected] || Mix.raise("missing --expected"), JSON.encode!(expected) <> "\n")
-    IO.puts("xsim.world #{Path.basename(spi)} cells=#{length(live)} posts=#{length(user.posts)} root=#{world.root} lost=#{length(world.lost)}")
+    File.write!(opts[:out] || Mix.raise("missing --out"), Xsim.XWorld.json(%{users: [user]}) <> "\n")
+    program = Xsim.XWorld.program(live, world)
+    lines = if program == "", do: [], else: String.split(program, "\n")
+    expected = %{root: world.root, program: lines, incomplete: world.lost}
+    File.write!(opts[:expected] || Mix.raise("missing --expected"), Xsim.XWorld.json(expected) <> "\n")
+    IO.puts("xsim.world #{Path.basename(spi)} personas=#{inspect(Xsim.Personas.parse(opts[:personas]))} cells=#{length(live)} posts=#{length(user.posts)} root=#{world.root} lost=#{length(world.lost)}")
   end
 end

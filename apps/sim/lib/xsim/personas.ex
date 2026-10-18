@@ -7,7 +7,7 @@ defmodule Xsim.Personas do
 
   def parse(text) do
     text
-    |> String.split(",", trim: true)
+    |> String.split([",", "+"], trim: true)
     |> Enum.flat_map(fn entry ->
       with [name, count] <- String.split(String.trim(entry), "="),
            {:ok, kind} <- Map.fetch(@kinds, name),

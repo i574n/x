@@ -1,5 +1,5 @@
 {
-    "include": ["sim-small.world.json", "sim-stress.world.json"],
+    "include": ["sim-small.world.json", "sim-stress.world.json", "sim-lost.world.json"],
     "token": "e2e-token-7f3a91",
     "user_token": "e2e-user-token-55c2",
     "oauth1": {"consumer_key": "e2e-consumer-key", "consumer_secret": "e2e-consumer-secret", "token": "110-e2e-access-token", "token_secret": "e2e-access-token-secret"},

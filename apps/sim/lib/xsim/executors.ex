@@ -29,7 +29,7 @@ defmodule Xsim.Executors do
 
   def memo_counts(tally), do: %{hit: :counters.get(tally, 1), miss: :counters.get(tally, 2)}
 
-  def kino(opts \\ []) do
+  def cells(opts \\ []) do
     {tally, opts} = Keyword.pop(opts, :memo_tally)
 
     fn sources ->

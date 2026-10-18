@@ -1,7 +1,7 @@
 defmodule Mix.Tasks.Xsim.Run do
   use Mix.Task
 
-  @shortdoc "Replay a seeded X-like scenario built from a .spi against an executor and check Cells's invariants"
+  @shortdoc "Replay a seeded X-like scenario built from a .spi against an executor and check Cells' invariants"
 
   @impl Mix.Task
   def run(args) do
@@ -15,7 +15,7 @@ defmodule Mix.Tasks.Xsim.Run do
     files =
       if opts[:spi_file],
         do: opts[:spi_file] |> File.read!() |> String.split(["\r\n", "\n"], trim: true),
-        else: String.split(opts[:spi] || Mix.raise("missing --spi or --spi-file"), ",", trim: true)
+        else: String.split(opts[:spi] || Mix.raise("missing --spi or --spi-file"), [",", "+"], trim: true)
     spi = hd(files)
     threads = Enum.map(files, &cells_of(&1, opts[:cells]))
     scenario = Xsim.Scenario.from_corpus(threads, seed: opts[:seed] || 1, users: opts[:users] || 8, edits: opts[:edits] || 3, breaking: opts[:breaking] || 0, churn: opts[:churn] || 0, personas: Xsim.Personas.parse(opts[:personas]))
@@ -37,7 +37,7 @@ defmodule Mix.Tasks.Xsim.Run do
         state = Xsim.Runner.run(deliveries, executor, max_concurrency: opts[:max_concurrency] || 4, evict: Keyword.get(opts, :evict, false))
         ms = System.monotonic_time(:millisecond) - started
         verdicts = Xsim.Invariants.check(state, baseline)
-        verdicts = if opts[:executor] == "kino", do: verdicts ++ [{:breaking_edits_fail, Xsim.Invariants.breaking_edits_fail(state, scenario.broken)}], else: verdicts
+        verdicts = if opts[:executor] == "cells", do: verdicts ++ [{:breaking_edits_fail, Xsim.Invariants.breaking_edits_fail(state, scenario.broken)}], else: verdicts
         memo = Xsim.Executors.memo_counts(tally)
         IO.puts(summary(scenario, deliveries, state, verdicts, schedule, ms))
         if opts[:memo], do: IO.puts("  memo hits=#{memo.hit} misses=#{memo.miss} cumulative_after_schedule=#{schedule}")
@@ -68,7 +68,7 @@ defmodule Mix.Tasks.Xsim.Run do
 
   defp executor("fake", _spi, _memo), do: Xsim.Executors.fake()
   defp executor("fake-leak", _spi, _memo), do: Xsim.Executors.fake(:leak)
-  defp executor("kino", spi, memo), do: Xsim.Executors.kino([root: Path.dirname(Path.expand(spi)), spiral_lib: Path.dirname(Path.expand(spi))] ++ memo)
+  defp executor("cells", spi, memo), do: Xsim.Executors.cells([root: Path.dirname(Path.expand(spi)), spiral_lib: Path.dirname(Path.expand(spi))] ++ memo)
 
   defp summary(scenario, deliveries, state, verdicts, schedule, ms) do
     fields = [

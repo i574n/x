@@ -165,6 +165,7 @@ defmodule XsimTest do
 
     assert states |> Enum.chunk_every(2, 1, :discard) |> Enum.all?(fn [a, b] -> Invariants.commute(a, b) == :ok end)
     assert_raise ArgumentError, fn -> Xsim.Personas.parse("troll=1") end
+    assert Xsim.Personas.parse("editor=2+breaker=1") == Xsim.Personas.parse("editor=2,breaker=1")
   end
 
   test "evicting withdrawn results keeps only wanted prefixes in memory and recomputes on renewed demand" do

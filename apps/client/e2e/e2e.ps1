@@ -35,6 +35,8 @@ function Invoke-Step([string] $Script, [string] $Token, [string] $UserToken = $w
     $lines = @($err.Result, $out.Result) | ForEach-Object { $_ -split "\r?\n" } | Where-Object { $_ -ne "" }
     [pscustomobject]@{
         Text = ($lines -join "`n")
+        Raw = $out.Result.Replace("`r`n", "`n")
+        Errors = $err.Result
         Exit = $process.ExitCode
         Requests = @(Read-Requests | Select-Object -Skip $before)
     }
@@ -84,6 +86,18 @@ try {
         $outputs.Add($r.Text)
         Check ($r.Text -ceq $case.Text -and $r.Exit -eq $case.Exit) "extra '$($case.Script)' (token $($case.Token)): expected exit $($case.Exit) '$($case.Text)', got exit $($r.Exit) '$($r.Text)'"
         Write-Output "x e2e / extra / $($case.Script) / exit $($r.Exit)"
+    }
+
+    foreach ($sim in @(@{ Name = 'sim-small'; Exit = 0 }, @{ Name = 'sim-stress'; Exit = 0 }, @{ Name = 'sim-lost'; Exit = 4 })) {
+        $expected = Get-Content -Raw (Join-Path $PSScriptRoot "$($sim.Name).expected.json") | ConvertFrom-Json
+        $r = Invoke-Step "xc thread $($expected.root)" $world.token
+        $outputs.Add($r.Text)
+        $lines = @($expected.program)
+        $want = if ($lines.Count) { ($lines -join "`n") + "`n" } else { "" }
+        Check ($r.Raw -ceq $want) "xc thread $($expected.root) did not rebuild the $($sim.Name) program the sim posted ($($r.Raw.Length) vs $($want.Length) chars)"
+        Check ($r.Exit -eq $sim.Exit) "xc thread $($expected.root) exited $($r.Exit), expected $($sim.Exit)"
+        foreach ($cell in @($expected.incomplete)) { Check ($r.Errors -match "cell $cell is missing frame") "xc thread $($expected.root) did not name the incomplete cell $cell" }
+        Write-Output "x e2e / sim / $($sim.Name) / thread $($expected.root) / $($r.Requests.Count) request(s) / exit $($r.Exit)"
     }
 
     Check ((Step-Of $results 'X_BEARER_TOKEN = \$null').Requests.Count -eq 0) "a run without X_BEARER_TOKEN sent requests"

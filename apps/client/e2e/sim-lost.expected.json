@@ -1,0 +1,13 @@
+{
+    "incomplete": [
+        "p2"
+    ],
+    "program": [
+        "///- --package .",
+        "",
+        "///- --test static",
+        "",
+        "open testing"
+    ],
+    "root": "5000001"
+}

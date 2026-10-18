@@ -52,6 +52,7 @@ usage: xc timeline [options] USERNAME...
        xc timeline [options] [--max-following N|all] --following USERNAME
        xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)
        xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN
+       xc thread ID          the program a thread of framed posts (CELL k/n) carries
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts fetched per account, 5..100 (default 5)
        --limit N         timeline entries shown (default 20)
@@ -211,6 +212,62 @@ xc timeline --json --depth 1 --limit 1 bob
 {"id":"1002","username":"alice","created_at":"2026-10-15T12:30:00.000Z","text":"lunch: ramen","reply_count":2,"repost_count":1,"like_count":14,"refs":[],"hints":[],"level":1,"via":"2004"}
 ```
 
+### Programs posted as threads
+
+A program can travel as a thread: each cell is split into posts of at most 280 weighted characters, each post starting with a `CELL k/n` line (the cell's name and the post's place in it, such as `p2 1/6`), and each post replies to the one before it. `xc thread ID` reads the author's posts of that conversation (`conversation_id:` and `from:` in one search, paged), keeps the latest version of every edited post (the last id in `edit_history_post_ids`), expands `t.co` links back from the entities and prints the cells in posting order. This thread was posted by the simulator (`apps/sim`, `mix xsim.world`) from the first cells of `prelude.spi`:
+
+```powershell
+xc thread 3000001
+```
+
+```text
+///- --package .
+///- --test static
+open testing
+open sm'_operators
+inl each forall a b. (f : a -> b) (l : list a) : list b =
+    listm.foldBack (fun x acc => Cons (f x, acc)) l Nil
+inl keep forall t. (ok : t -> bool) (l : list t) : list t =
+    listm.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l Nil
+inl spread forall a b. (f : a -> list b) (l : list a) : list b =
+    listm.foldBack (fun x acc => listm.append (f x) acc) l Nil
+inl first_where forall t. (ok : t -> bool) (l : list t) : option t =
+    listm.foldBack (fun x acc => if ok x then Some x else acc) l None
+inl has forall t. (ok : t -> bool) (l : list t) : bool =
+    match first_where ok l with
+    | Some _ => true
+    | None => false
+inl take_first forall t. (n : i32) (l : list t) : list t =
+    let rec go (n : i32) (l : list t) : list t =
+        match l with
+        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)
+        | _ => Nil
+    go n l
+inl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =
+    match r with
+    | Ok x => f x
+    | Error e => Error e
+inl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
+let rec split_on (sep : string) (s : string) : list string =
+    inl i : i32 = sm'.index_of sep s
+    if i < 0i32 then [s]
+    else Cons (sm'.substring 0i32 i s, split_on sep (sm'.substring (i + 1i32) (sm'.length s - i - 1i32) s))
+inl pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_on sep s
+```
+
+A post that does not exist:
+
+```powershell
+xc thread 999; $LASTEXITCODE
+```
+
+```text
+xc: X API answered 404 for /2/tweets/999?post.fields=conversation_id,author_id: Could not find post with id: [999].
+4
+```
+
+A cell with a missing post is left out and named, and the exit code is 4. The e2e also reads back a thread of all of `posts.spi` with 3 rounds of edits and editing personas (one cell spans 48 posts and is rebuilt from its latest versions), and a copy of the thread above with a lost post, and checks each program byte for byte against the simulator's own record of what it posted.
+
 ### Empty and partial results
 
 An empty result says so:
@@ -368,6 +425,7 @@ usage: xc timeline [options] USERNAME...
        xc timeline [options] [--max-following N|all] --following USERNAME
        xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)
        xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN
+       xc thread ID          the program a thread of framed posts (CELL k/n) carries
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts fetched per account, 5..100 (default 5)
        --limit N         timeline entries shown (default 20)
@@ -479,7 +537,9 @@ Each entry is one Rust crate, so every generated file stays reviewable (`scripts
 | `xc_digest` | `digest/digest.spi` | rebuilds posts from the gathered replies and writes each as a display entry line (author, text, counts, hints, references) |
 | `xc_view` | `view/view.spi` | reads entry lines, selects them and renders the timeline with its reference trees |
 | `xc_jsonl` | `jsonl/jsonl.spi` | the same selection as JSON Lines (`--json`) |
+| `xc_thread` | `thread/thread.spi` | a thread's root post and the author's posts of its conversation, paged (`xc thread`) |
+| `xc_assemble` | `assemble/assemble.spi` | `CELL k/n` frames to cells: latest edit versions, posting order, missing frames named |
 | `xc_token` | `token/token.spi` | OAuth 2.0 token renewal and the in-place env file rewrite (`xc refresh`) |
 | `xc` | `xc/xc.spi` | entry: environment, credentials, the order of calls, exit codes, output |
 
-Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py`.
+Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py`, whose world includes three threads the simulator posted (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Bless` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`).
