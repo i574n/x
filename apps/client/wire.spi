@@ -70,13 +70,15 @@ nominal deleted_reply = {deleted : bool}
 
 type framed = {id : string; text : string; history : list string; urls : list url_entity}
 
-nominal root_reply = {conversation_id : string; author_id : string; missing : string}
+nominal root_reply = {conversation_id : string; author_id : string; created_at : string; missing : string}
+
+type thread_search = {conversation_id : string; author_id : string; start_time : string}
 
 nominal thread_page = {framed : list framed; next_token : string}
 
 union threads r =
     | ThreadRoot :: string -> threads root_reply
-    | ThreadPage :: string * string * string -> threads thread_page
+    | ThreadPage :: thread_search * string -> threads thread_page
 
 union reads r =
     | UsersNamed :: usernames -> reads users_reply
@@ -151,19 +153,19 @@ inl named_path (hs : usernames) : string = joined "/2/users/by?usernames=" hs
 
 inl user_ids_path (l : ids) : string = joined "/2/users?ids=" l
 
-inl root_path (id : string) : string = "/2/tweets/" ++# id ++# "?post.fields=conversation_id,author_id"
+inl root_path (id : string) : string = "/2/tweets/" ++# id ++# "?post.fields=conversation_id,author_id,created_at"
 
-inl search_head (conversation : string) (author : string) : string =
-    "/2/tweets/search/recent?query=conversation_id%3A" ++# conversation ++# "%20from%3A" ++# author
+inl search_head (s : thread_search) : string =
+    "/2/tweets/search/all?query=conversation_id%3A" ++# s.conversation_id ++# "%20from%3A" ++# s.author_id ++# "&start_time=" ++# s.start_time
 
-inl page_path (conversation : string) (author : string) (token : string) : string =
-    inl first = search_head conversation author ++# "&max_results=100&post.fields=conversation_id,entities"
+inl page_path (s : thread_search) (token : string) : string =
+    inl first = search_head s ++# "&max_results=100&post.fields=conversation_id,entities"
     if token = "" then first else first ++# "&next_token=" ++# token
 
 inl thread_path forall r. (q : threads r) : string =
     match q with
     | ThreadRoot id => root_path id
-    | ThreadPage (c, a, t) => page_path c a t
+    | ThreadPage (s, t) => page_path s t
 
 inl read_path forall r. (q : reads r) : string =
     match q with
@@ -262,7 +264,7 @@ inl framed_of (v : json) : framed =
 
 inl root_of (doc : json) : root_reply =
     inl d = doc |> field "data"
-    root_reply {conversation_id = at_key "conversation_id" d; author_id = at_key "author_id" d; missing = first_error doc}
+    root_reply {conversation_id = at_key "conversation_id" d; author_id = at_key "author_id" d; created_at = at_key "created_at" d; missing = first_error doc}
 
 inl decode_thread forall r. (q : threads r) (doc : json) : r =
     match q with
@@ -386,6 +388,12 @@ test start_time_is_sent =
     inl ~start_time = "2026-10-15T00:00:00Z"
     inl f = no_filters ()
     filtered {f with start_time} |> _assert_eq (plain_posts () ++# "&start_time=" ++# start_time)
+
+///> zig
+test thread_pages_search_the_archive_from_the_root =
+    inl ~start_time = "2026-09-01T18:12:00Z"
+    thread_path (ThreadPage ({conversation_id = "7"; author_id = "5"; start_time}, "t2"))
+    |> _assert_eq ("/2/tweets/search/all?query=conversation_id%3A7%20from%3A5&start_time=" ++# start_time ++# "&max_results=100&post.fields=conversation_id,entities&next_token=t2")
 
 ///> zig
 test originals_exclude_replies_and_reposts =

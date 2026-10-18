@@ -4,6 +4,7 @@ import hmac
 import json
 import os
 import sys
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 
@@ -203,11 +204,20 @@ def single(post_id, query):
     return 200, {"data": rendered(posts_by_id[post_id], listed(query, "post.fields"))}
 
 
-def search(query):
+def window_start(days):
+    now = datetime.fromisoformat(world["now"].replace("Z", "+00:00"))
+    return (now - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def search(query, days, start_time_wins):
+    oldest = window_start(days)
+    since = query.get("start_time", [""])[0][:19]
+    if since and (start_time_wins or since > oldest):
+        oldest = since
     terms = dict(t.split(":", 1) for t in query.get("query", [""])[0].split() if ":" in t)
     author = terms.get("from", "")
     author_id = users_by_handle[author.lower()]["id"] if author.lower() in users_by_handle else author
-    found = [p for p in posts_by_id.values() if p.get("conversation_id", p["id"]) == terms.get("conversation_id") and (not author or p["author_id"] == author_id)]
+    found = [p for p in posts_by_id.values() if p.get("conversation_id", p["id"]) == terms.get("conversation_id") and (not author or p["author_id"] == author_id) and p["created_at"][:19] >= oldest]
     found.sort(key=lambda p: (len(p["id"]), p["id"]), reverse=True)
     size = int(query.get("max_results", ["10"])[0])
     start = int(query.get("next_token", ["0"])[0])
@@ -232,7 +242,9 @@ def route_get(path, query):
     if parts == ["2", "tweets"]:
         return lookup(query)
     if parts == ["2", "tweets", "search", "recent"]:
-        return search(query)
+        return search(query, 7, False)
+    if parts == ["2", "tweets", "search", "all"]:
+        return search(query, 30, True)
     if len(parts) == 3 and parts[:2] == ["2", "tweets"]:
         return single(parts[2], query)
     if len(parts) == 4 and parts[:2] == ["2", "users"] and parts[2] in users_by_id:

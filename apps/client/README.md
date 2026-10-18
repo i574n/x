@@ -214,7 +214,7 @@ xc timeline --json --depth 1 --limit 1 bob
 
 ### Programs posted as threads
 
-A program can travel as a thread: each cell is split into posts of at most 280 weighted characters, each post starting with a `CELL k/n` line (the cell's name and the post's place in it, such as `p2 1/6`), and each post replies to the one before it. `xc thread ID` reads the author's posts of that conversation (`conversation_id:` and `from:` in one search, paged), keeps the latest version of every edited post (the last id in `edit_history_post_ids`), expands `t.co` links back from the entities and prints the cells in posting order. This thread was posted by the simulator (`apps/sim`, `mix xsim.world`) from the first cells of `prelude.spi`:
+A program can travel as a thread: each cell is split into posts of at most 280 weighted characters, each post starting with a `CELL k/n` line (the cell's name and the post's place in it, such as `p2 1/6`), and each post replies to the one before it. `xc thread ID` reads the author's posts of that conversation (`conversation_id:` and `from:` in one full-archive search from the root post's `created_at`, paged, so a thread of any age is found: `search/recent` only sees 7 days and `search/all` defaults to 30), keeps the latest version of every edited post (the last id in `edit_history_post_ids`), expands `t.co` links back from the entities and prints the cells in posting order. This thread was posted by the simulator (`apps/sim`, `mix xsim.world`) from the first cells of `prelude.spi`:
 
 ```powershell
 xc thread 3000001
@@ -449,6 +449,7 @@ Pay-per-use prices (docs.x.com, October 2026): $0.010 per user returned by a loo
 | `xc timeline a b` (defaults) | 1 lookup + 2 post reads | $0.02 + 10 posts = $0.07 |
 | `xc timeline --following h` (cap 20) | 1 lookup + 1 following page + 21 post reads | $0.01 + $0.20 + 105 posts = $0.735 |
 | `xc timeline --following h --max-following all` (500 follows) | 1 lookup + 1 following page + 501 post reads | $0.01 + $5.00 + 2,505 posts = $17.535 |
+| `xc thread ID` (a 115-post thread, edit versions included) | 1 post lookup + 2 search pages | 116 posts = $0.58 |
 
 Reply, repost and like counts come with every post read: they are the `public_metrics` field in the `post.fields` the requests already send, so they add no request and no billed resource, only about 120 bytes per post. The API returns six counters (`reply_count`, `repost_count`, `like_count`, `quote_count`, `bookmark_count`, `impression_count`); `xc` shows the first three.
 

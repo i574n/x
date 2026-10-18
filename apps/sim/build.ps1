@@ -30,7 +30,7 @@ New-Item -ItemType Directory -Force $fresh | Out-Null
 $worlds = @(
     @{ Name = 'sim-small'; Args = @('--spi', (Join-Path $client 'prelude.spi'), '--cells', '3', '--id-base', '3000000', '--user-id', '500', '--username', 'spiralposts') },
     @{ Name = 'sim-stress'; Args = @('--spi', (Join-Path $client 'posts.spi'), '--seed', '7', '--edits', '3', '--personas', 'editor=2+breaker=1', '--id-base', '4000000', '--user-id', '501', '--username', 'spiralstress') },
-    @{ Name = 'sim-lost'; Args = @('--spi', (Join-Path $client 'prelude.spi'), '--cells', '3', '--lost', '1', '--id-base', '5000000', '--user-id', '502', '--username', 'spirallost') }
+    @{ Name = 'sim-lost'; Args = @('--spi', (Join-Path $client 'prelude.spi'), '--cells', '3', '--lost', '1', '--base-time', '2026-08-01T08:00:00Z', '--id-base', '5000000', '--user-id', '502', '--username', 'spirallost') }
 )
 foreach ($w in $worlds) {
     $world, $expected = (Join-Path $fresh "$($w.Name).world.json"), (Join-Path $fresh "$($w.Name).expected.json")

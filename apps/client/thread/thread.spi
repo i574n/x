@@ -4,21 +4,21 @@ open posts
 open wire
 open transport
 
-type search = {conversation : string; author_id : string}
+inl page_of (a : app) (s : thread_search) (token : string) : got fetched = get_raw a (thread_path (ThreadPage (s, token)))
 
-inl page_of (a : app) (s : search) (token : string) : got fetched = get_raw a (thread_path (ThreadPage (s.conversation, s.author_id, token)))
-
-let rec paged (a : app) (s : search) (token : string) (acc : list string) : got (list string) =
+let rec paged (a : app) (s : thread_search) (token : string) (acc : list string) : got (list string) =
     page_of a s token |> then_ok fun (doc, body) =>
         inl next, acc = next_token_in doc, listm.append acc [body]
         if next = "" then Ok acc else paged a s next acc
+
+inl whole_second (created_at : string) : string = if sm'.length created_at < 19i32 then created_at else sm'.substring 0i32 19i32 created_at ++# "Z"
 
 inl absent (id : string) (missing : string) : failure = HttpStatus {status = 404i32; resource = root_path id; detail = missing}
 
 let rooted (a : app) (id : string) (r : root_reply) : got (list string) =
     match r with
-    | root_reply {conversation_id author_id missing} =>
-        if conversation_id <> "" then paged a {conversation = conversation_id; author_id} "" Nil else Error (absent id missing)
+    | root_reply {conversation_id author_id created_at missing} =>
+        if conversation_id <> "" then paged a {conversation_id author_id start_time = whole_second created_at} "" Nil else Error (absent id missing)
 
 inl root_of_post (a : app) (id : string) : got root_reply =
     get_raw a (thread_path (ThreadRoot id)) |> map_ok fun (doc, _) => root_of doc
