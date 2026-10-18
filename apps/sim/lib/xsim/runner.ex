@@ -15,6 +15,7 @@ defmodule Xsim.Runner do
             doomed: %{},
             clock: 0,
             rescues: 0,
+            recomputes: 0,
             peak_results: 0,
             post_key: %{},
             owner: %{},
@@ -111,7 +112,7 @@ defmodule Xsim.Runner do
     state = %{state | refs: Map.put(state.refs, key, count), owner: Map.put(state.owner, key, id)}
 
     if count == 1 and not Map.has_key?(state.results, key) and not Map.has_key?(state.tasks, key) and key not in state.queue do
-      %{state | queue: state.queue ++ [key]}
+      %{state | queue: state.queue ++ [key], recomputes: state.recomputes + if(Map.has_key?(state.evicted, key), do: 1, else: 0)}
     else
       state
     end

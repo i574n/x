@@ -93,6 +93,7 @@ defmodule Mix.Tasks.Xsim.Run do
       peak_results: state.peak_results,
       evictions: state.evicted |> Map.values() |> Enum.sum(),
       rescues: state.rescues,
+      recomputes: state.recomputes,
       cancels: state.cancels,
       visible: map_size(state.visible),
       peak_inflight: state.peak_inflight,
