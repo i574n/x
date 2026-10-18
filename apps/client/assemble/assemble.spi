@@ -1,0 +1,101 @@
+open sm'_operators
+open prelude
+open posts
+open cli
+open wire
+
+type frame_fields = {cell : string; k : i32; n : i32; body : string; original : string}
+
+type frame = heap frame_fields
+
+inl last_of (l : list string) (fallback : string) : string =
+    match listm.rev l with
+    | Cons (x, _) => x
+    | Nil => fallback
+
+inl first_of (l : list string) (fallback : string) : string =
+    match l with
+    | Cons (x, _) => x
+    | Nil => fallback
+
+inl latest (f : framed) : bool = last_of f.history f.id = f.id
+
+inl count_or_zero (t : string) : i32 =
+    match count_of_text t with
+    | Some n => n
+    | None => 0i32
+
+inl header_of (text : string) (i : i32) : list string = if i < 0i32 then Nil else split_on " " (sm'.substring 0i32 i text)
+
+inl sound (f : framed) (header : list string) (k : i32) (n : i32) : bool =
+    latest f && listm.length header = 2i32 && k >= 1i32 && k <= n
+
+inl position_of (header : list string) : i32 * i32 =
+    inl part = split_on "/" (field_at 1 header)
+    count_or_zero (field_at 0 part), count_or_zero (field_at 1 part)
+
+inl frame_from (f : framed) (header : list string) (body : string) (k : i32) (n : i32) : frame =
+    heap {cell = field_at 0 header; k n body original = first_of f.history f.id}
+
+let frames_of (f : framed) : list frame =
+    inl text = expand_urls f.urls f.text
+    inl i : i32 = sm'.index_of "\n" text
+    inl header = header_of text i
+    inl k, n = position_of header
+    if sound f header k n then [frame_from f header (after i text) k n] else Nil
+
+type cell_frames = {cell : string; n : i32; first : string; frames : list frame}
+
+inl joined (c : cell_frames) (f : frame) : cell_frames =
+    inl first = if later_id c.first f.original then f.original else c.first
+    {c with n = if f.n > c.n then f.n else c.n; first; frames = Cons (f, c.frames)}
+
+let rec grouped (l : list cell_frames) (f : frame) : list cell_frames =
+    match l with
+    | Cons (c, rest) when c.cell = f.cell => Cons (joined c f, rest)
+    | Cons (c, rest) => Cons (c, grouped rest f)
+    | Nil => [{cell = f.cell; n = f.n; first = f.original; frames = [f]}]
+
+let rec placed (c : cell_frames) (l : list cell_frames) : list cell_frames =
+    match l with
+    | Cons (d, rest) when later_id c.first d.first => Cons (d, placed c rest)
+    | _ => Cons (c, l)
+
+inl frame_at (c : cell_frames) (k : i32) : list frame = c.frames |> keep (fun (f : frame) => f.k = k && f.n = c.n)
+
+inl missing_ks (c : cell_frames) : list i32 =
+    listm.init c.n (fun i => i + 1i32) |> keep (fun k => listm.length (frame_at c k) <> 1i32)
+
+inl body_at (c : cell_frames) (k : i32) : string = frame_at c k |> each (fun (f : frame) => f.body) |> sm'.concat_list ""
+
+inl source_of (c : cell_frames) : string = listm.init c.n (fun i => body_at c (i + 1i32)) |> sm'.concat_list ""
+
+inl missing_note (c : cell_frames) : string =
+    inl ks = missing_ks c |> each sm'.obj_to_string |> sm'.concat_list ", "
+    "cell " ++# c.cell ++# " is missing frame " ++# ks ++# " of " ++# sm'.obj_to_string c.n
+
+type program = {sources : list string; notes : list string}
+
+inl with_cell (p : program) (c : cell_frames) : program =
+    match missing_ks c with
+    | Nil => {p with sources = listm.append p.sources [source_of c]}
+    | _ => {p with notes = listm.append p.notes [missing_note c]}
+
+let assembled (l : list framed) : program =
+    inl cells = l |> spread frames_of |> listm.fold grouped Nil
+    cells |> listm.fold (fun acc c => placed c acc) Nil |> listm.fold with_cell {sources = Nil; notes = Nil}
+
+inl framed_in (page : json) : list framed = page |> field "data" |> collect framed_of
+
+type assembled_reply = i32 * string * string
+
+inl reply_of (p : program) : assembled_reply =
+    inl code = match p.notes with Nil => 0i32 | _ => 4i32
+    code, sm'.concat_list "\n\n" p.sources, sm'.concat_list "\n" p.notes
+
+let assembled_of (bundle : string) : assembled_reply =
+    parse_json bundle |> collect id |> spread framed_in |> assembled |> reply_of
+
+inl main () : i32 =
+    !!!!Export("xc_assemble", ((fun bundle => assembled_of bundle) : string -> assembled_reply))
+    0i32

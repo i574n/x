@@ -68,6 +68,16 @@ nominal created_reply = {id : string; text : string}
 
 nominal deleted_reply = {deleted : bool}
 
+type framed = {id : string; text : string; history : list string; urls : list url_entity}
+
+nominal root_reply = {conversation_id : string; author_id : string; missing : string}
+
+nominal thread_page = {framed : list framed; next_token : string}
+
+union threads r =
+    | ThreadRoot :: string -> threads root_reply
+    | ThreadPage :: string * string * string -> threads thread_page
+
 union reads r =
     | UsersNamed :: usernames -> reads users_reply
     | UsersById :: ids -> reads users_reply
@@ -140,6 +150,20 @@ let lookup_path (l : ids) (q : query) : string = joined "/2/tweets?ids=" l ++# f
 inl named_path (hs : usernames) : string = joined "/2/users/by?usernames=" hs
 
 inl user_ids_path (l : ids) : string = joined "/2/users?ids=" l
+
+inl root_path (id : string) : string = "/2/tweets/" ++# id ++# "?post.fields=conversation_id,author_id"
+
+inl search_head (conversation : string) (author : string) : string =
+    "/2/tweets/search/recent?query=conversation_id%3A" ++# conversation ++# "%20from%3A" ++# author
+
+inl page_path (conversation : string) (author : string) (token : string) : string =
+    inl first = search_head conversation author ++# "&max_results=100&post.fields=conversation_id,entities"
+    if token = "" then first else first ++# "&next_token=" ++# token
+
+inl thread_path forall r. (q : threads r) : string =
+    match q with
+    | ThreadRoot id => root_path id
+    | ThreadPage (c, a, t) => page_path c a t
 
 inl read_path forall r. (q : reads r) : string =
     match q with
@@ -232,6 +256,18 @@ let posts_of_doc (author : string) (doc : json) : posts_reply =
 inl users_of_doc (doc : json) : users_reply = users_reply {found = accounts_in doc; unknown = unknown_in doc}
 
 inl page_of_doc (doc : json) : page_reply = page_reply {page = accounts_in doc; next_token = next_token_in doc}
+
+inl framed_of (v : json) : framed =
+    {id = at_key "id" v; text = at_key "text" v; history = v |> field "edit_history_post_ids" |> texts; urls = urls_in v}
+
+inl root_of (doc : json) : root_reply =
+    inl d = doc |> field "data"
+    root_reply {conversation_id = at_key "conversation_id" d; author_id = at_key "author_id" d; missing = first_error doc}
+
+inl decode_thread forall r. (q : threads r) (doc : json) : r =
+    match q with
+    | ThreadRoot _ => root_of doc
+    | ThreadPage _ => thread_page {framed = doc |> field "data" |> collect framed_of; next_token = next_token_in doc}
 
 inl decode_read forall r. (q : reads r) (doc : json) : r =
     match q with

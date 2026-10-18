@@ -2,6 +2,7 @@ import base64
 import hashlib
 import hmac
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, quote, unquote, urlsplit
@@ -9,6 +10,9 @@ from urllib.parse import parse_qs, quote, unquote, urlsplit
 world_path, port_path, log_path = sys.argv[1:4]
 with open(world_path, encoding="utf-8") as f:
     world = json.load(f)
+for extra in world.get("include", []):
+    with open(os.path.join(os.path.dirname(world_path), extra), encoding="utf-8") as f:
+        world["users"] += json.load(f)["users"]
 users_by_handle = {u["username"].lower(): u for u in world["users"]}
 users_by_id = {u["id"]: u for u in world["users"]}
 posts_by_id = {p["id"]: dict(p, author_id=u["id"]) for u in world["users"] for p in u.get("posts", [])}
@@ -90,7 +94,9 @@ METRICS = ("bookmark_count", "impression_count", "like_count", "quote_count", "r
 
 
 def rendered(post, fields):
-    out = {"id": post["id"], "text": post["text"], "edit_history_post_ids": [post["id"]]}
+    out = {"id": post["id"], "text": post["text"], "edit_history_post_ids": post.get("edit_history", [post["id"]])}
+    if "conversation_id" in fields:
+        out["conversation_id"] = post.get("conversation_id", post["id"])
     if "created_at" in fields:
         out["created_at"] = post["created_at"]
     if "author_id" in fields:
@@ -191,6 +197,32 @@ def lookup(query):
     return 200, body
 
 
+def single(post_id, query):
+    if post_id not in posts_by_id:
+        return 200, {"errors": [{"value": post_id, "detail": f"Could not find post with id: [{post_id}].", "title": "Not Found Error", "resource_type": "post", "parameter": "id"}]}
+    return 200, {"data": rendered(posts_by_id[post_id], listed(query, "post.fields"))}
+
+
+def search(query):
+    terms = dict(t.split(":", 1) for t in query.get("query", [""])[0].split() if ":" in t)
+    author = terms.get("from", "")
+    author_id = users_by_handle[author.lower()]["id"] if author.lower() in users_by_handle else author
+    found = [p for p in posts_by_id.values() if p.get("conversation_id", p["id"]) == terms.get("conversation_id") and (not author or p["author_id"] == author_id)]
+    found.sort(key=lambda p: (len(p["id"]), p["id"]), reverse=True)
+    size = int(query.get("max_results", ["10"])[0])
+    start = int(query.get("next_token", ["0"])[0])
+    page = found[start:start + size]
+    fields = listed(query, "post.fields")
+    body = {"data": [rendered(p, fields) for p in page]} if page else {}
+    meta = {"result_count": len(page)}
+    if page:
+        meta.update(newest_id=page[0]["id"], oldest_id=page[-1]["id"])
+    if start + size < len(found):
+        meta["next_token"] = str(start + size)
+    body["meta"] = meta
+    return 200, body
+
+
 def route_get(path, query):
     parts = path.strip("/").split("/")
     if parts == ["2", "users", "by"]:
@@ -199,6 +231,10 @@ def route_get(path, query):
         return users_by_ids(query)
     if parts == ["2", "tweets"]:
         return lookup(query)
+    if parts == ["2", "tweets", "search", "recent"]:
+        return search(query)
+    if len(parts) == 3 and parts[:2] == ["2", "tweets"]:
+        return single(parts[2], query)
     if len(parts) == 4 and parts[:2] == ["2", "users"] and parts[2] in users_by_id:
         user = users_by_id[parts[2]]
         if parts[3] == "following":

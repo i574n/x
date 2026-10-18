@@ -1,0 +1,38 @@
+open sm'_operators
+open prelude
+open posts
+open wire
+open transport
+
+type search = {conversation : string; author_id : string}
+
+inl page_of (a : app) (s : search) (token : string) : got fetched = get_raw a (thread_path (ThreadPage (s.conversation, s.author_id, token)))
+
+let rec paged (a : app) (s : search) (token : string) (acc : list string) : got (list string) =
+    page_of a s token |> then_ok fun (doc, body) =>
+        inl next, acc = next_token_in doc, listm.append acc [body]
+        if next = "" then Ok acc else paged a s next acc
+
+inl absent (id : string) (missing : string) : failure = HttpStatus {status = 404i32; resource = root_path id; detail = missing}
+
+let rooted (a : app) (id : string) (r : root_reply) : got (list string) =
+    match r with
+    | root_reply {conversation_id author_id missing} =>
+        if conversation_id <> "" then paged a {conversation = conversation_id; author_id} "" Nil else Error (absent id missing)
+
+inl root_of_post (a : app) (id : string) : got root_reply =
+    get_raw a (thread_path (ThreadRoot id)) |> map_ok fun (doc, _) => root_of doc
+
+type pages_reply = i32 * string * string
+
+inl bundle_of (bodies : list string) : string = "[" ++# sm'.concat_list "," bodies ++# "]"
+
+let pages_of (base : string) (bearer : string) (id : string) : pages_reply =
+    inl a = app_api base bearer
+    match root_of_post a id |> then_ok (rooted a id) with
+    | Ok bodies => 0i32, bundle_of bodies, ""
+    | Error f => 4i32, "", describe_failure f
+
+inl main () : i32 =
+    !!!!Export("xc_thread_pages", ((fun (base, bearer, id) => pages_of base bearer id) : string * string * string -> pages_reply))
+    0i32

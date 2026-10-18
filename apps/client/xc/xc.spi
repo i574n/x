@@ -243,7 +243,28 @@ inl helped () : i32 =
     write_line (usage ())
     0i32
 
-inl run_user (kind : i32) (payload : string) : i32 = if kind = 5i32 then run_refresh payload else run_write kind payload
+inl thread_pages (s : site) (id : string) : i32 * string * string =
+    inl {base bearer} = s
+    $'xc_thread::xc_thread_pages(&*!base, &*!bearer, &*!id)'
+
+inl assembled (bundle : string) : i32 * string * string = $'xc_assemble::xc_assemble(&*!bundle)'
+
+inl thread (s : site) (id : string) : i32 * string * string =
+    inl code, bundle, failure = thread_pages s id
+    if code = 0i32 then assembled bundle else code, "", failure
+
+inl printed_thread (r : i32 * string * string) : i32 =
+    inl code, program, notes = r
+    notes_of notes
+    lines_of program
+    code
+
+let run_thread (id : string) : i32 =
+    inl s = {base = base_url (); bearer = env_of "X_BEARER_TOKEN"}
+    if s.bearer = "" then missing_bearer () else thread s id |> printed_thread
+
+inl run_user (kind : i32) (payload : string) : i32 =
+    if kind = 5i32 then run_refresh payload elif kind = 6i32 then run_thread payload else run_write kind payload
 
 inl main () : i32 =
     inl p = parsed_args ()

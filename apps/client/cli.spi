@@ -24,6 +24,7 @@ union command =
     | PublishPost : string
     | RemovePost : string
     | RefreshToken : string
+    | ReadThread : string
     | ShowHelp
     | Rejected : string
 
@@ -64,6 +65,8 @@ inl usage_writes () : string =
     "       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n"
     ++# "       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n"
 
+inl usage_reads () : string = "       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n"
+
 inl usage_environment () : string =
     "env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"
 
@@ -86,10 +89,11 @@ inl usage_output () : string = "       --json            one JSON object per ent
 inl usage_following () : string =
     "       --max-following N accounts followed by USERNAME to include, or all (default 20)"
 
+inl usage_commands () : string = usage_synopsis () ++# usage_writes () ++# usage_reads ()
+
 inl usage () : string =
-    inl filters = usage_counts () ++# usage_filters ()
-    inl views = usage_views () ++# usage_output ()
-    usage_synopsis () ++# usage_writes () ++# usage_environment () ++# filters ++# views ++# usage_following ()
+    inl filters, views = usage_counts () ++# usage_filters (), usage_views () ++# usage_output ()
+    usage_commands () ++# usage_environment () ++# filters ++# views ++# usage_following ()
 
 union arg_kind =
     | Switched : switch
@@ -294,11 +298,15 @@ inl one_value (name : string) (args : list string) (make : string -> command) : 
     | Cons (value, Nil) when value <> "" => make value
     | _ => Rejected (name ++# " takes exactly one argument")
 
+inl other_command (sub : string) (rest : args) : command =
+    if sub = "refresh" then one_value sub rest RefreshToken
+    elif sub = "thread" then one_value sub rest ReadThread
+    else Rejected (unknown_command sub)
+
 inl write_command (sub : string) (rest : args) : command =
     if sub = "post" then one_value sub rest PublishPost
     elif sub = "delete" then one_value sub rest RemovePost
-    elif sub = "refresh" then one_value sub rest RefreshToken
-    else Rejected (unknown_command sub)
+    else other_command sub rest
 
 inl subcommand (c : checks) (start : draft) (sub : string) (rest : args) : command =
     if sub = "timeline" then parse_from c start rest else write_command sub rest
@@ -340,6 +348,7 @@ inl described_write (c : command) : string =
     | PublishPost text => "post " ++# text
     | RemovePost id => "delete " ++# id
     | RefreshToken path => "refresh " ++# path
+    | ReadThread id => "thread " ++# id
     | _ => ""
 
 inl describe (c : command) : string =

@@ -32,5 +32,9 @@ modules:
         jsonl
     token/
         token
+    thread/
+        thread
+    assemble/
+        assemble
     xc/
         xc

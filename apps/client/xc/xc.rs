@@ -608,7 +608,77 @@ fn run_refresh_12(mut v0: Rc<str>) -> i32 {
         3i32
     }
 }
-fn run_write_13(mut v0: i32, mut v1: Rc<str>) -> i32 {
+fn run_thread_13(mut v0: Rc<str>) -> i32 {
+    let mut v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X_API_BASE_URL"); } LIT.with(|lit| lit.clone()) };
+    let mut v2: Rc<str> = get_environment_variable_3(v1.clone());
+    let mut v3: i32 = (v2.clone().len() as i32);
+    let mut v4: i32 = 0i32;
+    let mut v5: i32 = method4(v2.clone(), v3, v4);
+    let mut v6: i32 = v3.wrapping_sub(1i32);
+    let mut v7: Rc<str> = string_slice(&v2.clone(), v5 as i64, v6 as i64);
+    let mut v8: i32 = (v7.clone().len() as i32);
+    let mut v9: i32 = method5(v7.clone(), v8);
+    let mut v10: Rc<str> = string_slice(&v7.clone(), 0i32 as i64, v9 as i64);
+    let mut v11: bool = v10.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v13: Rc<str> = if v11 {
+        let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("https://api.x.com"); } LIT.with(|lit| lit.clone()) };
+        v12.clone()
+    } else {
+        v10.clone()
+    };
+    let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X_BEARER_TOKEN"); } LIT.with(|lit| lit.clone()) };
+    let mut v15: Rc<str> = get_environment_variable_3(v14.clone());
+    let mut v16: i32 = (v15.clone().len() as i32);
+    let mut v17: i32 = 0i32;
+    let mut v18: i32 = method4(v15.clone(), v16, v17);
+    let mut v19: i32 = v16.wrapping_sub(1i32);
+    let mut v20: Rc<str> = string_slice(&v15.clone(), v18 as i64, v19 as i64);
+    let mut v21: i32 = (v20.clone().len() as i32);
+    let mut v22: i32 = method5(v20.clone(), v21);
+    let mut v23: Rc<str> = string_slice(&v20.clone(), 0i32 as i64, v22 as i64);
+    let mut v24: bool = v23.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v26: Rc<str> = if v24 {
+        let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        v25.clone()
+    } else {
+        v23.clone()
+    };
+    let mut v27: bool = v26.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    if v27 {
+        let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("xc: X_BEARER_TOKEN is not set; generate the app's bearer token at https://console.x.com"); } LIT.with(|lit| lit.clone()) };
+        eprintln!("{}", v28);
+        3i32
+    } else {
+        let (mut v29, mut v30, mut v31): (i32, Rc<str>, Rc<str>) = xc_thread::xc_thread_pages(&*v13, &*v26, &*v0);
+        let mut v32: bool = v29 == 0i32;
+        let (mut v37, mut v38, mut v39): (i32, Rc<str>, Rc<str>) = if v32 {
+            let (mut v33, mut v34, mut v35): (i32, Rc<str>, Rc<str>) = xc_assemble::xc_assemble(&*v30);
+            (v33, v34.clone(), v35.clone())
+        } else {
+            let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            (v29, v36.clone(), v31.clone())
+        };
+        let mut v40: bool = v39.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let mut v41: bool = v40 != true;
+        if v41 {
+            let mut v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+            let mut v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\nxc: "); } LIT.with(|lit| lit.clone()) };
+            let mut v44: Rc<str> = Rc::<str>::from(v39.replace(&*v42, &*v43));
+            let mut v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("xc: "); } LIT.with(|lit| lit.clone()) };
+            let mut v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v44));
+            eprintln!("{}", v46);
+            ()
+        };
+        let mut v47: bool = v38.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let mut v48: bool = v47 != true;
+        if v48 {
+            println!("{}", v38);
+            ()
+        };
+        v37
+    }
+}
+fn run_write_14(mut v0: i32, mut v1: Rc<str>) -> i32 {
     let mut v2: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X_CONSUMER_KEY"); } LIT.with(|lit| lit.clone()) };
     let mut v3: Rc<str> = get_environment_variable_3(v2.clone());
     let mut v4: i32 = (v3.clone().len() as i32);
@@ -850,7 +920,12 @@ fn spiral_main() -> i32 {
                 if v23 {
                     run_refresh_12(v1.clone())
                 } else {
-                    run_write_13(v0, v1.clone())
+                    let mut v25: bool = v0 == 6i32;
+                    if v25 {
+                        run_thread_13(v1.clone())
+                    } else {
+                        run_write_14(v0, v1.clone())
+                    }
                 }
             }
         }
