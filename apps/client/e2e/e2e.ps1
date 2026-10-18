@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory)] [string] $Exe,
     [Parameter(Mandatory)] [string] $WorkDir,
-    [string] $Tutorial = (Join-Path $PSScriptRoot "../README.md")
+    [string] $Tutorial = (Join-Path $PSScriptRoot "../README.md"),
+    [switch] $Bless
 )
 $ErrorActionPreference = "Stop"
 
@@ -61,6 +62,7 @@ try {
     $steps = [regex]::Matches($tutorialText, '(?s)```powershell\n((?:(?!```).)*?)\n```\n\n```text\n((?:(?!```).)*?)\n```')
     Check ($steps.Count -ge 21) "expected at least 21 checked steps in the tutorial, found $($steps.Count)"
     $outputs = [System.Collections.Generic.List[string]]::new()
+    $blessed = [System.Collections.Generic.List[object]]::new()
     $results = @{}
     foreach ($step in $steps) {
         $script = $step.Groups[1].Value
@@ -68,7 +70,8 @@ try {
         $r = Invoke-Step $script $world.token
         $results[$script] = $r
         $outputs.Add($r.Text)
-        Check ($r.Text -ceq $expected) "tutorial step '$script'`n--- expected`n$expected`n--- actual`n$($r.Text)"
+        $blessed.Add([pscustomobject]@{ Index = $step.Groups[2].Index; Length = $step.Groups[2].Length; Text = $r.Text })
+        Check ($Bless -or $r.Text -ceq $expected) "tutorial step '$script'`n--- expected`n$expected`n--- actual`n$($r.Text)"
         if ($script -notmatch 'LASTEXITCODE') { Check ($r.Exit -eq 0) "tutorial step '$script' exited $($r.Exit)" }
         Write-Output "x e2e / tutorial / $script / $(if ($r.Text -ceq $expected) { 'same' } else { 'DIFFERENT' }) / $($r.Requests.Count) request(s)"
     }
@@ -122,6 +125,13 @@ try {
     Write-Output "x e2e / $((Read-Requests).Count) requests to the stub on port $port"
 } finally {
     if (!$stub.HasExited) { Stop-Process -Id $stub.Id -Force }
+}
+
+if ($Bless) {
+    $doc = $tutorialText
+    foreach ($b in ($blessed | Sort-Object Index -Descending)) { $doc = $doc.Substring(0, $b.Index) + $b.Text + $doc.Substring($b.Index + $b.Length) }
+    if ($doc -cne $tutorialText) { [IO.File]::WriteAllText((Resolve-Path $Tutorial).Path, $doc) }
+    Write-Output "x e2e / blessed $(@($blessed | Where-Object { $tutorialText.Substring($_.Index, $_.Length) -cne $_.Text }).Count) of $($blessed.Count) tutorial outputs in $Tutorial"
 }
 
 if ($failures.Count) {
