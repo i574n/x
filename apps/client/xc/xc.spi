@@ -7,7 +7,7 @@ inl write_line (text : string) : () = $'println\!("{}", !text)'
 
 inl write_error (text : string) : () = $'eprintln\!("{}", !text)'
 
-inl env_or (name : string) (fallback : string) : string =
+let env_or (name : string) (fallback : string) : string =
     inl v = env.get_environment_variable name |> sm'.trim
     if v = "" then fallback else v
 
@@ -150,7 +150,7 @@ inl notes_of (text : string) : () =
 
 inl both_notes (a : string) (b : string) : string = if a = "" then b elif b = "" then a else a ++# "\n" ++# b
 
-inl failed (message : string) : i32 =
+let failed (message : string) : i32 =
     write_error ("xc: " ++# message)
     4i32
 
@@ -175,7 +175,7 @@ let shown_timeline (s : site) (pl : plan) (p : parsed) : i32 =
     lines_of text
     closing failure shown
 
-inl missing_bearer () : i32 =
+let missing_bearer () : i32 =
     write_error "xc: X_BEARER_TOKEN is not set; generate the app's bearer token at https://console.x.com"
     3i32
 
@@ -195,7 +195,7 @@ inl no_user () : i32 =
     write_error "    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_OAUTH2_ACCESS_TOKEN (OAuth 2.0, 2 hours)"
     3i32
 
-inl reported (r : i32 * string) : i32 =
+let reported (r : i32 * string) : i32 =
     inl code, message = r
     if code = 0i32 then write_line message else write_error ("xc: " ++# message)
     code
@@ -282,11 +282,9 @@ inl thread_ids (s : site) (id : string) : i32 * string * string =
     inl {base bearer} = s
     $'xc_thread::xc_thread_ids(&*!base, &*!bearer, &*!id)'
 
-inl deleted_all (ids : string) : i32 = pieces "\n" ids |> listm.fold (fun worst post => if run_write 2i32 post <> 0i32 then 4i32 else worst) 0i32
-
 inl deleted_from (r : i32 * string * string) : i32 =
     inl code, ids, failure = r
-    if code <> 0i32 then failed failure else deleted_all ids
+    if code <> 0i32 then failed failure else run_write 9i32 ids
 
 let run_delete_thread (id : string) : i32 =
     inl s = {base = base_url (); bearer = env_of "X_BEARER_TOKEN"}

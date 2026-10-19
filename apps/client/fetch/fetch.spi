@@ -41,13 +41,18 @@ inl posts_of (a : app) (q : query) (w : account) = get_raw a (read_path (PostsOf
 
 inl failed_with (f : failure) (g : gathered) : gathered = {g with failure = describe_failure f}
 
+inl gathered_one (a : app) (q : query) (w : account) (g : gathered) : result gathered gathered =
+    match posts_of a q w with
+    | Ok (doc, body) => Ok (add_primary w doc body g)
+    | Error f => Error (failed_with f g)
+
 let rec gather (a : app) (q : query) (l : accounts) (g : gathered) : gathered =
     match l with
     | Nil => g
     | Cons (w, rest) =>
-        match posts_of a q w with
-        | Ok (doc, body) => gather a q rest (add_primary w doc body g)
-        | Error f => failed_with f g
+        match gathered_one a q w g with
+        | Ok g => gather a q rest g
+        | Error g => g
 
 inl csv (l : list string) : string = sm'.concat_list "," l
 

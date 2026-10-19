@@ -1,0 +1,154 @@
+///- --package .
+test glyphs static =
+    open testing
+
+open sm'_operators
+open prelude
+
+inl rust_char_of (n : i32) : string = $'Rc::<str>::from(char::from_u32(!n as u32).map(|c| c.to_string()).unwrap_or_default())'
+
+inl gleam_char_of (n : i32) : string =
+    global "import gleam/string"
+    $'case string.utf_codepoint(!n) { Ok(c) -> string.from_utf_codepoints([c]) Error(_) -> "" }'
+
+inl char_of (n : i32) : string =
+    backend_switch {
+        Gleam = fun () => gleam_char_of n
+        Rust = fun () => rust_char_of n
+    }
+
+inl zero_width_space () : string = char_of 8203i32
+
+inl defused_dot () : string = zero_width_space () ++# "."
+
+inl rust_first_grapheme (s : string) : i32 =
+    $'unicode_segmentation::UnicodeSegmentation::graphemes(&*!s, true).next().map_or(0, |g| g.len()) as i32'
+
+inl gleam_first_grapheme (s : string) : i32 =
+    global "import gleam/string"
+    $'case string.pop_grapheme(!s) { Ok(_) -> 1 Error(_) -> 0 }'
+
+inl first_grapheme (s : string) : i32 =
+    backend_switch {
+        Gleam = fun () => gleam_first_grapheme s
+        Rust = fun () => rust_first_grapheme s
+    }
+
+let rec graphemes_from (s : string) (acc : list string) : list string =
+    inl n = first_grapheme s
+    if n = 0i32 then listm.rev acc else graphemes_from (cut n (sm'.length s - n) s) (Cons (cut 0i32 n s, acc))
+
+inl graphemes (s : string) : list string = graphemes_from s Nil
+
+inl rust_weight (s : string) : i32 =
+    $'(&*!s).chars().map(|c| match c as u32 { 0..=4351 | 8192..=8205 | 8208..=8223 | 8242..=8247 => 1, _ => 2 }).sum::<i32>()'
+
+inl gleam_light () : () =
+    global "fn x_light(n: Int) -> Bool { n <= 4351 || n >= 8192 && n <= 8205 || n >= 8208 && n <= 8223 || n >= 8242 && n <= 8247 }"
+
+inl gleam_weight (s : string) : i32 =
+    gleam_light ()
+    global "import gleam/list"
+    global "import gleam/string"
+    $'string.to_utf_codepoints(!s) |> list.fold(0, fn(sum, c) { sum + case x_light(string.utf_codepoint_to_int(c)) { True -> 1 False -> 2 } })'
+
+inl plain_weight (s : string) : i32 =
+    backend_switch {
+        Gleam = fun () => gleam_weight s
+        Rust = fun () => rust_weight s
+    }
+
+inl rust_nfc (s : string) : string =
+    $'Rc::<str>::from(unicode_normalization::UnicodeNormalization::nfc(&*!s).collect::<String>())'
+
+inl gleam_nfc (s : string) : string =
+    global ("@" ++# "external(erlang, \"unicode\", \"characters_to_nfc_binary\") fn erlang_nfc(s: String) -> String")
+    $'erlang_nfc(!s)'
+
+inl nfc (s : string) : string =
+    backend_switch {
+        Gleam = fun () => gleam_nfc s
+        Rust = fun () => rust_nfc s
+    }
+
+inl ascii_letters () : string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+inl one_of (chars : string) (g : string) : bool = sm'.length g = 1i32 && sm'.index_of g chars >= 0i32
+
+inl letter (g : string) : bool = one_of (ascii_letters ()) g
+
+inl label_char (g : string) : bool = one_of (ascii_letters () ++# "0123456789_-") g
+
+inl rust_blank (s : string) : bool = $'(&*!s).trim().is_empty()'
+
+inl gleam_white () : () =
+    global "fn x_white(n: Int) -> Bool { n >= 9 && n <= 13 || n == 32 || n == 133 || n == 160 || n == 5760 || n >= 8192 && n <= 8202 }"
+
+inl gleam_spaced () : () =
+    gleam_white ()
+    global "fn x_spaced(n: Int) -> Bool { x_white(n) || n == 8232 || n == 8233 || n == 8239 || n == 8287 || n == 12288 }"
+
+inl gleam_blank (s : string) : bool =
+    gleam_spaced ()
+    global "import gleam/list"
+    global "import gleam/string"
+    $'string.to_utf_codepoints(!s) |> list.all(fn(c) { x_spaced(string.utf_codepoint_to_int(c)) })'
+
+inl blank (s : string) : bool =
+    backend_switch {
+        Gleam = fun () => gleam_blank s
+        Rust = fun () => rust_blank s
+    }
+
+let rec without_blank_tail (l : list string) : list string =
+    match l with
+    | Cons (g, rest) when blank g => without_blank_tail rest
+    | _ => l
+
+inl trimmed_end (s : string) : string = graphemes s |> listm.rev |> without_blank_tail |> listm.rev |> sm'.concat_list ""
+
+inl thumb () : string = char_of 128077i32 ++# char_of 127997i32
+
+inl accented () : string = "e" ++# char_of 769i32
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test graphemes_hold_clusters =
+    inl ~s = "a" ++# accented () ++# " " ++# thumb () ++# "."
+    graphemes s |> listm.length |> _assert_eq 5i32
+    graphemes "" |> listm.length |> _assert_eq 0i32
+
+inl crlf () : string = char_of 13i32 ++# char_of 10i32
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test a_line_break_pair_is_one_grapheme =
+    inl ~s = "a" ++# crlf () ++# "b"
+    graphemes s |> listm.length |> _assert_eq 3i32
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test weights_follow_x =
+    inl ~s = "abc"
+    plain_weight s |> _assert_eq 3i32
+    plain_weight (char_of 26085i32) |> _assert_eq 2i32
+    plain_weight (thumb ()) |> _assert_eq 4i32
+    plain_weight (char_of 8212i32 ++# zero_width_space ()) |> _assert_eq 2i32
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test blanks_and_tails =
+    inl ~s = "x \t\n"
+    trimmed_end s |> _assert_eq "x"
+    blank (char_of 160i32) |> _assert_eq true
+    blank (zero_width_space ()) |> _assert_eq false
+    trimmed_end ("a" ++# char_of 160i32) |> _assert_eq "a"
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test nfc_composes =
+    inl ~s = accented ()
+    nfc s |> _assert_eq (char_of 233i32)
+    letter "a" |> _assert_eq true
+    label_char "-" |> _assert_eq true
+    letter "." |> _assert_eq false

@@ -29,8 +29,10 @@ inl grown (wanted : i32) (acc : accounts) (doc : json) : accounts * string =
 inl page_path (id : string) (n : i32) (cursor : string) (acc : accounts) =
     read_path (FollowedBy (id, page_size (n - listm.length acc), cursor))
 
+inl page_of (a : app) (id : string) (n : i32) (cursor : string) (acc : accounts) : got fetched = get_raw a (page_path id n cursor acc)
+
 let rec pages (a : app) (id : string) (n : i32) (cursor : string) (acc : accounts) : got accounts =
-    get_raw a (page_path id n cursor acc) |> then_ok fun (doc, _) =>
+    page_of a id n cursor acc |> then_ok fun (doc, _) =>
         inl l, more = grown n acc doc
         if more = "" then Ok (take_first n l) else pages a id n more l
 

@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Xsim.Run do
 
     {opts, _} =
       OptionParser.parse!(args,
-        strict: [spi: :string, spi_file: :string, cells: :integer, breaking: :integer, frames: :boolean, churn: :integer, save: :string, replay: :string, seed: :integer, users: :integer, edits: :integer, schedules: :integer, executor: :string, max_concurrency: :integer, duplicates: :float, memo: :boolean, personas: :string, evict: :boolean, evict_grace: :integer, daemon_memory: :boolean]
+        strict: [spi: :string, spi_file: :string, cells: :integer, breaking: :integer, frames: :boolean, churn: :integer, save: :string, replay: :string, seed: :integer, users: :integer, edits: :integer, schedules: :integer, executor: :string, max_concurrency: :integer, duplicates: :float, memo: :boolean, personas: :string, evict: :boolean, evict_grace: :integer, pace_ms: :integer, daemon_memory: :boolean]
       )
 
     files =
@@ -34,7 +34,7 @@ defmodule Mix.Tasks.Xsim.Run do
 
         if opts[:save], do: Xsim.Log.write(String.replace(opts[:save], "{schedule}", Integer.to_string(schedule)), deliveries)
         started = System.monotonic_time(:millisecond)
-        state = Xsim.Runner.run(deliveries, executor, max_concurrency: opts[:max_concurrency] || 4, evict: eviction(opts))
+        state = Xsim.Runner.run(deliveries, executor, max_concurrency: opts[:max_concurrency] || 4, evict: eviction(opts), pace_ms: opts[:pace_ms] || 0)
         ms = System.monotonic_time(:millisecond) - started
         verdicts = Xsim.Invariants.check(state, baseline)
         verdicts = if opts[:executor] == "cells", do: verdicts ++ [{:breaking_edits_fail, Xsim.Invariants.breaking_edits_fail(state, scenario.broken)}], else: verdicts

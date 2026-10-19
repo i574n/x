@@ -26,13 +26,14 @@ defmodule Xsim.Runner do
     limit = Keyword.get(opts, :max_concurrency, 4)
     naive = Keyword.get(opts, :naive_visibility, false)
     evict = Keyword.get(opts, :evict, false)
+    pace = Keyword.get(opts, :pace_ms, 0)
     faults = %{cancel: Keyword.get(opts, :cancel, true), rerun: Keyword.get(opts, :rerun_completed, false), evict: evict}
     state = %__MODULE__{world: World.new(), evicting: evict}
 
     state =
       Enum.reduce(deliveries, state, fn delivery, state ->
         state = %{state | world: World.apply_delivery(state.world, delivery), clock: state.clock + 1} |> expire(false)
-        state |> reconcile(executor, limit, faults) |> harvest(0, naive)
+        state |> reconcile(executor, limit, faults) |> harvest(pace, naive)
       end)
 
     state |> drain(executor, limit, naive) |> expire(true) |> settle()

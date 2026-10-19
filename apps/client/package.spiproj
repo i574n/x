@@ -5,6 +5,9 @@ packages:
     spiral-
 modules:
     prelude
+    glyphs
+    protocol
+    splitter
     posts
     cli
     oauth1

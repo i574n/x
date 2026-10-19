@@ -47,6 +47,11 @@ enum US3 {
     US3_Ok(serde_json::Value),
     US3_Error(US2),
 }
+#[derive(Clone)]
+enum US4 {
+    US4_Ok(Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>),
+    US4_Error(Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>),
+}
 fn split_on_1(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<UH0> {
     let mut v2: i32 = v1.find(&*v0).map(|i| i as i32).unwrap_or(-1);
     let mut v3: bool = v2 < 0i32;
@@ -556,86 +561,106 @@ fn add_primary_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: serde_json::Value, mu
     (v100.clone(), v101.clone(), v102.clone(), v103.clone(), v104.clone(), v105.clone())
 }
 fn gather_3(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: bool, mut v6: bool, mut v7: i32, mut v8: bool, mut v9: Rc<UH1>, mut v10: Rc<UH2>, mut v11: Rc<UH2>, mut v12: Rc<UH0>, mut v13: Rc<UH0>, mut v14: Rc<str>, mut v15: Rc<UH0>) -> (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) {
-    let (mut v87, mut v88, mut v89, mut v90, mut v91, mut v92): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = match &*v9 {
+    let (mut v103, mut v104, mut v105, mut v106, mut v107, mut v108): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = match &*v9 {
         UH1::UH1_Nil => {
             (v10.clone(), v11.clone(), v12.clone(), v13.clone(), v14.clone(), v15.clone())
         }
         _ => {
-            let (mut v81, mut v82, mut v83, mut v84, mut v85, mut v86): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = match &*v9 {
+            let (mut v97, mut v98, mut v99, mut v100, mut v101, mut v102): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = match &*v9 {
                 UH1::UH1_Cons(v16, v17, v18) => {
                     let mut v16: Rc<str> = v16.clone();
                     let mut v17: Rc<str> = v17.clone();
                     let mut v18: Rc<UH1> = v18.clone();
                     let mut v19: Rc<str> = posts_path_4(v16.clone(), v2, v3.clone(), v4.clone(), v5, v6, v7, v8);
                     let mut v20: US1 = app_reply_7(v0.clone(), v1.clone(), v19.clone());
-                    match &v20 {
+                    let mut v66: US4 = match &v20 {
+                        US1::US1_Error(v30) => {
+                            let mut v30: US2 = v30.clone();
+                            let mut v63: Rc<str> = match &v30 {
+                                US2::US2_HttpStatus(v31, v32, v33) => {
+                                    let mut v31: i32 = *v31;
+                                    let mut v32: Rc<str> = v32.clone();
+                                    let mut v33: Rc<str> = v33.clone();
+                                    let mut v34: Rc<str> = Rc::<str>::from(format!("{:?}", v31));
+                                    let mut v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) };
+                                    let mut v36: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v34));
+                                    let mut v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
+                                    let mut v38: Rc<str> = Rc::<str>::from(format!("{}{}", v36, v37));
+                                    let mut v39: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v32));
+                                    let mut v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
+                                    let mut v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
+                                    let mut v42: Rc<str> = Rc::<str>::from(format!("{}{}", v41, v33));
+                                    v42.clone()
+                                }
+                                US2::US2_NoSuchAccount(v57) => {
+                                    let mut v57: Rc<str> = v57.clone();
+                                    let mut v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no X account @"); } LIT.with(|lit| lit.clone()) };
+                                    let mut v59: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v57));
+                                    v59.clone()
+                                }
+                                US2::US2_Transport(v43, v44) => {
+                                    let mut v43: Rc<str> = v43.clone();
+                                    let mut v44: Rc<str> = v44.clone();
+                                    let mut v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not reach the X API for "); } LIT.with(|lit| lit.clone()) };
+                                    let mut v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v43));
+                                    let mut v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
+                                    let mut v48: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v47));
+                                    let mut v49: Rc<str> = Rc::<str>::from(format!("{}{}", v48, v44));
+                                    v49.clone()
+                                }
+                                US2::US2_Undecodable(v50, v51) => {
+                                    let mut v50: Rc<str> = v50.clone();
+                                    let mut v51: Rc<str> = v51.clone();
+                                    let mut v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) };
+                                    let mut v53: Rc<str> = Rc::<str>::from(format!("{}{}", v52, v50));
+                                    let mut v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
+                                    let mut v55: Rc<str> = Rc::<str>::from(format!("{}{}", v53, v54));
+                                    let mut v56: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v51));
+                                    v56.clone()
+                                }
+                            };
+                            US4::US4_Error(v10.clone(), v11.clone(), v12.clone(), v13.clone(), v63.clone(), v15.clone())
+                        }
                         US1::US1_Ok(v21, v22) => {
                             let mut v21: serde_json::Value = v21.clone();
                             let mut v22: Rc<str> = v22.clone();
                             let (mut v23, mut v24, mut v25, mut v26, mut v27, mut v28): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = add_primary_8(v16.clone(), v17.clone(), v21.clone(), v22.clone(), v10.clone(), v11.clone(), v12.clone(), v13.clone(), v14.clone(), v15.clone());
-                            gather_3(v0.clone(), v1.clone(), v2, v3.clone(), v4.clone(), v5, v6, v7, v8, v18.clone(), v23.clone(), v24.clone(), v25.clone(), v26.clone(), v27.clone(), v28.clone())
+                            US4::US4_Ok(v23.clone(), v24.clone(), v25.clone(), v26.clone(), v27.clone(), v28.clone())
+                        }
+                    };
+                    match &v66 {
+                        US4::US4_Ok(v67, v68, v69, v70, v71, v72) => {
+                            let mut v67: Rc<UH2> = v67.clone();
+                            let mut v68: Rc<UH2> = v68.clone();
+                            let mut v69: Rc<UH0> = v69.clone();
+                            let mut v70: Rc<UH0> = v70.clone();
+                            let mut v71: Rc<str> = v71.clone();
+                            let mut v72: Rc<UH0> = v72.clone();
+                            gather_3(v0.clone(), v1.clone(), v2, v3.clone(), v4.clone(), v5, v6, v7, v8, v18.clone(), v67.clone(), v68.clone(), v69.clone(), v70.clone(), v71.clone(), v72.clone())
                         }
                         _ => {
-                            let (mut v69, mut v70, mut v71, mut v72, mut v73, mut v74): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = match &v20 {
-                                US1::US1_Error(v35) => {
-                                    let mut v35: US2 = v35.clone();
-                                    let mut v68: Rc<str> = match &v35 {
-                                        US2::US2_HttpStatus(v36, v37, v38) => {
-                                            let mut v36: i32 = *v36;
-                                            let mut v37: Rc<str> = v37.clone();
-                                            let mut v38: Rc<str> = v38.clone();
-                                            let mut v39: Rc<str> = Rc::<str>::from(format!("{:?}", v36));
-                                            let mut v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) };
-                                            let mut v41: Rc<str> = Rc::<str>::from(format!("{}{}", v40, v39));
-                                            let mut v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
-                                            let mut v43: Rc<str> = Rc::<str>::from(format!("{}{}", v41, v42));
-                                            let mut v44: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v37));
-                                            let mut v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                                            let mut v46: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v45));
-                                            let mut v47: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v38));
-                                            v47.clone()
-                                        }
-                                        US2::US2_NoSuchAccount(v62) => {
-                                            let mut v62: Rc<str> = v62.clone();
-                                            let mut v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no X account @"); } LIT.with(|lit| lit.clone()) };
-                                            let mut v64: Rc<str> = Rc::<str>::from(format!("{}{}", v63, v62));
-                                            v64.clone()
-                                        }
-                                        US2::US2_Transport(v48, v49) => {
-                                            let mut v48: Rc<str> = v48.clone();
-                                            let mut v49: Rc<str> = v49.clone();
-                                            let mut v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not reach the X API for "); } LIT.with(|lit| lit.clone()) };
-                                            let mut v51: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v48));
-                                            let mut v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                                            let mut v53: Rc<str> = Rc::<str>::from(format!("{}{}", v51, v52));
-                                            let mut v54: Rc<str> = Rc::<str>::from(format!("{}{}", v53, v49));
-                                            v54.clone()
-                                        }
-                                        US2::US2_Undecodable(v55, v56) => {
-                                            let mut v55: Rc<str> = v55.clone();
-                                            let mut v56: Rc<str> = v56.clone();
-                                            let mut v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) };
-                                            let mut v58: Rc<str> = Rc::<str>::from(format!("{}{}", v57, v55));
-                                            let mut v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                                            let mut v60: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v59));
-                                            let mut v61: Rc<str> = Rc::<str>::from(format!("{}{}", v60, v56));
-                                            v61.clone()
-                                        }
-                                    };
-                                    (v10.clone(), v11.clone(), v12.clone(), v13.clone(), v68.clone(), v15.clone())
+                            let (mut v85, mut v86, mut v87, mut v88, mut v89, mut v90): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = match &v66 {
+                                US4::US4_Error(v79, v80, v81, v82, v83, v84) => {
+                                    let mut v79: Rc<UH2> = v79.clone();
+                                    let mut v80: Rc<UH2> = v80.clone();
+                                    let mut v81: Rc<UH0> = v81.clone();
+                                    let mut v82: Rc<UH0> = v82.clone();
+                                    let mut v83: Rc<str> = v83.clone();
+                                    let mut v84: Rc<UH0> = v84.clone();
+                                    (v79.clone(), v80.clone(), v81.clone(), v82.clone(), v83.clone(), v84.clone())
                                 }
                                 _ => unreachable!(),
                             };
-                            (v69.clone(), v70.clone(), v71.clone(), v72.clone(), v73.clone(), v74.clone())
+                            (v85.clone(), v86.clone(), v87.clone(), v88.clone(), v89.clone(), v90.clone())
                         }
                     }
                 }
                 _ => unreachable!(),
             };
-            (v81.clone(), v82.clone(), v83.clone(), v84.clone(), v85.clone(), v86.clone())
+            (v97.clone(), v98.clone(), v99.clone(), v100.clone(), v101.clone(), v102.clone())
         }
     };
-    (v87.clone(), v88.clone(), v89.clone(), v90.clone(), v91.clone(), v92.clone())
+    (v103.clone(), v104.clone(), v105.clone(), v106.clone(), v107.clone(), v108.clone())
 }
 fn method15(mut v0: Rc<UH0>, mut v1: Rc<str>) -> (Rc<str>, Rc<str>) {
     let (mut v11, mut v12): (Rc<str>, Rc<str>) = match &*v0 {

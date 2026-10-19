@@ -54,6 +54,7 @@ usage: xc timeline [options] USERNAME...
        xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN
        xc thread ID          the program a thread of framed posts (CELL k/n) carries
        xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)
+       xc delete-thread ID   delete your posts of that thread (user credentials)
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts fetched per account, 5..100 (default 5)
        --limit N         timeline entries shown (default 20)
@@ -393,14 +394,15 @@ inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)
 c5 1/1
 inl date_or_empty (t : string) : string =
     if shaped "9999-99-99" t then local_midnight t else text_or_empty (date_of_text t)
---- post 6 of 7, weight 273
-c6 1/2
+--- post 6 of 7, weight 88
+c6 1/1
+inl username_or_empty (t : string) : string = username_of_text t |> text_or_empty
+--- post 7 of 7, weight 266
+c7 1/1
 inl main () : i32 =
     !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
     !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
-    !!!!Export("xc_username", ((fun t => username_of_text t |> text_or_empty) : string -> string))
---- post 7 of 7, weight 16
-c6 2/2
+    !!!!Export("xc_username", ((fun t => username_or_empty t) : string -> string))
     0i32
 --- 7 posts, $0.105 to create
 ```
@@ -417,8 +419,8 @@ posted 9004 c2 1/1
 posted 9005 c3 1/1
 posted 9006 c4 1/1
 posted 9007 c5 1/1
-posted 9008 c6 1/2
-posted 9009 c6 2/2
+posted 9008 c6 1/1
+posted 9009 c7 1/1
 ```
 
 Reading the thread back gives the file again, with the trailing whitespace X drops at the end of a cell removed:
@@ -442,10 +444,11 @@ inl text_or_empty (o : option string) : string =
 inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
 inl date_or_empty (t : string) : string =
     if shaped "9999-99-99" t then local_midnight t else text_or_empty (date_of_text t)
+inl username_or_empty (t : string) : string = username_of_text t |> text_or_empty
 inl main () : i32 =
     !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
     !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
-    !!!!Export("xc_username", ((fun t => username_of_text t |> text_or_empty) : string -> string))
+    !!!!Export("xc_username", ((fun t => username_or_empty t) : string -> string))
     0i32
 ```
 
@@ -456,7 +459,13 @@ xc delete-thread 9003
 ```
 
 ```text
-accepted by the e2e
+deleted 9009
+deleted 9008
+deleted 9007
+deleted 9006
+deleted 9005
+deleted 9004
+deleted 9003
 ```
 
 ### Renewing the OAuth 2.0 token
@@ -527,6 +536,7 @@ usage: xc timeline [options] USERNAME...
        xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN
        xc thread ID          the program a thread of framed posts (CELL k/n) carries
        xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)
+       xc delete-thread ID   delete your posts of that thread (user credentials)
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts fetched per account, 5..100 (default 5)
        --limit N         timeline entries shown (default 20)
@@ -603,7 +613,7 @@ What you can build on `xc` today:
 - **Read someone's home timeline** without their login: `--following h` rebuilds it from the accounts they follow (cap it; follows cost $0.010 each).
 - **Follow conversations:** `--depth 3` shows what a post quotes, answers or reposts.
 - **Post from scripts or CI:** `xc post` and `xc delete` with OAuth 1.0a keys that never expire, exit codes for every failure; `xc refresh` renews an OAuth 2.0 user token in place.
-- **Publish a program as a thread:** `xc post-thread FILE` (try `--dry-run` first, remove it with `xc delete-thread ID`), and anyone reads it back with `xc thread ID`: any age, latest edits, missing posts and missing cells named. Every top-level definition of `xc` itself fits one 280-weight post (`edition: 3`), so its own source can travel this way.
+- **Publish a program as a thread:** `xc post-thread FILE` (try `--dry-run` first, remove it with `xc delete-thread ID`), and anyone reads it back with `xc thread ID`: any age, latest edits, missing posts and missing cells named. `xc`'s own source travels this way: every top-level definition fits 280 weight (`edition: 3`), and with its `CELL k/n` header line all but 41 cells fit one post (885 posts for the whole client; `build.ps1` names the cells that need two).
 - **Agents as users:** `--json` gives one JSON object per entry, so an agent can call `xc` as a tool.
 - **Run anywhere:** one static binary; credentials only from environment variables, so a Kubernetes secret maps onto it directly.
 
@@ -636,14 +646,14 @@ Each entry is one Rust crate, so every generated file stays reviewable (`scripts
 | `xc_users` | `users/users.spi` | username lookup, followed accounts with paging, lookup by id |
 | `xc_fetch` | `fetch/fetch.spi` | each account's posts, with the ids they reference |
 | `xc_refs` | `refs/refs.spi` | referenced posts, level by level up to `--depth` |
-| `xc_write` | `write/write.spi` | posting and deleting with user credentials |
+| `xc_write` | `write/write.spi` | posting and deleting with user credentials, threads as reply chains, a thread's posts deleted in one call |
 | `xc_digest` | `digest/digest.spi` | rebuilds posts from the gathered replies and writes each as a display entry line (author, text, counts, hints, references) |
 | `xc_view` | `view/view.spi` | reads entry lines, selects them and renders the timeline with its reference trees |
 | `xc_jsonl` | `jsonl/jsonl.spi` | the same selection as JSON Lines (`--json`) |
-| `xc_thread` | `thread/thread.spi` | a thread's root post and the author's posts of its conversation, paged (`xc thread`) |
-| `xc_assemble` | `assemble/assemble.spi` | `CELL k/n` frames to cells: latest edit versions, posting order, missing frames named |
+| `xc_thread` | `thread/thread.spi` | a thread's root post and the author's posts of its conversation, paged from the root's time (`xc thread`), and their latest ids (`xc delete-thread`) |
+| `xc_assemble` | `assemble/assemble.spi` | `CELL k/n` frames to cells: latest edit versions, posting order, missing frames and lost cells named |
 | `xc_frames` | `frames/frames.spi` | a file to `CELL k/n` posts: cells, X weights (twitter-text v3), link dots defused, cuts between words, `--dry-run` preview |
 | `xc_token` | `token/token.spi` | OAuth 2.0 token renewal and the in-place env file rewrite (`xc refresh`) |
 | `xc` | `xc/xc.spi` | entry: environment, credentials, the order of calls, exit codes, output |
 
-Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Accept` rewrites its outputs after an intended change; review the diff), whose world includes four threads the simulator posted (complete, edited three times, missing one post, missing a whole cell) (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`); `xc post-thread` must write exactly the posts the simulator's own splitter makes of `oauth1.spi` (`e2e/thread-oauth1.expected.json`, from `mix xsim.frames`), each replying to the one before, and `xc thread` must read the file back. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>` HTML-escaped.
+Tests: the test blocks of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, and the app token cannot write. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Accept` rewrites its outputs after an intended change; review the diff), whose world includes four threads the simulator posted (complete, edited three times, missing one post, missing a whole cell) (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`); `xc post-thread` must write exactly the posts the simulator's own splitter makes of `oauth1.spi` (`e2e/thread-oauth1.expected.json`, from `mix xsim.frames`), each replying to the one before, `xc thread` must read the file back, and `xc delete-thread` must remove every one of those posts. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>` HTML-escaped.

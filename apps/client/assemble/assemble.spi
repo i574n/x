@@ -3,8 +3,10 @@ open prelude
 open posts
 open cli
 open wire
+open glyphs
+open protocol
 
-type frame_fields = {cell : string; k : i32; n : i32; body : string; original : string; parent : string}
+type frame_fields = {cell : i32; k : i32; n : i32; body : string; original : string; parent : string}
 
 type frame = heap frame_fields
 
@@ -20,32 +22,23 @@ inl first_of (l : list string) (fallback : string) : string =
 
 inl latest (f : framed) : bool = last_of f.history f.id = f.id
 
-inl count_or_zero (t : string) : i32 = $'(&*!t).parse::<i32>().unwrap_or(0)'
-
 inl header_end (i : i32) (text : string) : i32 = if i < 0i32 then sm'.length text else i
 
-inl header_of (text : string) (i : i32) : list string = split_on " " (sm'.substring 0i32 (header_end i text) text)
+inl head_of (i : i32) (text : string) : string = sm'.substring 0i32 (header_end i text) text
 
-inl sound (f : framed) (header : list string) (k : i32) (n : i32) : bool =
-    latest f && listm.length header = 2i32 && k >= 1i32 && k <= n
-
-inl position_of (header : list string) : i32 * i32 =
-    inl part = split_on "/" (field_at 1 header)
-    count_or_zero (field_at 0 part), count_or_zero (field_at 1 part)
-
-inl frame_from (f : framed) (header : list string) (body : string) (k : i32) (n : i32) : frame =
-    heap {cell = field_at 0 header; k n body original = first_of f.history f.id; parent = f.parent}
+inl frame_from (f : framed) (h : frame_header) (body : string) : frame =
+    heap {cell = h.cell; k = h.part; n = h.part_count; body original = first_of f.history f.id; parent = f.parent}
 
 inl body_at (i : i32) (text : string) : string = if i < 0i32 then "" else after i text |> sm'.replace (defused_dot ()) "."
 
 let frames_of (f : framed) : list frame =
     inl text = expand_urls f.urls f.text
     inl i : i32 = sm'.index_of "\n" text
-    inl header = header_of text i
-    inl k, n = position_of header
-    if sound f header k n then [frame_from f header (body_at i text) k n] else Nil
+    match parsed (head_of i text) with
+    | Ok h when latest f => [frame_from f h (body_at i text)]
+    | _ => Nil
 
-type cell_frames = {cell : string; n : i32; first : string; frames : list frame}
+type cell_frames = {cell : i32; n : i32; first : string; frames : list frame}
 
 inl joined (c : cell_frames) (f : frame) : cell_frames =
     inl first = if later_id c.first f.original then f.original else c.first
@@ -71,27 +64,29 @@ inl body_at (c : cell_frames) (k : i32) : string = frame_at c k |> each (fun (f 
 
 inl source_of (c : cell_frames) : string = listm.init c.n (fun i => body_at c (i + 1i32)) |> sm'.concat_list ""
 
-inl missing_note (c : cell_frames) : string =
-    inl ks = missing_ks c |> each sm'.obj_to_string |> sm'.concat_list ", "
-    "cell " ++# c.cell ++# " is missing frame " ++# ks ++# " of " ++# sm'.obj_to_string c.n
+union private cell_reading =
+    | Whole : string
+    | Holed : thread_flaw
 
-type program = {sources : list string; notes : list string}
+inl reading_of (c : cell_frames) : cell_reading =
+    match missing_ks c with
+    | Nil => Whole (source_of c)
+    | missing => Holed (MissingFrames {cell = c.cell; missing; part_count = c.n})
+
+type program = {sources : list string; flaws : list thread_flaw}
 
 inl with_cell (p : program) (c : cell_frames) : program =
-    match missing_ks c with
-    | Nil => {p with sources = listm.append p.sources [source_of c]}
-    | _ => {p with notes = listm.append p.notes [missing_note c]}
+    match reading_of c with
+    | Whole source => {p with sources = listm.append p.sources [source]}
+    | Holed flaw => {p with flaws = listm.append p.flaws [flaw]}
 
-inl gap_note (c : cell_frames) (parent : string) : string =
-    "cell " ++# c.cell ++# " replies to " ++# parent ++# ", which is not in the thread: posts before it are missing"
-
-inl gap_notes (known : list string) (c : cell_frames) : list string =
+inl gap_flaws (known : list string) (c : cell_frames) : list thread_flaw =
     frame_at c 1i32 |> keep (fun (f : frame) => f.parent <> "" && not (has (fun x => x = f.parent) known))
-    |> each (fun (f : frame) => gap_note c f.parent)
+    |> each (fun (f : frame) => ReplyGap {cell = c.cell; parent = f.parent})
 
-inl gaps (known : list string) (cells : list cell_frames) : list string =
+inl gaps (known : list string) (cells : list cell_frames) : list thread_flaw =
     match cells with
-    | Cons (_, rest) => rest |> spread (gap_notes known)
+    | Cons (_, rest) => rest |> spread (gap_flaws known)
     | Nil => Nil
 
 inl ordered (l : list framed) : list cell_frames =
@@ -101,23 +96,23 @@ inl known_ids (l : list framed) : list string = l |> spread (fun (f : framed) =>
 
 let assembled (l : list framed) : program =
     inl cells = ordered l
-    inl p = cells |> listm.fold with_cell {sources = Nil; notes = Nil}
-    {p with notes = listm.append p.notes (gaps (known_ids l) cells)}
+    inl p = cells |> listm.fold with_cell {sources = Nil; flaws = Nil}
+    {p with flaws = listm.append p.flaws (gaps (known_ids l) cells)}
 
-inl framed_in (page : json) : list framed = page |> field "data" |> collect framed_of
+inl posts_of_pages (doc : json) : json =
+    $'serde_json::Value::from((!doc).as_array().map(|ps| ps.iter().flat_map(|p| p["data"].as_array().cloned().unwrap_or_default()).collect::<Vec<_>>()).unwrap_or_default())'
 
 type assembled_reply = i32 * string * string
 
 inl reply_of (p : program) : assembled_reply =
-    inl code = match p.notes with Nil => 0i32 | _ => 4i32
-    code, sm'.concat_list """
+    exit_code p.flaws, sm'.concat_list """
 
 
 
-        """ p.sources, sm'.concat_list "\n" p.notes
+        """ p.sources, p.flaws |> each note_of |> sm'.concat_list "\n"
 
 let assembled_of (bundle : string) : assembled_reply =
-    parse_json bundle |> collect id |> spread framed_in |> assembled |> reply_of
+    parse_json bundle |> posts_of_pages |> collect framed_of |> assembled |> reply_of
 
 inl main () : i32 =
     !!!!Export("xc_assemble", ((fun bundle => assembled_of bundle) : string -> assembled_reply))

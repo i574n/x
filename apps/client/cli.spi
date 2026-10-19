@@ -130,18 +130,6 @@ inl kind_of (text : string) : arg_kind =
     elif text = "--hints" then Switched Hints
     else output_kind text
 
-inl digit_at (i : i32) (text : string) : i32 =
-    "0123456789" |> sm'.index_of (sm'.slice i i text)
-
-let rec digits (text : string) (i : i32) (n : i32) : option i32 =
-    if i >= sm'.length text then Some n
-    else
-        inl d = digit_at i text
-        if d < 0 || n > 100000000 then None else digits text (i + 1) (n * 10 + d)
-
-inl count_of_text (text : string) : option i32 =
-    if text = "" then None else digits text 0 0
-
 inl char_at (i : i32) (text : string) : string = sm'.slice i i text
 
 inl fits_at (pattern : string) (text : string) (i : i32) : bool =
@@ -469,6 +457,12 @@ test post_thread_takes_a_file_and_an_optional_dry_run =
     inl ~path = "prelude.spi"
     parsed ["post-thread"; path] |> _assert_eq "post-thread prelude.spi"
     parsed ["post-thread"; "--dry-run"; path] |> _assert_eq "post-thread --dry-run prelude.spi"
+
+///> zig
+test delete_thread_takes_one_id =
+    inl ~id = "9003"
+    parsed ["delete-thread"; id] |> _assert_eq "delete-thread 9003"
+    parsed ["delete-thread"; id; "9004"] |> _assert_eq "rejected: delete-thread takes exactly one argument"
 
 ///> zig
 test post_thread_needs_a_file =

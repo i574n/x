@@ -36,10 +36,12 @@ and let reference_json (pool : list entry) (depth : i32) (level : i32) (e : entr
 inl with_references (pool : list entry) (depth : i32) (e : entry) : list string =
     Cons (entry_json 0i32 "" e, referenced_json pool depth 0i32 e)
 
+inl lines_of (pool : list entry) (depth : i32) (shown : list entry) : string = shown |> spread (with_references pool depth) |> sm'.concat_list "\n"
+
 let json_lines (text : string) (limit : i32) (per_author : i32) (depth : i32) : string * i32 =
     inl d = digest_of text
     inl shown = d.primary |> selected {limit per_author}
-    shown |> spread (with_references d.pool depth) |> sm'.concat_list "\n", listm.length shown
+    lines_of d.pool depth shown, listm.length shown
 
 type jsonl_args = string * i32 * i32 * i32
 

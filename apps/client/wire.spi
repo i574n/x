@@ -33,8 +33,6 @@ inl text_body (text : string) : string =
 inl reply_body (text : string) (to : string) : string =
     $'Rc::<str>::from(serde_json::json\!({"text": &*!text, "reply": {"in_reply_to_tweet_id": &*!to}}).to_string())'
 
-inl defused_dot () : string = $'Rc::<str>::from(char::from_u32(0x200B).unwrap().to_string() + ".")'
-
 inl unescaped (t : string) : string = $'Rc::<str>::from((&*!t).replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&"))'
 
 nominal app_context = ()
@@ -96,7 +94,7 @@ union reads r =
 
 union writes r =
     | CreatePost :: string -> writes created_reply
-    | ReplyPost :: string * string -> writes created_reply
+    | ReplyPost :: string * created_reply -> writes created_reply
     | DeletePost :: string -> writes deleted_reply
 
 union verb =
@@ -191,7 +189,7 @@ inl write_path forall r. (q : writes r) : string =
 inl write_verb forall r. (q : writes r) : verb =
     match q with
     | CreatePost text => Write (text_body text)
-    | ReplyPost (text, to) => Write (reply_body text to)
+    | ReplyPost (text, created_reply {id}) => Write (reply_body text id)
     | DeletePost _ => Remove
 
 inl method_of (v : verb) : string =
@@ -516,4 +514,4 @@ test text_comes_back_unescaped =
 
 ///> rust -d serde_json
 test replies_name_their_parent =
-    write_verb (ReplyPost ("hi", "7")) |> body_of_verb |> _assert_eq "{\"reply\":{\"in_reply_to_tweet_id\":\"7\"},\"text\":\"hi\"}"
+    write_verb (ReplyPost ("hi", created_reply {id = "7"; text = "c1 1/2"})) |> body_of_verb |> _assert_eq "{\"reply\":{\"in_reply_to_tweet_id\":\"7\"},\"text\":\"hi\"}"

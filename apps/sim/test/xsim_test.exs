@@ -186,6 +186,14 @@ defmodule XsimTest do
     assert_raise ArgumentError, fn -> Xsim.Log.decode(~s({"format":"xsim-events","version":2}\n)) end
   end
 
+  test "a paced run waits for finished work between deliveries and still ends where the unpaced run ends" do
+    scenario = Scenario.from_cells(@cells, seed: 29, users: 2, edits: 2, personas: Xsim.Personas.parse("fickle=2"))
+    deliveries = Scenario.deliveries(scenario, duplicates: 0.1)
+    paced = Runner.run(deliveries, Executors.fake(), pace_ms: 2, evict: true)
+    assert Enum.all?(verdicts(paced), fn {_, v} -> v == :ok end)
+    assert Invariants.commute(paced, Runner.run(deliveries, Executors.fake())) == :ok
+  end
+
   test "a grace window keeps a result through a short lapse of demand and frees it after" do
     personas = Xsim.Personas.parse("fickle=4+editor=1")
     scenario = Scenario.from_cells(@cells, seed: 23, users: 3, edits: 2, churn: 2, personas: personas)

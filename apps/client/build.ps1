@@ -25,8 +25,17 @@ $exe = Join-Path (Get-XCargoTargetDir) "release/xc$(_exe)"
 
 { pwsh -NoProfile -File e2e/e2e.ps1 -Exe $exe -WorkDir (Join-Path (Get-XTargetDir client) 'e2e') } | Invoke-Block
 
+$sources = Get-ChildItem $PSScriptRoot -Recurse -Filter *.spi | Where-Object { $_.FullName -notmatch '[\\/]target[\\/]' }
+$postable = foreach ($source in $sources) {
+    $preview = & $exe post-thread --dry-run $source.FullName
+    $spilled = @(for ($i = 0; $i -lt $preview.Count - 1; $i++) { if ($preview[$i] -match '^c\d+ 1/(\d+)$' -and $Matches[1] -ne '1') { $preview[$i + 1].Trim() } })
+    [pscustomobject]@{ File = [IO.Path]::GetRelativePath($PSScriptRoot, $source.FullName).Replace('\', '/'); Posts = [int](($preview | Select-Object -Last 1) -replace '^--- (\d+) posts.*', '$1'); Spilled = $spilled }
+}
+foreach ($p in $postable | Where-Object { $_.Spilled.Count }) { "x/apps/client / postable: $($p.File) cells over one post: $($p.Spilled -join ' | ')" }
+"x/apps/client / postable: $(($postable | Measure-Object Posts -Sum).Sum) posts for $($postable.Count) files, $(@($postable | Where-Object { $_.Spilled.Count }).Count) with cells over one post"
+
 if (!$fast) {
-    Invoke-SpiralTests $PSScriptRoot @("prelude", "posts", "cli", "oauth1", "wire", "transport")
+    Invoke-SpiralTests $PSScriptRoot @("prelude", "glyphs", "protocol", "splitter", "posts", "cli", "oauth1", "wire", "transport")
 }
 
 Write-Output "RUST-OK x/apps/client / $exe"

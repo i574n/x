@@ -33,7 +33,14 @@ inl side_of (x : write_args) (k : i32) : api user_context =
     inl base, token, ck, cs, t, ts, nonce, stamp, _, _ = x
     user_side base token {consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts} (nonce_at nonce k) stamp
 
-inl next_post (prev : string) (text : string) : writes created_reply = if prev = "" then CreatePost text else ReplyPost (text, prev)
+union chain =
+    | Unstarted
+    | After : created_reply
+
+inl next_post (last : chain) (text : string) : writes created_reply =
+    match last with
+    | Unstarted => CreatePost text
+    | After parent => ReplyPost (text, parent)
 
 inl header_line (text : string) : string =
     inl i : i32 = sm'.index_of "\n" text
@@ -45,17 +52,18 @@ inl stopped (ids : list string) (f : failure) : i32 * string =
 
 type side = i32 -> api user_context
 
-type posting = {prev : string; lines : list string; ids : list string}
-
-inl advanced (p : posting) (id : string) (text : string) : posting =
-    {prev = id; lines = Cons ("posted " ++# id ++# " " ++# header_line text, p.lines); ids = Cons (id, p.ids)}
+type posting = {last : chain; lines : list string; ids : list string}
 
 inl id_of (r : created_reply) : string =
     match r with
     | created_reply {id} => id
 
-inl sent (s : side) (p : posting) (text : string) : got string =
-    send_write (s (listm.length p.ids + 1i32)) (next_post p.prev text) |> map_ok id_of
+inl advanced (p : posting) (r : created_reply) (text : string) : posting =
+    inl id = id_of r
+    {last = After r; lines = Cons ("posted " ++# id ++# " " ++# header_line text, p.lines); ids = Cons (id, p.ids)}
+
+inl sent (s : side) (p : posting) (text : string) : got created_reply =
+    send_write (s (listm.length p.ids + 1i32)) (next_post p.last text)
 
 inl all_posted (p : posting) : i32 * string = 0i32, sm'.concat_list "\n" (listm.rev p.lines)
 
@@ -64,13 +72,31 @@ let rec chained (s : side) (l : list string) (p : posting) : i32 * string =
     | Nil => all_posted p
     | Cons (text, rest) =>
         match sent s p text with
-        | Ok id => chained s rest (advanced p id text)
+        | Ok r => chained s rest (advanced p r text)
         | Error f => stopped p.ids f
+
+inl removal_line (id : string) (r : got deleted_reply) : result string string =
+    match r with
+    | Ok (deleted_reply {deleted}) => if deleted then Ok ("deleted " ++# id) else Error ("not deleted " ++# id)
+    | Error f => Error (describe_failure f)
+
+inl removed_one (s : side) (acc : result (list string) string) (id : string) : result (list string) string =
+    match acc with
+    | Ok out => removal_line id (send_write (s (listm.length out + 1i32)) (DeletePost id)) |> map_ok (fun line => Cons (line, out))
+    | Error _ => acc
+
+let removed_all (s : side) (ids : list string) : i32 * string =
+    match listm.fold (removed_one s) (Ok Nil) ids with
+    | Ok out => 0i32, sm'.concat_list "\n" (listm.rev out)
+    | Error message => 4i32, message
+
+inl thread_written (x : write_args) (kind : i32) (payload : string) : i32 * string =
+    if kind = 9i32 then removed_all (side_of x) (pieces "\n" payload)
+    else chained (side_of x) (parse_json payload |> collect (at_key "text")) {last = Unstarted; lines = Nil; ids = Nil}
 
 inl written (x : write_args) : i32 * string =
     inl _, _, _, _, _, _, _, _, kind, payload = x
-    if kind = 7i32 then chained (side_of x) (parse_json payload |> collect (at_key "text")) {prev = ""; lines = Nil; ids = Nil}
-    else write (side_of x 0i32) kind payload
+    if kind >= 7i32 then thread_written x kind payload else write (side_of x 0i32) kind payload
 
 inl main () : i32 =
     !!!!Export("xc_write", ((fun x => written x) : write_args -> i32 * string))

@@ -6,7 +6,9 @@ open transport
 
 inl page_of (a : app) (s : thread_search) (token : string) : got fetched = get_raw a (thread_path (ThreadPage (s, token)))
 
-let rec paged (a : app) (s : thread_search) (token : string) (acc : list string) : got (list string) =
+type bodies = list string
+
+let rec paged (a : app) (s : thread_search) (token : string) (acc : bodies) : got bodies =
     page_of a s token |> then_ok fun (doc, body) =>
         inl next, acc = next_token_in doc, listm.append acc [body]
         if next = "" then Ok acc else paged a s next acc
