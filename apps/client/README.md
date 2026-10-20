@@ -250,11 +250,23 @@ inl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =
     | Ok x => f x
     | Error e => Error e
 inl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
+inl cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s
 let rec split_on (sep : string) (s : string) : list string =
     inl i : i32 = sm'.index_of sep s
     if i < 0i32 then [s]
-    else Cons (sm'.substring 0i32 i s, split_on sep (sm'.substring (i + 1i32) (sm'.length s - i - 1i32) s))
+    else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))
 inl pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_on sep s
+let delimited (sep : string) (l : list string) : string = sm'.concat_list sep l
+inl digit_at (i : i32) (text : string) : i32 =
+    "0123456789" |> sm'.index_of (sm'.slice i i text)
+let rec digits (text : string) (i : i32) (n : i32) : option i32 =
+    if i >= sm'.length text then Some n
+    else
+        inl d = digit_at i text
+        if d < 0 || n > 100000000 then None else digits text (i + 1) (n * 10 + d)
+inl without_digits (text : string) : string = listm.init 10i32 id |> listm.fold (fun t d => sm'.replace (sm'.obj_to_string d) "" t) text
+let count_of_text (text : string) : option i32 =
+    if text = "" || without_digits text <> "" then None else digits text 0 0
 ```
 
 A post that does not exist:
@@ -613,7 +625,7 @@ What you can build on `xc` today:
 - **Read someone's home timeline** without their login: `--following h` rebuilds it from the accounts they follow (cap it; follows cost $0.010 each).
 - **Follow conversations:** `--depth 3` shows what a post quotes, answers or reposts.
 - **Post from scripts or CI:** `xc post` and `xc delete` with OAuth 1.0a keys that never expire, exit codes for every failure; `xc refresh` renews an OAuth 2.0 user token in place.
-- **Publish a program as a thread:** `xc post-thread FILE` (try `--dry-run` first, remove it with `xc delete-thread ID`), and anyone reads it back with `xc thread ID`: any age, latest edits, missing posts and missing cells named. `xc`'s own source travels this way: every top-level definition fits 280 weight (`edition: 3`), and with its `CELL k/n` header line all but 40 cells fit one post (1014 posts for the whole client; `build.ps1` names the cells that need two).
+- **Publish a program as a thread:** `xc post-thread FILE` (try `--dry-run` first, remove it with `xc delete-thread ID`), and anyone reads it back with `xc thread ID`: any age, latest edits, missing posts and missing cells named. `xc`'s own source travels this way: every top-level definition fits 280 weight (`edition: 3`), and with its `CELL k/n` header line all but 40 cells fit one post (1029 posts for the whole client; `build.ps1` names the cells that need two). To run what a thread carries, save it (`xc thread ID > program.spi`) and, from `apps/sim`, `mix xsim.thread_run --file ../client/oauth1.spi --program program.spi` evaluates both under Cells and passes only when the thread has the file's cells and every test verdict matches.
 - **Agents as users:** `--json` gives one JSON object per entry, so an agent can call `xc` as a tool.
 - **Run anywhere:** one static binary; credentials only from environment variables, so a Kubernetes secret maps onto it directly.
 

@@ -69,6 +69,7 @@ if (!$fast) {
     $env:SPIRAL_CELLS_COMPILER_PORT = '13950'
     try {
         { mix xsim.run --spi (Join-Path $lib 'math.spi') --cells 3 --users 2 --edits 0 --schedules 1 --executor cells --max-concurrency 2 } | Invoke-Block
+        { mix xsim.thread_run --file (Join-Path $client 'oauth1.spi') --expected (Join-Path $fixtures 'thread-oauth1.expected.json') } | Invoke-Block
     } finally {
         if ($IsWindows) {
             $daemon = Get-NetTCPConnection -LocalPort 13950 -State Listen -ErrorAction Ignore | Select-Object -ExpandProperty OwningProcess -Unique

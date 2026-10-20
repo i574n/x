@@ -591,12 +591,12 @@ fn deepen_2(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>, mut v4: 
     };
     (v30.clone(), v31.clone(), v32.clone(), v33.clone())
 }
-fn method20(mut v0: Rc<UH0>, mut v1: Rc<UH0>, mut v2: Rc<str>, mut v3: Rc<UH0>, mut v4: Rc<UH0>, mut v5: Rc<UH0>) -> Rc<UH0> {
+fn method19(mut v0: Rc<UH0>, mut v1: Rc<UH0>, mut v2: Rc<str>, mut v3: Rc<UH0>, mut v4: Rc<UH0>, mut v5: Rc<UH0>) -> Rc<UH0> {
     match &*v4 {
         UH0::UH0_Cons(v6, v7) => {
             let mut v6: Rc<str> = v6.clone();
             let mut v7: Rc<UH0> = v7.clone();
-            let mut v8: Rc<UH0> = method20(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v7.clone(), v5.clone());
+            let mut v8: Rc<UH0> = method19(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v7.clone(), v5.clone());
             let mut v9: bool = v6.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let mut v16: bool = if v9 {
                 let mut v10: US1 = US1::US1_None;
@@ -623,41 +623,6 @@ fn method20(mut v0: Rc<UH0>, mut v1: Rc<UH0>, mut v2: Rc<str>, mut v3: Rc<UH0>, 
         }
         UH0::UH0_Nil => {
             v5.clone()
-        }
-    }
-}
-fn method19(mut v0: Rc<UH0>, mut v1: Rc<UH0>, mut v2: Rc<str>, mut v3: Rc<UH0>, mut v4: Rc<UH0>) -> Rc<UH0> {
-    match &*v0 {
-        UH0::UH0_Cons(v5, v6) => {
-            let mut v5: Rc<str> = v5.clone();
-            let mut v6: Rc<UH0> = v6.clone();
-            let mut v7: Rc<UH0> = method20(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v6.clone(), v4.clone());
-            let mut v8: bool = v5.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let mut v15: bool = if v8 {
-                let mut v9: US1 = US1::US1_None;
-                let mut v10: US1 = method4(v5.clone(), v1.clone(), v9.clone());
-                let mut v13: bool = match &v10 {
-                    US1::US1_None => {
-                        false
-                    }
-                    US1::US1_Some(v11) => {
-                        let mut v11: Rc<str> = v11.clone();
-                        true
-                    }
-                };
-                let mut v14: bool = v13 == false;
-                v14
-            } else {
-                false
-            };
-            if v15 {
-                Rc::new(UH0::UH0_Cons(v5.clone(), v7.clone()))
-            } else {
-                v7.clone()
-            }
-        }
-        UH0::UH0_Nil => {
-            v4.clone()
         }
     }
 }
@@ -700,7 +665,7 @@ fn traced_refs_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<s
     let (mut v37, mut v38, mut v39, mut v40): (Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = deepen_2(v17.clone(), v18.clone(), v5, v6.clone(), v7.clone(), v8, v9, v10, v11, v19, v24.clone(), v29.clone(), v34.clone(), v35.clone(), v36.clone());
     let (mut v41, mut v42): (Rc<str>, Rc<str>) = method8(v40.clone(), v35.clone(), v35.clone());
     let mut v43: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let mut v44: Rc<UH0> = method19(v37.clone(), v38.clone(), v39.clone(), v40.clone(), v43.clone());
+    let mut v44: Rc<UH0> = method19(v37.clone(), v38.clone(), v39.clone(), v40.clone(), v37.clone(), v43.clone());
     let mut v45: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
     let mut v46: Rc<UH0> = method3(v44.clone(), v45.clone());
     let (mut v47, mut v48): (Rc<str>, Rc<str>) = method8(v46.clone(), v35.clone(), v35.clone());
