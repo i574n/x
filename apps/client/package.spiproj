@@ -8,7 +8,9 @@ modules:
     glyphs
     protocol
     splitter
+    events
     posts
+    reading
     cli
     oauth1
     wire
@@ -39,6 +41,8 @@ modules:
         thread
     frames/
         frames
+    locate/
+        locate
     assemble/
         assemble
     xc/

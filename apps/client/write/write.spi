@@ -80,15 +80,19 @@ inl removal_line (id : string) (r : got deleted_reply) : result string string =
     | Ok (deleted_reply {deleted}) => if deleted then Ok ("deleted " ++# id) else Error ("not deleted " ++# id)
     | Error f => Error (describe_failure f)
 
-inl removed_one (s : side) (acc : result (list string) string) (id : string) : result (list string) string =
-    match acc with
-    | Ok out => removal_line id (send_write (s (listm.length out + 1i32)) (DeletePost id)) |> map_ok (fun line => Cons (line, out))
-    | Error _ => acc
+type removal = {lines : list string; failed : bool}
 
-let removed_all (s : side) (ids : list string) : i32 * string =
-    match listm.fold (removed_one s) (Ok Nil) ids with
-    | Ok out => 0i32, sm'.concat_list "\n" (listm.rev out)
-    | Error message => 4i32, message
+inl with_line (acc : removal) (line : result string string) : removal =
+    match line with
+    | Ok text => {acc with lines = Cons (text, acc.lines)}
+    | Error message => {lines = Cons (message, acc.lines); failed = true}
+
+inl removed_one (s : side) (acc : removal) (id : string) : removal =
+    removal_line id (send_write (s (listm.length acc.lines + 1i32)) (DeletePost id)) |> with_line acc
+
+inl removal_reply (r : removal) : i32 * string = (if r.failed then 4i32 else 0i32), sm'.concat_list "\n" (listm.rev r.lines)
+
+let removed_all (s : side) (ids : list string) : i32 * string = listm.fold (removed_one s) {lines = Nil; failed = false} ids |> removal_reply
 
 inl thread_written (x : write_args) (kind : i32) (payload : string) : i32 * string =
     if kind = 9i32 then removed_all (side_of x) (pieces "\n" payload)

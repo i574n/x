@@ -247,7 +247,7 @@ inl thread_pages (s : site) (id : string) : i32 * string * string =
     inl {base bearer} = s
     $'xc_thread::xc_thread_pages(&*!base, &*!bearer, &*!id)'
 
-inl assembled (bundle : string) : i32 * string * string = $'xc_assemble::xc_assemble(&*!bundle)'
+inl assembled (bundle : string) : i32 * string * string = $'xc_assemble::xc_assemble(&xc_locate::xc_locate(&*!bundle))'
 
 inl thread (s : site) (id : string) : i32 * string * string =
     inl code, bundle, failure = thread_pages s id

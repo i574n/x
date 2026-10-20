@@ -35,7 +35,7 @@ foreach ($p in $postable | Where-Object { $_.Spilled.Count }) { "x/apps/client /
 "x/apps/client / postable: $(($postable | Measure-Object Posts -Sum).Sum) posts for $($postable.Count) files, $(@($postable | Where-Object { $_.Spilled.Count }).Count) with cells over one post"
 
 if (!$fast) {
-    Invoke-SpiralTests $PSScriptRoot @("prelude", "glyphs", "protocol", "splitter", "posts", "cli", "oauth1", "wire", "transport")
+    Invoke-SpiralTests $PSScriptRoot @("prelude", "glyphs", "protocol", "splitter", "events", "posts", "reading", "cli", "oauth1", "wire", "transport")
 }
 
 Write-Output "RUST-OK x/apps/client / $exe"

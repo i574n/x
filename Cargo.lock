@@ -677,6 +677,7 @@ dependencies = [
  "xc_fetch",
  "xc_frames",
  "xc_jsonl",
+ "xc_locate",
  "xc_net",
  "xc_refs",
  "xc_thread",
@@ -733,6 +734,13 @@ dependencies = [
 
 [[package]]
 name = "xc_jsonl"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "xc_locate"
 version = "0.0.1"
 dependencies = [
  "serde_json",

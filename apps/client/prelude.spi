@@ -35,16 +35,7 @@ inl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =
 
 inl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
 
-inl gleam_cut (start : i32) (len : i32) (s : string) : string =
-    global "import gleam/string"
-    $'string.slice(!s, !start, !len)'
-
-inl cut (start : i32) (len : i32) (s : string) : string =
-    backend_switch {
-        Gleam = fun () => gleam_cut start len s
-        Rust = fun () => sm'.substring start len s
-        Zig = fun () => sm'.substring start len s
-    }
+inl cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s
 
 let rec split_on (sep : string) (s : string) : list string =
     inl i : i32 = sm'.index_of sep s
@@ -52,6 +43,8 @@ let rec split_on (sep : string) (s : string) : list string =
     else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))
 
 inl pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_on sep s
+
+let delimited (sep : string) (l : list string) : string = sm'.concat_list sep l
 
 inl digit_at (i : i32) (text : string) : i32 =
     "0123456789" |> sm'.index_of (sm'.slice i i text)
@@ -62,8 +55,10 @@ let rec digits (text : string) (i : i32) (n : i32) : option i32 =
         inl d = digit_at i text
         if d < 0 || n > 100000000 then None else digits text (i + 1) (n * 10 + d)
 
-inl count_of_text (text : string) : option i32 =
-    if text = "" then None else digits text 0 0
+inl without_digits (text : string) : string = listm.init 10i32 id |> listm.fold (fun t d => sm'.replace (sm'.obj_to_string d) "" t) text
+
+let count_of_text (text : string) : option i32 =
+    if text = "" || without_digits text <> "" then None else digits text 0 0
 ///> zig
 test take_first_stops_at_the_limit =
     inl ~n = 2i32

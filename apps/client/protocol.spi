@@ -1,55 +1,64 @@
 ///- --package .
+///> rust
+///> gleam
+///> zig
 test protocol static =
     open testing
 
 open sm'_operators
 open prelude
 
-type frame_header = {cell : i32; part : i32; part_count : i32}
+type frame_header = {cell : string; part : i32; part_count : i32}
 
 union header_rejection =
     | NotTwoWords
-    | NotACell
     | NotAFraction
     | PartOutOfRange
 
 union thread_flaw =
-    | MissingFrames : {cell : i32; missing : list i32; part_count : i32}
-    | ReplyGap : {cell : i32; parent : string}
+    | MissingFrames : {cell : string; missing : list i32; part_count : i32}
+    | ReplyGap : {cell : string; parent : string}
 
 inl cell_label (cell : i32) : string = "c" ++# sm'.obj_to_string cell
 
 inl rendered (h : frame_header) : string =
-    cell_label h.cell ++# " " ++# sm'.obj_to_string h.part ++# "/" ++# sm'.obj_to_string h.part_count
-
-inl cell_of (word : string) : option i32 =
-    if sm'.starts_with "c" word then count_of_text (sm'.slice 1i32 (sm'.length word - 1i32) word) else None
+    h.cell ++# " " ++# sm'.obj_to_string h.part ++# "/" ++# sm'.obj_to_string h.part_count
 
 type header_reading = result frame_header header_rejection
 
-inl header_in (cell : i32) (part : i32) (part_count : i32) : header_reading =
+inl header_in (cell : string) (part : i32) (part_count : i32) : header_reading =
     if part >= 1i32 && part <= part_count then Ok {cell part part_count} else Error PartOutOfRange
 
-inl fraction_of (cell : i32) (fraction : string) : header_reading =
-    match pieces "/" fraction |> each count_of_text with
-    | Cons (Some part, Cons (Some part_count, Nil)) => header_in cell part part_count
-    | _ => Error NotAFraction
+inl rest_after (at : i32) (text : string) : string = cut (at + 1i32) (sm'.length text - at - 1i32) text
+
+inl counted_after (cell : string) (part : i32) (rest : string) : header_reading =
+    match count_of_text rest with
+    | Some part_count => header_in cell part part_count
+    | None => Error NotAFraction
+
+inl split_fraction (cell : string) (slash : i32) (fraction : string) : header_reading =
+    match count_of_text (cut 0i32 slash fraction) with
+    | Some part => counted_after cell part (rest_after slash fraction)
+    | None => Error NotAFraction
+
+let fraction_of (cell : string) (fraction : string) : header_reading =
+    inl slash = sm'.index_of "/" fraction
+    if slash > 0i32 then split_fraction cell slash fraction else Error NotAFraction
+
+inl second_word (space : i32) (line : string) : string = if space > 0i32 then rest_after space line else ""
 
 let parsed (line : string) : header_reading =
-    match pieces " " line with
-    | Cons (word, Cons (fraction, Nil)) =>
-        match cell_of word with
-        | Some cell => fraction_of cell fraction
-        | None => Error NotACell
-    | _ => Error NotTwoWords
+    inl space = sm'.index_of " " line
+    inl fraction = second_word space line
+    if space <= 0i32 || sm'.index_of " " fraction >= 0i32 then Error NotTwoWords else fraction_of (cut 0i32 space line) fraction
 
-inl listed (l : list i32) : string = l |> each sm'.obj_to_string |> sm'.concat_list ", "
+inl listed (l : list i32) : string = l |> each sm'.obj_to_string |> delimited ", "
 
-inl missing_note (cell : i32) (missing : list i32) (part_count : i32) : string =
-    "cell " ++# cell_label cell ++# " is missing frame " ++# listed missing ++# " of " ++# sm'.obj_to_string part_count
+inl missing_note (cell : string) (missing : list i32) (part_count : i32) : string =
+    "cell " ++# cell ++# " is missing frame " ++# listed missing ++# " of " ++# sm'.obj_to_string part_count
 
-inl gap_note (cell : i32) (parent : string) : string =
-    "cell " ++# cell_label cell ++# " replies to " ++# parent ++# ", which is not in the thread: posts before it are missing"
+inl gap_note (cell : string) (parent : string) : string =
+    "cell " ++# cell ++# " replies to " ++# parent ++# ", which is not in the thread: posts before it are missing"
 
 inl note_of (flaw : thread_flaw) : string =
     match flaw with
@@ -61,70 +70,64 @@ inl exit_code (flaws : list thread_flaw) : i32 =
     | Nil => 0i32
     | _ => 4i32
 
-inl packed (h : frame_header) : i32 = h.cell * 10000i32 + h.part * 100i32 + h.part_count
+inl packed (h : frame_header) : i32 = h.part * 100i32 + h.part_count
 
-///> rust
-///> gleam
-///> zig
+inl read_back (r : header_reading) : string =
+    match r with
+    | Ok h => h.cell ++# sm'.obj_to_string (packed h)
+    | Error _ => "rejected"
+
 test headers_round_trip =
-    inl ~cell = 12i32
+    inl ~cell = cell_label 12i32
     inl h = {cell part = 3i32; part_count = 10i32}
     rendered h |> _assert_eq "c12 3/10"
-    match parsed (rendered h) with
-    | Ok back => packed back |> _assert_eq 120310i32
-    | Error _ => false |> _assert_eq true
+    parsed (rendered h) |> read_back |> _assert_eq "c12310"
+
+inl rejection_number (e : header_rejection) : i32 =
+    match e with
+    | NotTwoWords => 1i32
+    | NotAFraction => 2i32
+    | PartOutOfRange => 3i32
 
 inl rejection_code (r : header_reading) : i32 =
     match r with
     | Ok _ => 0i32
-    | Error NotTwoWords => 1i32
-    | Error NotACell => 2i32
-    | Error NotAFraction => 3i32
-    | Error PartOutOfRange => 4i32
+    | Error e => rejection_number e
 
 inl code_of (line : string) : i32 = parsed line |> rejection_code
 
-///> rust
-///> gleam
-///> zig
-test parts_must_fall_inside_the_total =
+test parts_must_fall_inside_the_count =
     inl ~line = "c1 4/3"
-    code_of line |> _assert_eq 4i32
-    code_of "c1 0/3" |> _assert_eq 4i32
+    code_of line |> _assert_eq 3i32
+    code_of "c1 0/3" |> _assert_eq 3i32
     code_of "c7 2/2" |> _assert_eq 0i32
+    code_of "p2 1/6" |> _assert_eq 0i32
 
-///> rust
-///> gleam
-///> zig
 test headers_are_two_words =
     inl ~line = "c1"
     code_of line |> _assert_eq 1i32
     code_of "c1  1/2" |> _assert_eq 1i32
-    code_of "x1 1/2" |> _assert_eq 2i32
-    code_of "c 1/2" |> _assert_eq 2i32
+    code_of " 1/2" |> _assert_eq 1i32
 
-///> rust
-///> gleam
-///> zig
 test the_second_word_is_a_fraction =
     inl ~line = "c1 1-2"
-    code_of line |> _assert_eq 3i32
-    code_of "c1 1/2/3" |> _assert_eq 3i32
-    code_of "c1 a/2" |> _assert_eq 3i32
+    code_of line |> _assert_eq 2i32
+    code_of "c1 1/2/3" |> _assert_eq 2i32
+    code_of "c1 a/2" |> _assert_eq 2i32
 
-///> rust
-///> gleam
-///> zig
 test a_missing_frame_names_its_cell =
-    inl ~cell = 3i32
+    inl ~cell = "c3"
     note_of (MissingFrames {cell missing = [2i32; 4]; part_count = 5i32}) |> _assert_eq "cell c3 is missing frame 2, 4 of 5"
     exit_code Nil |> _assert_eq 0i32
 
-///> rust
-///> gleam
-///> zig
 test a_reply_gap_names_the_parent =
-    inl ~cell = 3i32
+    inl ~cell = "p2"
     inl gap = ReplyGap {cell parent = "1900"}
-    note_of gap |> _assert_eq "cell c3 replies to 1900, which is not in the thread: posts before it are missing"
+    note_of gap |> _assert_eq "cell p2 replies to 1900, which is not in the thread: posts before it are missing"
     exit_code [gap] |> _assert_eq 4i32
+
+test words_beyond_ascii_are_no_header =
+    inl ~line = "c’est parti"
+    code_of line |> _assert_eq 2i32
+    code_of "c1 é/2" |> _assert_eq 2i32
+    code_of "c1 1/2…" |> _assert_eq 2i32

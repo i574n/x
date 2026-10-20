@@ -1,4 +1,6 @@
 ///- --package .
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 test splitter static =
     open testing
 
@@ -78,7 +80,7 @@ let rec chunk (b : i32) (rest : units) (p : pending) : list string =
 
 inl post_limit () : i32 = 280i32
 
-inl header (cell : i32) (part : i32) (part_count : i32) : string = rendered {cell part part_count} ++# "\n"
+inl header (cell : i32) (part : i32) (part_count : i32) : string = rendered {cell = cell_label cell; part part_count} ++# "\n"
 
 inl digit_count (n : i32) : i32 = sm'.length (sm'.obj_to_string n)
 
@@ -170,38 +172,28 @@ let rec repeated (n : i32) (s : string) (acc : string) : string = if n <= 0i32 t
 
 inl heaviest (posts : list string) : i32 = posts |> listm.fold (fun top t => if x_weight t > top then x_weight t else top) 0i32
 
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 test cells_start_at_column_zero =
     inl ~text = "a\n\nb\n  c\n\n\nd\n"
     inl cells = file_cells text
     cells |> listm.length |> _assert_eq 3i32
     cells |> sm'.concat_list "|" |> _assert_eq "a|b\n  c|\nd"
 
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 test a_short_cell_is_one_post =
     inl ~cell = "inl x = 1"
     cell_posts 4i32 cell |> sm'.concat_list "|" |> _assert_eq "c4 1/1\ninl x = 1"
     posts_of "" |> listm.length |> _assert_eq 0i32
 
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 test dots_that_x_would_link_are_defused =
     inl ~cell = "go x.io now"
     cell_posts 1i32 cell |> sm'.concat_list "|" |> _assert_eq ("c1 1/1\ngo x" ++# defused_dot () ++# "io now")
     cell_posts 1i32 "1.5" |> sm'.concat_list "|" |> _assert_eq "c1 1/1\n1.5"
 
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 test long_cells_split_between_words =
     inl ~word = "ab "
     inl posts = cell_posts 2i32 (repeated 120i32 word "")
     posts |> listm.length |> _assert_eq 2i32
-    heaviest posts <= post_limit () |> _assert_eq true
+    (heaviest posts <= post_limit ()) |> _assert_eq true
 
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 test previews_price_every_post =
     inl ~n = 15i32
     dollars n |> _assert_eq "$0.015"

@@ -22,60 +22,55 @@ enum UH0 {
 }
 #[derive(Clone)]
 enum US1 {
-    US1_Ok(Rc<UH0>),
-    US1_Error(Rc<str>),
-}
-#[derive(Clone)]
-enum US2 {
-    US2_DeletePost(Rc<str>),
-}
-#[derive(Clone)]
-enum US4 {
-    US4_HttpStatus(i32, Rc<str>, Rc<str>),
-    US4_Transport(Rc<str>, Rc<str>),
-    US4_Undecodable(Rc<str>, Rc<str>),
-    US4_NoSuchAccount(Rc<str>),
+    US1_DeletePost(Rc<str>),
 }
 #[derive(Clone)]
 enum US3 {
-    US3_Ok(bool),
-    US3_Error(US4),
+    US3_HttpStatus(i32, Rc<str>, Rc<str>),
+    US3_Transport(Rc<str>, Rc<str>),
+    US3_Undecodable(Rc<str>, Rc<str>),
+    US3_NoSuchAccount(Rc<str>),
+}
+#[derive(Clone)]
+enum US2 {
+    US2_Ok(bool),
+    US2_Error(US3),
+}
+#[derive(Clone)]
+enum US4 {
+    US4_Read,
+    US4_Write(Rc<str>),
+    US4_Remove,
 }
 #[derive(Clone)]
 enum US5 {
-    US5_Read,
-    US5_Write(Rc<str>),
-    US5_Remove,
+    US5_Ok(serde_json::Value, Rc<str>),
+    US5_Error(US3),
 }
 #[derive(Clone)]
 enum US6 {
-    US6_Ok(serde_json::Value, Rc<str>),
-    US6_Error(US4),
+    US6_Ok(serde_json::Value),
+    US6_Error(US3),
 }
 #[derive(Clone)]
 enum US7 {
-    US7_Ok(serde_json::Value),
-    US7_Error(US4),
+    US7_Ok(Rc<str>),
+    US7_Error(Rc<str>),
 }
 #[derive(Clone)]
 enum US8 {
-    US8_Ok(Rc<str>),
-    US8_Error(Rc<str>),
+    US8_Unstarted,
+    US8_After(Rc<str>, Rc<str>),
 }
 #[derive(Clone)]
 enum US9 {
     US9_CreatePost(Rc<str>),
-    US9_ReplyPost(Rc<str>, Rc<str>),
+    US9_ReplyPost(Rc<str>, Rc<str>, Rc<str>),
 }
 #[derive(Clone)]
 enum US10 {
     US10_Ok(Rc<str>, Rc<str>),
-    US10_Error(US4),
-}
-#[derive(Clone)]
-enum US11 {
-    US11_Ok(Rc<str>),
-    US11_Error(US4),
+    US10_Error(US3),
 }
 fn closure1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: i32, mut v9: Rc<str>) -> Rc<dyn Fn(i32) -> (Rc<str>, US0)> {
     Rc::new(move |mut v10: i32| -> (Rc<str>, US0) {
@@ -87,34 +82,33 @@ fn closure1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, 
             let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v12));
             v13.clone()
         };
-        let mut v15: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let mut v16: bool = v15 != true;
-        if v16 {
-            let mut v17: i32 = (v0.clone().len() as i32);
-            let mut v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-            let mut v19: bool = v0.ends_with(&*v18);
-            let mut v22: Rc<str> = if v19 {
-                let mut v20: i32 = v17.wrapping_sub(2i32);
-                let mut v21: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v20 as i64);
-                v21.clone()
+        let mut v15: bool = v1.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        if v15 {
+            let mut v16: i32 = (v0.clone().len() as i32);
+            let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
+            let mut v18: bool = v0.ends_with(&*v17);
+            let mut v21: Rc<str> = if v18 {
+                let mut v19: i32 = v16.wrapping_sub(2i32);
+                let mut v20: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v19 as i64);
+                v20.clone()
             } else {
                 v0.clone()
             };
-            let mut v23: US0 = US0::US0_BearerToken(v1.clone());
-            (v22.clone(), v23.clone())
+            let mut v22: US0 = US0::US0_BearerToken(v1.clone());
+            (v21.clone(), v22.clone())
         } else {
-            let mut v24: i32 = (v0.clone().len() as i32);
-            let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-            let mut v26: bool = v0.ends_with(&*v25);
-            let mut v29: Rc<str> = if v26 {
-                let mut v27: i32 = v24.wrapping_sub(2i32);
-                let mut v28: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v27 as i64);
-                v28.clone()
+            let mut v23: i32 = (v0.clone().len() as i32);
+            let mut v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
+            let mut v25: bool = v0.ends_with(&*v24);
+            let mut v28: Rc<str> = if v25 {
+                let mut v26: i32 = v23.wrapping_sub(2i32);
+                let mut v27: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v26 as i64);
+                v27.clone()
             } else {
                 v0.clone()
             };
-            let mut v30: US0 = US0::US0_Signed(v2.clone(), v3.clone(), v4.clone(), v5.clone(), v14.clone(), v7.clone());
-            (v29.clone(), v30.clone())
+            let mut v29: US0 = US0::US0_Signed(v2.clone(), v3.clone(), v4.clone(), v5.clone(), v14.clone(), v7.clone());
+            (v28.clone(), v29.clone())
         }
     })
 }
@@ -151,18 +145,18 @@ fn method3(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
         }
     }
 }
-fn raw_reply_5(mut v0: Rc<str>, mut v1: US0, mut v2: US5, mut v3: Rc<str>) -> US6 {
+fn raw_reply_5(mut v0: Rc<str>, mut v1: US0, mut v2: US4, mut v3: Rc<str>) -> US5 {
     let mut v4: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v3));
     let mut v11: Rc<str> = match &v2 {
-        US5::US5_Read => {
+        US4::US4_Read => {
             let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("GET"); } LIT.with(|lit| lit.clone()) };
             v5.clone()
         }
-        US5::US5_Remove => {
+        US4::US4_Remove => {
             let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("DELETE"); } LIT.with(|lit| lit.clone()) };
             v8.clone()
         }
-        US5::US5_Write(v6) => {
+        US4::US4_Write(v6) => {
             let mut v6: Rc<str> = v6.clone();
             let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("POST"); } LIT.with(|lit| lit.clone()) };
             v7.clone()
@@ -187,7 +181,7 @@ fn raw_reply_5(mut v0: Rc<str>, mut v1: US0, mut v2: US5, mut v3: Rc<str>) -> US
         }
     };
     let mut v26: Rc<str> = match &v2 {
-        US5::US5_Write(v24) => {
+        US4::US4_Write(v24) => {
             let mut v24: Rc<str> = v24.clone();
             v24.clone()
         }
@@ -198,9 +192,9 @@ fn raw_reply_5(mut v0: Rc<str>, mut v1: US0, mut v2: US5, mut v3: Rc<str>) -> US
     };
     let (mut v27, mut v28): (i32, Rc<str>) = xc_net::xc_send(&*v11, &*v4, &*v23, &*v26);
     let mut v29: bool = v27 == 0i32;
-    let mut v89: US7 = if v29 {
-        let mut v30: US4 = US4::US4_Transport(v3.clone(), v28.clone());
-        US7::US7_Error(v30.clone())
+    let mut v85: US6 = if v29 {
+        let mut v30: US3 = US3::US3_Transport(v3.clone(), v28.clone());
+        US6::US6_Error(v30.clone())
     } else {
         let mut v32: bool = v27 >= 200i32;
         let mut v34: bool = if v32 {
@@ -218,120 +212,116 @@ fn raw_reply_5(mut v0: Rc<str>, mut v1: US0, mut v2: US5, mut v3: Rc<str>) -> US
             let mut v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("detail"); } LIT.with(|lit| lit.clone()) };
             let mut v41: serde_json::Value = v36.get(&*v40).cloned().unwrap_or_default();
             let mut v42: Rc<str> = Rc::<str>::from(v41.as_str().unwrap_or(""));
-            let mut v43: bool = v39.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let mut v44: bool = v43 != true;
-            let mut v47: bool = if v44 {
-                let mut v45: bool = v42.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let mut v46: bool = v45 != true;
+            let mut v43: bool = v39.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let mut v45: bool = if v43 {
+                let mut v44: bool = v42.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                v44
+            } else {
+                false
+            };
+            let mut v47: bool = if v45 {
+                let mut v46: bool = v39.clone() != v42.clone();
                 v46
             } else {
                 false
             };
-            let mut v50: bool = if v47 {
-                let mut v48: bool = v39.clone() == v42.clone();
-                let mut v49: bool = v48 != true;
-                v49
+            let mut v69: Rc<str> = if v47 {
+                let mut v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
+                let mut v49: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v48));
+                let mut v50: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v42));
+                v50.clone()
             } else {
-                false
-            };
-            let mut v73: Rc<str> = if v50 {
-                let mut v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                let mut v52: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v51));
-                let mut v53: Rc<str> = Rc::<str>::from(format!("{}{}", v52, v42));
-                v53.clone()
-            } else {
-                let mut v54: bool = v42.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let mut v55: bool = v54 != true;
-                if v55 {
+                let mut v51: bool = v42.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                if v51 {
                     v42.clone()
                 } else {
-                    if v44 {
+                    if v43 {
                         v39.clone()
                     } else {
-                        let mut v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r\n"); } LIT.with(|lit| lit.clone()) };
-                        let mut v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-                        let mut v58: Rc<str> = Rc::<str>::from(v28.replace(&*v56, &*v57));
-                        let mut v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                        let mut v60: Rc<str> = Rc::<str>::from(v58.replace(&*v59, &*v57));
-                        let mut v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
-                        let mut v62: Rc<str> = Rc::<str>::from(v60.replace(&*v61, &*v57));
-                        let mut v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
-                        let mut v64: Rc<str> = Rc::<str>::from(v62.replace(&*v63, &*v57));
-                        let mut v65: i32 = (v64.clone().len() as i32);
-                        let mut v66: bool = v65 <= 300i32;
-                        if v66 {
-                            v64.clone()
+                        let mut v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r\n"); } LIT.with(|lit| lit.clone()) };
+                        let mut v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+                        let mut v54: Rc<str> = Rc::<str>::from(v28.replace(&*v52, &*v53));
+                        let mut v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                        let mut v56: Rc<str> = Rc::<str>::from(v54.replace(&*v55, &*v53));
+                        let mut v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r"); } LIT.with(|lit| lit.clone()) };
+                        let mut v58: Rc<str> = Rc::<str>::from(v56.replace(&*v57, &*v53));
+                        let mut v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
+                        let mut v60: Rc<str> = Rc::<str>::from(v58.replace(&*v59, &*v53));
+                        let mut v61: i32 = (v60.clone().len() as i32);
+                        let mut v62: bool = v61 <= 300i32;
+                        if v62 {
+                            v60.clone()
                         } else {
-                            let mut v67: Rc<str> = string_slice(&v64.clone(), 0i32 as i64, 299i32 as i64);
-                            let mut v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
-                            let mut v69: Rc<str> = Rc::<str>::from(format!("{}{}", v67, v68));
-                            v69.clone()
+                            let mut v63: Rc<str> = string_slice(&v60.clone(), 0i32 as i64, 299i32 as i64);
+                            let mut v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
+                            let mut v65: Rc<str> = Rc::<str>::from(format!("{}{}", v63, v64));
+                            v65.clone()
                         }
                     }
                 }
             };
-            let mut v74: US4 = US4::US4_HttpStatus(v27, v3.clone(), v73.clone());
-            US7::US7_Error(v74.clone())
+            let mut v70: US3 = US3::US3_HttpStatus(v27, v3.clone(), v69.clone());
+            US6::US6_Error(v70.clone())
         } else {
-            let mut v76: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v28).unwrap_or_default();
-            let mut v77: bool = v76.is_null();
-            if v77 {
-                let mut v78: i32 = (v28.clone().len() as i32);
-                let mut v79: bool = v78 <= 300i32;
-                let mut v83: Rc<str> = if v79 {
+            let mut v72: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v28).unwrap_or_default();
+            let mut v73: bool = v72.is_null();
+            if v73 {
+                let mut v74: i32 = (v28.clone().len() as i32);
+                let mut v75: bool = v74 <= 300i32;
+                let mut v79: Rc<str> = if v75 {
                     v28.clone()
                 } else {
-                    let mut v80: Rc<str> = string_slice(&v28.clone(), 0i32 as i64, 299i32 as i64);
-                    let mut v81: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
-                    let mut v82: Rc<str> = Rc::<str>::from(format!("{}{}", v80, v81));
-                    v82.clone()
+                    let mut v76: Rc<str> = string_slice(&v28.clone(), 0i32 as i64, 299i32 as i64);
+                    let mut v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
+                    let mut v78: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v77));
+                    v78.clone()
                 };
-                let mut v84: US4 = US4::US4_Undecodable(v3.clone(), v83.clone());
-                US7::US7_Error(v84.clone())
+                let mut v80: US3 = US3::US3_Undecodable(v3.clone(), v79.clone());
+                US6::US6_Error(v80.clone())
             } else {
-                US7::US7_Ok(v76.clone())
+                US6::US6_Ok(v72.clone())
             }
         }
     };
-    match &v89 {
-        US7::US7_Error(v92) => {
-            let mut v92: US4 = v92.clone();
-            US6::US6_Error(v92.clone())
+    match &v85 {
+        US6::US6_Error(v88) => {
+            let mut v88: US3 = v88.clone();
+            US5::US5_Error(v88.clone())
         }
-        US7::US7_Ok(v90) => {
-            let mut v90: serde_json::Value = v90.clone();
-            US6::US6_Ok(v90.clone(), v28.clone())
+        US6::US6_Ok(v86) => {
+            let mut v86: serde_json::Value = v86.clone();
+            US5::US5_Ok(v86.clone(), v28.clone())
         }
     }
 }
-fn send_write_4(mut v0: Rc<str>, mut v1: US0, mut v2: US2) -> US3 {
-    let mut v5: US5 = match &v2 {
-        US2::US2_DeletePost(v3) => {
+fn send_write_4(mut v0: Rc<str>, mut v1: US0, mut v2: US1) -> US2 {
+    let mut v5: US4 = match &v2 {
+        US1::US1_DeletePost(v3) => {
             let mut v3: Rc<str> = v3.clone();
-            US5::US5_Remove
+            US4::US4_Remove
         }
     };
     let mut v9: Rc<str> = match &v2 {
-        US2::US2_DeletePost(v6) => {
+        US1::US1_DeletePost(v6) => {
             let mut v6: Rc<str> = v6.clone();
             let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/2/tweets/"); } LIT.with(|lit| lit.clone()) };
             let mut v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v6));
             v8.clone()
         }
     };
-    let mut v10: US6 = raw_reply_5(v0.clone(), v1.clone(), v5.clone(), v9.clone());
+    let mut v10: US5 = raw_reply_5(v0.clone(), v1.clone(), v5.clone(), v9.clone());
     match &v10 {
-        US6::US6_Error(v21) => {
-            let mut v21: US4 = v21.clone();
-            US3::US3_Error(v21.clone())
+        US5::US5_Error(v21) => {
+            let mut v21: US3 = v21.clone();
+            US2::US2_Error(v21.clone())
         }
-        US6::US6_Ok(v11, v12) => {
+        US5::US5_Ok(v11, v12) => {
             let mut v11: serde_json::Value = v11.clone();
             let mut v12: Rc<str> = v12.clone();
             let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("data"); } LIT.with(|lit| lit.clone()) };
             let mut v14: serde_json::Value = v11.get(&*v13).cloned().unwrap_or_default();
             let mut v19: bool = match &v2 {
-                US2::US2_DeletePost(v15) => {
+                US1::US1_DeletePost(v15) => {
                     let mut v15: Rc<str> = v15.clone();
                     let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deleted"); } LIT.with(|lit| lit.clone()) };
                     let mut v17: serde_json::Value = v14.get(&*v16).cloned().unwrap_or_default();
@@ -339,111 +329,113 @@ fn send_write_4(mut v0: Rc<str>, mut v1: US0, mut v2: US2) -> US3 {
                     v18
                 }
             };
-            US3::US3_Ok(v19)
+            US2::US2_Ok(v19)
         }
     }
 }
-fn method2(mut v0: Rc<dyn Fn(i32) -> (Rc<str>, US0)>, mut v1: Rc<UH0>, mut v2: US1) -> US1 {
-    loop {
-        match &*v1 {
-            UH0::UH0_Cons(v3, v4) => {
-                let mut v3: Rc<str> = v3.clone();
-                let mut v4: Rc<UH0> = v4.clone();
-                let mut v67: US1 = match &v2 {
-                    US1::US1_Error(v65) => {
-                        let mut v65: Rc<str> = v65.clone();
-                        v2.clone()
-                    }
-                    US1::US1_Ok(v5) => {
-                        let mut v5: Rc<UH0> = v5.clone();
-                        let mut v6: i32 = 0i32;
-                        let mut v7: i32 = method3(v5.clone(), v6);
-                        let mut v8: i32 = v7.wrapping_add(1i32);
-                        let (mut v9, mut v10): (Rc<str>, US0) = v0(v8);
-                        let mut v11: US2 = US2::US2_DeletePost(v3.clone());
-                        let mut v12: US3 = send_write_4(v9.clone(), v10.clone(), v11.clone());
-                        let mut v57: US8 = match &v12 {
-                            US3::US3_Error(v21) => {
-                                let mut v21: US4 = v21.clone();
-                                let mut v54: Rc<str> = match &v21 {
-                                    US4::US4_HttpStatus(v22, v23, v24) => {
-                                        let mut v22: i32 = *v22;
-                                        let mut v23: Rc<str> = v23.clone();
-                                        let mut v24: Rc<str> = v24.clone();
-                                        let mut v25: Rc<str> = Rc::<str>::from(format!("{:?}", v22));
-                                        let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) };
-                                        let mut v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v25));
-                                        let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
-                                        let mut v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
-                                        let mut v30: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v23));
-                                        let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                                        let mut v32: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v31));
-                                        let mut v33: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v24));
-                                        v33.clone()
-                                    }
-                                    US4::US4_NoSuchAccount(v48) => {
-                                        let mut v48: Rc<str> = v48.clone();
-                                        let mut v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no X account @"); } LIT.with(|lit| lit.clone()) };
-                                        let mut v50: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v48));
-                                        v50.clone()
-                                    }
-                                    US4::US4_Transport(v34, v35) => {
-                                        let mut v34: Rc<str> = v34.clone();
-                                        let mut v35: Rc<str> = v35.clone();
-                                        let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not reach the X API for "); } LIT.with(|lit| lit.clone()) };
-                                        let mut v37: Rc<str> = Rc::<str>::from(format!("{}{}", v36, v34));
-                                        let mut v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                                        let mut v39: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v38));
-                                        let mut v40: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v35));
-                                        v40.clone()
-                                    }
-                                    US4::US4_Undecodable(v41, v42) => {
-                                        let mut v41: Rc<str> = v41.clone();
-                                        let mut v42: Rc<str> = v42.clone();
-                                        let mut v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) };
-                                        let mut v44: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v41));
-                                        let mut v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                                        let mut v46: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v45));
-                                        let mut v47: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v42));
-                                        v47.clone()
-                                    }
-                                };
-                                US8::US8_Error(v54.clone())
-                            }
-                            US3::US3_Ok(v13) => {
-                                let mut v13: bool = *v13;
-                                if v13 {
-                                    let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deleted "); } LIT.with(|lit| lit.clone()) };
-                                    let mut v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v3));
-                                    US8::US8_Ok(v15.clone())
-                                } else {
-                                    let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not deleted "); } LIT.with(|lit| lit.clone()) };
-                                    let mut v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v3));
-                                    US8::US8_Error(v18.clone())
-                                }
-                            }
-                        };
-                        match &v57 {
-                            US8::US8_Error(v61) => {
-                                let mut v61: Rc<str> = v61.clone();
-                                US1::US1_Error(v61.clone())
-                            }
-                            US8::US8_Ok(v58) => {
-                                let mut v58: Rc<str> = v58.clone();
-                                let mut v59: Rc<UH0> = Rc::new(UH0::UH0_Cons(v58.clone(), v5.clone()));
-                                US1::US1_Ok(v59.clone())
-                            }
+fn method2(mut v0: Rc<dyn Fn(i32) -> (Rc<str>, US0)>, mut v1: Rc<UH0>, mut v2: Rc<UH0>, mut v3: bool) -> (Rc<UH0>, bool) {
+    let (mut v70, mut v71): (Rc<UH0>, bool) = match &*v1 {
+        UH0::UH0_Cons(v4, v5) => {
+            let mut v4: Rc<str> = v4.clone();
+            let mut v5: Rc<UH0> = v5.clone();
+            let mut v6: i32 = 0i32;
+            let mut v7: i32 = method3(v2.clone(), v6);
+            let mut v8: i32 = v7.wrapping_add(1i32);
+            let (mut v9, mut v10): (Rc<str>, US0) = v0(v8);
+            let mut v11: US1 = US1::US1_DeletePost(v4.clone());
+            let mut v12: US2 = send_write_4(v9.clone(), v10.clone(), v11.clone());
+            let mut v57: US7 = match &v12 {
+                US2::US2_Error(v21) => {
+                    let mut v21: US3 = v21.clone();
+                    let mut v54: Rc<str> = match &v21 {
+                        US3::US3_HttpStatus(v22, v23, v24) => {
+                            let mut v22: i32 = *v22;
+                            let mut v23: Rc<str> = v23.clone();
+                            let mut v24: Rc<str> = v24.clone();
+                            let mut v25: Rc<str> = Rc::<str>::from(format!("{:?}", v22));
+                            let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) };
+                            let mut v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v25));
+                            let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
+                            let mut v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
+                            let mut v30: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v23));
+                            let mut v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
+                            let mut v32: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v31));
+                            let mut v33: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v24));
+                            v33.clone()
                         }
+                        US3::US3_NoSuchAccount(v48) => {
+                            let mut v48: Rc<str> = v48.clone();
+                            let mut v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no X account @"); } LIT.with(|lit| lit.clone()) };
+                            let mut v50: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v48));
+                            v50.clone()
+                        }
+                        US3::US3_Transport(v34, v35) => {
+                            let mut v34: Rc<str> = v34.clone();
+                            let mut v35: Rc<str> = v35.clone();
+                            let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not reach the X API for "); } LIT.with(|lit| lit.clone()) };
+                            let mut v37: Rc<str> = Rc::<str>::from(format!("{}{}", v36, v34));
+                            let mut v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
+                            let mut v39: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v38));
+                            let mut v40: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v35));
+                            v40.clone()
+                        }
+                        US3::US3_Undecodable(v41, v42) => {
+                            let mut v41: Rc<str> = v41.clone();
+                            let mut v42: Rc<str> = v42.clone();
+                            let mut v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) };
+                            let mut v44: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v41));
+                            let mut v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
+                            let mut v46: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v45));
+                            let mut v47: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v42));
+                            v47.clone()
+                        }
+                    };
+                    US7::US7_Error(v54.clone())
+                }
+                US2::US2_Ok(v13) => {
+                    let mut v13: bool = *v13;
+                    if v13 {
+                        let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deleted "); } LIT.with(|lit| lit.clone()) };
+                        let mut v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v4));
+                        US7::US7_Ok(v15.clone())
+                    } else {
+                        let mut v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not deleted "); } LIT.with(|lit| lit.clone()) };
+                        let mut v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v4));
+                        US7::US7_Error(v18.clone())
                     }
-                };
-                (v0, v1, v2) = (v0.clone(), v4.clone(), v67.clone());
-                continue;
-            }
-            UH0::UH0_Nil => {
-                return v2.clone();
-            }
+                }
+            };
+            let (mut v64, mut v65): (Rc<UH0>, bool) = match &v57 {
+                US7::US7_Ok(v58) => {
+                    let mut v58: Rc<str> = v58.clone();
+                    let mut v59: Rc<UH0> = Rc::new(UH0::UH0_Cons(v58.clone(), v2.clone()));
+                    (v59.clone(), v3)
+                }
+                _ => {
+                    let (mut v62, mut v63): (Rc<UH0>, bool) = match &v57 {
+                        US7::US7_Error(v60) => {
+                            let mut v60: Rc<str> = v60.clone();
+                            let mut v61: Rc<UH0> = Rc::new(UH0::UH0_Cons(v60.clone(), v2.clone()));
+                            (v61.clone(), true)
+                        }
+                        _ => unreachable!(),
+                    };
+                    (v62.clone(), v63)
+                }
+            };
+            method2(v0.clone(), v5.clone(), v64.clone(), v65)
         }
-    }
+        _ => {
+            let (mut v68, mut v69): (Rc<UH0>, bool) = match &*v1 {
+                UH0::UH0_Nil => {
+                    (v2.clone(), v3)
+                }
+                _ => unreachable!(),
+            };
+            (v68.clone(), v69)
+        }
+    };
+    (v70.clone(), v71)
 }
 fn method6(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {
@@ -461,47 +453,43 @@ fn method6(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
         }
     }
 }
-fn method7(mut v0: Rc<UH0>, mut v1: Rc<str>) -> (Rc<str>, Rc<str>) {
-    let (mut v11, mut v12): (Rc<str>, Rc<str>) = match &*v0 {
-        UH0::UH0_Cons(v2, v3) => {
-            let mut v2: Rc<str> = v2.clone();
-            let mut v3: Rc<UH0> = v3.clone();
-            let (mut v4, mut v5): (Rc<str>, Rc<str>) = method7(v3.clone(), v1.clone());
-            let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v5));
-            let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v4));
-            let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            (v7.clone(), v8.clone())
+fn method7(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> (Rc<str>, Rc<str>) {
+    let (mut v12, mut v13): (Rc<str>, Rc<str>) = match &*v0 {
+        UH0::UH0_Cons(v3, v4) => {
+            let mut v3: Rc<str> = v3.clone();
+            let mut v4: Rc<UH0> = v4.clone();
+            let (mut v5, mut v6): (Rc<str>, Rc<str>) = method7(v4.clone(), v1.clone(), v2.clone());
+            let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v6));
+            let mut v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v5));
+            let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+            (v8.clone(), v9.clone())
         }
         _ => {
-            let (mut v9, mut v10): (Rc<str>, Rc<str>) = match &*v0 {
+            let (mut v10, mut v11): (Rc<str>, Rc<str>) = match &*v0 {
                 UH0::UH0_Nil => {
-                    (v1.clone(), v1.clone())
+                    (v1.clone(), v2.clone())
                 }
                 _ => unreachable!(),
             };
-            (v9.clone(), v10.clone())
+            (v10.clone(), v11.clone())
         }
     };
-    (v11.clone(), v12.clone())
+    (v12.clone(), v13.clone())
 }
 fn removed_all_1(mut v0: Rc<dyn Fn(i32) -> (Rc<str>, US0)>, mut v1: Rc<UH0>) -> (i32, Rc<str>) {
     let mut v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let mut v3: US1 = US1::US1_Ok(v2.clone());
-    let mut v4: US1 = method2(v0.clone(), v1.clone(), v3.clone());
-    match &v4 {
-        US1::US1_Error(v11) => {
-            let mut v11: Rc<str> = v11.clone();
-            (4i32, v11.clone())
-        }
-        US1::US1_Ok(v5) => {
-            let mut v5: Rc<UH0> = v5.clone();
-            let mut v6: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            let mut v7: Rc<UH0> = method6(v5.clone(), v6.clone());
-            let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let (mut v9, mut v10): (Rc<str>, Rc<str>) = method7(v7.clone(), v8.clone());
-            (0i32, v9.clone())
-        }
-    }
+    let mut v3: bool = false;
+    let (mut v4, mut v5): (Rc<UH0>, bool) = method2(v0.clone(), v1.clone(), v2.clone(), v3);
+    let mut v6: i32 = if v5 {
+        4i32
+    } else {
+        0i32
+    };
+    let mut v7: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+    let mut v8: Rc<UH0> = method6(v4.clone(), v7.clone());
+    let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let (mut v10, mut v11): (Rc<str>, Rc<str>) = method7(v8.clone(), v9.clone(), v9.clone());
+    (v6, v10.clone())
 }
 fn from_8(mut v0: serde_json::Value, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
     loop {
@@ -521,94 +509,97 @@ fn from_8(mut v0: serde_json::Value, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
     }
 }
 fn send_write_10(mut v0: Rc<str>, mut v1: US0, mut v2: US9) -> US10 {
-    let mut v11: US5 = match &v2 {
+    let mut v12: US4 = match &v2 {
         US9::US9_CreatePost(v3) => {
             let mut v3: Rc<str> = v3.clone();
             let mut v4: Rc<str> = Rc::<str>::from(serde_json::json!({"text": &*v3}).to_string());
-            US5::US5_Write(v4.clone())
+            US4::US4_Write(v4.clone())
         }
-        US9::US9_ReplyPost(v6, v7) => {
+        US9::US9_ReplyPost(v6, v7, v8) => {
             let mut v6: Rc<str> = v6.clone();
             let mut v7: Rc<str> = v7.clone();
-            let mut v8: Rc<str> = Rc::<str>::from(serde_json::json!({"text": &*v6, "reply": {"in_reply_to_tweet_id": &*v7}}).to_string());
-            US5::US5_Write(v8.clone())
+            let mut v8: Rc<str> = v8.clone();
+            let mut v9: Rc<str> = Rc::<str>::from(serde_json::json!({"text": &*v6, "reply": {"in_reply_to_tweet_id": &*v7}}).to_string());
+            US4::US4_Write(v9.clone())
         }
     };
-    let mut v18: Rc<str> = match &v2 {
-        US9::US9_CreatePost(v12) => {
-            let mut v12: Rc<str> = v12.clone();
-            let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/2/tweets"); } LIT.with(|lit| lit.clone()) };
-            v13.clone()
+    let mut v20: Rc<str> = match &v2 {
+        US9::US9_CreatePost(v13) => {
+            let mut v13: Rc<str> = v13.clone();
+            let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/2/tweets"); } LIT.with(|lit| lit.clone()) };
+            v14.clone()
         }
-        US9::US9_ReplyPost(v14, v15) => {
-            let mut v14: Rc<str> = v14.clone();
+        US9::US9_ReplyPost(v15, v16, v17) => {
             let mut v15: Rc<str> = v15.clone();
-            let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/2/tweets"); } LIT.with(|lit| lit.clone()) };
-            v16.clone()
+            let mut v16: Rc<str> = v16.clone();
+            let mut v17: Rc<str> = v17.clone();
+            let mut v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/2/tweets"); } LIT.with(|lit| lit.clone()) };
+            v18.clone()
         }
     };
-    let mut v19: US6 = raw_reply_5(v0.clone(), v1.clone(), v11.clone(), v18.clone());
-    match &v19 {
-        US6::US6_Error(v44) => {
-            let mut v44: US4 = v44.clone();
-            US10::US10_Error(v44.clone())
+    let mut v21: US5 = raw_reply_5(v0.clone(), v1.clone(), v12.clone(), v20.clone());
+    match &v21 {
+        US5::US5_Error(v47) => {
+            let mut v47: US3 = v47.clone();
+            US10::US10_Error(v47.clone())
         }
-        US6::US6_Ok(v20, v21) => {
-            let mut v20: serde_json::Value = v20.clone();
-            let mut v21: Rc<str> = v21.clone();
-            let mut v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("data"); } LIT.with(|lit| lit.clone()) };
-            let mut v23: serde_json::Value = v20.get(&*v22).cloned().unwrap_or_default();
-            let (mut v41, mut v42): (Rc<str>, Rc<str>) = match &v2 {
-                US9::US9_CreatePost(v24) => {
-                    let mut v24: Rc<str> = v24.clone();
-                    let mut v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("id"); } LIT.with(|lit| lit.clone()) };
-                    let mut v26: serde_json::Value = v23.get(&*v25).cloned().unwrap_or_default();
-                    let mut v27: Rc<str> = Rc::<str>::from(v26.as_str().unwrap_or(""));
-                    let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("text"); } LIT.with(|lit| lit.clone()) };
-                    let mut v29: serde_json::Value = v23.get(&*v28).cloned().unwrap_or_default();
-                    let mut v30: Rc<str> = Rc::<str>::from(v29.as_str().unwrap_or(""));
-                    (v27.clone(), v30.clone())
+        US5::US5_Ok(v22, v23) => {
+            let mut v22: serde_json::Value = v22.clone();
+            let mut v23: Rc<str> = v23.clone();
+            let mut v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("data"); } LIT.with(|lit| lit.clone()) };
+            let mut v25: serde_json::Value = v22.get(&*v24).cloned().unwrap_or_default();
+            let (mut v44, mut v45): (Rc<str>, Rc<str>) = match &v2 {
+                US9::US9_CreatePost(v26) => {
+                    let mut v26: Rc<str> = v26.clone();
+                    let mut v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("id"); } LIT.with(|lit| lit.clone()) };
+                    let mut v28: serde_json::Value = v25.get(&*v27).cloned().unwrap_or_default();
+                    let mut v29: Rc<str> = Rc::<str>::from(v28.as_str().unwrap_or(""));
+                    let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("text"); } LIT.with(|lit| lit.clone()) };
+                    let mut v31: serde_json::Value = v25.get(&*v30).cloned().unwrap_or_default();
+                    let mut v32: Rc<str> = Rc::<str>::from(v31.as_str().unwrap_or(""));
+                    (v29.clone(), v32.clone())
                 }
-                US9::US9_ReplyPost(v31, v32) => {
-                    let mut v31: Rc<str> = v31.clone();
-                    let mut v32: Rc<str> = v32.clone();
-                    let mut v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("id"); } LIT.with(|lit| lit.clone()) };
-                    let mut v34: serde_json::Value = v23.get(&*v33).cloned().unwrap_or_default();
-                    let mut v35: Rc<str> = Rc::<str>::from(v34.as_str().unwrap_or(""));
-                    let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("text"); } LIT.with(|lit| lit.clone()) };
-                    let mut v37: serde_json::Value = v23.get(&*v36).cloned().unwrap_or_default();
+                US9::US9_ReplyPost(v33, v34, v35) => {
+                    let mut v33: Rc<str> = v33.clone();
+                    let mut v34: Rc<str> = v34.clone();
+                    let mut v35: Rc<str> = v35.clone();
+                    let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("id"); } LIT.with(|lit| lit.clone()) };
+                    let mut v37: serde_json::Value = v25.get(&*v36).cloned().unwrap_or_default();
                     let mut v38: Rc<str> = Rc::<str>::from(v37.as_str().unwrap_or(""));
-                    (v35.clone(), v38.clone())
+                    let mut v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("text"); } LIT.with(|lit| lit.clone()) };
+                    let mut v40: serde_json::Value = v25.get(&*v39).cloned().unwrap_or_default();
+                    let mut v41: Rc<str> = Rc::<str>::from(v40.as_str().unwrap_or(""));
+                    (v38.clone(), v41.clone())
                 }
             };
-            US10::US10_Ok(v41.clone(), v42.clone())
+            US10::US10_Ok(v44.clone(), v45.clone())
         }
     }
 }
-fn method11(mut v0: Rc<UH0>, mut v1: Rc<str>) -> (Rc<str>, Rc<str>) {
-    let (mut v11, mut v12): (Rc<str>, Rc<str>) = match &*v0 {
-        UH0::UH0_Cons(v2, v3) => {
-            let mut v2: Rc<str> = v2.clone();
-            let mut v3: Rc<UH0> = v3.clone();
-            let (mut v4, mut v5): (Rc<str>, Rc<str>) = method11(v3.clone(), v1.clone());
-            let mut v6: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v5));
-            let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v4));
-            let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-            (v7.clone(), v8.clone())
+fn method11(mut v0: Rc<UH0>, mut v1: Rc<str>, mut v2: Rc<str>) -> (Rc<str>, Rc<str>) {
+    let (mut v12, mut v13): (Rc<str>, Rc<str>) = match &*v0 {
+        UH0::UH0_Cons(v3, v4) => {
+            let mut v3: Rc<str> = v3.clone();
+            let mut v4: Rc<UH0> = v4.clone();
+            let (mut v5, mut v6): (Rc<str>, Rc<str>) = method11(v4.clone(), v1.clone(), v2.clone());
+            let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v3, v6));
+            let mut v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v5));
+            let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+            (v8.clone(), v9.clone())
         }
         _ => {
-            let (mut v9, mut v10): (Rc<str>, Rc<str>) = match &*v0 {
+            let (mut v10, mut v11): (Rc<str>, Rc<str>) = match &*v0 {
                 UH0::UH0_Nil => {
-                    (v1.clone(), v1.clone())
+                    (v1.clone(), v2.clone())
                 }
                 _ => unreachable!(),
             };
-            (v9.clone(), v10.clone())
+            (v10.clone(), v11.clone())
         }
     };
-    (v11.clone(), v12.clone())
+    (v12.clone(), v13.clone())
 }
-fn chained_9(mut v0: Rc<dyn Fn(i32) -> (Rc<str>, US0)>, mut v1: Rc<UH0>, mut v2: Rc<str>, mut v3: Rc<UH0>, mut v4: Rc<UH0>) -> (i32, Rc<str>) {
+fn chained_9(mut v0: Rc<dyn Fn(i32) -> (Rc<str>, US0)>, mut v1: Rc<UH0>, mut v2: US8, mut v3: Rc<UH0>, mut v4: Rc<UH0>) -> (i32, Rc<str>) {
     loop {
         match &*v1 {
             UH0::UH0_Cons(v10, v11) => {
@@ -618,107 +609,102 @@ fn chained_9(mut v0: Rc<dyn Fn(i32) -> (Rc<str>, US0)>, mut v1: Rc<UH0>, mut v2:
                 let mut v13: i32 = method3(v4.clone(), v12);
                 let mut v14: i32 = v13.wrapping_add(1i32);
                 let (mut v15, mut v16): (Rc<str>, US0) = v0(v14);
-                let mut v17: bool = v2.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let mut v20: US9 = if v17 {
-                    US9::US9_CreatePost(v10.clone())
-                } else {
-                    US9::US9_ReplyPost(v10.clone(), v2.clone())
-                };
-                let mut v21: US10 = send_write_10(v15.clone(), v16.clone(), v20.clone());
-                let mut v28: US11 = match &v21 {
-                    US10::US10_Error(v25) => {
-                        let mut v25: US4 = v25.clone();
-                        US11::US11_Error(v25.clone())
+                let mut v22: US9 = match &v2 {
+                    US8::US8_After(v18, v19) => {
+                        let mut v18: Rc<str> = v18.clone();
+                        let mut v19: Rc<str> = v19.clone();
+                        US9::US9_ReplyPost(v10.clone(), v18.clone(), v19.clone())
                     }
-                    US10::US10_Ok(v22, v23) => {
-                        let mut v22: Rc<str> = v22.clone();
-                        let mut v23: Rc<str> = v23.clone();
-                        US11::US11_Ok(v22.clone())
+                    US8::US8_Unstarted => {
+                        US9::US9_CreatePost(v10.clone())
                     }
                 };
-                match &v28 {
-                    US11::US11_Error(v44) => {
-                        let mut v44: US4 = v44.clone();
-                        let mut v45: i32 = 0i32;
-                        let mut v46: i32 = method3(v4.clone(), v45);
-                        let mut v47: bool = v46 == 0i32;
-                        let mut v56: Rc<str> = if v47 {
-                            let mut v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                            v48.clone()
+                let mut v23: US10 = send_write_10(v15.clone(), v16.clone(), v22.clone());
+                match &v23 {
+                    US10::US10_Error(v41) => {
+                        let mut v41: US3 = v41.clone();
+                        let mut v42: i32 = 0i32;
+                        let mut v43: i32 = method3(v4.clone(), v42);
+                        let mut v44: bool = v43 == 0i32;
+                        let mut v53: Rc<str> = if v44 {
+                            let mut v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                            v45.clone()
                         } else {
-                            let mut v49: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                            let mut v50: Rc<UH0> = method6(v4.clone(), v49.clone());
-                            let mut v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                            let (mut v52, mut v53): (Rc<str>, Rc<str>) = method11(v50.clone(), v51.clone());
-                            let mut v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; posted before it: "); } LIT.with(|lit| lit.clone()) };
-                            let mut v55: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v52));
-                            v55.clone()
+                            let mut v46: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+                            let mut v47: Rc<UH0> = method6(v4.clone(), v46.clone());
+                            let mut v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                            let (mut v49, mut v50): (Rc<str>, Rc<str>) = method11(v47.clone(), v48.clone(), v48.clone());
+                            let mut v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; posted before it: "); } LIT.with(|lit| lit.clone()) };
+                            let mut v52: Rc<str> = Rc::<str>::from(format!("{}{}", v51, v49));
+                            v52.clone()
                         };
-                        let mut v89: Rc<str> = match &v44 {
-                            US4::US4_HttpStatus(v57, v58, v59) => {
-                                let mut v57: i32 = *v57;
-                                let mut v58: Rc<str> = v58.clone();
-                                let mut v59: Rc<str> = v59.clone();
-                                let mut v60: Rc<str> = Rc::<str>::from(format!("{:?}", v57));
-                                let mut v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) };
-                                let mut v62: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v60));
-                                let mut v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
+                        let mut v86: Rc<str> = match &v41 {
+                            US3::US3_HttpStatus(v54, v55, v56) => {
+                                let mut v54: i32 = *v54;
+                                let mut v55: Rc<str> = v55.clone();
+                                let mut v56: Rc<str> = v56.clone();
+                                let mut v57: Rc<str> = Rc::<str>::from(format!("{:?}", v54));
+                                let mut v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) };
+                                let mut v59: Rc<str> = Rc::<str>::from(format!("{}{}", v58, v57));
+                                let mut v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
+                                let mut v61: Rc<str> = Rc::<str>::from(format!("{}{}", v59, v60));
+                                let mut v62: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v55));
+                                let mut v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
                                 let mut v64: Rc<str> = Rc::<str>::from(format!("{}{}", v62, v63));
-                                let mut v65: Rc<str> = Rc::<str>::from(format!("{}{}", v64, v58));
-                                let mut v66: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                                let mut v67: Rc<str> = Rc::<str>::from(format!("{}{}", v65, v66));
-                                let mut v68: Rc<str> = Rc::<str>::from(format!("{}{}", v67, v59));
-                                v68.clone()
+                                let mut v65: Rc<str> = Rc::<str>::from(format!("{}{}", v64, v56));
+                                v65.clone()
                             }
-                            US4::US4_NoSuchAccount(v83) => {
-                                let mut v83: Rc<str> = v83.clone();
-                                let mut v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no X account @"); } LIT.with(|lit| lit.clone()) };
-                                let mut v85: Rc<str> = Rc::<str>::from(format!("{}{}", v84, v83));
-                                v85.clone()
-                            }
-                            US4::US4_Transport(v69, v70) => {
-                                let mut v69: Rc<str> = v69.clone();
-                                let mut v70: Rc<str> = v70.clone();
-                                let mut v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not reach the X API for "); } LIT.with(|lit| lit.clone()) };
-                                let mut v72: Rc<str> = Rc::<str>::from(format!("{}{}", v71, v69));
-                                let mut v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                                let mut v74: Rc<str> = Rc::<str>::from(format!("{}{}", v72, v73));
-                                let mut v75: Rc<str> = Rc::<str>::from(format!("{}{}", v74, v70));
-                                v75.clone()
-                            }
-                            US4::US4_Undecodable(v76, v77) => {
-                                let mut v76: Rc<str> = v76.clone();
-                                let mut v77: Rc<str> = v77.clone();
-                                let mut v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) };
-                                let mut v79: Rc<str> = Rc::<str>::from(format!("{}{}", v78, v76));
-                                let mut v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                                let mut v81: Rc<str> = Rc::<str>::from(format!("{}{}", v79, v80));
-                                let mut v82: Rc<str> = Rc::<str>::from(format!("{}{}", v81, v77));
+                            US3::US3_NoSuchAccount(v80) => {
+                                let mut v80: Rc<str> = v80.clone();
+                                let mut v81: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no X account @"); } LIT.with(|lit| lit.clone()) };
+                                let mut v82: Rc<str> = Rc::<str>::from(format!("{}{}", v81, v80));
                                 v82.clone()
                             }
+                            US3::US3_Transport(v66, v67) => {
+                                let mut v66: Rc<str> = v66.clone();
+                                let mut v67: Rc<str> = v67.clone();
+                                let mut v68: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not reach the X API for "); } LIT.with(|lit| lit.clone()) };
+                                let mut v69: Rc<str> = Rc::<str>::from(format!("{}{}", v68, v66));
+                                let mut v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
+                                let mut v71: Rc<str> = Rc::<str>::from(format!("{}{}", v69, v70));
+                                let mut v72: Rc<str> = Rc::<str>::from(format!("{}{}", v71, v67));
+                                v72.clone()
+                            }
+                            US3::US3_Undecodable(v73, v74) => {
+                                let mut v73: Rc<str> = v73.clone();
+                                let mut v74: Rc<str> = v74.clone();
+                                let mut v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) };
+                                let mut v76: Rc<str> = Rc::<str>::from(format!("{}{}", v75, v73));
+                                let mut v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
+                                let mut v78: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v77));
+                                let mut v79: Rc<str> = Rc::<str>::from(format!("{}{}", v78, v74));
+                                v79.clone()
+                            }
                         };
-                        let mut v90: Rc<str> = Rc::<str>::from(format!("{}{}", v89, v56));
-                        return (4i32, v90.clone());
+                        let mut v87: Rc<str> = Rc::<str>::from(format!("{}{}", v86, v53));
+                        return (4i32, v87.clone());
                     }
-                    US11::US11_Ok(v29) => {
-                        let mut v29: Rc<str> = v29.clone();
-                        let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posted "); } LIT.with(|lit| lit.clone()) };
-                        let mut v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v29));
-                        let mut v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-                        let mut v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v32));
-                        let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                        let mut v35: i32 = v10.find(&*v34).map(|i| i as i32).unwrap_or(-1);
-                        let mut v36: bool = v35 < 0i32;
-                        let mut v38: Rc<str> = if v36 {
+                    US10::US10_Ok(v24, v25) => {
+                        let mut v24: Rc<str> = v24.clone();
+                        let mut v25: Rc<str> = v25.clone();
+                        let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posted "); } LIT.with(|lit| lit.clone()) };
+                        let mut v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v24));
+                        let mut v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
+                        let mut v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
+                        let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                        let mut v31: i32 = v10.find(&*v30).map(|i| i as i32).unwrap_or(-1);
+                        let mut v32: bool = v31 < 0i32;
+                        let mut v34: Rc<str> = if v32 {
                             v10.clone()
                         } else {
-                            let mut v37: Rc<str> = Rc::<str>::from(&(v10)[((0i32) as usize)..(((0i32) + (v35)) as usize)]);
-                            v37.clone()
+                            let mut v33: Rc<str> = Rc::<str>::from(&(v10)[((0i32) as usize)..(((0i32) + (v31)) as usize)]);
+                            v33.clone()
                         };
-                        let mut v39: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v38));
-                        let mut v40: Rc<UH0> = Rc::new(UH0::UH0_Cons(v39.clone(), v3.clone()));
-                        let mut v41: Rc<UH0> = Rc::new(UH0::UH0_Cons(v29.clone(), v4.clone()));
-                        (v0, v1, v2, v3, v4) = (v0.clone(), v11.clone(), v29.clone(), v40.clone(), v41.clone());
+                        let mut v35: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v34));
+                        let mut v36: US8 = US8::US8_After(v24.clone(), v25.clone());
+                        let mut v37: Rc<UH0> = Rc::new(UH0::UH0_Cons(v35.clone(), v3.clone()));
+                        let mut v38: Rc<UH0> = Rc::new(UH0::UH0_Cons(v24.clone(), v4.clone()));
+                        (v0, v1, v2, v3, v4) = (v0.clone(), v11.clone(), v36.clone(), v37.clone(), v38.clone());
                         continue;
                     }
                 }
@@ -727,7 +713,7 @@ fn chained_9(mut v0: Rc<dyn Fn(i32) -> (Rc<str>, US0)>, mut v1: Rc<UH0>, mut v2:
                 let mut v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
                 let mut v6: Rc<UH0> = method6(v3.clone(), v5.clone());
                 let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let (mut v8, mut v9): (Rc<str>, Rc<str>) = method7(v6.clone(), v7.clone());
+                let (mut v8, mut v9): (Rc<str>, Rc<str>) = method7(v6.clone(), v7.clone(), v7.clone());
                 return (0i32, v8.clone());
             }
         }
@@ -740,9 +726,9 @@ fn write_12(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>) -> (i32,
         let mut v6: US10 = send_write_10(v0.clone(), v1.clone(), v5.clone());
         match &v6 {
             US10::US10_Error(v11) => {
-                let mut v11: US4 = v11.clone();
+                let mut v11: US3 = v11.clone();
                 let mut v44: Rc<str> = match &v11 {
-                    US4::US4_HttpStatus(v12, v13, v14) => {
+                    US3::US3_HttpStatus(v12, v13, v14) => {
                         let mut v12: i32 = *v12;
                         let mut v13: Rc<str> = v13.clone();
                         let mut v14: Rc<str> = v14.clone();
@@ -757,13 +743,13 @@ fn write_12(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>) -> (i32,
                         let mut v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v14));
                         v23.clone()
                     }
-                    US4::US4_NoSuchAccount(v38) => {
+                    US3::US3_NoSuchAccount(v38) => {
                         let mut v38: Rc<str> = v38.clone();
                         let mut v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no X account @"); } LIT.with(|lit| lit.clone()) };
                         let mut v40: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v38));
                         v40.clone()
                     }
-                    US4::US4_Transport(v24, v25) => {
+                    US3::US3_Transport(v24, v25) => {
                         let mut v24: Rc<str> = v24.clone();
                         let mut v25: Rc<str> = v25.clone();
                         let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not reach the X API for "); } LIT.with(|lit| lit.clone()) };
@@ -773,7 +759,7 @@ fn write_12(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>) -> (i32,
                         let mut v30: Rc<str> = Rc::<str>::from(format!("{}{}", v29, v25));
                         v30.clone()
                     }
-                    US4::US4_Undecodable(v31, v32) => {
+                    US3::US3_Undecodable(v31, v32) => {
                         let mut v31: Rc<str> = v31.clone();
                         let mut v32: Rc<str> = v32.clone();
                         let mut v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) };
@@ -795,13 +781,13 @@ fn write_12(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>) -> (i32,
             }
         }
     } else {
-        let mut v49: US2 = US2::US2_DeletePost(v3.clone());
-        let mut v50: US3 = send_write_4(v0.clone(), v1.clone(), v49.clone());
+        let mut v49: US1 = US1::US1_DeletePost(v3.clone());
+        let mut v50: US2 = send_write_4(v0.clone(), v1.clone(), v49.clone());
         match &v50 {
-            US3::US3_Error(v58) => {
-                let mut v58: US4 = v58.clone();
+            US2::US2_Error(v58) => {
+                let mut v58: US3 = v58.clone();
                 let mut v91: Rc<str> = match &v58 {
-                    US4::US4_HttpStatus(v59, v60, v61) => {
+                    US3::US3_HttpStatus(v59, v60, v61) => {
                         let mut v59: i32 = *v59;
                         let mut v60: Rc<str> = v60.clone();
                         let mut v61: Rc<str> = v61.clone();
@@ -816,13 +802,13 @@ fn write_12(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>) -> (i32,
                         let mut v70: Rc<str> = Rc::<str>::from(format!("{}{}", v69, v61));
                         v70.clone()
                     }
-                    US4::US4_NoSuchAccount(v85) => {
+                    US3::US3_NoSuchAccount(v85) => {
                         let mut v85: Rc<str> = v85.clone();
                         let mut v86: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no X account @"); } LIT.with(|lit| lit.clone()) };
                         let mut v87: Rc<str> = Rc::<str>::from(format!("{}{}", v86, v85));
                         v87.clone()
                     }
-                    US4::US4_Transport(v71, v72) => {
+                    US3::US3_Transport(v71, v72) => {
                         let mut v71: Rc<str> = v71.clone();
                         let mut v72: Rc<str> = v72.clone();
                         let mut v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not reach the X API for "); } LIT.with(|lit| lit.clone()) };
@@ -832,7 +818,7 @@ fn write_12(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>) -> (i32,
                         let mut v77: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v72));
                         v77.clone()
                     }
-                    US4::US4_Undecodable(v78, v79) => {
+                    US3::US3_Undecodable(v78, v79) => {
                         let mut v78: Rc<str> = v78.clone();
                         let mut v79: Rc<str> = v79.clone();
                         let mut v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) };
@@ -845,7 +831,7 @@ fn write_12(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>) -> (i32,
                 };
                 (4i32, v91.clone())
             }
-            US3::US3_Ok(v51) => {
+            US2::US2_Ok(v51) => {
                 let mut v51: bool = *v51;
                 if v51 {
                     let mut v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deleted "); } LIT.with(|lit| lit.clone()) };
@@ -882,42 +868,41 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>,
                 let mut v23: i32 = v22.wrapping_sub(1i32);
                 let mut v24: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
                 let mut v25: Rc<UH0> = from_8(v21.clone(), v23, v24.clone());
-                let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                let mut v26: US8 = US8::US8_Unstarted;
                 let mut v27: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
                 let mut v28: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
                 chained_9(v20.clone(), v25.clone(), v26.clone(), v27.clone(), v28.clone())
             }
         } else {
-            let mut v33: bool = v1.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let mut v34: bool = v33 != true;
-            let (mut v49, mut v50): (Rc<str>, US0) = if v34 {
-                let mut v35: i32 = (v0.clone().len() as i32);
-                let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-                let mut v37: bool = v0.ends_with(&*v36);
-                let mut v40: Rc<str> = if v37 {
-                    let mut v38: i32 = v35.wrapping_sub(2i32);
-                    let mut v39: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v38 as i64);
-                    v39.clone()
+            let mut v33: bool = v1.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let (mut v48, mut v49): (Rc<str>, US0) = if v33 {
+                let mut v34: i32 = (v0.clone().len() as i32);
+                let mut v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
+                let mut v36: bool = v0.ends_with(&*v35);
+                let mut v39: Rc<str> = if v36 {
+                    let mut v37: i32 = v34.wrapping_sub(2i32);
+                    let mut v38: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v37 as i64);
+                    v38.clone()
                 } else {
                     v0.clone()
                 };
-                let mut v41: US0 = US0::US0_BearerToken(v1.clone());
-                (v40.clone(), v41.clone())
+                let mut v40: US0 = US0::US0_BearerToken(v1.clone());
+                (v39.clone(), v40.clone())
             } else {
-                let mut v42: i32 = (v0.clone().len() as i32);
-                let mut v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-                let mut v44: bool = v0.ends_with(&*v43);
-                let mut v47: Rc<str> = if v44 {
-                    let mut v45: i32 = v42.wrapping_sub(2i32);
-                    let mut v46: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v45 as i64);
-                    v46.clone()
+                let mut v41: i32 = (v0.clone().len() as i32);
+                let mut v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
+                let mut v43: bool = v0.ends_with(&*v42);
+                let mut v46: Rc<str> = if v43 {
+                    let mut v44: i32 = v41.wrapping_sub(2i32);
+                    let mut v45: Rc<str> = string_slice(&v0.clone(), 0i32 as i64, v44 as i64);
+                    v45.clone()
                 } else {
                     v0.clone()
                 };
-                let mut v48: US0 = US0::US0_Signed(v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone());
-                (v47.clone(), v48.clone())
+                let mut v47: US0 = US0::US0_Signed(v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone());
+                (v46.clone(), v47.clone())
             };
-            write_12(v49.clone(), v50.clone(), v8, v9.clone())
+            write_12(v48.clone(), v49.clone(), v8, v9.clone())
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }

@@ -17,6 +17,8 @@ inl field (key : string) (v : json) : json = $'!v.get(&*!key).cloned().unwrap_or
 
 inl text_of (v : json) : string = $'Rc::<str>::from(!v.as_str().unwrap_or(""))'
 
+inl json_string (s : string) : string = $'Rc::<str>::from(serde_json::Value::from(&*!s).to_string())'
+
 inl flag_of_json (v : json) : bool = $'!v.as_bool().unwrap_or(false)'
 
 inl number_of (v : json) : i32 = $'!v.as_i64().unwrap_or(0) as i32'
@@ -39,13 +41,13 @@ nominal app_context = ()
 
 nominal user_context = ()
 
-union authorizer =
-    | BearerToken : string
-    | Signed : oauth1 * string * string
+union authorizer c =
+    | BearerToken :: forall c. string -> authorizer c
+    | Signed :: oauth1 * string * string -> authorizer user_context
 
-type endpoint = {base : string; auth : authorizer}
+type endpoint c = {base : string; auth : authorizer c}
 
-nominal api c = endpoint
+nominal api c = endpoint c
 
 type app = api app_context
 
@@ -106,7 +108,11 @@ inl trimmed_base (base_url : string) : string =
     inl n : i32 = sm'.length base_url
     if sm'.ends_with "/" base_url then sm'.slice 0i32 (n - 2i32) base_url else base_url
 
-inl endpoint_of (base_url : string) (token : string) : endpoint = {base = trimmed_base base_url; auth = BearerToken token}
+inl header_kind forall c. (a : authorizer c) : string =
+    match a with
+    | BearerToken _ => "bearer"
+    | Signed _ => "signed"
+inl endpoint_of forall c. (base_url : string) (token : string) : endpoint c = {base = trimmed_base base_url; auth = BearerToken token}
 
 inl app_api (base_url : string) (token : string) : api app_context = api (endpoint_of base_url token)
 
@@ -515,3 +521,16 @@ test text_comes_back_unescaped =
 ///> rust -d serde_json
 test replies_name_their_parent =
     write_verb (ReplyPost ("hi", created_reply {id = "7"; text = "c1 1/2"})) |> body_of_verb |> _assert_eq "{\"reply\":{\"in_reply_to_tweet_id\":\"7\"},\"text\":\"hi\"}"
+
+inl blank_keys () : oauth1 = {consumer_key = ""; consumer_secret = ""; token = ""; token_secret = ""}
+
+///> rust -d serde_json
+test only_a_user_context_is_signed =
+    inl ~nonce = "n"
+    match signed_api "https://api.x.com" (blank_keys ()) nonce "1" with
+    | api {auth} => header_kind auth |> _assert_eq "signed"
+
+///> rust -d serde_json
+test an_app_token_cannot_be_signed fails "Unification failure" =
+    inl a : authorizer app_context = Signed (blank_keys (), "n", "1")
+    a

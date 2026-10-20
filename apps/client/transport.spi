@@ -15,25 +15,27 @@ inl net_header (o : oauth1) (m : string) (u : string) (nonce : string) (stamp : 
     inl ck, cs, t, ts = o.consumer_key, o.consumer_secret, o.token, o.token_secret
     $'xc_net::xc_oauth1_header(&*!ck, &*!cs, &*!t, &*!ts, &*!m, &*!u, &*!nonce, &*!stamp)'
 
-inl header_for (a : authorizer) (method : string) (url : string) : string =
+inl header_for forall c. (a : authorizer c) (method : string) (url : string) : string =
     match a with
     | BearerToken t => "Bearer " ++# t
     | Signed (o, nonce, stamp) => net_header o method url nonce stamp
 
 type fetched = json * string
 
-let raw_reply (e : endpoint) (v : verb) (resource : string) : got fetched =
+inl kept (resource : string) (status : i32) (body : string) : got fetched = classify resource status body |> map_ok fun doc => doc, body
+
+let raw_reply forall c. (e : endpoint c) (v : verb) (resource : string) : got fetched =
     inl url = e.base ++# resource
     inl m = method_of v
     inl status, body = net_send m url (header_for e.auth m url) (body_of_verb v)
-    classify resource status body |> map_ok fun doc => doc, body
+    kept resource status body
 
-inl bearer_of (a : authorizer) : string = match a with BearerToken t => "Bearer " ++# t | Signed _ => ""
+inl bearer_of forall c. (a : authorizer c) : string = match a with BearerToken t => "Bearer " ++# t | Signed _ => ""
 
-let app_reply (e : endpoint) (resource : string) : got fetched =
+let app_reply (e : endpoint app_context) (resource : string) : got fetched =
     inl url = e.base ++# resource
     inl status, body = net_send "GET" url (bearer_of e.auth) ""
-    classify resource status body |> map_ok fun doc => doc, body
+    kept resource status body
 
 inl get_raw (a : app) (resource : string) : got fetched =
     match a with

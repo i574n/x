@@ -1,0 +1,168 @@
+///- --package .
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test events static =
+    open testing
+
+open sm'_operators
+open prelude
+open glyphs
+
+type frame_part = {k : i32; n : i32; body : string}
+
+type rooted = {post_id : string; parent : option string; source : string}
+
+type placed = {post_id : string; parent : option string; part : frame_part}
+
+type sourced = {post_id : string; source : string}
+
+type revised = {post_id : string; rev : i32; part : frame_part}
+
+type social = {post_id : string; user : string}
+
+union content =
+    | Posted : rooted
+    | Framed : placed
+
+union revision =
+    | Edited : sourced
+    | FrameEdited : revised
+    | Deleted : string
+
+union reaction =
+    | Liked : social
+    | Unliked : social
+
+union event =
+    | Content : content
+    | Revision : revision
+    | Reaction : reaction
+
+type delivery = {at : i32; event : event}
+
+inl stream_header () : string = "{\"format\":\"xsim-events\",\"version\":1}"
+
+inl hex_digit (d : i32) : string = sm'.slice d d "0123456789abcdef"
+
+inl unicode_escape (c : i32) : string = "\\u00" ++# hex_digit (c / 16i32) ++# hex_digit (c % 16i32)
+
+inl short_escape (c : i32) : option string =
+    if c = 8i32 then Some "\\b" elif c = 9i32 then Some "\\t" elif c = 10i32 then Some "\\n"
+    elif c = 12i32 then Some "\\f" elif c = 13i32 then Some "\\r" else None
+
+inl control_escape (c : i32) : string =
+    match short_escape c with
+    | Some e => e
+    | None => unicode_escape c
+
+inl without_controls (s : string) : string =
+    listm.init 32i32 id |> listm.fold (fun t c => sm'.replace (char_of c) (control_escape c) t) s
+
+inl quoted (s : string) : string =
+    "\"" ++# (s |> sm'.replace "\\" "\\\\" |> sm'.replace "\"" "\\\"" |> without_controls) ++# "\""
+
+inl field (key : string) (value : string) : string = quoted key ++# ":" ++# value
+
+inl number (n : i32) : string = sm'.obj_to_string n
+
+inl parent_of (p : option string) : string =
+    match p with
+    | Some id => quoted id
+    | None => "null"
+
+inl object (fields : list string) : string = "{" ++# sm'.concat_list "," fields ++# "}"
+
+inl content_kind (c : content) : string =
+    match c with
+    | Posted _ => "post"
+    | Framed _ => "frame"
+
+inl revision_kind (r : revision) : string =
+    match r with
+    | Edited _ => "edit"
+    | FrameEdited _ => "edit_frame"
+    | Deleted _ => "delete"
+
+inl reaction_kind (r : reaction) : string =
+    match r with
+    | Liked _ => "like"
+    | Unliked _ => "unlike"
+
+inl kind_of (e : event) : string =
+    match e with
+    | Content c => content_kind c
+    | Revision r => revision_kind r
+    | Reaction r => reaction_kind r
+
+inl kind_field (e : event) : string = field "kind" (quoted (kind_of e))
+
+inl opening (at : i32) (e : event) : list string = [field "at" (number at); kind_field e]
+
+inl framed_fields (at : i32) (e : event) (part : frame_part) : list string =
+    [field "at" (number at); field "body" (quoted part.body); field "k" (number part.k); kind_field e; field "n" (number part.n)]
+
+inl owned (post_id : string) : string = field "post" (quoted post_id)
+
+inl rooted_fields (at : i32) (e : event) (r : rooted) : list string =
+    listm.append (opening at e) [field "parent" (parent_of r.parent); owned r.post_id; field "source" (quoted r.source)]
+
+inl placed_fields (at : i32) (e : event) (p : placed) : list string =
+    listm.append (framed_fields at e p.part) [field "parent" (parent_of p.parent); owned p.post_id]
+
+inl content_fields (at : i32) (e : event) (c : content) : list string =
+    match c with
+    | Posted r => rooted_fields at e r
+    | Framed p => placed_fields at e p
+
+inl revised_fields (at : i32) (e : event) (r : revised) : list string =
+    listm.append (framed_fields at e r.part) [owned r.post_id; field "rev" (number r.rev)]
+
+inl sourced_fields (at : i32) (e : event) (s : sourced) : list string =
+    listm.append (opening at e) [owned s.post_id; field "source" (quoted s.source)]
+
+inl revision_fields (at : i32) (e : event) (r : revision) : list string =
+    match r with
+    | Edited s => sourced_fields at e s
+    | FrameEdited v => revised_fields at e v
+    | Deleted post_id => listm.append (opening at e) [owned post_id]
+
+inl social_fields (at : i32) (e : event) (s : social) : list string =
+    listm.append (opening at e) [owned s.post_id; field "user" (quoted s.user)]
+
+inl reaction_fields (at : i32) (e : event) (r : reaction) : list string =
+    match r with
+    | Liked s => social_fields at e s
+    | Unliked s => social_fields at e s
+
+inl fields_of (at : i32) (e : event) : list string =
+    match e with
+    | Content c => content_fields at e c
+    | Revision r => revision_fields at e r
+    | Reaction r => reaction_fields at e r
+
+inl encoded (d : delivery) : string = object (fields_of d.at d.event)
+
+inl stream (l : list delivery) : string = Cons (stream_header (), each encoded l) |> sm'.concat_list "\n" |> fun t => t ++# "\n"
+
+inl first_frame () : string = "{\"at\":0,\"body\":\"x\",\"k\":1,\"kind\":\"frame\",\"n\":1,\"parent\":null,\"post\":\"p0\"}"
+
+test frames_encode_like_the_fixture =
+    inl ~post_id = "p0"
+    inl e = Content (Framed {post_id parent = None; part = {k = 1i32; n = 1i32; body = "x"}})
+    encoded {at = 0i32; event = e} |> _assert_eq (first_frame ())
+
+test bodies_escape_quotes_and_lines =
+    inl ~body = "a \"b\"\n\tc\\"
+    quoted body |> _assert_eq "\"a \\\"b\\\"\\n\\tc\\\\\""
+    quoted (char_of 1i32) |> _assert_eq "\"\\u0001\""
+
+inl liked_line () : string = "{\"at\":7,\"kind\":\"like\",\"post\":\"p2\",\"user\":\"u3\"}"
+
+test reactions_name_the_user =
+    inl ~user = "u3"
+    encoded {at = 7i32; event = Reaction (Liked {post_id = "p2"; user})} |> _assert_eq (liked_line ())
+    kind_of (Reaction (Unliked {post_id = "p2"; user})) |> _assert_eq "unlike"
+
+test an_empty_stream_is_its_header =
+    inl ~header = stream_header ()
+    stream Nil |> _assert_eq (header ++# "\n")

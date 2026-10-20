@@ -20,7 +20,7 @@ enum US1 {
     US1_Some(Rc<str>),
     US1_None,
 }
-fn digits_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> US0 {
+fn digits_1(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> US0 {
     loop {
         let mut v3: i32 = (v0.clone().len() as i32);
         let mut v4: bool = v1 >= v3;
@@ -49,28 +49,58 @@ fn digits_0(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> US0 {
         }
     }
 }
+fn count_of_text_0(mut v0: Rc<str>) -> US0 {
+    let mut v1: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+    let mut v24: bool = if v1 {
+        true
+    } else {
+        let mut v2: Rc<str> = Rc::<str>::from(format!("{:?}", 0i32));
+        let mut v3: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        let mut v4: Rc<str> = Rc::<str>::from(v0.replace(&*v2, &*v3));
+        let mut v5: Rc<str> = Rc::<str>::from(format!("{:?}", 1i32));
+        let mut v6: Rc<str> = Rc::<str>::from(v4.replace(&*v5, &*v3));
+        let mut v7: Rc<str> = Rc::<str>::from(format!("{:?}", 2i32));
+        let mut v8: Rc<str> = Rc::<str>::from(v6.replace(&*v7, &*v3));
+        let mut v9: Rc<str> = Rc::<str>::from(format!("{:?}", 3i32));
+        let mut v10: Rc<str> = Rc::<str>::from(v8.replace(&*v9, &*v3));
+        let mut v11: Rc<str> = Rc::<str>::from(format!("{:?}", 4i32));
+        let mut v12: Rc<str> = Rc::<str>::from(v10.replace(&*v11, &*v3));
+        let mut v13: Rc<str> = Rc::<str>::from(format!("{:?}", 5i32));
+        let mut v14: Rc<str> = Rc::<str>::from(v12.replace(&*v13, &*v3));
+        let mut v15: Rc<str> = Rc::<str>::from(format!("{:?}", 6i32));
+        let mut v16: Rc<str> = Rc::<str>::from(v14.replace(&*v15, &*v3));
+        let mut v17: Rc<str> = Rc::<str>::from(format!("{:?}", 7i32));
+        let mut v18: Rc<str> = Rc::<str>::from(v16.replace(&*v17, &*v3));
+        let mut v19: Rc<str> = Rc::<str>::from(format!("{:?}", 8i32));
+        let mut v20: Rc<str> = Rc::<str>::from(v18.replace(&*v19, &*v3));
+        let mut v21: Rc<str> = Rc::<str>::from(format!("{:?}", 9i32));
+        let mut v22: Rc<str> = Rc::<str>::from(v20.replace(&*v21, &*v3));
+        let mut v23: bool = v22.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        v23
+    };
+    if v24 {
+        US0::US0_None
+    } else {
+        let mut v26: i32 = 0i32;
+        let mut v27: i32 = 0i32;
+        digits_1(v0.clone(), v26, v27)
+    }
+}
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        let mut v1: bool = v0.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        let mut v6: US0 = if v1 {
-            US0::US0_None
-        } else {
-            let mut v3: i32 = 0i32;
-            let mut v4: i32 = 0i32;
-            digits_0(v0.clone(), v3, v4)
-        };
-        match &v6 {
+        let mut v1: US0 = count_of_text_0(v0.clone());
+        match &v1 {
             US0::US0_None => {
                 -1i32
             }
-            US0::US0_Some(v7) => {
-                let mut v7: i32 = *v7;
-                v7
+            US0::US0_Some(v2) => {
+                let mut v2: i32 = *v2;
+                v2
             }
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn go_1(mut v0: Rc<str>, mut v1: i32) -> bool {
+fn go_2(mut v0: Rc<str>, mut v1: i32) -> bool {
     loop {
         let mut v2: bool = v1 >= 10i32;
         if v2 {
@@ -99,7 +129,7 @@ fn go_1(mut v0: Rc<str>, mut v1: i32) -> bool {
         }
     }
 }
-fn go_2(mut v0: Rc<str>, mut v1: i32) -> bool {
+fn go_3(mut v0: Rc<str>, mut v1: i32) -> bool {
     loop {
         let mut v2: bool = v1 >= 20i32;
         if v2 {
@@ -134,7 +164,7 @@ fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
         let mut v2: bool = v1 == 10i32;
         let mut v5: bool = if v2 {
             let mut v3: i32 = 0i32;
-            go_1(v0.clone(), v3)
+            go_2(v0.clone(), v3)
         } else {
             false
         };
@@ -144,7 +174,7 @@ fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
         } else {
             let mut v9: bool = if v2 {
                 let mut v7: i32 = 0i32;
-                go_1(v0.clone(), v7)
+                go_2(v0.clone(), v7)
             } else {
                 false
             };
@@ -156,7 +186,7 @@ fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
                 let mut v13: bool = v1 == 20i32;
                 let mut v16: bool = if v13 {
                     let mut v14: i32 = 0i32;
-                    go_2(v0.clone(), v14)
+                    go_3(v0.clone(), v14)
                 } else {
                     false
                 };
@@ -179,7 +209,7 @@ fn closure1() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn ok_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
+fn ok_5(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
     loop {
         let mut v3: bool = v2 >= v1;
         if v3 {
@@ -198,7 +228,7 @@ fn ok_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> bool {
         }
     }
 }
-fn username_chars_3(mut v0: Rc<str>) -> bool {
+fn username_chars_4(mut v0: Rc<str>) -> bool {
     let mut v1: i32 = (v0.clone().len() as i32);
     let mut v2: bool = v1 >= 1i32;
     let mut v4: bool = if v2 {
@@ -209,7 +239,7 @@ fn username_chars_3(mut v0: Rc<str>) -> bool {
     };
     if v4 {
         let mut v5: i32 = 0i32;
-        ok_4(v0.clone(), v1, v5)
+        ok_5(v0.clone(), v1, v5)
     } else {
         false
     }
@@ -226,7 +256,7 @@ fn closure2() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
         } else {
             v0.clone()
         };
-        let mut v7: bool = username_chars_3(v6.clone());
+        let mut v7: bool = username_chars_4(v6.clone());
         let mut v10: US1 = if v7 {
             US1::US1_Some(v6.clone())
         } else {

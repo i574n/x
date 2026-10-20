@@ -22,6 +22,7 @@ xc_write = { path = "../write" }
 xc_digest = { path = "../digest" }
 xc_jsonl = { path = "../jsonl" }
 xc_assemble = { path = "../assemble" }
+xc_locate = { path = "../locate" }
 xc_thread = { path = "../thread" }
 xc_token = { path = "../token" }
 xc_view = { path = "../view" }
