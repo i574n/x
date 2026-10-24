@@ -1,0 +1,374 @@
+///- --package .
+///> rust
+///> gleam
+test invariants static =
+    open testing
+
+open sm'_operators
+open prelude
+open events
+
+type outcome = {ok : bool; out : string}
+
+type shown = {id : string; key : string; result : outcome}
+
+type demand = {id : string; key : string}
+
+type tally = {key : string; count : i32}
+
+type snapshot =
+    {visible : list shown; wanted : list demand; starts : list tally; cancelled : list tally;
+     evicted : list tally; results : list string; evicting : bool}
+
+union rule =
+    | SequentialEquivalence
+    | NoStaleResults
+    | OneCompilePerPrefix
+    | WithdrawnDemandHidden
+    | UnwantedResultsFreed
+
+union verdict =
+    | Held
+    | Broken : list string
+
+type finding = {rule : rule; verdict : verdict}
+
+inl counted_run (s : string) (i : i32) (lead : string) : i32 =
+    inl start = i + sm'.length lead
+    inl e = if sm'.starts_with lead (rest_from i s) then digits_end s start else -1i32
+    if e > start then e else -1i32
+
+inl slashed_run (s : string) (i : i32) : i32 =
+    inl back = counted_run s i "\\"
+    if back >= 0i32 then back else counted_run s i "/"
+
+inl cell_dir_end (s : string) (at : i32) : i32 =
+    inl first = slashed_run s at
+    if first < 0i32 then -1i32 else counted_run s first "-"
+
+inl marker_end (marker : string) (s : string) (from : i32) : i32 =
+    inl i = sm'.index_of marker (rest_from from s)
+    if i < 0i32 then -1i32 else from + i + sm'.length marker
+
+inl dir_step (s : string) (from : i32) (at : i32) (acc : string) : string * i32 =
+    inl past = cell_dir_end s at
+    inl kept = acc ++# cut from (at - from) s
+    if past < 0i32 then kept, at else kept ++# "/_", past
+
+let rec masked_cells (s : string) (from : i32) (acc : string) : string =
+    inl at = marker_end "spiral_cells" s from
+    if at < 0i32 then acc ++# rest_from from s
+    else dir_step s from at acc |> fun (kept, next) => masked_cells s next kept
+
+inl panic_end (s : string) (q : i32) : i32 =
+    inl e = counted_run s q " ("
+    if e >= 0i32 && sm'.starts_with ") panicked" (rest_from e s) then e + 10i32 else -1i32
+
+inl quote_after (s : string) (open_end : i32) : i32 = if open_end < 0i32 then -1i32 else marker_end "'" s open_end
+
+inl thread_step (s : string) (from : i32) (open_end : i32) (q : i32) (acc : string) : string * i32 =
+    inl e = panic_end s q
+    if e < 0i32 then acc ++# cut from (open_end - from) s, open_end
+    else acc ++# cut from (q - from) s ++# " (_) panicked", e
+
+inl thread_quotes (s : string) (from : i32) : i32 * i32 =
+    inl open_end = marker_end "thread '" s from
+    open_end, quote_after s open_end
+
+let rec masked_threads (s : string) (from : i32) (acc : string) : string =
+    inl open_end, q = thread_quotes s from
+    if q < 0i32 then acc ++# rest_from from s
+    else thread_step s from open_end q acc |> fun (kept, next) => masked_threads s next kept
+
+inl comparable (o : outcome) : outcome = {o with out = masked_threads (masked_cells o.out 0i32 "") 0i32 ""}
+
+inl same_outcome (a : outcome) (b : outcome) : bool =
+    inl x, y = comparable a, comparable b
+    x.ok = y.ok && x.out = y.out
+
+inl verdict_of (bad : list string) : verdict =
+    match bad with
+    | Nil => Held
+    | _ => Broken (take_first 5i32 bad)
+
+inl wants (s : snapshot) (v : shown) : bool = has (fun (d : demand) => d.id = v.id && d.key = v.key) s.wanted
+
+inl demanded (s : snapshot) (v : shown) : bool = has (fun (d : demand) => d.id = v.id) s.wanted
+
+inl ids_where (ok : shown -> bool) (s : snapshot) : verdict = s.visible |> keep ok |> each (fun (v : shown) => v.id) |> verdict_of
+
+inl sequential_equivalence (s : snapshot) (baseline : string -> outcome) : verdict =
+    s |> ids_where fun v => wants s v && not (same_outcome (baseline v.id) v.result)
+
+inl no_stale (s : snapshot) : verdict = s |> ids_where fun v => not (wants s v)
+
+inl withdrawn_hidden (s : snapshot) : verdict = s |> ids_where fun v => not (demanded s v)
+
+inl count_in (l : list tally) (key : string) : i32 = l |> keep (fun (t : tally) => t.key = key) |> listm.fold (fun n (t : tally) => n + t.count) 0i32
+
+inl live_compiles (s : snapshot) (t : tally) : i32 = t.count - count_in s.cancelled t.key - count_in s.evicted t.key
+
+inl one_compile (s : snapshot) : verdict =
+    s.starts |> keep (fun t => live_compiles s t > 1i32) |> each (fun (t : tally) => t.key) |> verdict_of
+
+inl unwanted_freed (s : snapshot) : verdict =
+    s.results |> keep (fun key => not (has (fun (d : demand) => d.key = key) s.wanted)) |> verdict_of
+
+inl found (rule : rule) (verdict : verdict) : finding = {rule verdict}
+
+inl demand_checks (s : snapshot) : list finding =
+    [found NoStaleResults (no_stale s); found OneCompilePerPrefix (one_compile s); found WithdrawnDemandHidden (withdrawn_hidden s)]
+
+inl equivalence_check (s : snapshot) (baseline : string -> outcome) : finding = found SequentialEquivalence (sequential_equivalence s baseline)
+
+inl checked (s : snapshot) (baseline : string -> outcome) : list finding =
+    inl always = Cons (equivalence_check s baseline, demand_checks s)
+    if s.evicting then listm.append always [found UnwantedResultsFreed (unwanted_freed s)] else always
+
+inl seen_in (b : snapshot) (v : shown) : bool = has (fun (w : shown) => w.id = v.id && same_outcome w.result v.result) b.visible
+
+inl same_size (a : snapshot) (b : snapshot) : bool = (listm.length a.visible : i32) = listm.length b.visible
+
+inl commute (a : snapshot) (b : snapshot) : verdict =
+    match a |> ids_where fun v => not (seen_in b v) with
+    | Held when same_size a b => Held
+    | Held => Broken Nil
+    | broken => broken
+
+inl demand_rule_name (r : rule) : string =
+    match r with
+    | NoStaleResults => "no_stale_results"
+    | OneCompilePerPrefix => "one_compile_per_prefix"
+    | _ => "withdrawn_demand_hidden"
+
+inl rule_name (r : rule) : string =
+    match r with
+    | SequentialEquivalence => "sequential_equivalence"
+    | UnwantedResultsFreed => "unwanted_results_freed"
+    | _ => demand_rule_name r
+
+inl verdict_text (v : verdict) : string =
+    match v with
+    | Held => "ok"
+    | Broken ids => "FAIL[" ++# delimited "," ids ++# "]"
+
+inl finding_text (f : finding) : string = rule_name f.rule ++# "=" ++# verdict_text f.verdict
+
+inl findings_text (l : list finding) : string = l |> each finding_text |> delimited " "
+
+inl passed (out : string) : outcome = {ok = true; out}
+
+inl one_shown (id : string) (key : string) (out : string) : shown = {id key result = passed out}
+
+inl quiet () : snapshot =
+    {visible = Nil; wanted = Nil; starts = Nil; cancelled = Nil; evicted = Nil; results = Nil; evicting = true}
+
+inl settled () : snapshot =
+    inl q = quiet ()
+    {q with visible = [one_shown "1" "k1" "a"]; wanted = [{id = "1"; key = "k1"}]; starts = [{key = "k1"; count = 1i32}]; results = ["k1"]}
+
+inl same_as_shown (id : string) : outcome = passed "a"
+
+union tally_kind =
+    | Started
+    | Cancelled
+    | Evicted
+
+union plain_kind =
+    | Visible
+    | BrokenId
+    | Evicting
+    | Wanted
+    | Result
+
+union row_kind =
+    | PlainRow : plain_kind
+    | TallyRow : tally_kind
+
+inl tally_kind_of (text : string) : option tally_kind =
+    match text with
+    | "start" => Some Started
+    | "cancelled" => Some Cancelled
+    | "evicted" => Some Evicted
+    | _ => None
+
+inl plain_kind_of (text : string) : option plain_kind =
+    match text with
+    | "visible" => Some Visible
+    | "broken" => Some BrokenId
+    | "evicting" => Some Evicting
+    | "wanted" => Some Wanted
+    | "result" => Some Result
+    | _ => None
+
+inl row_kind_of (text : string) : option row_kind =
+    match plain_kind_of text, tally_kind_of text with
+    | Some p, _ => Some (PlainRow p)
+    | None, Some t => Some (TallyRow t)
+    | None, None => None
+
+type reading = {snap : snapshot; baselines : list (string * outcome); broken_ids : list string; strays : list string}
+
+inl outcome_at (prefix : string) (l : fields) : outcome = {ok = count_at (prefix ++# "ok") l = 1i32; out = text_at (prefix ++# "out") l}
+
+inl tally_at (l : fields) : tally = {key = text_at "key" l; count = count_at "count" l}
+
+inl with_snap (r : reading) (f : snapshot -> snapshot) : reading = {r with snap = f r.snap}
+
+inl add_visible (v : shown) (s : snapshot) : snapshot = {s with visible = listm.append s.visible [v]}
+
+inl add_start (t : tally) (s : snapshot) : snapshot = {s with starts = listm.append s.starts [t]}
+
+inl add_cancelled (t : tally) (s : snapshot) : snapshot = {s with cancelled = Cons (t, s.cancelled)}
+
+inl add_evicted (t : tally) (s : snapshot) : snapshot = {s with evicted = Cons (t, s.evicted)}
+
+inl add_wanted (d : demand) (s : snapshot) : snapshot = {s with wanted = Cons (d, s.wanted)}
+
+inl add_result (key : string) (s : snapshot) : snapshot = {s with results = listm.append s.results [key]}
+
+inl turn_evicting (s : snapshot) : snapshot = {s with evicting = true}
+
+inl shown_at (l : fields) : shown = {id = text_at "id" l; key = text_at "key" l; result = outcome_at "" l}
+
+inl based (r : reading) (l : fields) (v : shown) : reading =
+    if count_at "based" l = 1i32 then {r with baselines = Cons ((v.id, outcome_at "base_" l), r.baselines)} else r
+
+inl visible_row (r : reading) (l : fields) : reading =
+    inl v = shown_at l
+    based (with_snap r (add_visible v)) l v
+
+inl tally_into (r : reading) (t : tally_kind) (l : fields) : reading =
+    inl n = tally_at l
+    match t with
+    | Started => with_snap r (add_start n)
+    | Cancelled => with_snap r (add_cancelled n)
+    | Evicted => with_snap r (add_evicted n)
+
+inl broken_row (r : reading) (l : fields) : reading = {r with broken_ids = Cons (text_at "id" l, r.broken_ids)}
+
+inl wanted_row (r : reading) (l : fields) : reading = with_snap r (add_wanted {id = text_at "id" l; key = text_at "key" l})
+
+inl result_row (r : reading) (l : fields) : reading = with_snap r (add_result (text_at "key" l))
+
+inl plain_row (r : reading) (p : plain_kind) (l : fields) : reading =
+    match p with
+    | Visible => visible_row r l
+    | BrokenId => broken_row r l
+    | Evicting => with_snap r turn_evicting
+    | Wanted => wanted_row r l
+    | Result => result_row r l
+
+inl kind_row (r : reading) (k : row_kind) (l : fields) : reading =
+    match k with
+    | PlainRow p => plain_row r p l
+    | TallyRow t => tally_into r t l
+
+inl row_of (r : reading) (kind : string) (l : fields) : reading =
+    match row_kind_of kind with
+    | Some k => kind_row r k l
+    | None => {r with strays = Cons (kind, r.strays)}
+
+inl read_row (r : reading) (line : string) : reading =
+    match fields_of_line line with
+    | Some l => row_of r (text_at "row" l) l
+    | None => r
+
+inl quiet_reading () : reading =
+    inl q = quiet ()
+    {snap = {q with evicting = false}; baselines = Nil; broken_ids = Nil; strays = Nil}
+
+inl stray_text (r : reading) : string = "unknown_rows=" ++# delimited "," (listm.rev r.strays)
+
+inl strayed (r : reading) : bool = listm.length r.strays > 0i32
+
+let snapshot_read (text : string) : reading = pieces "\n" text |> listm.fold read_row (quiet_reading ())
+
+inl baseline_in (r : reading) (id : string) : outcome =
+    match first_where (fun (k, _) => k = id) r.baselines with
+    | Some (_, o) => o
+    | None => {ok = false; out = ""}
+
+let checked_text (text : string) : string =
+    inl r = snapshot_read text
+    if strayed r then stray_text r else checked r.snap (baseline_in r) |> findings_text
+
+let commute_text (a : string) (b : string) : string =
+    inl ra, rb = snapshot_read a, snapshot_read b
+    if strayed ra then stray_text ra elif strayed rb then stray_text rb else commute ra.snap rb.snap |> verdict_text
+
+let breaking_text (text : string) : string =
+    inl r = snapshot_read text
+    if strayed r then stray_text r else r.snap |> ids_where (fun v => has ((=) v.id) r.broken_ids && v.result.ok) |> verdict_text
+
+let masked_text (out : string) : string = (comparable {ok = true; out}).out
+inl all_held () : string =
+    "sequential_equivalence=ok no_stale_results=ok one_compile_per_prefix=ok withdrawn_demand_hidden=ok unwanted_results_freed=ok"
+
+test a_settled_snapshot_holds_every_rule =
+    inl ~s = settled ()
+    checked s same_as_shown |> findings_text |> _assert_eq (all_held ())
+
+inl with_visible (l : list shown) : snapshot =
+    inl s = settled ()
+    {s with visible = l}
+
+inl drifted () : snapshot = with_visible [one_shown "1" "k0" "a"; one_shown "2" "k2" "b"]
+
+test stale_and_withdrawn_results_are_named =
+    inl ~s = drifted ()
+    no_stale s |> verdict_text |> _assert_eq "FAIL[1,2]"
+    withdrawn_hidden s |> verdict_text |> _assert_eq "FAIL[2]"
+
+inl k1_count (n : i32) : list tally = [{key = "k1"; count = n}]
+
+inl restarted (cancelled : i32) (evicted : i32) : snapshot =
+    inl s = settled ()
+    {s with starts = k1_count 3i32; cancelled = k1_count cancelled; evicted = k1_count evicted}
+
+test a_second_live_compile_breaks_one_per_prefix =
+    inl ~cancelled = 1i32
+    restarted cancelled 0i32 |> one_compile |> verdict_text |> _assert_eq "FAIL[k1]"
+    restarted cancelled 1i32 |> one_compile |> verdict_text |> _assert_eq "ok"
+
+inl masked (out : string) : string = (comparable (passed out)).out
+
+test run_dirs_are_masked =
+    inl ~out = "at spiral_cells\\12-34\\a.rs and spiral_cells/5-6"
+    masked out |> _assert_eq "at spiral_cells/_\\a.rs and spiral_cells/_"
+    masked "spiral_cells/12 x" |> _assert_eq "spiral_cells/12 x"
+
+test thread_numbers_are_masked =
+    inl ~out = "thread 'main' (4242) panicked at x"
+    masked out |> _assert_eq "thread 'main' (_) panicked at x"
+    masked "thread 'a' (b) panicked" |> _assert_eq "thread 'a' (b) panicked"
+
+inl elsewhere (id : string) : outcome = passed "at spiral_cells/9-9"
+
+inl ran_elsewhere () : snapshot = with_visible [one_shown "1" "k1" "at spiral_cells/1-2"]
+
+test sequential_equivalence_compares_masked_outcomes =
+    inl ~s = ran_elsewhere ()
+    sequential_equivalence s elsewhere |> verdict_text |> _assert_eq "ok"
+    sequential_equivalence (settled ()) elsewhere |> verdict_text |> _assert_eq "FAIL[1]"
+
+inl commuted (a : snapshot) (b : snapshot) : string = commute a b |> verdict_text
+
+test schedules_commute_only_with_equal_results =
+    inl ~a = settled ()
+    commuted a a |> _assert_eq "ok"
+    commuted a (with_visible [one_shown "1" "k1" "z"]) |> _assert_eq "FAIL[1]"
+    commuted a (quiet ()) |> _assert_eq "FAIL[1]"
+
+test extra_results_break_commuting_without_ids =
+    inl ~a = settled ()
+    commuted a (drifted ()) |> _assert_eq "FAIL[]"
+    commuted (quiet ()) a |> _assert_eq "FAIL[]"
+
+inl crowd () : snapshot =
+    inl q = quiet ()
+    {q with visible = listm.init 7i32 (fun i => one_shown (sm'.obj_to_string i) "k" "a")}
+
+test verdicts_name_at_most_five =
+    inl ~s = crowd ()
+    withdrawn_hidden s |> verdict_text |> _assert_eq "FAIL[0,1,2,3,4]"

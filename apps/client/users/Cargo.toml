@@ -1,0 +1,17 @@
+[package]
+name = "xc_users"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "users.spi"
+output = "users.rs"
+
+[lib]
+name = "xc_users"
+path = "users.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+xc_net = { path = "../net" }

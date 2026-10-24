@@ -1,0 +1,218 @@
+///- --package .
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test splitter static =
+    open testing
+
+open sm'_operators
+open prelude
+open glyphs
+open protocol
+
+type weighed = {glyph : string; weight : i32}
+
+type units = list weighed
+
+inl first_or_empty (l : list string) : string =
+    match l with
+    | Cons (g, _) => g
+    | Nil => ""
+
+inl posted_unit (prev : string) (g : string) (next : string) : weighed =
+    if g = "." && label_char prev && letter next then {glyph = defused_dot (); weight = plain_weight (defused_dot ())}
+    else {glyph = g; weight = glyph_weight g}
+
+let rec defused (prev : string) (l : list string) (acc : units) : units =
+    match l with
+    | Nil => listm.rev acc
+    | Cons (g, rest) => defused g rest (Cons (posted_unit prev g (first_or_empty rest), acc))
+
+let units_of (s : string) : units = defused "" (graphemes s) Nil
+
+inl has_units (l : units) : bool =
+    match l with
+    | Nil => false
+    | _ => true
+
+let rec taken_while (ok : weighed -> bool) (l : units) (acc : units) : units * units =
+    match l with
+    | Cons (u, rest) when ok u => taken_while ok rest (Cons (u, acc))
+    | _ => listm.rev acc, l
+
+inl word_reach () : i32 = 60i32
+
+inl spaced (u : weighed) : bool = blank u.glyph
+
+inl space_carried (current : units) : units * units =
+    inl space, kept = taken_while spaced current Nil
+    if has_units kept then space, kept else Nil, current
+
+inl reachable (word : units) (space : units) (kept : units) : bool =
+    has_units kept && listm.length word + listm.length space <= word_reach ()
+
+let split_point (current : units) : units * units =
+    inl word, rest = taken_while (fun u => not (spaced u)) current Nil
+    inl space, kept = taken_while spaced rest Nil
+    if reachable word space kept then listm.append word space, kept else space_carried current
+
+inl flushed (current : units) (acc : list string) : list string =
+    match current with
+    | Nil => acc
+    | _ => Cons (current |> listm.rev |> each (fun u => u.glyph) |> sm'.concat_list "", acc)
+
+type pending = {current : units; used : i32; posts : list string}
+
+inl fresh (posts : list string) : pending = {current = Nil; used = 0i32; posts}
+
+inl fits (budget : i32) (u : weighed) (p : pending) : bool = p.used + u.weight <= budget || not (has_units p.current)
+
+inl grown (u : weighed) (p : pending) : pending = {p with current = Cons (u, p.current); used = p.used + u.weight}
+
+inl restarted (p : pending) (rest : units) : units * pending =
+    inl carried, kept = split_point p.current
+    listm.append (listm.rev carried) rest, fresh (flushed kept p.posts)
+
+let rec chunk (b : i32) (rest : units) (p : pending) : list string =
+    match rest with
+    | Nil => listm.rev (flushed p.current p.posts)
+    | Cons (u, more) when fits b u p => chunk b more (grown u p)
+    | _ => restarted p rest |> fun (us, q) => chunk b us q
+
+inl post_limit () : i32 = 280i32
+
+inl header (label : cell_id) (part : i32) (part_count : i32) : string = rendered {cell = label; part part_count} ++# "\n"
+
+inl digit_count (n : i32) : i32 = sm'.length (sm'.obj_to_string n)
+
+type framing = {limit : i32; label : cell_id}
+
+inl budget_for (f : framing) (assumed : i32) : i32 = f.limit - plain_weight (header f.label assumed assumed)
+
+let rec chunks_of (f : framing) (all : units) (assumed : i32) : list string =
+    inl chunks = chunk (budget_for f assumed) all (fresh Nil)
+    inl posts = listm.length chunks
+    if digit_count posts > digit_count assumed then chunks_of f all posts else chunks
+
+let split_cell (label : cell_id) (limit : i32) (source : string) : list string = chunks_of {limit label} (units_of (nfc source)) 9i32
+
+inl indented (line : string) : bool = sm'.starts_with " " line || sm'.starts_with "\t" line
+
+let rec with_blanks (n : i32) (acc : list string) : list string = if n <= 0i32 then acc else with_blanks (n - 1i32) (Cons ("", acc))
+
+type cutting = {cells : list string; current : list string; blanks : i32; seen : bool}
+
+inl finished (c : cutting) : list string = Cons (c.current |> listm.rev |> sm'.concat_list "\n" |> trimmed_end, c.cells)
+
+inl opened (c : cutting) (line : string) : cutting =
+    {cells = finished c; current = Cons (line, with_blanks (c.blanks - 1i32) Nil); blanks = 0i32; seen = true}
+
+inl continued (c : cutting) (line : string) : cutting =
+    {c with current = Cons (line, with_blanks c.blanks c.current); blanks = 0i32; seen = true}
+
+inl starts_cell (c : cutting) (line : string) : bool = c.blanks > 0i32 && c.seen && not (indented line)
+
+let step (c : cutting) (line : string) : cutting =
+    if line = "" then {c with blanks = c.blanks + 1i32}
+    elif starts_cell c line then opened c line
+    else continued c line
+
+inl without_final_newline (t : string) : string = if sm'.ends_with "\n" t then cut 0i32 (sm'.length t - 1i32) t else t
+
+inl uncut () : cutting = {cells = Nil; current = Nil; blanks = 0i32; seen = false}
+
+inl closed (c : cutting) : list string = listm.rev (finished {c with current = with_blanks c.blanks c.current})
+
+let file_cells (text : string) : list string =
+    inl plain = sm'.replace "\r\n" "\n" text |> without_final_newline
+    if plain = "" then Nil else split_on "\n" plain |> listm.fold step (uncut ()) |> closed
+
+inl frames_or_empty (chunks : list string) : list string =
+    match chunks with
+    | Nil => [""]
+    | _ => chunks
+
+let rec numbered (label : cell_id) (n : i32) (k : i32) (l : list string) (acc : list string) : list string =
+    match l with
+    | Nil => listm.rev acc
+    | Cons (body, rest) => numbered label n (k + 1i32) rest (Cons (trimmed_end (header label k n ++# body), acc))
+
+let cell_posts (i : i32) (cell : string) : list string =
+    inl chunks = split_cell (cell_label i) (post_limit ()) cell |> frames_or_empty
+    numbered (cell_label i) (listm.length chunks) 1i32 chunks Nil
+
+let rec thread_of (i : i32) (cells : list string) (acc : list (list string)) : list string =
+    match cells with
+    | Nil => acc |> listm.rev |> spread id
+    | Cons (cell, rest) => thread_of (i + 1i32) rest (Cons (cell_posts i cell, acc))
+
+inl x_weight (t : string) : i32 = units_of t |> listm.fold (fun sum (u : weighed) => sum + u.weight) 0i32
+
+inl posts_of (text : string) : list string = thread_of 1i32 (file_cells text) Nil
+
+inl post_price_thousandths () : i32 = 15i32
+
+inl dollars (thousandths : i32) : string =
+    inl rest = thousandths % 1000i32
+    inl pad = if rest < 10i32 then "00" elif rest < 100i32 then "0" else ""
+    "$" ++# sm'.obj_to_string (thousandths / 1000i32) ++# "." ++# pad ++# sm'.obj_to_string rest
+
+inl previewed (n : i32) (k : i32) (t : string) : string =
+    "--- post " ++# sm'.obj_to_string k ++# " of " ++# sm'.obj_to_string n ++# ", weight " ++# sm'.obj_to_string (x_weight t) ++# "\n" ++# t
+
+let rec previews (n : i32) (k : i32) (l : list string) (acc : list string) : list string =
+    match l with
+    | Nil => listm.rev acc
+    | Cons (t, rest) => previews n (k + 1i32) rest (Cons (previewed n k t, acc))
+
+inl summary (n : i32) : string =
+    "\n--- " ++# sm'.obj_to_string n ++# " posts, " ++# dollars (n * post_price_thousandths ()) ++# " to create"
+
+let preview (text : string) : string =
+    inl posts = posts_of text
+    inl n = listm.length posts
+    sm'.concat_list "\n" (previews n 1i32 posts Nil) ++# summary n
+
+let rec repeated (n : i32) (s : string) (acc : string) : string = if n <= 0i32 then acc else repeated (n - 1i32) s (acc ++# s)
+
+inl heaviest (posts : list string) : i32 = posts |> listm.fold (fun top t => if x_weight t > top then x_weight t else top) 0i32
+
+test cells_start_at_column_zero =
+    inl ~text = "a\n\nb\n  c\n\n\nd\n"
+    inl cells = file_cells text
+    cells |> listm.length |> _assert_eq 3i32
+    cells |> sm'.concat_list "|" |> _assert_eq "a|b\n  c|\nd"
+
+test a_short_cell_is_one_post =
+    inl ~cell = "inl x = 1"
+    cell_posts 4i32 cell |> sm'.concat_list "|" |> _assert_eq "c4 1/1\ninl x = 1"
+    posts_of "" |> listm.length |> _assert_eq 0i32
+
+test dots_that_x_would_link_are_defused =
+    inl ~cell = "go x.io now"
+    cell_posts 1i32 cell |> sm'.concat_list "|" |> _assert_eq ("c1 1/1\ngo x" ++# defused_dot () ++# "io now")
+    cell_posts 1i32 "1.5" |> sm'.concat_list "|" |> _assert_eq "c1 1/1\n1.5"
+
+test long_cells_split_between_words =
+    inl ~word = "ab "
+    inl posts = cell_posts 2i32 (repeated 120i32 word "")
+    posts |> listm.length |> _assert_eq 2i32
+    (heaviest posts <= post_limit ()) |> _assert_eq true
+
+inl post_count (cell : string) : i32 = cell_posts 1i32 cell |> listm.length
+
+test one_post_cells_budget_a_one_digit_header =
+    inl ~cell = repeated 273i32 "a" ""
+    post_count cell |> _assert_eq 1i32
+    post_count (cell ++# "a") |> _assert_eq 2i32
+
+test ten_posts_widen_the_header =
+    inl ~glyphs = 3000i32
+    inl posts = cell_posts 1i32 (repeated glyphs "a" "")
+    posts |> listm.length |> _assert_eq 12i32
+    (heaviest posts <= post_limit ()) |> _assert_eq true
+
+test previews_price_every_post =
+    inl ~n = 15i32
+    dollars n |> _assert_eq "$0.015"
+    dollars 1725i32 |> _assert_eq "$1.725"
+    summary 2i32 |> _assert_eq "\n--- 2 posts, $0.030 to create"

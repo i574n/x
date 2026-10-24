@@ -1,0 +1,42 @@
+{
+    "cells": [
+        {
+            "parent": null,
+            "post": "p0",
+            "source": "///- --package ."
+        },
+        {
+            "parent": "p0",
+            "post": "p1",
+            "source": "///- --test static\n\nopen testing"
+        },
+        {
+            "parent": "p1",
+            "post": "p2",
+            "source": "open sm'_operators\n\ninl each forall a b. (f : a -> b) (l : list a) : list b =\n    listm.foldBack (fun x acc => Cons (f x, acc)) l Nil\n\ninl keep forall t. (ok : t -> bool) (l : list t) : list t =\n    listm.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l Nil\n\ninl spread forall a b. (f : a -> list b) (l : list a) : list b =\n    listm.foldBack (fun x acc => listm.append (f x) acc) l Nil\n\ninl first_where forall t. (ok : t -> bool) (l : list t) : option t =\n    listm.foldBack (fun x acc => if ok x then Some x else acc) l None\n\ninl has forall t. (ok : t -> bool) (l : list t) : bool =\n    match first_where ok l with\n    | Some _ => true\n    | None => false\n\ninl take_first forall t. (n : i32) (l : list t) : list t =\n    let rec go (n : i32) (l : list t) : list t =\n        match l with\n        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)\n        | _ => Nil\n    go n l\n\ninl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =\n    match r with\n    | Ok x => f x\n    | Error e => Error e\n\ninl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\ninl cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s\n\nlet rec split_on (sep : string) (s : string) : list string =\n    inl i : i32 = sm'.index_of sep s\n    if i < 0i32 then [s]\n    else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))\n\ninl pieces (sep : string) (s : string) : list string = if s = \"\" then Nil else split_on sep s\n\nlet delimited (sep : string) (l : list string) : string = sm'.concat_list sep l\n\ninl rest_from (i : i32) (s : string) : string = cut i (sm'.length s - i) s\n\ninl starts_at (prefix : string) (s : string) (i : i32) : bool =\n    if i < 0i32 || i > sm'.length s then false else sm'.starts_with prefix (rest_from i s)\n\ninl digit_first (rest : string) : bool = has (fun d => sm'.starts_with (sm'.obj_to_string d) rest) (listm.init 10i32 id)\n\nlet rec digits_end (s : string) (i : i32) : i32 =\n    if i < sm'.length s && digit_first (rest_from i s) then digits_end s (i + 1i32) else i\n\ninl digit_at (i : i32) (text : string) : i32 =\n    \"0123456789\" |> sm'.index_of (sm'.slice i i text)\n\nlet rec digits (text : string) (i : i32) (n : i32) : option i32 =\n    if i >= sm'.length text then Some n\n    else\n        inl d = digit_at i text\n        if d < 0 || n > 100000000 then None else digits text (i + 1) (n * 10 + d)\n\ninl without_digits (text : string) : string = listm.init 10i32 id |> listm.fold (fun t d => sm'.replace (sm'.obj_to_string d) \"\" t) text\n\nlet count_of_text (text : string) : option i32 =\n    if text = \"\" || without_digits text <> \"\" then None else digits text 0 0\n"
+        },
+        {
+            "parent": "p2",
+            "post": "p3",
+            "source": "///- --test\n///> zig\n\ninl ~n = 2i32\n[1i32; 2; 3] |> take_first n |> listm.length |> _assert_eq 2i32"
+        },
+        {
+            "parent": "p3",
+            "post": "p4",
+            "source": "///- --test\n///> zig\n\ninl ~e = \"no\"\nError e |> then_ok (fun (x : i32) => Ok (x + 1)) |> _assert_eq (Error \"no\")"
+        },
+        {
+            "parent": "p4",
+            "post": "p5",
+            "source": "///- --test\n///> zig\n\ninl ~n = 2i32\ninl l = [1i32; 2; 3; 4]\nkeep (fun x => x > n) l |> listm.length |> _assert_eq 2i32\nfirst_where (fun x => x > n) l |> _assert_eq (Some 3i32)"
+        }
+    ],
+    "likes": {
+        "p0": 3,
+        "p1": 2,
+        "p2": 2,
+        "p3": 1,
+        "p4": 2,
+        "p5": 1
+    }
+}

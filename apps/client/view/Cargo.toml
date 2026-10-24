@@ -1,0 +1,16 @@
+[package]
+name = "xc_view"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "view.spi"
+output = "view.rs"
+
+[lib]
+name = "xc_view"
+path = "view.rs"
+
+[dependencies]
+xc_net = { path = "../net" }

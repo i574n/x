@@ -1,0 +1,41 @@
+///- --package .
+test oauth1 static =
+    open testing
+
+open sm'_operators
+
+type oauth1 = oauth.oauth1_credentials
+
+type pair = oauth.oauth1_pair
+
+inl percent (s : string) : string = sm'.percent_encode s
+
+nominal system_time = $'std::time::SystemTime'
+
+nominal elapsed = $'std::time::Duration'
+
+inl system_now () : system_time = $'std::time::SystemTime::now()'
+
+inl since_epoch (t : system_time) : elapsed = $'!t.duration_since(std::time::UNIX_EPOCH).unwrap_or_default()'
+
+inl whole_seconds (d : elapsed) : u64 = $'!d.as_secs()'
+
+inl sub_micros (d : elapsed) : u32 = $'!d.subsec_micros()'
+
+inl process_id () : u32 = $'std::process::id()'
+
+inl clock_seed () : string =
+    inl d = since_epoch (system_now ())
+    inl micros : u64 = whole_seconds d * 1000000u64 + conv (sub_micros d)
+    sm'.obj_to_string micros ++# "-" ++# sm'.obj_to_string (process_id ())
+
+inl unix_seconds () : string = since_epoch (system_now ()) |> whole_seconds |> sm'.obj_to_string
+
+inl fresh_nonce () : string = crypto.sha1_hex (clock_seed ())
+
+let oauth_header (o : oauth1) (method : string) (url : string) (nonce : string) (stamp : string) : string =
+    oauth.authorization_header o method url nonce stamp
+
+///> rust -d sha1
+test a_fresh_nonce_is_forty_hex_digits =
+    sm'.length (fresh_nonce ()) |> _assert_eq 40i32

@@ -1,0 +1,516 @@
+///- --package .
+test cli static =
+    open testing
+
+open sm'_operators
+open prelude
+
+union source =
+    | Accounts : list string
+    | FollowingOf : string
+
+union following_cap =
+    | AtMost : i32
+    | AllFollowing
+
+type filters = {start_time : string; end_time : string; no_replies : bool; no_reposts : bool}
+
+type request =
+    {source : source; per_account : i32; limit : i32; per_author : i32; cap : following_cap;
+     filters : filters; depth : i32; hints : bool; json : bool}
+
+union thread_op =
+    | ReadThread : string
+    | PostThread : string
+    | PreviewThread : string
+    | DeleteThread : string
+    | ResumeThread : string * string
+
+union command =
+    | ShowTimeline : request
+    | PublishPost : string
+    | RemovePost : string
+    | RefreshToken : string
+    | OnThread : thread_op
+    | ShowHelp
+    | Rejected : string
+
+type draft =
+    {usernames : list string; following : option string; per_account : i32; limit : i32; per_author : i32;
+     cap : following_cap; filters : filters; depth : i32; hints : bool; json : bool}
+
+type step = result draft string
+
+type args = list string
+
+type progress = step * args
+
+union flag =
+    | PerAccount
+    | Limit
+    | PerAuthor
+    | MaxFollowing
+    | Following
+    | StartTime
+    | EndTime
+    | Depth
+
+union switch =
+    | NoReplies
+    | NoReposts
+    | Originals
+    | Hints
+    | Json
+
+inl lookup_limit () : i32 = 100i32
+
+inl usage_synopsis () : string =
+    "usage: xc timeline [options] USERNAME...\n"
+    ++# "       xc timeline [options] [--max-following N|all] --following USERNAME\n"
+
+inl usage_writes () : string =
+    "       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n"
+    ++# "       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n"
+
+inl usage_reads () : string = "       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n"
+
+inl usage_thread_writes () : string =
+    "       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"
+    ++# "       xc post-thread --resume ROOT_ID FILE   finish a half-posted thread of FILE after its last post\n"
+
+inl usage_thread_deletes () : string = "       xc delete-thread ID   delete your posts of that thread (user credentials)\n"
+
+inl usage_environment () : string =
+    "env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"
+
+inl usage_counts () : string =
+    "       --per-account N   posts shown per account, 1..100 (default 5)\n"
+    ++# "       --limit N         timeline entries shown (default 20)\n"
+    ++# "       --per-author N    entries shown per author (default all)\n"
+
+inl usage_filters () : string =
+    "       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n"
+    ++# "       --end-time DATE   posts before DATE\n"
+    ++# "       --no-replies, --no-reposts, --originals (both)\n"
+
+inl usage_views () : string =
+    "       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n"
+    ++# "       --hints           media alt text and url titles under each post\n"
+
+inl usage_output () : string = "       --json            one JSON object per entry (JSON Lines) instead of text\n"
+
+inl usage_following () : string =
+    "       --max-following N accounts followed by USERNAME to include, or all (default 20)"
+
+inl usage_commands () : string = usage_synopsis () ++# usage_writes () ++# usage_reads () ++# usage_thread_writes () ++# usage_thread_deletes ()
+
+inl usage () : string =
+    inl filters, views = usage_counts () ++# usage_filters (), usage_views () ++# usage_output ()
+    usage_commands () ++# usage_environment () ++# filters ++# views ++# usage_following ()
+
+union arg_kind =
+    | Switched : switch
+    | Valued : flag
+    | Plain
+
+inl value_flag_of (text : string) : arg_kind =
+    if text = "--max-following" then Valued MaxFollowing
+    elif text = "--following" then Valued Following
+    elif text = "--start-time" then Valued StartTime
+    elif text = "--end-time" then Valued EndTime
+    else Plain
+
+inl flag_of (text : string) : arg_kind =
+    if text = "--per-account" then Valued PerAccount
+    elif text = "--limit" then Valued Limit
+    elif text = "--per-author" then Valued PerAuthor
+    elif text = "--depth" then Valued Depth
+    else value_flag_of text
+
+inl output_kind (text : string) : arg_kind =
+    if text = "--json" then Switched Json
+    elif text = "--hints" then Switched Hints
+    else flag_of text
+
+inl kind_of (text : string) : arg_kind =
+    if text = "--no-replies" then Switched NoReplies
+    elif text = "--no-reposts" then Switched NoReposts
+    elif text = "--originals" then Switched Originals
+    else output_kind text
+
+inl char_at (i : i32) (text : string) : string = sm'.slice i i text
+
+inl fits_at (pattern : string) (text : string) (i : i32) : bool =
+    if char_at i pattern = "9" then digit_at i text >= 0 else char_at i pattern = char_at i text
+
+inl shaped (pattern : string) (text : string) : bool =
+    inl n : i32 = sm'.length pattern
+    let rec go (i : i32) : bool = i >= n || fits_at pattern text i && go (i + 1)
+    sm'.length text = n && go 0
+
+inl date_of_text (text : string) : option string =
+    if shaped "9999-99-99" text then Some (text ++# "T00:00:00Z")
+    elif shaped "9999-99-99T99:99:99Z" text then Some text
+    else None
+
+inl username_alphabet () : string =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
+
+inl without_at (text : string) : string =
+    if sm'.starts_with "@" text then sm'.slice 1i32 (sm'.length text - 1i32) text else text
+
+let username_chars (h : string) : bool =
+    inl len : i32 = sm'.length h
+    let rec ok (i : i32) : bool = i >= len || (username_alphabet () |> sm'.contains (char_at i h)) && ok (i + 1)
+    len >= 1 && len <= 15 && ok 0
+
+inl username_of_text (text : string) : option string =
+    inl h = without_at text
+    if username_chars h then Some h else None
+
+inl range_of (f : flag) : i32 * i32 =
+    match f with
+    | PerAccount => 1i32, 100i32
+    | Depth => 0i32, 3i32
+    | _ => 1i32, 100000i32
+
+type checks = {count : string -> option i32; instant : string -> option string; username : string -> option string}
+
+inl pure_checks () : checks = {count = count_of_text; instant = date_of_text; username = username_of_text}
+
+inl out_of_range (name : string) (low : i32) (high : i32) (text : string) : string =
+    inl range = sm'.obj_to_string low ++# " to " ++# sm'.obj_to_string high
+    name ++# " expects a number from " ++# range ++# ", got '" ++# text ++# "'"
+
+inl with_count (f : flag) (d : draft) (n : i32) : draft =
+    match f with
+    | PerAccount => {d with per_account = n}
+    | Limit => {d with limit = n}
+    | PerAuthor => {d with per_author = n}
+    | Depth => {d with depth = n}
+    | _ => {d with cap = AtMost n}
+
+let bounded (c : checks) (f : flag) (name : string) (text : string) (d : draft) : step =
+    inl low, high = range_of f
+    match c.count text with
+    | Some n when n >= low && n <= high => Ok (with_count f d n)
+    | _ => Error (out_of_range name low high text)
+
+inl not_a_username (text : string) : string = "not an X username: '" ++# text ++# "'"
+
+let with_following (c : checks) (value : string) (d : draft) : step =
+    match c.username value, d.following with
+    | None, _ => Error (not_a_username value)
+    | Some _, Some _ => Error "--following given twice"
+    | Some h, None => Ok {d with following = Some h}
+
+inl with_filters (d : draft) (f : filters) : draft = {d with filters = f}
+
+inl date_expected (name : string) (value : string) : string =
+    name ++# " expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '" ++# value ++# "'"
+
+inl dated (g : flag) (at : string) (f : filters) : filters =
+    match g with
+    | StartTime => {f with start_time = at}
+    | _ => {f with end_time = at}
+
+let with_date (c : checks) (g : flag) (name : string) (value : string) (d : draft) : step =
+    match c.instant value with
+    | None => Error (date_expected name value)
+    | Some at => Ok (with_filters d (dated g at d.filters))
+
+inl uncapped (d : draft) : step = Ok {d with cap = AllFollowing}
+
+let apply_flag (c : checks) (f : flag) (n : string) (v : string) (d : draft) : step =
+    match f with
+    | Following => with_following c v d
+    | StartTime | EndTime => with_date c f n v d
+    | MaxFollowing when v = "all" => uncapped d
+    | _ => bounded c f n v d
+
+inl switched (s : switch) (f : filters) : filters =
+    match s with
+    | NoReplies => {f with no_replies = true}
+    | NoReposts => {f with no_reposts = true}
+    | _ => {f with no_replies = true; no_reposts = true}
+
+let apply_switch (s : switch) (d : draft) : step =
+    match s with
+    | Hints => Ok {d with hints = true}
+    | Json => Ok {d with json = true}
+    | _ => Ok (with_filters d (switched s d.filters))
+
+inl unknown_option (arg : string) : string = "unknown option " ++# arg
+
+let with_username (c : checks) (arg : string) (d : draft) : step =
+    match c.username arg with
+    | _ when sm'.starts_with "-" arg => Error (unknown_option arg)
+    | Some h => Ok {d with usernames = Cons (h, d.usernames)}
+    | None => Error (not_a_username arg)
+
+inl request_of (d : draft) (s : source) : command =
+    inl {per_account limit per_author cap filters depth hints json} = d
+    ShowTimeline {source = s; per_account limit per_author cap filters depth hints json}
+
+inl following_alone () : string = "--following takes one account and no other usernames"
+
+inl nothing_named () : string = "name at least one account, or --following USERNAME"
+
+inl usernames_in (d : draft) : list string = listm.rev d.usernames
+
+let finish (d : draft) : command =
+    match d.following, usernames_in d with
+    | Some h, Nil => request_of d (FollowingOf h)
+    | Some _, _ => Rejected (following_alone ())
+    | None, Nil => Rejected (nothing_named ())
+    | None, hs => request_of d (Accounts hs)
+
+inl too_many () : string = "at most " ++# sm'.obj_to_string (lookup_limit ()) ++# " accounts per run"
+
+let capped (d : draft) : command =
+    if listm.length d.usernames > lookup_limit () then Rejected (too_many ()) else finish d
+
+inl is_help (arg : string) : bool = arg = "--help" || arg = "-h" || arg = "help"
+
+
+inl needs_value (a : string) : progress = Error (a ++# " needs a value"), Nil
+
+inl valued (c : checks) (d : draft) (a : string) (f : flag) (r : args) : progress =
+    match r with
+    | Nil => needs_value a
+    | Cons (v, r') => apply_flag c f a v d, r'
+
+let advance (c : checks) (d : draft) (a : string) (r : args) : progress =
+    match kind_of a with
+    | Switched s => apply_switch s d, r
+    | Valued f => valued c d a f r
+    | Plain => with_username c a d, r
+
+let rec parse_from (c : checks) (d : draft) (args : list string) : command =
+    match args with
+    | Nil => capped d
+    | Cons (arg, rest) =>
+        match advance c d arg rest with
+        | Ok d, more => parse_from c d more
+        | Error why, _ => Rejected why
+
+inl no_filters () : filters = {start_time = ""; end_time = ""; no_replies = false; no_reposts = false}
+
+inl initial_draft () : draft =
+    {usernames = Nil; following = None; per_account = 5i32; limit = 20i32; per_author = 0i32;
+     cap = AtMost 20i32; filters = no_filters (); depth = 0i32; hints = false; json = false}
+
+inl unknown_command (arg : string) : string = "unknown command " ++# arg ++# "; try: xc timeline"
+
+inl wants_help (args : list string) : bool = listm.fold (fun seen a => seen || is_help a) false args
+
+let one_value (name : string) (args : list string) (make : string -> command) : command =
+    match args with
+    | Cons (value, Nil) when value <> "" => make value
+    | _ => Rejected (name ++# " takes exactly one argument")
+
+inl dry_or_post (rest : args) : command =
+    match rest with
+    | Cons (flag, Cons (path, Nil)) when flag = "--dry-run" => OnThread (PreviewThread path)
+    | _ => one_value "post-thread" rest (PostThread >> OnThread)
+
+inl thread_post_command (rest : args) : command =
+    match rest with
+    | Cons (flag, Cons (root, Cons (path, Nil))) when flag = "--resume" => OnThread (ResumeThread (root, path))
+    | _ => dry_or_post rest
+
+let thread_command (sub : string) (rest : args) : command =
+    if sub = "post-thread" then thread_post_command rest
+    elif sub = "delete-thread" then one_value sub rest (DeleteThread >> OnThread)
+    else Rejected (unknown_command sub)
+
+let other_command (sub : string) (rest : args) : command =
+    if sub = "refresh" then one_value sub rest RefreshToken
+    elif sub = "thread" then one_value sub rest (ReadThread >> OnThread)
+    else thread_command sub rest
+
+let write_command (sub : string) (rest : args) : command =
+    if sub = "post" then one_value sub rest PublishPost
+    elif sub = "delete" then one_value sub rest RemovePost
+    else other_command sub rest
+
+inl subcommand (c : checks) (start : draft) (sub : string) (rest : args) : command =
+    if sub = "timeline" then parse_from c start rest else write_command sub rest
+
+let parse_args_with (c : checks) (start : draft) (args : list string) : command =
+    match args with
+    | Cons (sub, rest) when not (wants_help args) => subcommand c start sub rest
+    | _ => ShowHelp
+
+inl parse_args (args : list string) : command = parse_args_with (pure_checks ()) (initial_draft ()) args
+
+inl cap_text (c : following_cap) : string =
+    match c with
+    | AtMost n => sm'.obj_to_string n
+    | AllFollowing => "all"
+
+inl source_text (s : source) : string =
+    match s with
+    | Accounts hs => "accounts " ++# sm'.concat_list "," hs
+    | FollowingOf h => "following-of " ++# h
+
+inl dates_text (f : filters) : string =
+    (if f.start_time = "" then "" else " start_time=" ++# f.start_time) ++# (if f.end_time = "" then "" else " end_time=" ++# f.end_time)
+
+inl flags_text (f : filters) : string =
+    dates_text f ++# (if f.no_replies then " no-replies" else "") ++# (if f.no_reposts then " no-reposts" else "")
+
+inl counts_text (r : request) : string =
+    " per=" ++# sm'.obj_to_string r.per_account ++# " limit=" ++# sm'.obj_to_string r.limit
+
+inl views_text (r : request) : string =
+    inl view = " author=" ++# sm'.obj_to_string r.per_author ++# " depth=" ++# sm'.obj_to_string r.depth
+    view ++# " cap=" ++# cap_text r.cap
+
+let request_text (r : request) : string =
+    inl hints = (if r.hints then " hints" else "") ++# (if r.json then " json" else "")
+    source_text r.source ++# counts_text r ++# views_text r ++# flags_text r.filters ++# hints
+
+inl thread_edit_text (t : thread_op) : string =
+    match t with
+    | DeleteThread id => "delete-thread " ++# id
+    | ResumeThread (root, path) => "post-thread --resume " ++# root ++# " " ++# path
+    | _ => ""
+
+inl thread_op_text (t : thread_op) : string =
+    match t with
+    | ReadThread id => "thread " ++# id
+    | PostThread path => "post-thread " ++# path
+    | PreviewThread path => "post-thread --dry-run " ++# path
+    | _ => thread_edit_text t
+
+inl thread_text (c : command) : string =
+    match c with
+    | OnThread t => thread_op_text t
+    | _ => ""
+
+inl described_write (c : command) : string =
+    match c with
+    | PublishPost text => "post " ++# text
+    | RemovePost id => "delete " ++# id
+    | RefreshToken path => "refresh " ++# path
+    | _ => thread_text c
+
+inl describe (c : command) : string =
+    match c with
+    | ShowHelp => "help"
+    | Rejected message => "rejected: " ++# message
+    | ShowTimeline r => request_text r
+    | _ => described_write c
+
+inl parsed (args : list string) : string = parse_args args |> describe
+
+///> zig
+test accounts_strip_the_at_sign =
+    inl ~h = "@" ++# "alice"
+    parsed ["timeline"; h; "bob"] |> _assert_eq "accounts alice,bob per=5 limit=20 author=0 depth=0 cap=20"
+
+///> zig
+test following_with_every_option =
+    inl ~all = "all"
+    parsed ["timeline"; "--following"; "carol"; "--max-following"; all; "--per-account"; "10"]
+    |> _assert_eq "following-of carol per=10 limit=20 author=0 depth=0 cap=all"
+
+///> zig
+test filters_are_collected =
+    inl ~day = "2026-10-15"
+    parsed ["timeline"; "--start-time"; day; "--originals"; "a"]
+    |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 start_time=2026-10-15T00:00:00Z no-replies no-reposts"
+
+///> zig
+test views_are_collected =
+    inl ~depth = "2"
+    parsed ["timeline"; "--depth"; depth; "--hints"; "--per-author"; "1"; "a"]
+    |> _assert_eq "accounts a per=5 limit=20 author=1 depth=2 cap=20 hints"
+
+///> zig
+test dates_must_be_well_formed =
+    inl ~day = "2026-10-5"
+    parsed ["timeline"; "--end-time"; day; "a"]
+    |> _assert_eq "rejected: --end-time expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '2026-10-5'"
+
+///> zig
+test depth_is_capped_at_three =
+    inl ~n = "4"
+    parsed ["timeline"; "--depth"; n; "a"] |> _assert_eq "rejected: --depth expects a number from 0 to 3, got '4'"
+
+///> zig
+test per_account_rejects_zero =
+    inl ~n = "0"
+    parsed ["timeline"; "--per-account"; n; "alice"]
+    |> _assert_eq "rejected: --per-account expects a number from 1 to 100, got '0'"
+
+///> zig
+test per_account_takes_one =
+    inl ~n = "1"
+    parsed ["timeline"; "--per-account"; n; "alice"] |> _assert_eq "accounts alice per=1 limit=20 author=0 depth=0 cap=20"
+
+///> zig
+test following_excludes_other_usernames =
+    inl ~h = "alice"
+    parsed ["timeline"; "--following"; "carol"; h]
+    |> _assert_eq "rejected: --following takes one account and no other usernames"
+
+///> zig
+test usernames_are_validated =
+    inl ~h = "al-ice"
+    parsed ["timeline"; h] |> _assert_eq "rejected: not an X username: 'al-ice'"
+
+///> zig
+test a_flag_needs_a_value =
+    inl ~flag = "--limit"
+    parsed ["timeline"; flag] |> _assert_eq "rejected: --limit needs a value"
+
+///> zig
+test unknown_options_are_rejected =
+    inl ~flag = "--verbose"
+    parsed ["timeline"; flag] |> _assert_eq "rejected: unknown option --verbose"
+
+///> zig
+test unknown_commands_are_rejected =
+    inl ~sub = "home"
+    parsed [sub; "carol"] |> _assert_eq "rejected: unknown command home; try: xc timeline"
+
+///> zig
+test post_and_delete_take_one_argument =
+    inl ~text = "hello from x"
+    parsed ["post"; text] |> _assert_eq "post hello from x"
+    parsed ["delete"; "1"; "2"] |> _assert_eq "rejected: delete takes exactly one argument"
+
+///> zig
+test help_wins_anywhere =
+    inl ~h = "-h"
+    parsed ["timeline"; "alice"; h] |> _assert_eq "help"
+
+///> zig
+test json_and_refresh_are_parsed =
+    inl ~path = "x-api.env"
+    parsed ["timeline"; "--json"; "a"] |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 json"
+    parsed ["refresh"; path] |> _assert_eq "refresh x-api.env"
+
+///> zig
+test post_thread_takes_a_file_and_an_optional_dry_run =
+    inl ~path = "prelude.spi"
+    parsed ["post-thread"; path] |> _assert_eq "post-thread prelude.spi"
+    parsed ["post-thread"; "--dry-run"; path] |> _assert_eq "post-thread --dry-run prelude.spi"
+
+///> zig
+test post_thread_resumes_from_a_root =
+    inl ~path = "prelude.spi"
+    parsed ["post-thread"; "--resume"; "9003"; path] |> _assert_eq "post-thread --resume 9003 prelude.spi"
+
+///> zig
+test delete_thread_takes_one_id =
+    inl ~id = "9003"
+    parsed ["delete-thread"; id] |> _assert_eq "delete-thread 9003"
+    parsed ["delete-thread"; id; "9004"] |> _assert_eq "rejected: delete-thread takes exactly one argument"
+
+///> zig
+test post_thread_needs_a_file =
+    inl ~sub = "post-thread"
+    parsed [sub] |> _assert_eq "rejected: post-thread takes exactly one argument"

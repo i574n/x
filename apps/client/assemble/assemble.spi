@@ -1,0 +1,52 @@
+///- --package ..
+///> rust -d serde_json
+test assemble static =
+    open testing
+
+open sm'_operators
+open prelude
+open posts
+open wire
+open protocol
+open reading
+
+inl frame_of (v : json) : frame =
+    heap {cell = cell_id (at_key "cell" v); k = field "k" v |> number_of; n = field "n" v |> number_of; body = at_key "body" v; original = post_id (at_key "original" v); parent = optional_post (at_key "parent" v)}
+
+type assembled_reply = i32 * string * string
+
+inl reply_of (p : program) : assembled_reply =
+    exit_code p.flaws, delimited """
+
+
+
+        """ p.sources, p.flaws |> each note_of |> delimited "\n"
+
+let assembled_of (located : string) : assembled_reply =
+    inl doc = parse_json located
+    assembled (field "frames" doc |> collect frame_of) (field "known" doc |> collect text_of |> each post_id) |> reply_of
+
+inl place_doc (cell : string) (k : i32) (n : i32) : list string =
+    [member "cell" (quoted_text cell); member "k" (sm'.obj_to_string k); member "n" (sm'.obj_to_string n)]
+
+inl frame_doc (cell : string) (k : i32) (n : i32) (body : string) : string =
+    object (listm.append (place_doc cell k n) [member "body" (json_string body); member "original" (quoted_text "5"); member "parent" (quoted_text "")])
+
+inl located_of (frames : list string) : string = object [member "frames" (items frames); member "known" (items [quoted_text "5"])]
+
+inl reply_text (r : assembled_reply) : string =
+    inl code, sources, notes = r
+    sm'.obj_to_string code ++# "|" ++# sources ++# "|" ++# notes
+
+test frames_in_any_order_join_their_cell =
+    inl ~body = "inl a"
+    [frame_doc "c1" 2i32 2i32 " = 1"; frame_doc "c1" 1i32 2i32 body] |> located_of |> assembled_of |> reply_text |> _assert_eq "0|inl a = 1|"
+
+test a_lost_frame_holes_its_cell =
+    inl ~body = "inl a"
+    [frame_doc "c1" 1i32 2i32 body] |> located_of |> assembled_of |> reply_text |> _assert_eq "4||cell c1 is missing frame 2 of 2"
+
+///> _
+inl main () : i32 =
+    !!!!Export("xc_assemble", ((fun bundle => assembled_of bundle) : string -> assembled_reply))
+    0i32

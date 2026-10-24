@@ -1,0 +1,6 @@
+name = "xsim_frames"
+version = "0.1.0"
+target = "erlang"
+
+[dependencies]
+gleam_stdlib = ">= 1.0.5 and < 2.0.0"

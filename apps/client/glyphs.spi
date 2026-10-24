@@ -1,0 +1,190 @@
+///- --package .
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test glyphs static =
+    open testing
+
+open sm'_operators
+open prelude
+
+inl char_of (n : i32) : string = unicode.char_of n
+
+inl zero_width_space () : string = char_of 8203i32
+
+inl defused_dot () : string = zero_width_space () ++# "."
+
+inl graphemes (s : string) : list string = unicode.graphemes s
+
+inl rust_weight (s : string) : i32 =
+    $'(&*!s).chars().map(|c| match c as u32 { 0..=4351 | 8192..=8205 | 8208..=8223 | 8242..=8247 => 1, _ => 2 }).sum::<i32>()'
+
+inl gleam_light () : () =
+    global "fn x_light(n: Int) -> Bool { n <= 4351 || n >= 8192 && n <= 8205 || n >= 8208 && n <= 8223 || n >= 8242 && n <= 8247 }"
+
+inl gleam_weight (s : string) : i32 =
+    gleam_light ()
+    global "import gleam/list"
+    global "import gleam/string"
+    $'string.to_utf_codepoints(!s) |> list.fold(0, fn(sum, c) { sum + case x_light(string.utf_codepoint_to_int(c)) { True -> 1 False -> 2 } })'
+
+inl plain_weight (s : string) : i32 =
+    backend_switch {
+        Gleam = fun () => gleam_weight s
+        Rust = fun () => rust_weight s
+    }
+
+inl first_code_point (s : string) : i32 = unicode.first_code_point s
+
+inl code_point_count (s : string) : i32 = unicode.code_point_count s
+
+inl holds_code_point (n : i32) (s : string) : bool = sm'.index_of (char_of n) s >= 0i32
+
+inl pictograph_led (first : i32) : bool = first >= 126976i32
+
+inl symbol_led (first : i32) : bool =
+    (first >= 8192i32 && first <= 11263i32) || first = 169i32 || first = 174i32 || first = 12336i32 || first = 12349i32 || first = 12951i32 || first = 12953i32
+
+inl keycap_led (first : i32) : bool = first = 35i32 || first = 42i32 || (first >= 48i32 && first <= 57i32)
+
+inl emoji_presented (g : string) (first : i32) : bool = holds_code_point 65039i32 g && symbol_led first
+
+inl keycap (g : string) (first : i32) : bool = holds_code_point 8419i32 g && keycap_led first
+
+inl emoji_entity (g : string) : bool =
+    inl first = first_code_point g
+    code_point_count g > 1i32 && (pictograph_led first || emoji_presented g first || keycap g first)
+
+inl glyph_weight (g : string) : i32 = if emoji_entity g then 2i32 else plain_weight g
+
+inl nfc (s : string) : string = unicode.nfc s
+
+inl ascii_letters () : string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+inl one_of (chars : string) (g : string) : bool = sm'.length g = 1i32 && sm'.index_of g chars >= 0i32
+
+inl letter (g : string) : bool = one_of (ascii_letters ()) g
+
+inl label_char (g : string) : bool = one_of (ascii_letters () ++# "0123456789_-") g
+
+inl rust_blank (s : string) : bool = $'(&*!s).trim().is_empty()'
+
+inl gleam_white () : () =
+    global "fn x_white(n: Int) -> Bool { n >= 9 && n <= 13 || n == 32 || n == 133 || n == 160 || n == 5760 || n >= 8192 && n <= 8202 }"
+
+inl gleam_spaced () : () =
+    gleam_white ()
+    global "fn x_spaced(n: Int) -> Bool { x_white(n) || n == 8232 || n == 8233 || n == 8239 || n == 8287 || n == 12288 }"
+
+inl gleam_blank (s : string) : bool =
+    gleam_spaced ()
+    global "import gleam/list"
+    global "import gleam/string"
+    $'string.to_utf_codepoints(!s) |> list.all(fn(c) { x_spaced(string.utf_codepoint_to_int(c)) })'
+
+inl blank (s : string) : bool =
+    backend_switch {
+        Gleam = fun () => gleam_blank s
+        Rust = fun () => rust_blank s
+    }
+
+nominal gleam_pieces = $'List(String)'
+
+inl gleam_binary_split () : () =
+    global "type XSplitScope { Global }"
+    global """
+        @ external(erlang, "binary", "split")
+        fn x_binary_split(s: String, sep: String, options: List(XSplitScope)) -> List(String)
+        """
+
+inl gleam_split (sep : string) (s : string) : gleam_pieces =
+    gleam_binary_split ()
+    $'x_binary_split(!s, !sep, [Global])'
+
+inl gleam_done (l : gleam_pieces) : bool = $'case !l { [] -> True _ -> False }'
+
+inl gleam_head (l : gleam_pieces) : string = $'case !l { [h, ..] -> h [] -> "" }'
+
+inl gleam_tail (l : gleam_pieces) : gleam_pieces = $'case !l { [_, ..t] -> t [] -> [] }'
+
+let rec listed_pieces (l : gleam_pieces) (acc : list string) : list string =
+    if gleam_done l then listm.rev acc else listed_pieces (gleam_tail l) (Cons (gleam_head l, acc))
+
+inl split_all (sep : string) (s : string) : list string =
+    backend_switch {
+        Gleam = fun () => listed_pieces (gleam_split sep s) Nil
+        Rust = fun () => split_on sep s
+    }
+
+inl all_pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_all sep s
+
+let rec without_blank_tail (l : list string) : list string =
+    match l with
+    | Cons (g, rest) when blank g => without_blank_tail rest
+    | _ => l
+
+inl trimmed_end (s : string) : string = graphemes s |> listm.rev |> without_blank_tail |> listm.rev |> sm'.concat_list ""
+
+inl thumb () : string = char_of 128077i32 ++# char_of 127997i32
+
+inl accented () : string = "e" ++# char_of 769i32
+
+test graphemes_hold_clusters =
+    inl ~s = "a" ++# accented () ++# " " ++# thumb () ++# "."
+    graphemes s |> listm.length |> _assert_eq 5i32
+    graphemes "" |> listm.length |> _assert_eq 0i32
+
+inl crlf () : string = char_of 13i32 ++# char_of 10i32
+
+test a_line_break_pair_is_one_grapheme =
+    inl ~s = "a" ++# crlf () ++# "b"
+    graphemes s |> listm.length |> _assert_eq 3i32
+
+test weights_follow_x =
+    inl ~s = "abc"
+    plain_weight s |> _assert_eq 3i32
+    plain_weight (char_of 26085i32) |> _assert_eq 2i32
+    plain_weight (thumb ()) |> _assert_eq 4i32
+    plain_weight (char_of 8212i32 ++# zero_width_space ()) |> _assert_eq 2i32
+
+inl family () : string =
+    char_of 128104i32 ++# char_of 8205i32 ++# char_of 128105i32 ++# char_of 8205i32 ++# char_of 128103i32 ++# char_of 8205i32 ++# char_of 128102i32
+
+inl japan () : string = char_of 127471i32 ++# char_of 127477i32
+
+inl keycap_one () : string = "1" ++# char_of 65039i32 ++# char_of 8419i32
+
+inl red_heart () : string = char_of 10084i32 ++# char_of 65039i32
+
+inl letter_vs16 () : string = "a" ++# char_of 65039i32
+
+test emoji_entities_weigh_two =
+    inl ~g = thumb ()
+    (glyph_weight g, glyph_weight (family ()), glyph_weight (red_heart ()), glyph_weight (keycap_one ()), glyph_weight (japan ()))
+        |> _assert_eq (2i32, 2i32, 2i32, 2i32, 2i32)
+
+test other_clusters_keep_code_point_weights =
+    inl ~g = accented ()
+    (glyph_weight g, glyph_weight (letter_vs16 ()), glyph_weight (char_of 26085i32), glyph_weight (char_of 169i32), glyph_weight "a")
+        |> _assert_eq (2i32, 3i32, 2i32, 1i32, 1i32)
+
+test blanks_and_tails =
+    inl ~s = "x \t\n"
+    trimmed_end s |> _assert_eq "x"
+    blank (char_of 160i32) |> _assert_eq true
+    blank (zero_width_space ()) |> _assert_eq false
+    trimmed_end ("a" ++# char_of 160i32) |> _assert_eq "a"
+
+inl rejoined (sep : string) (s : string) : string = split_all sep s |> sm'.concat_list "|"
+
+test split_all_keeps_empty_pieces =
+    inl ~s = "a\n" ++# char_of 26085i32 ++# "\n\nb\n"
+    rejoined "\n" s |> _assert_eq ("a|" ++# char_of 26085i32 ++# "||b|")
+    all_pieces "\n" "" |> listm.length |> _assert_eq 0i32
+    rejoined "," "x" |> _assert_eq "x"
+
+test nfc_composes =
+    inl ~s = accented ()
+    nfc s |> _assert_eq (char_of 233i32)
+    letter "a" |> _assert_eq true
+    label_char "-" |> _assert_eq true
+    letter "." |> _assert_eq false

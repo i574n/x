@@ -1,0 +1,117 @@
+{
+    "now": "2026-10-18T12:00:00Z",
+    "me": "110",
+    "include": ["sim-small.world.json", "sim-stress.world.json", "sim-lost.world.json", "sim-gap.world.json"],
+    "token": "e2e-token-7f3a91",
+    "user_token": "e2e-user-token-55c2",
+    "oauth1": {"consumer_key": "e2e-consumer-key", "consumer_secret": "e2e-consumer-secret", "token": "110-e2e-access-token", "token_secret": "e2e-access-token-secret"},
+    "oauth2": {"client_id": "e2e-client-id", "client_secret": "e2e-client-secret", "refresh_token": "e2e-refresh-token", "access_token": "e2e-oauth2-access"},
+    "following_page_size": 2,
+    "users": [
+        {"id":"112","name":"Hana","username":"hana","posts":[{"id":"12001","created_at":"2026-10-16T07:00:00.000Z","text":"東京で朝ごはん、今日は晴れ"},{"id":"12002","created_at":"2026-10-16T08:00:00.000Z","text":"안녕하세요 세계, 오늘도 좋은 하루"},{"id":"12003","created_at":"2026-10-16T09:00:00.000Z","text":"café crème at noon"},{"id":"12004","created_at":"2026-10-16T10:00:00.000Z","text":"family day 👨‍👩‍👧‍👦 👍🏽"},{"id":"12005","created_at":"2026-10-16T11:00:00.000Z","text":"日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本"}]},
+        {
+            "id": "101",
+            "name": "Alice",
+            "username": "alice",
+            "posts": [
+                {"id": "1001", "created_at": "2026-10-15T08:00:00.000Z", "text": "morning run done"},
+                {"id": "1002", "created_at": "2026-10-15T12:30:00.000Z", "text": "lunch: ramen", "metrics": {"reply_count": 2, "repost_count": 1, "like_count": 14}},
+                {"id": "1003", "created_at": "2026-10-14T21:10:00.000Z", "text": "reading about typed effects https://t.co/fx1",
+                 "urls": [{"url": "https://t.co/fx1", "expanded_url": "https://example.org/effects", "display_url": "example.org/effects", "title": "Typed effects, explained"}]}
+            ]
+        },
+        {
+            "id": "102",
+            "name": "Bob",
+            "username": "bob",
+            "posts": [
+                {"id": "2001", "created_at": "2026-10-15T09:45:00.000Z", "text": "shipped v2\nrelease notes soon", "metrics": {"reply_count": 4, "repost_count": 7, "like_count": 31, "impression_count": 920},
+                 "media": [{"media_key": "3_2001", "type": "photo", "alt_text": "release dashboard"}]},
+                {"id": "2002", "created_at": "2026-10-15T12:30:00.000Z", "text": "same minute as alice, newer id"},
+                {"id": "2003", "created_at": "2026-10-15T13:05:00.000Z", "text": "RT @alice: lunch: ramen", "refs": [{"type": "reposted", "id": "1002"}]},
+                {"id": "2004", "created_at": "2026-10-15T13:10:00.000Z", "text": "agreed, ramen wins", "metrics": {"reply_count": 1, "like_count": 3}, "refs": [{"type": "replied_to", "id": "1002"}]}
+            ]
+        },
+        {
+            "id": "103",
+            "name": "Carol",
+            "username": "carol",
+            "following": ["101", "102", "104", "105"],
+            "posts": [
+                {"id": "3001", "created_at": "2026-10-15T07:15:00.000Z", "text": "coffee first"},
+                {"id": "3002", "created_at": "2026-10-15T14:00:00.000Z", "text": "worth reading", "metrics": {"repost_count": 2, "like_count": 5, "quote_count": 1}, "refs": [{"type": "quoted", "id": "2004"}]}
+            ]
+        },
+        {
+            "id": "104",
+            "name": "Dave",
+            "username": "dave",
+            "protected": true
+        },
+        {
+            "id": "105",
+            "name": "Erin",
+            "username": "erin",
+            "posts": [
+                {"id": "5001", "created_at": "2026-10-15T06:00:00.000Z", "text": "erin 1"},
+                {"id": "5002", "created_at": "2026-10-15T06:10:00.000Z", "text": "erin 2"},
+                {"id": "5003", "created_at": "2026-10-15T06:20:00.000Z", "text": "erin 3"},
+                {"id": "5004", "created_at": "2026-10-15T06:30:00.000Z", "text": "erin 4"},
+                {"id": "5005", "created_at": "2026-10-15T06:40:00.000Z", "text": "erin 5"},
+                {"id": "5006", "created_at": "2026-10-15T15:00:00.000Z", "text": "the whole thread", "metrics": {"like_count": 1}, "refs": [{"type": "quoted", "id": "3002"}]}
+            ]
+        },
+        {
+            "id": "106",
+            "name": "Out Of Credits",
+            "username": "broke",
+            "status": 402,
+            "problem_title": "CreditsDepleted",
+            "problem_detail": "Your enrolled account does not have any credits to fulfill this request."
+        },
+        {
+            "id": "107",
+            "name": "Rate Limited",
+            "username": "busy",
+            "status": 429,
+            "problem_title": "Too Many Requests",
+            "problem_detail": "Too Many Requests"
+        },
+        {
+            "id": "108",
+            "name": "Behind A Broken Gateway",
+            "username": "gateway",
+            "plain_status": 502,
+            "plain_body": "Bad Gateway"
+        },
+        {
+            "id": "109",
+            "name": "Never Posted",
+            "username": "quiet",
+            "posts": []
+        },
+        {
+            "id": "110",
+            "name": "Follows Nobody",
+            "username": "loner",
+            "following": [],
+            "posts": [
+                {"id":"9101","created_at":"2026-10-17T09:00:00.000Z","text":"c1 1/1\n///- --package ..\n///> rust\ntest checks static =\n    open testing","conversation_id":"9101"},
+                {"id":"9102","created_at":"2026-10-17T09:01:00.000Z","text":"c2 1/1\nopen sm'_operators\nopen prelude\nopen cli","conversation_id":"9101","refs":[{"type":"replied_to","id":"9101"}]},
+                {"id":"9103","created_at":"2026-10-17T09:02:00.000Z","text":"c3 1/1\ninl count_or_none (t : string) : i32 =\n    match count_of_text t with\n    | Some n => n\n    | None => -1i32","conversation_id":"9101","refs":[{"type":"replied_to","id":"9102"}]},
+                {"id":"9201","created_at":"2026-10-16T09:00:00.000Z","text":"c1 1/1\n///- --package ..\n///> rust\ntest checks static =\n    open testing","conversation_id":"9201"},
+                {"id":"9202","created_at":"2026-10-16T09:01:00.000Z","text":"c2 1/1\nopen sm'_operators\nopen prelude\nopen cli edited","conversation_id":"9201","refs":[{"type":"replied_to","id":"9201"}]},
+                {"id": "10001", "created_at": "2026-10-15T10:00:00.000Z", "text": "nobody to follow yet"}
+            ]
+        },
+        {
+            "id": "111",
+            "name": "Follows A Busy Account",
+            "username": "mixed",
+            "following": ["101", "107", "102"],
+            "posts": [
+                {"id": "11001", "created_at": "2026-10-15T11:00:00.000Z", "text": "reading what i can"}
+            ]
+        }
+    ]
+}

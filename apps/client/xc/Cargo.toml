@@ -1,0 +1,29 @@
+[package]
+name = "xc"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "xc.spi"
+output = "xc.rs"
+
+[[bin]]
+name = "xc"
+path = "xc.rs"
+
+[dependencies]
+xc_args = { path = "../args" }
+xc_net = { path = "../net" }
+xc_users = { path = "../users" }
+xc_fetch = { path = "../fetch" }
+xc_refs = { path = "../refs" }
+xc_write = { path = "../write" }
+xc_digest = { path = "../digest" }
+xc_jsonl = { path = "../jsonl" }
+xc_assemble = { path = "../assemble" }
+xc_locate = { path = "../locate" }
+xc_thread = { path = "../thread" }
+xc_token = { path = "../token" }
+xc_view = { path = "../view" }
+xc_frames = { path = "../frames" }

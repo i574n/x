@@ -1,0 +1,5 @@
+* text=auto eol=lf
+
+Cargo.lock merge=ours
+
+apps/client/*/*.rs linguist-generated=false

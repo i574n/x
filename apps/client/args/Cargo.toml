@@ -1,0 +1,16 @@
+[package]
+name = "xc_args"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "args.spi"
+output = "args.rs"
+
+[lib]
+name = "xc_args"
+path = "args.rs"
+
+[dependencies]
+xc_checks = { path = "../checks" }

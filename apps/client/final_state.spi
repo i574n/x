@@ -1,0 +1,119 @@
+///- --package .
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test final_state static =
+    open testing
+
+open sm'_operators
+open prelude
+open glyphs
+open events
+
+type cell_state = {post_id : string; parent : option string; revisions : list string; deleted : bool}
+
+type tally = {post_id : string; users : list string}
+
+type replay = {cells : list cell_state; tallies : list tally}
+
+inl latest_of (l : list string) : string =
+    match l with
+    | Cons (s, _) => s
+    | Nil => ""
+
+inl with_cell (r : replay) (post_id : string) (f : cell_state -> cell_state) : replay =
+    {r with cells = r.cells |> each (fun (c : cell_state) => if c.post_id = post_id then f c else c)}
+
+inl revised_cell (source : string) (c : cell_state) : cell_state =
+    if latest_of c.revisions = source then c else {c with revisions = Cons (source, c.revisions)}
+
+type user_change = list string -> list string
+
+inl retallied (post_id : string) (f : user_change) (t : tally) : tally = if t.post_id = post_id then {t with users = f t.users} else t
+
+inl counted_for (post_id : string) (r : replay) : bool = has (fun (t : tally) => t.post_id = post_id) r.tallies
+
+inl tallied (post_id : string) (f : user_change) (r : replay) : replay =
+    if counted_for post_id r then {r with tallies = r.tallies |> each (retallied post_id f)}
+    else {r with tallies = listm.append r.tallies [{post_id users = f Nil}]}
+
+inl joined_user (user : string) (l : list string) : list string = if has ((=) user) l then l else listm.append l [user]
+
+inl left_user (user : string) (l : list string) : list string = l |> keep ((<>) user)
+
+inl posted_cell (r : replay) (p : rooted) : replay =
+    {r with cells = listm.append r.cells [{post_id = p.post_id; parent = p.parent; revisions = [p.source]; deleted = false}]}
+
+inl revision_replayed (r : replay) (v : revision) : replay =
+    match v with
+    | Edited s => with_cell r s.post_id (revised_cell s.source)
+    | Deleted post_id => with_cell r post_id (fun c => {c with deleted = true})
+    | FrameEdited _ => r
+
+inl reaction_replayed (r : replay) (x : reaction) : replay =
+    match x with
+    | Liked s => tallied s.post_id (joined_user s.user) r
+    | Unliked s => tallied s.post_id (left_user s.user) r
+
+inl replayed (r : replay) (e : event) : replay =
+    match e with
+    | Content (Posted p) => posted_cell r p
+    | Content (Framed _) => r
+    | Revision v => revision_replayed r v
+    | Reaction x => reaction_replayed r x
+
+let final_replay (l : list event) : replay = l |> listm.fold replayed {cells = Nil; tallies = Nil}
+
+inl opened_levels () : i32 = 4i32
+
+inl indent (level : i32) : string = sm'.replicate (4i32 * level) " "
+
+type brackets = {opening : string; closing : string}
+
+inl braces () : brackets = {opening = "{"; closing = "}"}
+
+inl square () : brackets = {opening = "["; closing = "]"}
+
+inl opened (items : list string) (b : brackets) (level : i32) : string =
+    inl inner = "\n" ++# indent (level + 1i32)
+    b.opening ++# inner ++# delimited ("," ++# inner) items ++# "\n" ++# indent level ++# b.closing
+
+let shared_layout (items : list string) (b : brackets) (level : i32) : string =
+    match items with
+    | Nil => b.opening ++# b.closing
+    | _ when level < opened_levels () => opened items b level
+    | _ => b.opening ++# delimited ", " items ++# b.closing
+
+inl laid_out (items : list string) (b : brackets) (level : i32) : string = shared_layout (dyn items) (dyn b) (dyn level)
+
+inl pair (key : string) (value : string) : string = quoted key ++# ": " ++# value
+
+inl cell_json (level : i32) (c : cell_state) : string =
+    [pair "parent" (parent_of c.parent); pair "post" (quoted c.post_id); pair "source" (quoted (latest_of c.revisions))] |> fun l => laid_out l (braces ()) level
+
+let rec inserted (t : tally) (l : list tally) : list tally =
+    match l with
+    | Cons (u, rest) when comp t.post_id u.post_id |> gt_is => Cons (u, inserted t rest)
+    | _ => Cons (t, l)
+
+inl tallies_json (level : i32) (l : list tally) : string =
+    inl sorted = l |> listm.fold (fun acc t => inserted t acc) Nil
+    laid_out (sorted |> each (fun (t : tally) => pair t.post_id (number (listm.length t.users)))) (braces ()) level
+
+inl live_cells (r : replay) : list cell_state = r.cells |> keep (fun (c : cell_state) => not c.deleted)
+
+let final_json (r : replay) : string =
+    inl cells = laid_out (live_cells r |> each (cell_json 2i32)) (square ()) 1i32
+    laid_out [pair "cells" cells; pair "likes" (tallies_json 1i32 r.tallies)] (braces ()) 0i32 ++# "\n"
+
+inl liked_twice () : list event = [Reaction (Liked {post_id = "p1"; user = "u1"}); Reaction (Liked {post_id = "p1"; user = "u1"}); Reaction (Unliked {post_id = "p0"; user = "u2"})]
+
+test likes_count_distinct_users_and_unlikes_leave_zero =
+    inl ~events = liked_twice ()
+    final_replay events |> final_json |> _assert_eq "{\n    \"cells\": [],\n    \"likes\": {\n        \"p0\": 0,\n        \"p1\": 1\n    }\n}\n"
+
+inl edited_twice () : list event =
+    [Content (Posted {post_id = "p0"; parent = None; source = "a"}); Revision (Edited {post_id = "p0"; source = "a"}); Revision (Edited {post_id = "p0"; source = "b"})]
+
+test the_latest_distinct_revision_is_the_source =
+    inl ~events = edited_twice ()
+    final_replay events |> final_json |> sm'.contains "\"source\": \"b\"" |> _assert_eq true
