@@ -1,4 +1,4 @@
-///- --package .
+///- --package . --timeout 600000
 ///> rust
 ///> gleam
 ///> zig
@@ -8,7 +8,32 @@ test protocol static =
 open sm'_operators
 open prelude
 
-type frame_header = {cell : string; part : i32; part_count : i32}
+nominal cell_id = string
+
+inl cell_text (c : cell_id) : string =
+    match c with
+    | cell_id s => s
+
+inl same_cell (a : cell_id) (b : cell_id) : bool = cell_text a = cell_text b
+
+nominal post_id = string
+
+inl post_text (p : post_id) : string =
+    match p with
+    | post_id s => s
+
+inl same_post (a : post_id) (b : post_id) : bool = post_text a = post_text b
+
+type post_ids = list post_id
+
+inl optional_post (s : string) : option post_id = if s = "" then None else Some (post_id s)
+
+inl optional_text (p : option post_id) : string =
+    match p with
+    | Some q => post_text q
+    | None => ""
+
+type frame_header = {cell : cell_id; part : i32; part_count : i32}
 
 union header_rejection =
     | NotTwoWords
@@ -16,32 +41,32 @@ union header_rejection =
     | PartOutOfRange
 
 union thread_flaw =
-    | MissingFrames : {cell : string; missing : list i32; part_count : i32}
-    | ReplyGap : {cell : string; parent : string}
+    | MissingFrames : {cell : cell_id; missing : list i32; part_count : i32}
+    | ReplyGap : {cell : cell_id; parent : post_id}
 
-inl cell_label (cell : i32) : string = "c" ++# sm'.obj_to_string cell
+inl cell_label (cell : i32) : cell_id = cell_id ("c" ++# sm'.obj_to_string cell)
 
 inl rendered (h : frame_header) : string =
-    h.cell ++# " " ++# sm'.obj_to_string h.part ++# "/" ++# sm'.obj_to_string h.part_count
+    cell_text h.cell ++# " " ++# sm'.obj_to_string h.part ++# "/" ++# sm'.obj_to_string h.part_count
 
 type header_reading = result frame_header header_rejection
 
-inl header_in (cell : string) (part : i32) (part_count : i32) : header_reading =
+inl header_in (cell : cell_id) (part : i32) (part_count : i32) : header_reading =
     if part >= 1i32 && part <= part_count then Ok {cell part part_count} else Error PartOutOfRange
 
 inl rest_after (at : i32) (text : string) : string = cut (at + 1i32) (sm'.length text - at - 1i32) text
 
-inl counted_after (cell : string) (part : i32) (rest : string) : header_reading =
+inl counted_after (cell : cell_id) (part : i32) (rest : string) : header_reading =
     match count_of_text rest with
     | Some part_count => header_in cell part part_count
     | None => Error NotAFraction
 
-inl split_fraction (cell : string) (slash : i32) (fraction : string) : header_reading =
+inl split_fraction (cell : cell_id) (slash : i32) (fraction : string) : header_reading =
     match count_of_text (cut 0i32 slash fraction) with
     | Some part => counted_after cell part (rest_after slash fraction)
     | None => Error NotAFraction
 
-let fraction_of (cell : string) (fraction : string) : header_reading =
+let fraction_of (cell : cell_id) (fraction : string) : header_reading =
     inl slash = sm'.index_of "/" fraction
     if slash > 0i32 then split_fraction cell slash fraction else Error NotAFraction
 
@@ -50,15 +75,15 @@ inl second_word (space : i32) (line : string) : string = if space > 0i32 then re
 let parsed (line : string) : header_reading =
     inl space = sm'.index_of " " line
     inl fraction = second_word space line
-    if space <= 0i32 || sm'.index_of " " fraction >= 0i32 then Error NotTwoWords else fraction_of (cut 0i32 space line) fraction
+    if space <= 0i32 || sm'.index_of " " fraction >= 0i32 then Error NotTwoWords else fraction_of (cell_id (cut 0i32 space line)) fraction
 
 inl listed (l : list i32) : string = l |> each sm'.obj_to_string |> delimited ", "
 
-inl missing_note (cell : string) (missing : list i32) (part_count : i32) : string =
-    "cell " ++# cell ++# " is missing frame " ++# listed missing ++# " of " ++# sm'.obj_to_string part_count
+inl missing_note (cell : cell_id) (missing : list i32) (part_count : i32) : string =
+    "cell " ++# cell_text cell ++# " is missing frame " ++# listed missing ++# " of " ++# sm'.obj_to_string part_count
 
-inl gap_note (cell : string) (parent : string) : string =
-    "cell " ++# cell ++# " replies to " ++# parent ++# ", which is not in the thread: posts before it are missing"
+inl gap_note (cell : cell_id) (parent : post_id) : string =
+    "cell " ++# cell_text cell ++# " replies to " ++# post_text parent ++# ", which is not in the thread: posts before it are missing"
 
 inl note_of (flaw : thread_flaw) : string =
     match flaw with
@@ -74,7 +99,7 @@ inl packed (h : frame_header) : i32 = h.part * 100i32 + h.part_count
 
 inl read_back (r : header_reading) : string =
     match r with
-    | Ok h => h.cell ++# sm'.obj_to_string (packed h)
+    | Ok h => cell_text h.cell ++# sm'.obj_to_string (packed h)
     | Error _ => "rejected"
 
 test headers_round_trip =
@@ -116,13 +141,13 @@ test the_second_word_is_a_fraction =
     code_of "c1 a/2" |> _assert_eq 2i32
 
 test a_missing_frame_names_its_cell =
-    inl ~cell = "c3"
+    inl ~cell = cell_id "c3"
     note_of (MissingFrames {cell missing = [2i32; 4]; part_count = 5i32}) |> _assert_eq "cell c3 is missing frame 2, 4 of 5"
     exit_code Nil |> _assert_eq 0i32
 
 test a_reply_gap_names_the_parent =
-    inl ~cell = "p2"
-    inl gap = ReplyGap {cell parent = "1900"}
+    inl ~cell = cell_id "p2"
+    inl gap = ReplyGap {cell parent = post_id "1900"}
     note_of gap |> _assert_eq "cell p2 replies to 1900, which is not in the thread: posts before it are missing"
     exit_code [gap] |> _assert_eq 4i32
 

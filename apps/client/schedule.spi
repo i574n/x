@@ -1,0 +1,156 @@
+///- --package .
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test schedule static =
+    open testing
+
+open sm'_operators
+open prelude
+open exsss
+open glyphs
+open protocol
+open splitter
+open events
+open personas
+open scenario
+open final_state
+
+type revisions = list (string * i32)
+
+inl revision_of (revs : revisions) (post_id : string) : i32 =
+    match first_where (fun (k, _) => k = post_id) revs with
+    | Some (_, n) => n
+    | None => 0i32
+
+inl numbered_part (n : i32) (acc : list frame_part * i32) (body : string) : list frame_part * i32 =
+    inl l, k = acc
+    listm.append l [{k n body}], k + 1i32
+
+inl numbered_parts (chunks : list string) : list frame_part =
+    inl parts, _ = chunks |> listm.fold (numbered_part (listm.length chunks)) (Nil, 1i32)
+    parts
+
+inl parts_of (limit : i32) (post_id : string) (source : string) : list frame_part =
+    match split_cell (cell_id post_id) limit source with
+    | Nil => [{k = 1i32; n = 1i32; body = ""}]
+    | chunks => numbered_parts chunks
+
+inl framed_post (limit : i32) (r : rooted) : flow =
+    parts_of limit r.post_id r.source |> each (fun part => Content (Framed {post_id = r.post_id; parent = r.parent; part}))
+
+inl framed_edit (limit : i32) (rev : i32) (s : sourced) : flow =
+    parts_of limit s.post_id s.source |> each (fun part => Revision (FrameEdited {post_id = s.post_id; rev; part}))
+
+type exploding = {out : flow; revs : revisions}
+
+inl appended (x : exploding) (l : flow) : exploding = {x with out = l |> listm.fold (fun acc e => Cons (e, acc)) x.out}
+
+inl revised_in (limit : i32) (x : exploding) (s : sourced) : exploding =
+    inl rev = revision_of x.revs s.post_id + 1i32
+    appended {x with revs = Cons ((s.post_id, rev), x.revs)} (framed_edit limit rev s)
+
+inl exploded_one (limit : i32) (x : exploding) (e : event) : exploding =
+    match e with
+    | Content (Posted r) => appended x (framed_post limit r)
+    | Revision (Edited s) => revised_in limit x s
+    | _ => appended x [e]
+
+let exploded (limit : i32) (l : flow) : flow = listm.rev (l |> listm.fold (exploded_one limit) {out = Nil; revs = Nil}).out
+
+
+type keyed = {time : i32; index : i32; event : event}
+
+inl before (a : keyed) (b : keyed) : bool = a.time < b.time || (a.time = b.time && a.index <= b.index)
+
+let rec merged_keyed (a : list keyed) (b : list keyed) : list keyed =
+    match a, b with
+    | Nil, _ => b
+    | _, Nil => a
+    | Cons (x, xs), Cons (y, ys) => if before x y then Cons (x, merged_keyed xs b) else Cons (y, merged_keyed a ys)
+
+let rec halved_keyed (l : list keyed) : list keyed * list keyed =
+    match l with
+    | Cons (x, Cons (y, rest)) => halved_keyed rest |> fun (left, right) => Cons (x, left), Cons (y, right)
+    | _ => l, Nil
+
+let rec sorted_keyed (l : list keyed) : list keyed =
+    match l with
+    | Nil | Cons (_, Nil) => l
+    | _ => halved_keyed l |> fun (left, right) => merged_keyed (sorted_keyed left) (sorted_keyed right)
+
+type scheduling = {keyed : list keyed; rng : exsss; i : i32}
+
+inl copies_of (i : i32) (jitter : i32) (copies : i32) (e : event) : list keyed =
+    listm.init copies (fun c => {time = i + jitter + c + 1i32; index = i; event = e})
+
+type pacing = {permille : i32; window : i32}
+
+inl drawn_copies (p : pacing) (st : exsss) : i32 * i32 * exsss =
+    inl jitter, st = rolled p.window st
+    inl roll, rng = rolled 1000i32 st
+    jitter, (if roll <= p.permille then 2i32 else 1i32), rng
+
+inl scheduled (p : pacing) (s : scheduling) (e : event) : scheduling =
+    inl jitter, copies, rng = drawn_copies p s.rng
+    {keyed = listm.append (copies_of s.i jitter copies e) s.keyed; rng; i = s.i + 1i32}
+
+inl schedule_seed (seed : i32) : exsss = seeded_i32 seed (seed * 31i32 + 5i32) (seed * 17i32 + 11i32)
+
+let deliveries (l : flow) (seed : i32) (p : pacing) : list delivery =
+    inl s = l |> listm.fold (scheduled p) {keyed = Nil; rng = schedule_seed seed; i = 0i32}
+    sorted_keyed s.keyed |> each (fun (k : keyed) => {at = k.index; event = k.event})
+
+type staging = {seed : i32; users : i32; edits : i32; personas : string; permille : i32; framed : bool}
+
+inl casting_of (g : staging) : casting =
+    inl c = plain_casting g.seed
+    {c with users = g.users; edits = g.edits; personas = parsed_personas g.personas}
+
+inl staged_flow (g : staging) (s : scenario) : flow = if g.framed then exploded (post_limit ()) s.all_events else s.all_events
+
+let scenario_stream (g : staging) (cells : list string) : string =
+    inl s = from_cells (casting_of g) "" cells
+    deliveries (staged_flow g s) 1i32 {permille = g.permille; window = 6i32} |> stream
+
+let scenario_final (g : staging) (cells : list string) : string =
+    inl s = from_cells (casting_of g) "" cells
+    final_replay s.all_events |> final_json
+
+type run_ask = {cast : casting; framed : bool; schedule : i32; permille : i32}
+
+inl run_events (a : run_ask) (s : scenario) : flow = if a.framed then exploded (post_limit ()) s.all_events else s.all_events
+
+type run_reply = string * i32 * i32 * list string
+
+let corpus_run (a : run_ask) (threads : list (list string)) : run_reply =
+    inl s = from_corpus a.cast threads
+    inl l = run_events a s
+    deliveries l a.schedule {permille = a.permille; window = 6i32} |> stream, listm.length s.posts, listm.length l, s.broken
+
+inl numbered_one (acc : list delivery * i32) (e : event) : list delivery * i32 =
+    inl l, i = acc
+    Cons ({at = i; event = e}, l), i + 1i32
+
+inl numbered_flow (l : flow) : list delivery =
+    inl numbered, _ = l |> listm.fold numbered_one (Nil, 0i32)
+    listm.rev numbered
+
+let rescheduled (text : string) (seed : i32) (p : pacing) : string =
+    match decoded_stream text with
+    | Ok l => deliveries (l |> each (fun (d : delivery) => d.event)) seed p |> stream
+    | Error why => why
+
+let raw_scenario (s : scenario) : string * list string = s.all_events |> numbered_flow |> stream, s.broken
+
+inl small_flow () : flow = [Revision (Deleted "a"); Revision (Deleted "b")]
+
+test deliveries_keep_every_event_at_least_once =
+    inl ~seed = 1i32
+    inl l = deliveries (small_flow ()) seed {permille = 1000i32; window = 6i32}
+    (listm.length l : i32) |> _assert_eq 4i32
+
+inl keyed_at (time : i32) (index : i32) : keyed = {time index event = Revision (Deleted (sm'.obj_to_string index))}
+
+test deliveries_sort_by_time_then_index =
+    inl ~late = keyed_at 5i32 1i32
+    sorted_keyed [late; keyed_at 2i32 3i32; keyed_at 2i32 0i32] |> each (fun (k : keyed) => k.index) |> each sm'.obj_to_string |> delimited "," |> _assert_eq "0,3,1"

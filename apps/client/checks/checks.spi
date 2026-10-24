@@ -1,3 +1,8 @@
+///- --package ..
+///> rust
+test checks static =
+    open testing
+
 open sm'_operators
 open prelude
 open cli
@@ -19,6 +24,14 @@ inl date_or_empty (t : string) : string =
 
 inl username_or_empty (t : string) : string = username_of_text t |> text_or_empty
 
+test counts_and_usernames_have_empty_answers =
+    inl ~t = "12"
+    count_or_none t |> _assert_eq 12i32
+    (count_or_none "1x" < 0i32) |> _assert_eq true
+    username_or_empty ("@" ++# "bob") |> _assert_eq "bob"
+    username_or_empty "al-ice" |> _assert_eq ""
+
+///> _
 inl main () : i32 =
     !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
     !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))

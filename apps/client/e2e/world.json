@@ -8,6 +8,7 @@
     "oauth2": {"client_id": "e2e-client-id", "client_secret": "e2e-client-secret", "refresh_token": "e2e-refresh-token", "access_token": "e2e-oauth2-access"},
     "following_page_size": 2,
     "users": [
+        {"id":"112","name":"Hana","username":"hana","posts":[{"id":"12001","created_at":"2026-10-16T07:00:00.000Z","text":"東京で朝ごはん、今日は晴れ"},{"id":"12002","created_at":"2026-10-16T08:00:00.000Z","text":"안녕하세요 세계, 오늘도 좋은 하루"},{"id":"12003","created_at":"2026-10-16T09:00:00.000Z","text":"café crème at noon"},{"id":"12004","created_at":"2026-10-16T10:00:00.000Z","text":"family day 👨‍👩‍👧‍👦 👍🏽"},{"id":"12005","created_at":"2026-10-16T11:00:00.000Z","text":"日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本"}]},
         {
             "id": "101",
             "name": "Alice",
@@ -95,6 +96,11 @@
             "username": "loner",
             "following": [],
             "posts": [
+                {"id":"9101","created_at":"2026-10-17T09:00:00.000Z","text":"c1 1/1\n///- --package ..\n///> rust\ntest checks static =\n    open testing","conversation_id":"9101"},
+                {"id":"9102","created_at":"2026-10-17T09:01:00.000Z","text":"c2 1/1\nopen sm'_operators\nopen prelude\nopen cli","conversation_id":"9101","refs":[{"type":"replied_to","id":"9101"}]},
+                {"id":"9103","created_at":"2026-10-17T09:02:00.000Z","text":"c3 1/1\ninl count_or_none (t : string) : i32 =\n    match count_of_text t with\n    | Some n => n\n    | None => -1i32","conversation_id":"9101","refs":[{"type":"replied_to","id":"9102"}]},
+                {"id":"9201","created_at":"2026-10-16T09:00:00.000Z","text":"c1 1/1\n///- --package ..\n///> rust\ntest checks static =\n    open testing","conversation_id":"9201"},
+                {"id":"9202","created_at":"2026-10-16T09:01:00.000Z","text":"c2 1/1\nopen sm'_operators\nopen prelude\nopen cli edited","conversation_id":"9201","refs":[{"type":"replied_to","id":"9201"}]},
                 {"id": "10001", "created_at": "2026-10-15T10:00:00.000Z", "text": "nobody to follow yet"}
             ]
         },

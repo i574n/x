@@ -3,10 +3,49 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import sys
+import unicodedata
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, quote, unquote, urlsplit
+
+LIGHT = ((0, 4351), (8192, 8205), (8208, 8223), (8242, 8247))
+SYMBOLS = "©® -⯿〰〽㊗㊙"
+EMOJI = re.compile(
+    "(?:[\U0001F1E6-\U0001F1FF]{2})"
+    "|(?:[0-9#*]️?⃣)"
+    "|(?:(?:[\U0001F000-\U0001FAFF]|[" + SYMBOLS + "]️)"
+    "[️\U0001F3FB-\U0001F3FF\U000E0020-\U000E007F]*"
+    "(?:‍(?:[\U0001F000-\U0001FAFF]|[" + SYMBOLS + "])️?[\U0001F3FB-\U0001F3FF]?)*)"
+)
+
+
+def code_point_weight(c):
+    n = ord(c)
+    return 1 if any(lo <= n <= hi for lo, hi in LIGHT) else 2
+
+
+TRANSFORMED_URL_LENGTH = 23
+URL = re.compile(r"https?://[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:[/?#][^\s]*?)?(?=[.,!?;:)\]'\"]*(?:\s|$))", re.IGNORECASE)
+
+
+def plain_weight(text):
+    total, at = 0, 0
+    for m in EMOJI.finditer(text):
+        total += sum(code_point_weight(c) for c in text[at:m.start()]) + 2
+        at = m.end()
+    return total + sum(code_point_weight(c) for c in text[at:])
+
+
+def x_weight(text):
+    text = unicodedata.normalize("NFC", text)
+    total, at = 0, 0
+    for m in URL.finditer(text):
+        total += plain_weight(text[at:m.start()]) + TRANSFORMED_URL_LENGTH
+        at = m.end()
+    return total + plain_weight(text[at:])
+
 
 world_path, port_path, log_path = sys.argv[1:4]
 with open(world_path, encoding="utf-8") as f:
@@ -275,7 +314,7 @@ def create(body):
     sent = json.loads(body or "{}")
     text = sent.get("text", "").rstrip()
     parent = sent.get("reply", {}).get("in_reply_to_tweet_id")
-    if not text or len(text) > 280:
+    if not text or x_weight(text) > 280:
         return problem(400, "Invalid Request", "text must be 1 to 280 characters")
     if parent and parent not in posts_by_id:
         return problem(400, "Invalid Request", f"in_reply_to_tweet_id {parent} does not exist")

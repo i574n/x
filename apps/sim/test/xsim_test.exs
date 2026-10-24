@@ -122,13 +122,6 @@ defmodule XsimTest do
     assert Xsim.Frames.rebuild([{1, 1, body}]) == source
   end
 
-  test "a cell lost with all its posts leaves the cells that reply to it pointing at a missing post" do
-    cells = [%{id: "a", parent: nil, revisions: ["inl a = 1"]}, %{id: "b", parent: "a", revisions: ["inl b = a"]}, %{id: "c", parent: "b", revisions: ["inl c = b"]}]
-    world = Xsim.XWorld.materialize(cells, id_base: 100, lost_cells: 1)
-    assert world.gone == ["b"]
-    assert Xsim.XWorld.gaps(world) == ["c"]
-    assert Xsim.XWorld.program(cells, world) == "inl a = 1\n\ninl c = b"
-  end
 
   test "a file's cells start at a column-0 line after a blank line, extra blank lines lead the next cell" do
     assert Xsim.Frames.file_cells("a\n\n\nb\n\n  c\n\nd  \n") == ["a", "\nb\n\n  c", "d"]
@@ -294,8 +287,8 @@ defmodule XsimTest do
     scenario = Scenario.from_cells(["inl value () = 1i32", unbreakable], seed: 3, users: 2, edits: 0, breaking: 2, personas: Xsim.Personas.parse("breaker=3"))
     assert MapSet.size(scenario.broken) == 0
     assert Enum.all?(for({:edit, _, source} <- scenario.events, do: source), &(&1 == unbreakable))
-    assert {[], broken, _} = Xsim.Personas.events([], Xsim.Personas.parse("lurker=1,fickle=2,editor=1,breaker=1"), :rand.seed_s(:exsss, {1, 2, 3}))
-    assert MapSet.size(broken) == 0
+    empty = Scenario.from_cells([], seed: 1, personas: Xsim.Personas.parse("lurker=1,fickle=2,editor=1,breaker=1"))
+    assert {empty.events, MapSet.size(empty.broken)} == {[], 0}
   end
 
   test "a Rust panic's OS thread id does not make two runs of one revision differ" do

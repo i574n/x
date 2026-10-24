@@ -131,7 +131,7 @@ defmodule Xsim.Runner do
   defp start_queued(%{queue: [key | rest]} = state, executor, limit) do
     owner = state.owner[key]
     sources = World.sources(state.world, owner)
-    task = Task.async(fn -> executor.(sources) end)
+    task = Task.async(fn -> guarded(executor, sources) end)
 
     state = %{
       state
@@ -141,6 +141,14 @@ defmodule Xsim.Runner do
     }
 
     start_queued(state, executor, limit)
+  end
+
+  defp guarded(executor, sources) do
+    executor.(sources)
+  rescue
+    error -> %{status: :crash, out: Exception.format(:error, error, __STACKTRACE__) |> String.slice(0, 4000)}
+  catch
+    kind, reason -> %{status: :crash, out: inspect({kind, reason}, limit: 50)}
   end
 
   defp harvest(state, timeout, naive) do
@@ -168,7 +176,7 @@ defmodule Xsim.Runner do
     if map_size(state.tasks) == 0 and state.queue == [] do
       state
     else
-      state |> harvest(5, naive) |> drain(executor, limit, naive)
+      state |> harvest(100, naive) |> drain(executor, limit, naive)
     end
   end
 

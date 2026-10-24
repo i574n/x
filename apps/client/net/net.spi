@@ -1,7 +1,12 @@
+///- --package ..
+///> rust -d base64=0.23 jiff=0.2.38
+test net static =
+    open testing
+
 open sm'_operators
 open oauth1
 
-nominal http_reply = $'(u16, std::rc::Rc<str>)'
+type http_reply = i32 * string
 
 nominal bodiless = $'ureq::RequestBuilder<ureq::typestate::WithoutBody>'
 
@@ -22,15 +27,42 @@ inl patient (g : bodiless) : bodiless =
 inl patient_bodied (g : bodied) : bodied =
     $'!g.config().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(30))).build()'
 
-inl call_reply (g : bodiless) : http_reply =
-    $'match ureq::RequestBuilder::call(!g) { Ok(mut r) => (r.status().as_u16(), Rc::<str>::from(r.body_mut().read_to_string().unwrap_or_default())), Err(e) => (0u16, Rc::<str>::from(e.to_string())) }'
+nominal ureq_response = $'ureq::http::Response<ureq::Body>'
 
-inl send_reply (g : bodied) (body : string) : http_reply =
-    $'match ureq::RequestBuilder::send(!g, &*!body) { Ok(mut r) => (r.status().as_u16(), Rc::<str>::from(r.body_mut().read_to_string().unwrap_or_default())), Err(e) => (0u16, Rc::<str>::from(e.to_string())) }'
+nominal ureq_failure = $'ureq::Error'
 
-inl status_of (r : http_reply) : i32 = $'!r.0 as i32'
+nominal ureq_outcome = $'Result<ureq::http::Response<ureq::Body>, ureq::Error>'
 
-inl body_of (r : http_reply) : string = $'!r.1.clone()'
+inl called (g : bodiless) : ureq_outcome = $'ureq::RequestBuilder::call(!g)'
+
+inl sent_with (g : bodied) (body : string) : ureq_outcome = $'ureq::RequestBuilder::send(!g, &*!body)'
+
+inl outcome_ok (r : ureq_outcome) : bool = $'!r.is_ok()'
+
+inl outcome_response (r : ureq_outcome) : ureq_response = $'!r.unwrap()'
+
+inl outcome_failure (r : ureq_outcome) : ureq_failure = $'!r.unwrap_err()'
+
+inl response_status (r : ureq_response) : i32 = ($'!r.status().as_u16()' : u16) |> conv
+
+inl response_body (r : ureq_response) : string = $'Rc::<str>::from(!r.body_mut().read_to_string().unwrap_or_default())'
+
+inl failure_text (e : ureq_failure) : string = $'Rc::<str>::from(!e.to_string())'
+
+inl reply_of (r : ureq_outcome) : http_reply =
+    if outcome_ok r
+    then
+        inl response = outcome_response r
+        response_status response, response_body response
+    else 0i32, failure_text (outcome_failure r)
+
+inl call_reply (g : bodiless) : http_reply = called g |> reply_of
+
+inl send_reply (g : bodied) (body : string) : http_reply = sent_with g body |> reply_of
+
+inl status_of ((status, _) : http_reply) : i32 = status
+
+inl body_of ((_, body) : http_reply) : string = body
 
 inl bodiless_reply (method : string) (url : string) (auth : string) : http_reply =
     if method = "DELETE" then delete_builder url auth |> patient |> call_reply
@@ -39,7 +71,18 @@ inl bodiless_reply (method : string) (url : string) (auth : string) : http_reply
 inl posted (url : string) (auth : string) (body : string) : http_reply =
     send_reply (post_builder url auth |> patient_bodied) body
 
+inl request_counter () : () = global "static XC_REQUESTS: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);"
+
+inl request_counted () : () =
+    request_counter ()
+    ($'XC_REQUESTS.fetch_add(1, std::sync::atomic::Ordering::Relaxed)' : u32) |> ignore
+
+inl requests_made () : i32 =
+    request_counter ()
+    ($'XC_REQUESTS.load(std::sync::atomic::Ordering::Relaxed)' : u32) |> conv
+
 let exchange (method : string) (url : string) (auth : string) (body : string) : i32 * string =
+    request_counted ()
     inl reply = if method = "POST" then posted url auth body else bodiless_reply method url auth
     status_of reply, body_of reply
 
@@ -54,6 +97,7 @@ type form_post = string * string * string * string
 
 let form_exchange (x : form_post) : i32 * string =
     inl url, user, password, body = x
+    request_counted ()
     inl reply = send_reply (form_builder url (basic_auth user password) |> patient_bodied) body
     status_of reply, body_of reply
 
@@ -73,9 +117,25 @@ nominal instant = $'Option<jiff::Timestamp>'
 
 inl instant_of (stamp : string) : instant = $'!stamp.parse::<jiff::Timestamp>().ok()'
 
+nominal jiff_instant = $'jiff::Timestamp'
+
+nominal jiff_zone = $'jiff::tz::TimeZone'
+
+nominal jiff_zoned = $'jiff::Zoned'
+
+inl instant_found (t : instant) : bool = $'!t.is_some()'
+
+inl instant_value (t : instant) : jiff_instant = $'!t.unwrap()'
+
+inl system_zone () : jiff_zone = $'jiff::tz::TimeZone::system()'
+
+inl zoned_in (z : jiff_zone) (x : jiff_instant) : jiff_zoned = $'!x.to_zoned(!z)'
+
+inl minute_text (z : jiff_zoned) : string = $'Rc::<str>::from(!z.strftime("%Y-%m-%d %H:%M").to_string())'
+
 inl local_minute (stamp : string) : string =
     inl t = instant_of stamp
-    $'!t.map_or(!stamp.clone(), |x| Rc::<str>::from(x.to_zoned(jiff::tz::TimeZone::system()).strftime("%Y-%m-%d %H:%M").to_string()))'
+    if instant_found t then instant_value t |> zoned_in (system_zone ()) |> minute_text else stamp
 
 nominal day_start = $'Option<jiff::Zoned>'
 
@@ -90,15 +150,28 @@ inl local_exports () : () =
     !!!!Export("xc_local_minute", ((fun s => local_minute s) : string -> string))
     !!!!Export("xc_local_midnight", ((fun d => local_midnight d) : string -> string))
 
+inl count_exports () : () = !!!!Export("xc_requests", ((fun () => requests_made ()) : () -> i32))
+
 inl form_exports () : () = !!!!Export("xc_post_form", ((fun x => form_exchange x) : form_post -> i32 * string))
 
 inl clock_exports () : () =
     !!!!Export("xc_fresh_nonce", ((fun () => fresh_nonce ()) : () -> string))
     !!!!Export("xc_unix_seconds", ((fun () => unix_seconds ()) : () -> string))
 
+test basic_auth_encodes_the_pair =
+    inl ~user = "id"
+    basic_auth user "secret" |> _assert_eq "Basic aWQ6c2VjcmV0"
+
+test unreadable_times_pass_through =
+    inl ~stamp = "not a time"
+    local_minute stamp |> _assert_eq "not a time"
+    local_midnight "2026-13-40" |> _assert_eq ""
+
+///> _
 inl main () : i32 =
     !!!!Export("xc_send", ((fun x => sent_of x) : sent -> i32 * string))
     !!!!Export("xc_oauth1_header", ((fun x => signed_header x) : signing -> string))
+    count_exports ()
     form_exports ()
     clock_exports ()
     local_exports ()

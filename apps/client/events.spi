@@ -55,10 +55,10 @@ inl control_escape (c : i32) : string =
     | Some e => e
     | None => unicode_escape c
 
-inl without_controls (s : string) : string =
+let without_controls (s : string) : string =
     listm.init 32i32 id |> listm.fold (fun t c => sm'.replace (char_of c) (control_escape c) t) s
 
-inl quoted (s : string) : string =
+let quoted (s : string) : string =
     "\"" ++# (s |> sm'.replace "\\" "\\\\" |> sm'.replace "\"" "\\\"" |> without_controls) ++# "\""
 
 inl field (key : string) (value : string) : string = quoted key ++# ":" ++# value
@@ -140,9 +140,161 @@ inl fields_of (at : i32) (e : event) : list string =
     | Revision r => revision_fields at e r
     | Reaction r => reaction_fields at e r
 
-inl encoded (d : delivery) : string = object (fields_of d.at d.event)
+let encoded (d : delivery) : string = object (fields_of d.at d.event)
 
-inl stream (l : list delivery) : string = Cons (stream_header (), each encoded l) |> sm'.concat_list "\n" |> fun t => t ++# "\n"
+let stream (l : list delivery) : string = Cons (stream_header (), each encoded l) |> sm'.concat_list "\n" |> fun t => t ++# "\n"
+
+union json_value =
+    | Text : string
+    | Whole : i32
+    | Null
+
+type json_field = {key : string; value : json_value}
+
+type fields = list json_field
+
+type scanned = {text : string; resume_at : i32}
+
+inl escaped_char (c : string) : string =
+    if c = "n" then "\n" elif c = "t" then "\t" elif c = "r" then "\r"
+    elif c = "b" then char_of 8i32 elif c = "f" then char_of 12i32 else c
+
+inl hex_at (s : string) (i : i32) : i32 =
+    inl d = sm'.index_of (cut i 1i32 s) "0123456789abcdefABCDEF"
+    if d < 16i32 then d else d - 6i32
+
+inl code_at (s : string) (i : i32) : i32 =
+    ((hex_at s i * 16i32 + hex_at s (i + 1i32)) * 16i32 + hex_at s (i + 2i32)) * 16i32 + hex_at s (i + 3i32)
+
+inl escape_step (s : string) (i : i32) : string * i32 =
+    inl c = cut i 1i32 s
+    if c = "u" then char_of (code_at s (i + 1i32)), i + 5i32 else escaped_char c, i + 1i32
+
+inl escape_first (q : i32) (b : i32) : bool = b >= 0i32 && (q < 0i32 || b < q)
+
+inl escaped_on (s : string) (i : i32) (b : i32) (acc : string) : string * i32 =
+    inl c, next = escape_step s (i + b + 1i32)
+    acc ++# cut i b s ++# c, next
+
+inl closed_at (s : string) (i : i32) (q : i32) (acc : string) : scanned =
+    if q < 0i32 then {text = acc; resume_at = -1i32} else {text = acc ++# cut i q s; resume_at = i + q + 1i32}
+
+inl marks (s : string) (i : i32) : i32 * i32 = sm'.index_of "\"" (rest_from i s), sm'.index_of "\\" (rest_from i s)
+
+let rec string_from (s : string) (i : i32) (acc : string) : scanned =
+    inl q, b = marks s i
+    if not (escape_first q b) then closed_at s i q acc
+    else escaped_on s i b acc |> fun (kept, next) => string_from s next kept
+
+inl number_from (s : string) (i : i32) : json_value * i32 =
+    inl e = digits_end s i
+    match count_of_text (cut i (e - i) s) with
+    | Some n => Whole n, e
+    | None => Null, -1i32
+
+inl text_value (r : scanned) : json_value * i32 = Text r.text, r.resume_at
+
+inl value_from (s : string) (i : i32) : json_value * i32 =
+    if starts_at "\"" s i then text_value (string_from s (i + 1i32) "")
+    elif starts_at "null" s i then Null, i + 4i32
+    elif i >= 0i32 && i < sm'.length s then number_from s i
+    else Null, -1i32
+
+inl field_from (s : string) (i : i32) : json_field * i32 =
+    inl k = string_from s (i + 1i32) ""
+    inl v, next = if starts_at ":" s k.resume_at then value_from s (k.resume_at + 1i32) else Null, -1i32
+    {key = k.text; value = v}, next
+
+inl no_field () : json_field * i32 = {key = ""; value = Null}, -1i32
+
+inl field_at (s : string) (i : i32) : json_field * i32 = if starts_at "\"" s i then field_from s i else no_field ()
+
+inl closes (s : string) (i : i32) : bool = starts_at "}" s i && i + 1i32 = sm'.length s
+
+let rec fields_from (s : string) (i : i32) (acc : fields) : option fields =
+    inl f, next = field_at s i
+    if starts_at "," s next then fields_from s (next + 1i32) (Cons (f, acc))
+    elif closes s next then Some (listm.rev (Cons (f, acc)))
+    else None
+
+inl fields_of_line (line : string) : option fields = if starts_at "{" line 0i32 then fields_from line 1i32 Nil else None
+
+let value_of (key : string) (l : fields) : json_value =
+    match first_where (fun (f : json_field) => f.key = key) l with
+    | Some f => f.value
+    | None => Null
+
+let text_at (key : string) (l : fields) : string =
+    match value_of key l with
+    | Text t => t
+    | _ => ""
+
+let count_at (key : string) (l : fields) : i32 =
+    match value_of key l with
+    | Whole n => n
+    | _ => -1i32
+
+let parent_at (l : fields) : option string =
+    match value_of "parent" l with
+    | Text t => Some t
+    | _ => None
+
+inl part_at (l : fields) : frame_part = {k = count_at "k" l; n = count_at "n" l; body = text_at "body" l}
+
+inl social_at (l : fields) : social = {post_id = text_at "post" l; user = text_at "user" l}
+
+inl reaction_at (kind : string) (l : fields) : option event =
+    if kind = "like" then Some (Reaction (Liked (social_at l)))
+    elif kind = "unlike" then Some (Reaction (Unliked (social_at l)))
+    else None
+
+inl revised_at (l : fields) : revised = {post_id = text_at "post" l; rev = count_at "rev" l; part = part_at l}
+
+inl sourced_at (l : fields) : sourced = {post_id = text_at "post" l; source = text_at "source" l}
+
+inl revised (r : revision) : option event = Some (Revision r)
+
+inl removal_at (kind : string) (l : fields) : option event =
+    if kind = "delete" then revised (Deleted (text_at "post" l)) else reaction_at kind l
+
+inl revision_at (kind : string) (l : fields) : option event =
+    if kind = "edit" then revised (Edited (sourced_at l))
+    elif kind = "edit_frame" then revised (FrameEdited (revised_at l))
+    else removal_at kind l
+
+inl rooted_at (l : fields) : rooted = {post_id = text_at "post" l; parent = parent_at l; source = text_at "source" l}
+
+inl placed_at (l : fields) : placed = {post_id = text_at "post" l; parent = parent_at l; part = part_at l}
+
+inl event_at (kind : string) (l : fields) : option event =
+    if kind = "post" then Some (Content (Posted (rooted_at l)))
+    elif kind = "frame" then Some (Content (Framed (placed_at l)))
+    else revision_at kind l
+
+inl delivery_of (l : fields) : result delivery string =
+    match event_at (text_at "kind" l) l with
+    | Some event => Ok {at = count_at "at" l; event}
+    | None => Error ("unknown event kind '" ++# text_at "kind" l ++# "'")
+
+let decoded (line : string) : result delivery string =
+    match fields_of_line line with
+    | Some l => delivery_of l
+    | None => Error ("not a compact xsim-events line: " ++# line)
+
+inl header_ok (line : string) : bool =
+    match fields_of_line line with
+    | Some l => text_at "format" l = "xsim-events" && count_at "version" l = 1i32
+    | None => false
+
+let rec all_decoded (l : list string) (acc : list delivery) : result (list delivery) string =
+    match l with
+    | Nil => Ok (listm.rev acc)
+    | Cons (line, rest) => decoded line |> then_ok fun d => all_decoded rest (Cons (d, acc))
+
+let decoded_stream (text : string) : result (list delivery) string =
+    match all_pieces "\n" text |> each sm'.trim |> keep (fun l => l <> "") with
+    | Cons (head, lines) when header_ok head => all_decoded lines Nil
+    | _ => Error "not an xsim-events v1 stream"
 
 inl first_frame () : string = "{\"at\":0,\"body\":\"x\",\"k\":1,\"kind\":\"frame\",\"n\":1,\"parent\":null,\"post\":\"p0\"}"
 
@@ -166,3 +318,48 @@ test reactions_name_the_user =
 test an_empty_stream_is_its_header =
     inl ~header = stream_header ()
     stream Nil |> _assert_eq (header ++# "\n")
+
+inl posted_one () : delivery = {at = 0i32; event = Content (Posted {post_id = "p0"; parent = None; source = "x"})}
+
+inl framed_one () : delivery = {at = 1i32; event = Content (Framed {post_id = "p1"; parent = Some "p0"; part = {k = 2i32; n = 3i32; body = "a \"q\"\n\tb"}})}
+
+inl revised_one () : delivery = {at = 2i32; event = Revision (FrameEdited {post_id = "p1"; rev = 1i32; part = {k = 1i32; n = 1i32; body = "é"}})}
+
+inl reacted_one () : delivery = {at = 4i32; event = Reaction (Unliked {post_id = "p1"; user = "u2"})}
+
+inl sample_deliveries () : list delivery = [posted_one (); framed_one (); revised_one (); {at = 3i32; event = Revision (Deleted "p0")}; reacted_one ()]
+
+inl reencoded (text : string) : string =
+    match decoded_stream text with
+    | Ok l => stream l
+    | Error e => e
+
+test streams_decode_back_to_themselves =
+    inl ~text = stream (sample_deliveries ())
+    reencoded text |> _assert_eq text
+
+inl edit_line () : string = "{\"at\":4,\"kind\":\"edit\",\"post\":\"p3\",\"source\":\"a" ++# zero_width_space () ++# ".b\\u0001\"}"
+
+inl line_again (line : string) : string =
+    match decoded line with
+    | Ok d => encoded d
+    | Error e => e
+
+test fixture_lines_keep_their_escapes =
+    inl ~line = edit_line ()
+    line_again line |> _assert_eq line
+
+inl verdict (r : result (list delivery) string) : string =
+    match r with
+    | Ok l => sm'.obj_to_string (listm.length l : i32)
+    | Error e => e
+
+test foreign_streams_are_refused =
+    inl ~other = "{\"format\":\"other\",\"version\":1}"
+    decoded_stream (other ++# "\n") |> verdict |> _assert_eq "not an xsim-events v1 stream"
+
+inl boosted () : string = stream_header () ++# "\n{\"at\":1,\"kind\":\"boost\"}"
+
+test unknown_kinds_are_refused =
+    inl ~text = boosted ()
+    decoded_stream text |> verdict |> _assert_eq "unknown event kind 'boost'"

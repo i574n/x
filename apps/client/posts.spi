@@ -4,8 +4,19 @@ test posts static =
 
 open sm'_operators
 open prelude
+open protocol
 
-type account = {id : string; username : string}
+nominal user_id = string
+
+inl user_text (u : user_id) : string =
+    match u with
+    | user_id s => s
+
+inl same_user (a : user_id) (b : user_id) : bool = user_text a = user_text b
+
+type user_ids = list user_id
+
+type account = {id : user_id; username : string}
 
 type accounts = list account
 
@@ -14,9 +25,16 @@ union ref_kind =
     | RepliedTo
     | Reposted
 
-type reference = {kind : ref_kind; id : string}
+type reference = {kind : ref_kind; id : post_id}
 
 type url_entity = {url : string; expanded_url : string; title : string}
+
+type framed = {id : post_id; text : string; history : list post_id; urls : list url_entity; parent : option post_id}
+
+inl latest (f : framed) : bool =
+    match listm.rev f.history with
+    | Cons (last, _) => same_post last f.id
+    | Nil => true
 
 type medium = {media_key : string; kind : string; alt_text : string}
 
@@ -25,7 +43,7 @@ type public_metrics = {reply_count : i32; repost_count : i32; like_count : i32}
 inl no_metrics () : public_metrics = {reply_count = 0i32; repost_count = 0i32; like_count = 0i32}
 
 type post_fields =
-    {id : string; author_id : string; author_username : string; created_at : string; text : string;
+    {id : post_id; author_id : user_id; author_username : string; created_at : string; text : string;
      public_metrics : public_metrics; refs : list reference; urls : list url_entity; media_keys : list string}
 
 type post = heap post_fields
@@ -43,7 +61,7 @@ inl media_in (p : pool) : list medium =
 inl merge_pools (a : pool) (b : pool) : pool =
     {posts = listm.append a.posts b.posts; media = listm.append (media_in a) (media_in b); users = listm.append a.users b.users}
 
-inl reference_as (text : string) (id : string) : list reference =
+inl reference_as (text : string) (id : post_id) : list reference =
     if text = "quoted" then [{kind = Quoted; id}]
     elif text = "replied_to" then [{kind = RepliedTo; id}]
     elif text = "reposted" || text = "retweeted" then [{kind = Reposted; id}]
@@ -80,15 +98,15 @@ inl url_hints (p : post) : list string =
 
 inl hint_texts (pl : pool) (p : post) : list string = listm.append (p.media_keys |> each (medium_hint pl)) (url_hints p)
 
-inl author_of (pl : pool) (p : post) : string =
-    if p.author_username <> "" then p.author_username
-    else
-        match first_where (fun (a : account) => a.id = p.author_id) pl.users with
-        | Some a => a.username
-        | None => "user " ++# p.author_id
+inl named_author (pl : pool) (p : post) : string =
+    match first_where (fun (a : account) => same_user a.id p.author_id) pl.users with
+    | Some a => a.username
+    | None => "user " ++# user_text p.author_id
+
+inl author_of (pl : pool) (p : post) : string = if p.author_username <> "" then p.author_username else named_author pl p
 
 type entry_fields =
-    {id : string; username : string; created_at : string; text : string; reply_count : string;
+    {id : post_id; username : string; created_at : string; text : string; reply_count : string;
      repost_count : string; like_count : string; hints : list string; refs : list reference}
 
 type entry = heap entry_fields
@@ -114,17 +132,19 @@ inl ref_word (k : ref_kind) : string =
     | Reposted => "reposted"
 
 inl refs_text (l : list reference) : string =
-    l |> each (fun (r : reference) => ref_word r.kind ++# ":" ++# r.id) |> sm'.concat_list ","
+    l |> each (fun (r : reference) => ref_word r.kind ++# ":" ++# post_text r.id) |> sm'.concat_list ","
+
+inl entry_id (e : entry) : string = post_text e.id
 
 let entry_line (role : string) (e : entry) : string =
-    inl head = [role; e.id; e.username; e.created_at; refs_text e.refs; e.text]
+    inl head = [role; entry_id e; e.username; e.created_at; refs_text e.refs; e.text]
     listm.append head (Cons (e.reply_count, Cons (e.repost_count, Cons (e.like_count, e.hints)))) |> sm'.concat_list "\t"
 
 inl after (i : i32) (t : string) : string = sm'.substring (i + 1i32) (sm'.length t - i - 1i32) t
 
 inl reference_of_text (t : string) : list reference =
     inl i : i32 = sm'.index_of ":" t
-    if i < 0i32 then Nil else reference_as (sm'.substring 0i32 i t) (after i t)
+    if i < 0i32 then Nil else reference_as (sm'.substring 0i32 i t) (post_id (after i t))
 
 inl refs_of_text (t : string) : list reference = pieces "," t |> spread reference_of_text
 
@@ -142,11 +162,11 @@ let rec fields_after (i : i32) (l : list string) : list string =
 
 inl counts_at (l : list string) : string * string * string = field_at 6 l, field_at 7 l, field_at 8 l
 
-inl names_at (l : list string) : string * string * string * string = field_at 1 l, field_at 2 l, field_at 3 l, field_at 5 l
+inl names_at (l : list string) : post_id * string * string * string = post_id (field_at 1 l), field_at 2 l, field_at 3 l, field_at 5 l
 
 inl links_at (l : list string) : list string * list reference = fields_after 9 l, refs_of_text (field_at 4 l)
 
-inl entry_of_fields (l : list string) : entry =
+inl entry_at (l : list string) : entry =
     inl id, username, created_at, text = names_at l
     inl reply_count, repost_count, like_count = counts_at l
     inl hints, refs = links_at l
@@ -154,7 +174,7 @@ inl entry_of_fields (l : list string) : entry =
 
 let entry_of_line (line : string) : list role_entry =
     inl l = pieces "\t" line
-    if listm.length l < 9i32 then Nil else [field_at 0 l, entry_of_fields l]
+    if listm.length l < 9i32 then Nil else [field_at 0 l, entry_at l]
 
 type digest = {primary : list entry; pool : list entry}
 
@@ -169,10 +189,10 @@ let digest_of (text : string) : digest =
 inl second_of (stamp : string) : string =
     if sm'.length stamp < 19i32 then stamp else sm'.substring 0i32 19i32 stamp
 
-inl later_id (a : string) (b : string) : bool =
-    inl la : i32 = sm'.length a
-    inl lb : i32 = sm'.length b
-    if la <> lb then la > lb else comp a b |> gt_is
+inl later_id (a : post_id) (b : post_id) : bool =
+    inl la : i32 = sm'.length (post_text a)
+    inl lb : i32 = sm'.length (post_text b)
+    if la <> lb then la > lb else comp (post_text a) (post_text b) |> gt_is
 
 inl newer (a : entry) (b : entry) : bool =
     inl sa = second_of a.created_at
@@ -246,10 +266,10 @@ inl hint_lines (level : i32) (e : entry) : list string = e.hints |> each (fun h 
 let ref_line (level : i32) (kind : ref_kind) (e : entry) : string =
     indent level ++# "> " ++# ref_label kind ++# " @" ++# e.username ++# ": " ++# e.text ++# metrics_text e
 
-inl find_entry (l : list entry) (id : string) : option entry = first_where (fun (e : entry) => e.id = id) l
+inl find_entry (l : list entry) (id : post_id) : option entry = first_where (fun (e : entry) => same_post e.id id) l
 
 inl missing_ref (level : i32) (r : reference) : string =
-    indent level ++# "> " ++# ref_label r.kind ++# " a post not loaded (" ++# r.id ++# ")"
+    indent level ++# "> " ++# ref_label r.kind ++# " a post not loaded (" ++# post_text r.id ++# ")"
 
 type view_options = {depth : i32; hints : bool; minute : string -> string}
 
@@ -265,7 +285,7 @@ and let ref_lines (pl : list entry) (o : view_options) (level : i32) (r : refere
     | Some e => Cons (ref_line (level + 1) r.kind e, post_lines pl o (level + 1) e)
     | None => [missing_ref (level + 1) r]
 
-inl reposted_id (e : entry) : option string =
+inl reposted_id (e : entry) : option post_id =
     match e.refs with
     | Cons ({kind id}, Nil) =>
         match kind with
@@ -288,12 +308,12 @@ let entry_lines (pl : list entry) (o : view_options) (e : entry) : list string =
     | None => Cons (render_post o.minute e, post_lines pl o 0 e)
 
 inl at (id : string) (who : string) (stamp : string) : post =
-    heap {id author_id = "u" ++# who; author_username = who; created_at = stamp; text = "t" ++# id;
+    heap {id = post_id id; author_id = user_id ("u" ++# who); author_username = who; created_at = stamp; text = "t" ++# id;
      public_metrics = no_metrics (); refs = Nil; urls = Nil; media_keys = Nil}
 
 inl citing (kind : ref_kind) (target : string) (p : post) : post =
     inl f = fields_of_post p
-    heap {f with refs = [{kind id = target}]}
+    heap {f with refs = [{kind id = post_id target}]}
 
 inl quote_chain () : post * pool =
     inl c = at "3" "c" "07:00"
@@ -315,7 +335,7 @@ inl plain_view (depth : i32) : view_options = {depth hints = false; minute = utc
 inl lines_of (pl : pool) (depth : i32) (p : post) : string =
     entry_lines (entries_of pl) (plain_view depth) (entry_of pl p) |> sm'.concat_list "|"
 
-inl entry_ids (l : list entry) : string = l |> each (fun (e : entry) => e.id) |> sm'.concat_list ","
+inl entry_ids (l : list entry) : string = l |> each entry_id |> sm'.concat_list ","
 
 inl ids (l : list post) : string = l |> each lone |> newest_first |> entry_ids
 
@@ -345,11 +365,13 @@ test links_are_expanded_and_lines_flattened =
     at "1" "b" "09:05" |> with_url url |> rendered
     |> _assert_eq (quiet ("09:05  @" ++# "b  read this long1"))
 
+inl liked (likes : i32) : public_metrics = {reply_count = 1; repost_count = 0; like_count = likes}
+
 ///> zig
 test counts_say_one_or_many =
     inl ~likes = 2i32
     inl f = at "1" "b" "09:05" |> fields_of_post
-    rendered (heap {f with public_metrics = {reply_count = 1; repost_count = 0; like_count = likes}})
+    rendered (heap {f with public_metrics = liked likes})
     |> _assert_eq ("09:05  @" ++# "b  t1  [1 reply, 0 reposts, 2 likes]")
 
 ///> zig
@@ -384,3 +406,12 @@ test a_repost_shows_its_original_once =
     inl r = fan_repost ()
     lines_of (pool_of [r; at "2" "orig" "08:00"]) depth r
     |> _assert_eq (quiet ("09:00  @" ++# "fan  reposted @" ++# "orig: t2"))
+
+inl edited (history : list string) : framed = {id = post_id "2"; text = ""; history = history |> each post_id; urls = Nil; parent = None}
+
+///> zig
+test only_the_newest_edit_is_latest =
+    inl ~newest = "2"
+    edited ["1"; newest] |> latest |> _assert_eq true
+    edited [newest; "3"] |> latest |> _assert_eq false
+    edited Nil |> latest |> _assert_eq true

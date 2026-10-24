@@ -5,10 +5,18 @@ packages:
     spiral-
 modules:
     prelude
+    exsss
+    paging
     glyphs
     protocol
     splitter
     events
+    final_state
+    personas
+    scenario
+    schedule
+    world
+    invariants
     posts
     reading
     cli
@@ -41,6 +49,8 @@ modules:
         thread
     frames/
         frames
+    simframes/
+        simframes
     locate/
         locate
     assemble/

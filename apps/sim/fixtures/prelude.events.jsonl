@@ -1,59 +1,66 @@
 {"format":"xsim-events","version":1}
 {"at":0,"body":"///- --package .","k":1,"kind":"frame","n":1,"parent":null,"post":"p0"}
 {"at":0,"body":"///- --package .","k":1,"kind":"frame","n":1,"parent":null,"post":"p0"}
-{"at":2,"body":"open sm'_operators\n\ninl each forall a b. (f : a -> b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => Cons (f x, acc)) l Nil\n\ninl keep forall t. (ok : t -> bool) (l : list t) : list t =\n    listm​.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l","k":1,"kind":"frame","n":9,"parent":"p1","post":"p2"}
-{"at":3,"body":" Nil\n\ninl spread forall a b. (f : a -> list b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => listm​.append (f x) acc) l Nil\n\ninl first_where forall t. (ok : t -> bool) (l : list t) : option t =\n    listm​.foldBack (fun x acc => if ok x then Some x else acc)","k":2,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":2,"body":"open sm'_operators\n\ninl each forall a b. (f : a -> b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => Cons (f x, acc)) l Nil\n\ninl keep forall t. (ok : t -> bool) (l : list t) : list t =\n    listm​.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l","k":1,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":3,"body":" Nil\n\ninl spread forall a b. (f : a -> list b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => listm​.append (f x) acc) l Nil\n\ninl first_where forall t. (ok : t -> bool) (l : list t) : option t =\n    listm​.foldBack (fun x acc => if ok x then Some x else acc)","k":2,"kind":"frame","n":11,"parent":"p1","post":"p2"}
 {"at":1,"body":"///- --test static\n\nopen testing","k":1,"kind":"frame","n":1,"parent":"p0","post":"p1"}
-{"at":4,"body":" l None\n\ninl has forall t. (ok : t -> bool) (l : list t) : bool =\n    match first_where ok l with\n    | Some _ => true\n    | None => false\n\ninl take_first forall t. (n : i32) (l : list t) : list t =\n    let rec go (n : i32) (l : list t) : list t =\n        match l with","k":3,"kind":"frame","n":9,"parent":"p1","post":"p2"}
-{"at":5,"body":"\n        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)\n        | _ => Nil\n    go n l\n\ninl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =\n    match r with\n    | Ok x => f x\n    | Error e => Error e\n\ninl map_ok forall a b e. (f : a ->","k":4,"kind":"frame","n":9,"parent":"p1","post":"p2"}
-{"at":6,"body":" b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\ninl cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s\n\nlet rec split_on (sep : string) (s : string) : list string =\n    inl i : i32 = sm'.index_of sep s\n    if i < 0i32 then [s]","k":5,"kind":"frame","n":9,"parent":"p1","post":"p2"}
-{"at":8,"body":" digit_at (i : i32) (text : string) : i32 =\n    \"0123456789\" |> sm'.index_of (sm'.slice i i text)\n\nlet rec digits (text : string) (i : i32) (n : i32) : option i32 =\n    if i >= sm'.length text then Some n\n    else\n        inl d = digit_at i text\n        if d < 0 || n >","k":7,"kind":"frame","n":9,"parent":"p1","post":"p2"}
-{"at":10,"body":" without_digits text <> \"\" then None else digits text 0 0","k":9,"kind":"frame","n":9,"parent":"p1","post":"p2"}
-{"at":10,"body":" without_digits text <> \"\" then None else digits text 0 0","k":9,"kind":"frame","n":9,"parent":"p1","post":"p2"}
-{"at":11,"body":"///- --test\n///> zig\n\ninl ~n = 2i32\n[1i32; 2; 3] |> take_first n |> listm​.length |> _assert_eq 2i32","k":1,"kind":"frame","n":1,"parent":"p2","post":"p3"}
-{"at":7,"body":"\n    else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))\n\ninl pieces (sep : string) (s : string) : list string = if s = \"\" then Nil else split_on sep s\n\nlet delimited (sep : string) (l : list string) : string = sm'.concat_list sep l\n\ninl","k":6,"kind":"frame","n":9,"parent":"p1","post":"p2"}
-{"at":12,"body":"///- --test\n///> zig\n\ninl ~e = \"no\"\nError e |> then_ok (fun (x : i32) => Ok (x + 1)) |> _assert_eq (Error \"no\")","k":1,"kind":"frame","n":1,"parent":"p3","post":"p4"}
-{"at":9,"body":" 100000000 then None else digits text (i + 1) (n * 10 + d)\n\ninl without_digits (text : string) : string = listm​.init 10i32 id |> listm​.fold (fun t d => sm'.replace (sm'.obj_to_string d) \"\" t) text\n\nlet count_of_text (text : string) : option i32 =\n    if text = \"\" ||","k":8,"kind":"frame","n":9,"parent":"p1","post":"p2"}
-{"at":13,"body":"///- --test\n///> zig\n\ninl ~n = 2i32\ninl l = [1i32; 2; 3; 4]\nkeep (fun x => x > n) l |> listm​.length |> _assert_eq 2i32\nfirst_where (fun x => x > n) l |> _assert_eq (Some 3i32)","k":1,"kind":"frame","n":1,"parent":"p4","post":"p5"}
-{"at":13,"body":"///- --test\n///> zig\n\ninl ~n = 2i32\ninl l = [1i32; 2; 3; 4]\nkeep (fun x => x > n) l |> listm​.length |> _assert_eq 2i32\nfirst_where (fun x => x > n) l |> _assert_eq (Some 3i32)","k":1,"kind":"frame","n":1,"parent":"p4","post":"p5"}
-{"at":14,"kind":"like","post":"p0","user":"u1"}
-{"at":16,"kind":"like","post":"p1","user":"u1"}
-{"at":15,"kind":"like","post":"p0","user":"u2"}
-{"at":18,"kind":"like","post":"p2","user":"u1"}
-{"at":19,"kind":"like","post":"p2","user":"u2"}
-{"at":20,"kind":"like","post":"p3","user":"u1"}
-{"at":19,"kind":"like","post":"p2","user":"u2"}
-{"at":17,"kind":"like","post":"p1","user":"u2"}
-{"at":17,"kind":"like","post":"p1","user":"u2"}
-{"at":21,"kind":"like","post":"p4","user":"u1"}
-{"at":22,"kind":"like","post":"p4","user":"u2"}
-{"at":23,"kind":"like","post":"p4","user":"u3"}
-{"at":23,"kind":"like","post":"p4","user":"u3"}
-{"at":24,"kind":"like","post":"p5","user":"u1"}
-{"at":26,"body":"open sm'_operators\n\ninl each forall a b. (f : a -> b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => Cons (f x, acc)) l Nil\n\ninl keep forall t. (ok : t -> bool) (l : list t) : list t =\n    listm​.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l","k":1,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":27,"body":" Nil\n\ninl spread forall a b. (f : a -> list b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => listm​.append (f x) acc) l Nil\n\ninl first_where forall t. (ok : t -> bool) (l : list t) : option t =\n    listm​.foldBack (fun x acc => if ok x then Some x else acc)","k":2,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":28,"body":" l None\n\ninl has forall t. (ok : t -> bool) (l : list t) : bool =\n    match first_where ok l with\n    | Some _ => true\n    | None => false\n\ninl take_first forall t. (n : i32) (l : list t) : list t =\n    let rec go (n : i32) (l : list t) : list t =\n        match l with","k":3,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":25,"body":"///- --package .\n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":1}
-{"at":29,"body":"\n        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)\n        | _ => Nil\n    go n l\n\ninl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =\n    match r with\n    | Ok x => f x\n    | Error e => Error e\n\ninl map_ok forall a b e. (f : a ->","k":4,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":30,"body":" b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\ninl cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s\n\nlet rec split_on (sep : string) (s : string) : list string =\n    inl i : i32 = sm'.index_of sep s\n    if i < 0i32 then [s]","k":5,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":34,"body":" without_digits text <> \"\" then None else digits text 0 0\n","k":9,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":32,"body":" digit_at (i : i32) (text : string) : i32 =\n    \"0123456789\" |> sm'.index_of (sm'.slice i i text)\n\nlet rec digits (text : string) (i : i32) (n : i32) : option i32 =\n    if i >= sm'.length text then Some n\n    else\n        inl d = digit_at i text\n        if d < 0 || n >","k":7,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":31,"body":"\n    else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))\n\ninl pieces (sep : string) (s : string) : list string = if s = \"\" then Nil else split_on sep s\n\nlet delimited (sep : string) (l : list string) : string = sm'.concat_list sep l\n\ninl","k":6,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":32,"body":" digit_at (i : i32) (text : string) : i32 =\n    \"0123456789\" |> sm'.index_of (sm'.slice i i text)\n\nlet rec digits (text : string) (i : i32) (n : i32) : option i32 =\n    if i >= sm'.length text then Some n\n    else\n        inl d = digit_at i text\n        if d < 0 || n >","k":7,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":33,"body":" 100000000 then None else digits text (i + 1) (n * 10 + d)\n\ninl without_digits (text : string) : string = listm​.init 10i32 id |> listm​.fold (fun t d => sm'.replace (sm'.obj_to_string d) \"\" t) text\n\nlet count_of_text (text : string) : option i32 =\n    if text = \"\" ||","k":8,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":36,"kind":"unlike","post":"p5","user":"u1"}
-{"at":33,"body":" 100000000 then None else digits text (i + 1) (n * 10 + d)\n\ninl without_digits (text : string) : string = listm​.init 10i32 id |> listm​.fold (fun t d => sm'.replace (sm'.obj_to_string d) \"\" t) text\n\nlet count_of_text (text : string) : option i32 =\n    if text = \"\" ||","k":8,"kind":"edit_frame","n":9,"post":"p2","rev":1}
-{"at":36,"kind":"unlike","post":"p5","user":"u1"}
-{"at":37,"kind":"like","post":"p5","user":"fickle1"}
-{"at":38,"kind":"like","post":"p0","user":"editor2"}
-{"at":35,"kind":"unlike","post":"p4","user":"u2"}
-{"at":39,"kind":"unlike","post":"p5","user":"fickle1"}
+{"at":4,"body":" l None\n\ninl has forall t. (ok : t -> bool) (l : list t) : bool =\n    match first_where ok l with\n    | Some _ => true\n    | None => false\n\ninl take_first forall t. (n : i32) (l : list t) : list t =\n    let rec go (n : i32) (l : list t) : list t =\n        match l with","k":3,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":5,"body":"\n        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)\n        | _ => Nil\n    go n l\n\ninl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =\n    match r with\n    | Ok x => f x\n    | Error e => Error e\n\ninl map_ok forall a b e. (f : a ->","k":4,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":6,"body":" b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\ninl cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s\n\nlet rec split_on (sep : string) (s : string) : list string =\n    inl i : i32 = sm'.index_of sep s\n    if i < 0i32 then [s]","k":5,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":8,"body":" rest_from (i : i32) (s : string) : string = cut i (sm'.length s - i) s\n\ninl starts_at (prefix : string) (s : string) (i : i32) : bool =\n    if i < 0i32 || i > sm'.length s then false else sm'.starts_with prefix (rest_from i s)\n\ninl digit_first (rest : string) : bool =","k":7,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":10,"body":" =\n    \"0123456789\" |> sm'.index_of (sm'.slice i i text)\n\nlet rec digits (text : string) (i : i32) (n : i32) : option i32 =\n    if i >= sm'.length text then Some n\n    else\n        inl d = digit_at i text\n        if d < 0 || n > 100000000 then None else digits text (i +","k":9,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":10,"body":" =\n    \"0123456789\" |> sm'.index_of (sm'.slice i i text)\n\nlet rec digits (text : string) (i : i32) (n : i32) : option i32 =\n    if i >= sm'.length text then Some n\n    else\n        inl d = digit_at i text\n        if d < 0 || n > 100000000 then None else digits text (i +","k":9,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":11,"body":" 1) (n * 10 + d)\n\ninl without_digits (text : string) : string = listm​.init 10i32 id |> listm​.fold (fun t d => sm'.replace (sm'.obj_to_string d) \"\" t) text\n\nlet count_of_text (text : string) : option i32 =\n    if text = \"\" || without_digits text <> \"\" then None else","k":10,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":7,"body":"\n    else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))\n\ninl pieces (sep : string) (s : string) : list string = if s = \"\" then Nil else split_on sep s\n\nlet delimited (sep : string) (l : list string) : string = sm'.concat_list sep l\n\ninl","k":6,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":12,"body":" digits text 0 0","k":11,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":9,"body":" has (fun d => sm'.starts_with (sm'.obj_to_string d) rest) (listm​.init 10i32 id)\n\nlet rec digits_end (s : string) (i : i32) : i32 =\n    if i < sm'.length s && digit_first (rest_from i s) then digits_end s (i + 1i32) else i\n\ninl digit_at (i : i32) (text : string) : i32","k":8,"kind":"frame","n":11,"parent":"p1","post":"p2"}
+{"at":13,"body":"///- --test\n///> zig\n\ninl ~n = 2i32\n[1i32; 2; 3] |> take_first n |> listm​.length |> _assert_eq 2i32","k":1,"kind":"frame","n":1,"parent":"p2","post":"p3"}
+{"at":13,"body":"///- --test\n///> zig\n\ninl ~n = 2i32\n[1i32; 2; 3] |> take_first n |> listm​.length |> _assert_eq 2i32","k":1,"kind":"frame","n":1,"parent":"p2","post":"p3"}
+{"at":14,"body":"///- --test\n///> zig\n\ninl ~e = \"no\"\nError e |> then_ok (fun (x : i32) => Ok (x + 1)) |> _assert_eq (Error \"no\")","k":1,"kind":"frame","n":1,"parent":"p3","post":"p4"}
+{"at":16,"kind":"like","post":"p0","user":"u1"}
+{"at":15,"body":"///- --test\n///> zig\n\ninl ~n = 2i32\ninl l = [1i32; 2; 3; 4]\nkeep (fun x => x > n) l |> listm​.length |> _assert_eq 2i32\nfirst_where (fun x => x > n) l |> _assert_eq (Some 3i32)","k":1,"kind":"frame","n":1,"parent":"p4","post":"p5"}
+{"at":18,"kind":"like","post":"p1","user":"u1"}
+{"at":19,"kind":"like","post":"p1","user":"u2"}
+{"at":20,"kind":"like","post":"p2","user":"u1"}
+{"at":19,"kind":"like","post":"p1","user":"u2"}
+{"at":17,"kind":"like","post":"p0","user":"u2"}
+{"at":17,"kind":"like","post":"p0","user":"u2"}
+{"at":21,"kind":"like","post":"p2","user":"u2"}
+{"at":22,"kind":"like","post":"p3","user":"u1"}
+{"at":23,"kind":"like","post":"p4","user":"u1"}
+{"at":23,"kind":"like","post":"p4","user":"u1"}
+{"at":24,"kind":"like","post":"p4","user":"u2"}
+{"at":26,"kind":"like","post":"p5","user":"u1"}
+{"at":27,"body":"///- --package .\n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":1}
+{"at":28,"body":"open sm'_operators\n\ninl each forall a b. (f : a -> b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => Cons (f x, acc)) l Nil\n\ninl keep forall t. (ok : t -> bool) (l : list t) : list t =\n    listm​.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l","k":1,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":25,"kind":"like","post":"p4","user":"u3"}
+{"at":29,"body":" Nil\n\ninl spread forall a b. (f : a -> list b) (l : list a) : list b =\n    listm​.foldBack (fun x acc => listm​.append (f x) acc) l Nil\n\ninl first_where forall t. (ok : t -> bool) (l : list t) : option t =\n    listm​.foldBack (fun x acc => if ok x then Some x else acc)","k":2,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":30,"body":" l None\n\ninl has forall t. (ok : t -> bool) (l : list t) : bool =\n    match first_where ok l with\n    | Some _ => true\n    | None => false\n\ninl take_first forall t. (n : i32) (l : list t) : list t =\n    let rec go (n : i32) (l : list t) : list t =\n        match l with","k":3,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":34,"body":" rest_from (i : i32) (s : string) : string = cut i (sm'.length s - i) s\n\ninl starts_at (prefix : string) (s : string) (i : i32) : bool =\n    if i < 0i32 || i > sm'.length s then false else sm'.starts_with prefix (rest_from i s)\n\ninl digit_first (rest : string) : bool =","k":7,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":32,"body":" b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\ninl cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s\n\nlet rec split_on (sep : string) (s : string) : list string =\n    inl i : i32 = sm'.index_of sep s\n    if i < 0i32 then [s]","k":5,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":31,"body":"\n        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)\n        | _ => Nil\n    go n l\n\ninl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =\n    match r with\n    | Ok x => f x\n    | Error e => Error e\n\ninl map_ok forall a b e. (f : a ->","k":4,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":32,"body":" b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\ninl cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s\n\nlet rec split_on (sep : string) (s : string) : list string =\n    inl i : i32 = sm'.index_of sep s\n    if i < 0i32 then [s]","k":5,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":33,"body":"\n    else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))\n\ninl pieces (sep : string) (s : string) : list string = if s = \"\" then Nil else split_on sep s\n\nlet delimited (sep : string) (l : list string) : string = sm'.concat_list sep l\n\ninl","k":6,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":36,"body":" =\n    \"0123456789\" |> sm'.index_of (sm'.slice i i text)\n\nlet rec digits (text : string) (i : i32) (n : i32) : option i32 =\n    if i >= sm'.length text then Some n\n    else\n        inl d = digit_at i text\n        if d < 0 || n > 100000000 then None else digits text (i +","k":9,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":33,"body":"\n    else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))\n\ninl pieces (sep : string) (s : string) : list string = if s = \"\" then Nil else split_on sep s\n\nlet delimited (sep : string) (l : list string) : string = sm'.concat_list sep l\n\ninl","k":6,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":36,"body":" =\n    \"0123456789\" |> sm'.index_of (sm'.slice i i text)\n\nlet rec digits (text : string) (i : i32) (n : i32) : option i32 =\n    if i >= sm'.length text then Some n\n    else\n        inl d = digit_at i text\n        if d < 0 || n > 100000000 then None else digits text (i +","k":9,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":37,"body":" 1) (n * 10 + d)\n\ninl without_digits (text : string) : string = listm​.init 10i32 id |> listm​.fold (fun t d => sm'.replace (sm'.obj_to_string d) \"\" t) text\n\nlet count_of_text (text : string) : option i32 =\n    if text = \"\" || without_digits text <> \"\" then None else","k":10,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":38,"body":" digits text 0 0\n","k":11,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":35,"body":" has (fun d => sm'.starts_with (sm'.obj_to_string d) rest) (listm​.init 10i32 id)\n\nlet rec digits_end (s : string) (i : i32) : i32 =\n    if i < sm'.length s && digit_first (rest_from i s) then digits_end s (i + 1i32) else i\n\ninl digit_at (i : i32) (text : string) : i32","k":8,"kind":"edit_frame","n":11,"post":"p2","rev":1}
+{"at":39,"kind":"unlike","post":"p4","user":"u2"}
 {"at":41,"kind":"like","post":"p5","user":"fickle1"}
 {"at":43,"kind":"unlike","post":"p5","user":"fickle1"}
-{"at":40,"body":"///- --package . \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":2}
-{"at":42,"body":"///- --package .  \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":3}
-{"at":42,"body":"///- --package .  \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":3}
-{"at":44,"body":"///- --package .   \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":4}
-{"at":44,"body":"///- --package .   \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":4}
+{"at":40,"kind":"unlike","post":"p5","user":"u1"}
+{"at":42,"kind":"like","post":"p0","user":"editor2"}
+{"at":42,"kind":"like","post":"p0","user":"editor2"}
+{"at":44,"body":"///- --package . \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":2}
+{"at":44,"body":"///- --package . \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":2}
 {"at":45,"kind":"like","post":"p5","user":"fickle1"}
-{"at":46,"body":"///- --package .","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":5}
+{"at":47,"kind":"unlike","post":"p5","user":"fickle1"}
+{"at":49,"kind":"like","post":"p5","user":"fickle1"}
+{"at":49,"kind":"like","post":"p5","user":"fickle1"}
+{"at":50,"body":"///- --package .","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":5}
+{"at":46,"body":"///- --package .  \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":3}
+{"at":48,"body":"///- --package .   \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":4}
+{"at":50,"body":"///- --package .","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":5}
+{"at":48,"body":"///- --package .   \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":4}

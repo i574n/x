@@ -14,7 +14,7 @@ defmodule Mix.Tasks.Xsim.ThreadRun do
     want = verdicts(original, file)
     got = verdicts(program, file)
     differing = for {w, g} <- Enum.zip(want.tests, got.tests), w != g, do: {w, g}
-    agree = same_cells and want == got and want.tests != []
+    agree = same_cells and want == got and want.tests != [] and want.status == :ok
 
     IO.puts("XSIM thread_run file=#{Path.basename(file)} cells=#{length(sources(program))} tests=#{length(got.tests)} same_cells=#{same_cells} status=#{got.status}/#{want.status} result=#{if agree, do: "pass", else: "fail"}")
     for {w, g} <- differing, do: IO.puts("  file=#{inspect(w)}\n  thread=#{inspect(g)}")

@@ -20,7 +20,7 @@ inl first_or_empty (l : list string) : string =
 
 inl posted_unit (prev : string) (g : string) (next : string) : weighed =
     if g = "." && label_char prev && letter next then {glyph = defused_dot (); weight = plain_weight (defused_dot ())}
-    else {glyph = g; weight = plain_weight g}
+    else {glyph = g; weight = glyph_weight g}
 
 let rec defused (prev : string) (l : list string) (acc : units) : units =
     match l with
@@ -80,16 +80,20 @@ let rec chunk (b : i32) (rest : units) (p : pending) : list string =
 
 inl post_limit () : i32 = 280i32
 
-inl header (cell : i32) (part : i32) (part_count : i32) : string = rendered {cell = cell_label cell; part part_count} ++# "\n"
+inl header (label : cell_id) (part : i32) (part_count : i32) : string = rendered {cell = label; part part_count} ++# "\n"
 
 inl digit_count (n : i32) : i32 = sm'.length (sm'.obj_to_string n)
 
-inl budget_for (id : i32) (assumed : i32) : i32 = post_limit () - plain_weight (header id assumed assumed)
+type framing = {limit : i32; label : cell_id}
 
-let rec chunks_of (id : i32) (all : units) (assumed : i32) : list string =
-    inl chunks = chunk (budget_for id assumed) all (fresh Nil)
+inl budget_for (f : framing) (assumed : i32) : i32 = f.limit - plain_weight (header f.label assumed assumed)
+
+let rec chunks_of (f : framing) (all : units) (assumed : i32) : list string =
+    inl chunks = chunk (budget_for f assumed) all (fresh Nil)
     inl posts = listm.length chunks
-    if digit_count posts > digit_count assumed then chunks_of id all posts else chunks
+    if digit_count posts > digit_count assumed then chunks_of f all posts else chunks
+
+let split_cell (label : cell_id) (limit : i32) (source : string) : list string = chunks_of {limit label} (units_of (nfc source)) 9i32
 
 inl indented (line : string) : bool = sm'.starts_with " " line || sm'.starts_with "\t" line
 
@@ -127,14 +131,14 @@ inl frames_or_empty (chunks : list string) : list string =
     | Nil => [""]
     | _ => chunks
 
-let rec numbered (id : i32) (n : i32) (k : i32) (l : list string) (acc : list string) : list string =
+let rec numbered (label : cell_id) (n : i32) (k : i32) (l : list string) (acc : list string) : list string =
     match l with
     | Nil => listm.rev acc
-    | Cons (body, rest) => numbered id n (k + 1i32) rest (Cons (trimmed_end (header id k n ++# body), acc))
+    | Cons (body, rest) => numbered label n (k + 1i32) rest (Cons (trimmed_end (header label k n ++# body), acc))
 
 let cell_posts (i : i32) (cell : string) : list string =
-    inl chunks = chunks_of i (units_of (nfc cell)) 99i32 |> frames_or_empty
-    numbered i (listm.length chunks) 1i32 chunks Nil
+    inl chunks = split_cell (cell_label i) (post_limit ()) cell |> frames_or_empty
+    numbered (cell_label i) (listm.length chunks) 1i32 chunks Nil
 
 let rec thread_of (i : i32) (cells : list string) (acc : list (list string)) : list string =
     match cells with
@@ -192,6 +196,19 @@ test long_cells_split_between_words =
     inl ~word = "ab "
     inl posts = cell_posts 2i32 (repeated 120i32 word "")
     posts |> listm.length |> _assert_eq 2i32
+    (heaviest posts <= post_limit ()) |> _assert_eq true
+
+inl post_count (cell : string) : i32 = cell_posts 1i32 cell |> listm.length
+
+test one_post_cells_budget_a_one_digit_header =
+    inl ~cell = repeated 273i32 "a" ""
+    post_count cell |> _assert_eq 1i32
+    post_count (cell ++# "a") |> _assert_eq 2i32
+
+test ten_posts_widen_the_header =
+    inl ~glyphs = 3000i32
+    inl posts = cell_posts 1i32 (repeated glyphs "a" "")
+    posts |> listm.length |> _assert_eq 12i32
     (heaviest posts <= post_limit ()) |> _assert_eq true
 
 test previews_price_every_post =

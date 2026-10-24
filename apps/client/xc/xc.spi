@@ -1,11 +1,16 @@
+///- --package ..
+///> rust
+test xc static =
+    open testing
+
 open sm'_operators
 open prelude
 open posts
 open transport
 
-inl write_line (text : string) : () = $'println\!("{}", !text)'
+inl write_line (text : string) : () = console.write_line text
 
-inl write_error (text : string) : () = $'eprintln\!("{}", !text)'
+inl write_error (text : string) : () = console.write_error_line text
 
 let env_or (name : string) (fallback : string) : string =
     inl v = env.get_environment_variable name |> sm'.trim
@@ -40,18 +45,18 @@ inl users_by_ids (s : site) (ids : string) : i32 * string * string =
     inl {base bearer} = s
     $'xc_users::xc_users_by_ids(&*!base, &*!bearer, &*!ids)'
 
-type window = {max_results : i32; start_time : string; end_time : string; nr : bool; np : bool; depth : i32; hints : bool}
+type window = {max_results : i32; since : string; until : string; nr : bool; np : bool; depth : i32; hints : bool}
 
 inl window_of (p : parsed) : window =
-    inl _, _, _, _, max_results, _, _, _, start_time, end_time, nr, np, depth, hints, _ = p
-    {max_results start_time end_time nr np depth hints}
+    inl _, _, _, _, max_results, _, _, _, since, until, nr, np, depth, hints, _ = p
+    {max_results since until nr np depth hints}
 
 type fetch_reply = string * string * string * string * string * string
 
 inl fetch (s : site) (lines : string) (w : window) : fetch_reply =
     inl {base bearer} = s
-    inl {max_results start_time end_time nr np depth hints} = w
-    $'xc_fetch::xc_fetch(&*!base, &*!bearer, &*!lines, !max_results, &*!start_time, &*!end_time, !nr, !np, !depth, !hints)'
+    inl {max_results since until nr np depth hints} = w
+    $'xc_fetch::xc_fetch(&*!base, &*!bearer, &*!lines, !max_results, &*!since, &*!until, !nr, !np, !depth, !hints)'
 
 inl fetch_notes (r : fetch_reply) : string =
     inl _, notes, _, _, _, _ = r
@@ -97,11 +102,13 @@ inl no_account (hs : string) : string = "no X account @" ++# sm'.replace "," ", 
 
 inl unknown_notes (unknown : string) : string = pieces "," unknown |> each no_account |> sm'.concat_list "\n"
 
+inl found_plan (found : string) (unknown : string) : plan = {lines = found; notes = unknown_notes unknown; failure = ""}
+
 let account_plan (s : site) (hs : string) : plan =
     inl code, found, unknown, failure = users_named s hs
     if code <> 0i32 then failed_plan failure
     elif found = "" then failed_plan (no_account unknown)
-    else {lines = found; notes = unknown_notes unknown; failure = ""}
+    else found_plan found unknown
 
 inl home_note (username : string) (followed : string) : string =
     inl n : i32 = pieces "\n" followed |> listm.length
@@ -117,7 +124,7 @@ inl with_followed (w : account) (found : string) (r : i32 * string * string) : p
 
 inl followed_plan (s : site) (found : string) (cap : i32) : plan =
     inl w = account_of_line found
-    users_followed s w.id cap |> with_followed w found
+    users_followed s (user_text w.id) cap |> with_followed w found
 
 let home_plan (s : site) (h : string) (cap : i32) : plan =
     inl code, found, _, failure = users_named s h
@@ -154,6 +161,10 @@ let failed (message : string) : i32 =
     write_error ("xc: " ++# message)
     4i32
 
+inl api_requests_so_far () : i32 = $'xc_net::xc_requests()'
+
+inl cost_noted (what : string) : () = write_error ("xc: " ++# sm'.obj_to_string (api_requests_so_far ()) ++# " API requests" ++# what)
+
 inl closing (failure : string) (shown : i32) : i32 =
     if failure = "" then 0i32
     elif shown = 0i32 then failed failure
@@ -167,9 +178,23 @@ inl gathered (s : site) (pl : plan) (w : window) : string * string * string =
     inl docs, failure = referenced_docs s r w
     docs, failure, both_notes pl.notes (fetch_notes r)
 
+inl viewed (docs : string) (p : parsed) : string * i32 = view (digest ("[" ++# docs ++# "]")) p
+
+inl posts_read_in (docs : string) : i32 =
+    inl bundle = "[" ++# docs ++# "]"
+    $'xc_digest::xc_posts_read(&*!bundle)'
+
+inl timeline_cost (docs : string) (shown : i32) : () =
+    cost_noted (", " ++# sm'.obj_to_string (posts_read_in docs) ++# " posts read, " ++# sm'.obj_to_string shown ++# " shown")
+
+inl costed_view (docs : string) (p : parsed) : string * i32 =
+    inl text, shown = viewed docs p
+    timeline_cost docs shown
+    text, shown
+
 let shown_timeline (s : site) (pl : plan) (p : parsed) : i32 =
     inl docs, failure, notes = gathered s pl (window_of p)
-    inl text, shown = view (digest ("[" ++# docs ++# "]")) p
+    inl text, shown = costed_view docs p
     notes_of notes
     nothing_note failure shown
     lines_of text
@@ -257,15 +282,16 @@ inl printed_thread (r : i32 * string * string) : i32 =
     inl code, program, notes = r
     notes_of notes
     lines_of program
+    cost_noted ""
     code
 
 let run_thread (id : string) : i32 =
     inl s = {base = base_url (); bearer = env_of "X_BEARER_TOKEN"}
     if s.bearer = "" then missing_bearer () else thread s id |> printed_thread
 
-inl file_text (path : string) : string = $'Rc::<str>::from(std::fs::read_to_string(&*!path).unwrap_or_default())'
+inl file_text (path : string) : string = file_system.read_all_text path
 
-inl is_file (path : string) : bool = $'std::path::Path::new(&*!path).is_file()'
+inl is_file (path : string) : bool = file_system.file_exists path
 
 inl framed (text : string) : string = $'xc_frames::xc_frames(&*!text)'
 
@@ -290,14 +316,51 @@ let run_delete_thread (id : string) : i32 =
     inl s = {base = base_url (); bearer = env_of "X_BEARER_TOKEN"}
     if s.bearer = "" then missing_bearer () else thread_ids s id |> deleted_from
 
+inl thread_chain (s : site) (id : string) : i32 * string * string =
+    inl {base bearer} = s
+    $'xc_thread::xc_chain(&*!base, &*!bearer, &*!id)'
+
+inl resume_payload (planned : string) (found : string) : string = "{\"planned\":" ++# planned ++# ",\"found\":" ++# found ++# "}"
+
+inl resumed_from (path : string) (r : i32 * string * string) : i32 =
+    inl code, found, failure = r
+    if code <> 0i32 then failed failure else run_write 10i32 (resume_payload (framed (file_text path)) found)
+
+inl resume_args (payload : string) : string * string =
+    inl at : i32 = sm'.index_of "\n" payload
+    cut 0i32 at payload, rest_from (at + 1i32) payload
+
+inl resume_checked (s : site) (root : string) (path : string) : i32 =
+    if not (is_file path) then failed ("no such file " ++# path)
+    elif s.bearer = "" then missing_bearer ()
+    else thread_chain s root |> resumed_from path
+
+let run_resume_thread (payload : string) : i32 =
+    inl root, path = resume_args payload
+    resume_checked {base = base_url (); bearer = env_of "X_BEARER_TOKEN"} root path
+
 inl run_thread_kind (kind : i32) (payload : string) : i32 =
     if kind = 6i32 then run_thread payload
     elif kind = 9i32 then run_delete_thread payload
+    elif kind = 10i32 then run_resume_thread payload
     else run_post_thread (kind = 8i32) payload
 
 inl run_user (kind : i32) (payload : string) : i32 =
     if kind = 5i32 then run_refresh payload elif kind >= 6i32 then run_thread_kind kind payload else run_write kind payload
 
+inl two_unknown () : string = "no X account @" ++# "a\nno X account @" ++# "b"
+
+test unknown_accounts_get_one_note_each =
+    inl ~unknown = "a,b"
+    unknown_notes unknown |> _assert_eq (two_unknown ())
+    both_notes "" "x" |> _assert_eq "x"
+
+test doc_bundles_join_without_empty_parts =
+    inl ~a = "x"
+    joined_docs a "" |> _assert_eq "x"
+    joined_docs a "y" |> _assert_eq "x,y"
+
+///> _
 inl main () : i32 =
     inl p = parsed_args ()
     inl kind, payload, _, _, _, _, _, _, _, _, _, _, _, _, _ = p

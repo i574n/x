@@ -1,7 +1,7 @@
 [workspace]
 resolver = "3"
 members = ["apps/client/*"]
-exclude = ["apps/client/e2e"]
+exclude = ["apps/client/e2e", "apps/client/simframes"]
 
 [workspace.package]
 version = "0.0.1"
@@ -10,7 +10,7 @@ repository = "https://github.com/i574n/x"
 
 [workspace.dependencies]
 serde_json = "1.0"
-ureq = "3.4"
+ureq = "3.5"
 
 [profile.release]
 codegen-units = 1

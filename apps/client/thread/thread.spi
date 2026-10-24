@@ -1,21 +1,22 @@
+///- --package ..
+///> rust -d serde_json
+test thread static =
+    open testing
+
 open sm'_operators
 open prelude
+open protocol
 open posts
 open wire
 open transport
+open paging
 
-inl page_of (a : app) (s : thread_search) (token : string) : got fetched = get_raw a (thread_path (ThreadPage (s, token)))
+inl pager_of (a : app) (s : thread_search) : pager failure =
+    fun token => get_raw a (thread_path (ThreadPage (s, token))) |> map_ok fun (doc, body) => {next_token = next_token_in doc; body}
 
-type bodies = list string
+inl halted_in (s : thread_search) (h : cursor_halt) : failure = CursorHalted {resource = "conversation " ++# conversation_text s.conversation_id; halt = h}
 
-let rec paged (a : app) (s : thread_search) (token : string) (acc : bodies) : got bodies =
-    page_of a s token |> then_ok fun (doc, body) =>
-        inl next, acc = next_token_in doc, listm.append acc [body]
-        if next = "" then Ok acc else paged a s next acc
-
-inl whole_second (created_at : string) : string = if sm'.length created_at < 19i32 then created_at else sm'.substring 0i32 19i32 created_at ++# "Z"
-
-inl absent (id : string) (missing : string) : failure = HttpStatus {status = 404i32; resource = root_path id; detail = missing}
+inl absent (id : post_id) (missing : string) : failure = HttpStatus {status = 404i32; resource = root_path id; detail = missing}
 
 inl search_of (r : root_reply) : thread_search =
     match r with
@@ -25,43 +26,133 @@ inl missing_of (r : root_reply) : string =
     match r with
     | root_reply {missing} => missing
 
-let rooted (a : app) (id : string) (r : root_reply) : got (list string) =
+let rooted (a : app) (id : post_id) (r : root_reply) : got (list string) =
     inl s = search_of r
-    if s.conversation_id <> "" then paged a s "" Nil else Error (absent id (missing_of r))
+    if conversation_text s.conversation_id <> "" then all_pages (halted_in s) (pager_of a s) else Error (absent id (missing_of r))
 
-inl root_of_post (a : app) (id : string) : got root_reply =
+inl root_of_post (a : app) (id : post_id) : got root_reply =
     get_raw a (thread_path (ThreadRoot id)) |> map_ok fun (doc, _) => root_of doc
+
+let thread_bodies (base : string) (bearer : string) (id : string) : got (list string) =
+    inl a = app_api base bearer
+    inl root = post_id id
+    root_of_post a root |> then_ok (rooted a root)
 
 type pages_reply = i32 * string * string
 
-inl bundle_of (bodies : list string) : string = "[" ++# sm'.concat_list "," bodies ++# "]"
+inl replied (f : list string -> string) (r : got (list string)) : pages_reply =
+    match r with
+    | Ok bodies => 0i32, f bodies, ""
+    | Error e => 4i32, "", describe_failure e
 
-let pages_of (base : string) (bearer : string) (id : string) : pages_reply =
-    inl a = app_api base bearer
-    match root_of_post a id |> then_ok (rooted a id) with
-    | Ok bodies => 0i32, bundle_of bodies, ""
-    | Error f => 4i32, "", describe_failure f
-
-inl latest (f : framed) : bool =
-    match listm.rev f.history with
-    | Cons (last, _) => last = f.id
-    | Nil => true
+inl bundle_of (bodies : list string) : string = "[" ++# delimited "," bodies ++# "]"
 
 inl framed_page (body : string) : list framed = parse_json body |> field "data" |> collect framed_of
 
-inl latest_ids (body : string) : list string = framed_page body |> keep latest |> each (fun f => f.id)
+inl latest_ids (body : string) : list string = framed_page body |> keep latest |> each (fun f => post_text f.id)
 
-inl ids_text (bodies : list string) : string = bodies |> spread latest_ids |> sm'.concat_list "\n"
+inl ids_text (bodies : list string) : string = bodies |> spread latest_ids |> delimited "\n"
 
-let ids_of (base : string) (bearer : string) (id : string) : pages_reply =
-    inl a = app_api base bearer
-    match root_of_post a id |> then_ok (rooted a id) with
-    | Ok bodies => 0i32, ids_text bodies, ""
-    | Error f => 4i32, "", describe_failure f
+inl versioned (id : string) (history : list string) : string =
+    object [member "id" (quoted_text id); member "edit_history_post_ids" (items (history |> each quoted_text))]
+
+inl edited_page () : string = object [member "data" (items [versioned "1" ["1"]; versioned "2" ["2"; "3"]])]
+
+test only_latest_versions_are_deleted =
+    inl ~page = edited_page ()
+    ids_text [page; page] |> _assert_eq "1\n1"
+    bundle_of ["a"; "b"] |> _assert_eq "[a,b]"
+
+union chain_reading =
+    | ChainRead : list framed
+    | ChainBranches : string
+    | ChainRoots : string
+    | ChainMissing
+
+inl replies_under (posts : list framed) (at : framed) : list framed =
+    posts |> keep fun (f : framed) => match f.parent with Some p => same_post p at.id | None => false
+
+inl outside (posts : list framed) (f : framed) : bool =
+    match f.parent with
+    | Some p => not (has (fun (g : framed) => same_post g.id p) posts)
+    | None => true
+
+inl branched (at : framed) : chain_reading = ChainBranches (post_text at.id)
+
+let rec chain_from (all : list framed) (at : framed) (acc : list framed) : chain_reading =
+    match replies_under all at with
+    | Nil => ChainRead (listm.rev acc)
+    | Cons (next, Nil) => chain_from all next (Cons (next, acc))
+    | _ => branched at
+
+inl orphan (posts : list framed) (f : framed) : bool =
+    match f.parent with
+    | Some p => not (has (fun (g : framed) => same_post g.id p) posts)
+    | None => false
+
+inl second_root (posts : list framed) (a : framed) (b : framed) : chain_reading =
+    ChainRoots (post_text (if orphan posts a then a else b).id)
+
+inl chain_of (posts : list framed) : chain_reading =
+    match keep (outside posts) posts with
+    | Cons (root, Nil) => chain_from posts root [root]
+    | Cons (first, Cons (second, _)) => second_root posts first second
+    | Nil => ChainMissing
+
+inl chain_json (l : list framed) : string =
+    items (l |> each fun (f : framed) => object [member "id" (quoted_text (post_text f.id)); member "text" (quoted_text f.text)])
+
+inl roots_refusal (id : string) : string =
+    "post " ++# id ++# " replies to a post outside the thread's chain (an edited or deleted post?); --resume needs one unbroken chain"
+
+inl chain_refusal (c : chain_reading) : string =
+    match c with
+    | ChainBranches id => "the thread branches after post " ++# id ++# "; --resume needs one chain of replies"
+    | ChainRoots id => roots_refusal id
+    | _ => "no posts of that thread found"
+
+inl chain_reply (bodies : list string) : pages_reply =
+    match bodies |> spread framed_page |> keep latest |> chain_of with
+    | ChainRead l => 0i32, chain_json l, ""
+    | refused => 4i32, "", chain_refusal refused
+
+inl post_of (id : string) (parent : string) (text : string) : framed = {id = post_id id; text; history = [post_id id]; urls = Nil; parent = optional_post parent}
+
+inl ids_listed (l : list framed) : string = l |> each (fun (f : framed) => post_text f.id) |> delimited ","
+
+inl chain_listed (posts : list framed) : string =
+    match chain_of posts with
+    | ChainRead l => ids_listed l
+    | ChainBranches id => "branches after " ++# id
+    | ChainRoots id => "second root " ++# id
+    | ChainMissing => "none"
+
+inl three_posts () : list framed = [post_of "3" "2" "c1 3/3"; post_of "1" "" "c1 1/3"; post_of "2" "1" "c1 2/3"]
+
+test a_thread_chain_runs_from_its_root_to_the_last_reply =
+    inl ~posts = three_posts ()
+    (chain_listed posts, chain_listed Nil) |> _assert_eq ("1,2,3", "none")
+
+test a_branch_or_a_second_root_refuses =
+    inl ~posts = three_posts ()
+    (chain_listed (Cons (post_of "4" "1" "x", posts)), chain_listed (Cons (post_of "5" "9" "y", posts)))
+        |> _assert_eq ("branches after 1", "second root 5")
 
 type ask = string * string * string
 
+inl asked (f : list string -> string) (x : ask) : pages_reply = x |> fun (base, bearer, id) => thread_bodies base bearer id |> replied f
+
+inl chains (x : ask) : pages_reply =
+    x |> fun (base, bearer, id) =>
+        match thread_bodies base bearer id with
+        | Ok bodies => chain_reply bodies
+        | Error e => 4i32, "", describe_failure e
+
+inl chain_exports () : () = !!!!Export("xc_chain", ((fun x => chains x) : ask -> pages_reply))
+
+///> _
 inl main () : i32 =
-    !!!!Export("xc_thread_pages", ((fun (base, bearer, id) => pages_of base bearer id) : ask -> pages_reply))
-    !!!!Export("xc_thread_ids", ((fun (base, bearer, id) => ids_of base bearer id) : ask -> pages_reply))
+    !!!!Export("xc_thread_pages", ((fun x => asked bundle_of x) : ask -> pages_reply))
+    !!!!Export("xc_thread_ids", ((fun x => asked ids_text x) : ask -> pages_reply))
+    chain_exports ()
     0i32

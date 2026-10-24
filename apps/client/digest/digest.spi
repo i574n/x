@@ -1,3 +1,8 @@
+///- --package ..
+///> rust -d serde_json
+test digest static =
+    open testing
+
 open sm'_operators
 open prelude
 open posts
@@ -5,9 +10,14 @@ open wire
 
 type rebuilt = {primary : list post; pool : pool}
 
-inl primary_entry (author : string) (doc : json) (r : rebuilt) : rebuilt =
+inl kept_posts (keep : string) (l : list post) : list post =
+    match count_of_text keep with
+    | Some n => take_first n l
+    | None => l
+
+inl primary_entry (author : string) (keep : string) (doc : json) (r : rebuilt) : rebuilt =
     match posts_of_doc author doc with
-    | posts_reply {pool primary} => {primary = listm.append primary r.primary; pool = merge_pools r.pool pool}
+    | posts_reply {pool primary} => {primary = listm.append (kept_posts keep primary) r.primary; pool = merge_pools r.pool pool}
 
 inl lookup_entry (doc : json) (r : rebuilt) : rebuilt =
     match posts_of_doc "" doc with
@@ -19,12 +29,23 @@ inl users_entry (doc : json) (r : rebuilt) : rebuilt =
         inl pl = r.pool
         {r with pool = {pl with users = listm.append pl.users found}}
 
+inl primary_of (e : json) (doc : json) (r : rebuilt) : rebuilt = primary_entry (at_key "author" e) (at_key "keep" e) doc r
+
 let absorb_entry (r : rebuilt) (e : json) : rebuilt =
     inl role = at_key "role" e
     inl doc = e |> field "doc"
-    if role = "primary" then primary_entry (at_key "author" e) doc r
+    if role = "primary" then primary_of e doc r
     elif role = "lookup" then lookup_entry doc r
     else users_entry doc r
+
+inl returned_posts (doc : json) : i32 =
+    (listm.length (doc |> field "data" |> collect id) : i32) + (listm.length (doc |> field "includes" |> field "posts" |> collect id) : i32)
+
+inl billed_posts (e : json) : i32 =
+    inl role = at_key "role" e
+    if role = "primary" || role = "lookup" then returned_posts (e |> field "doc") else 0i32
+
+let posts_read (bundle : string) : i32 = parse_json bundle |> collect id |> listm.fold (fun n e => n + billed_posts e) 0i32
 
 inl rebuilt_of (bundle : string) : rebuilt =
     parse_json bundle |> collect id |> listm.fold absorb_entry {primary = Nil; pool = empty_pool ()}
@@ -35,6 +56,30 @@ let digested (bundle : string) : string =
     inl r = rebuilt_of bundle
     listm.append (entry_lines_of "p" r.pool r.primary) (entry_lines_of "r" r.pool r.pool.posts) |> sm'.concat_list "\n"
 
+inl primary_bundle () : string =
+    items [object [member "role" (quoted_text "primary"); member "author" (quoted_text "erin"); member "doc" (object [member "data" (items [post_json ()])])]]
+
+inl quote_line (role : string) : string = role ++# "\t1\terin\t\tquoted:2\thi\t2\t1\t14"
+
+inl two_post_bundle (keep : string) : string =
+    inl doc = object [member "data" (items [post_json (); post_json ()])]
+    items [object [member "role" (quoted_text "primary"); member "author" (quoted_text "erin"); member "keep" (quoted_text keep); member "doc" doc]]
+
+test keep_cuts_each_account_to_its_newest =
+    inl ~keep = "1"
+    ((listm.length (rebuilt_of (two_post_bundle keep)).primary : i32), (listm.length (rebuilt_of (two_post_bundle "")).primary : i32))
+        |> _assert_eq (1i32, 2i32)
+
+test posts_read_counts_what_x_returned =
+    inl ~bundle = primary_bundle ()
+    posts_read bundle |> _assert_eq 1i32
+
+test primary_posts_become_entry_lines =
+    inl ~bundle = primary_bundle ()
+    digested bundle |> _assert_eq (quote_line "p" ++# "\n" ++# quote_line "r")
+
+///> _
 inl main () : i32 =
     !!!!Export("xc_digest", ((fun bundle => digested bundle) : string -> string))
+    !!!!Export("xc_posts_read", ((fun bundle => posts_read bundle) : string -> i32))
     0i32

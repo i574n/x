@@ -18,8 +18,8 @@ function Read-Requests { @(Get-Content $requestLog | Where-Object { $_ } | ForEa
 
 function Invoke-Step([string] $Script, [string] $Token, [string] $UserToken = $world.user_token) {
     $info = [System.Diagnostics.ProcessStartInfo]::new("pwsh")
-    foreach ($a in "-NoProfile", "-NonInteractive", "-EncodedCommand") { $info.ArgumentList.Add($a) }
-    $body = "Set-Alias xc '$exePath'`n$Script`nexit `$LASTEXITCODE"
+    foreach ($a in "-NoProfile", "-NonInteractive", "-OutputFormat", "Text", "-EncodedCommand") { $info.ArgumentList.Add($a) }
+    $body = "`$ProgressPreference = 'SilentlyContinue'`nSet-Alias xc '$exePath'`n$Script`nexit `$LASTEXITCODE"
     $info.ArgumentList.Add([Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($body)))
     $info.RedirectStandardOutput = $true
     $info.RedirectStandardError = $true
@@ -52,9 +52,10 @@ function Queries-Of($Step) { @($Step.Requests | ForEach-Object { "$($_.method) $
 $python = (Get-Command python, python3 -CommandType Application -ErrorAction Ignore | Select-Object -First 1).Source
 $stub = Start-Process $python -ArgumentList "-I", (Join-Path $PSScriptRoot "stub.py"), (Join-Path $PSScriptRoot "world.json"), $portFile, $requestLog -PassThru -NoNewWindow
 try {
-    $deadline = (Get-Date).AddSeconds(15)
+    $deadline = (Get-Date).AddSeconds(60)
     while (!(Test-Path $portFile) -or !(Get-Content $portFile -ErrorAction Ignore)) {
-        if ((Get-Date) -gt $deadline -or $stub.HasExited) { throw "the X API stub did not start" }
+        if ($stub.HasExited) { throw "the X API stub exited before writing its port (exit code $($stub.ExitCode))" }
+        if ((Get-Date) -gt $deadline) { throw "the X API stub did not write its port within 60 s" }
         Start-Sleep -Milliseconds 100
     }
     $port = [int](Get-Content $portFile)

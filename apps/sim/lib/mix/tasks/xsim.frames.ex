@@ -11,7 +11,7 @@ defmodule Mix.Tasks.Xsim.Frames do
     posts = Xsim.Frames.thread_posts(text)
     program = text |> Xsim.Frames.file_cells() |> Enum.map(&:unicode.characters_to_nfc_binary/1) |> Enum.join("\n\n")
     lines = if program == "", do: [], else: String.split(program, "\n")
-    File.write!(opts[:out] || Mix.raise("missing --out"), Xsim.XWorld.json(%{posts: posts, program: lines}) <> "\n")
+    File.write!(opts[:out] || Mix.raise("missing --out"), Xsim.Json.json(%{posts: posts, program: lines}) <> "\n")
     IO.puts("xsim.frames #{Path.basename(file)} cells=#{length(Xsim.Frames.file_cells(File.read!(file)))} posts=#{length(posts)}")
   end
 end

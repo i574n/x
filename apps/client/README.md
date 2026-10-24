@@ -73,6 +73,14 @@ env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
 Several accounts become one timeline, newest first, each post ending with its reply, repost and like counts (the API's `reply_count`, `repost_count`, `like_count`); times are in the time zone of the machine running `xc` (`TZ` overrides it; this walkthrough runs with `TZ=America/Cuiaba`, UTC-4); posts of the same second are ordered by id, the newer first, and `t.co` links are shown expanded. A leading `@` is accepted; quote it in PowerShell, where a bare `@bob` splats the variable `$bob`:
 
 ```powershell
+xc timeline hana
+```
+
+```text
+(pending)
+```
+
+```powershell
 xc timeline alice '@bob'
 ```
 
@@ -84,6 +92,16 @@ xc timeline alice '@bob'
 2026-10-15 05:45  @bob  shipped v2 release notes soon  [4 replies, 7 reposts, 31 likes]
 2026-10-15 04:00  @alice  morning run done  [0 replies, 0 reposts, 0 likes]
 2026-10-14 17:10  @alice  reading about typed effects https://example.org/effects  [0 replies, 0 reposts, 0 likes]
+```
+
+`--per-account 1` shows only each account's newest post (X still sends at least 5 per account, so this trims what is shown, not what is read):
+
+```powershell
+xc timeline --per-account 1 alice '@bob'
+```
+
+```text
+(pending)
 ```
 
 Unknown accounts are reported and skipped; `--limit` cuts the merged list:
@@ -257,6 +275,12 @@ let rec split_on (sep : string) (s : string) : list string =
     else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))
 inl pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_on sep s
 let delimited (sep : string) (l : list string) : string = sm'.concat_list sep l
+inl rest_from (i : i32) (s : string) : string = cut i (sm'.length s - i) s
+inl starts_at (prefix : string) (s : string) (i : i32) : bool =
+    if i < 0i32 || i > sm'.length s then false else sm'.starts_with prefix (rest_from i s)
+inl digit_first (rest : string) : bool = has (fun d => sm'.starts_with (sm'.obj_to_string d) rest) (listm.init 10i32 id)
+let rec digits_end (s : string) (i : i32) : i32 =
+    if i < sm'.length s && digit_first (rest_from i s) then digits_end s (i + 1i32) else i
 inl digit_at (i : i32) (text : string) : i32 =
     "0123456789" |> sm'.index_of (sm'.slice i i text)
 let rec digits (text : string) (i : i32) (n : i32) : option i32 =
@@ -322,6 +346,16 @@ xc post "hello from xc"
 posted 9001
 ```
 
+X weighs CJK and emoji as 2, so 141 CJK characters (weight 282) are refused and use no id:
+
+```powershell
+xc post ('日' * 141); $LASTEXITCODE
+```
+
+```text
+(pending)
+```
+
 ```powershell
 xc delete 9001
 ```
@@ -382,41 +416,56 @@ xc post-thread --dry-run checks/checks.spi
 ```
 
 ```text
---- post 1 of 7, weight 47
+--- post 1 of 9, weight 72
 c1 1/1
+///- --package ..
+///> rust
+test checks static =
+    open testing
+--- post 2 of 9, weight 47
+c2 1/1
 open sm'_operators
 open prelude
 open cli
---- post 2 of 7, weight 114
-c2 1/1
+--- post 3 of 9, weight 114
+c3 1/1
 inl count_or_none (t : string) : i32 =
     match count_of_text t with
     | Some n => n
     | None => -1i32
---- post 3 of 7, weight 107
-c3 1/1
+--- post 4 of 9, weight 107
+c4 1/1
 inl text_or_empty (o : option string) : string =
     match o with
     | Some s => s
     | None => ""
---- post 4 of 7, weight 88
-c4 1/1
-inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
---- post 5 of 7, weight 135
+--- post 5 of 9, weight 88
 c5 1/1
+inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
+--- post 6 of 9, weight 135
+c6 1/1
 inl date_or_empty (t : string) : string =
     if shaped "9999-99-99" t then local_midnight t else text_or_empty (date_of_text t)
---- post 6 of 7, weight 88
-c6 1/1
-inl username_or_empty (t : string) : string = username_of_text t |> text_or_empty
---- post 7 of 7, weight 266
+--- post 7 of 9, weight 88
 c7 1/1
+inl username_or_empty (t : string) : string = username_of_text t |> text_or_empty
+--- post 8 of 9, weight 268
+c8 1/1
+test counts_and_usernames_have_empty_answers =
+    inl ~t = "12"
+    count_or_none t |> _assert_eq 12i32
+    (count_or_none "1x" < 0i32) |> _assert_eq true
+    username_or_empty ("@" ++# "bob") |> _assert_eq "bob"
+    username_or_empty "al-ice" |> _assert_eq ""
+--- post 9 of 9, weight 273
+c9 1/1
+///> _
 inl main () : i32 =
     !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
     !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
     !!!!Export("xc_username", ((fun t => username_or_empty t) : string -> string))
     0i32
---- 7 posts, $0.105 to create
+--- 9 posts, $0.135 to create
 ```
 
 With user credentials it posts, one line per post with its id:
@@ -433,6 +482,8 @@ posted 9006 c4 1/1
 posted 9007 c5 1/1
 posted 9008 c6 1/1
 posted 9009 c7 1/1
+posted 9010 c8 1/1
+posted 9011 c9 1/1
 ```
 
 Reading the thread back gives the file again, with the trailing whitespace X drops at the end of a cell removed:
@@ -442,6 +493,10 @@ xc thread 9003
 ```
 
 ```text
+///- --package ..
+///> rust
+test checks static =
+    open testing
 open sm'_operators
 open prelude
 open cli
@@ -457,6 +512,13 @@ inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)
 inl date_or_empty (t : string) : string =
     if shaped "9999-99-99" t then local_midnight t else text_or_empty (date_of_text t)
 inl username_or_empty (t : string) : string = username_of_text t |> text_or_empty
+test counts_and_usernames_have_empty_answers =
+    inl ~t = "12"
+    count_or_none t |> _assert_eq 12i32
+    (count_or_none "1x" < 0i32) |> _assert_eq true
+    username_or_empty ("@" ++# "bob") |> _assert_eq "bob"
+    username_or_empty "al-ice" |> _assert_eq ""
+///> _
 inl main () : i32 =
     !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
     !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
@@ -471,6 +533,8 @@ xc delete-thread 9003
 ```
 
 ```text
+deleted 9011
+deleted 9010
 deleted 9009
 deleted 9008
 deleted 9007
@@ -478,6 +542,26 @@ deleted 9006
 deleted 9005
 deleted 9004
 deleted 9003
+```
+
+A thread cut short by an error (for example X's per-user posting limit) resumes from its root. The error already ends with the command to run, `xc post-thread --resume ROOT_ID FILE`, which reads your posts of that thread, checks they are the file's first posts, and posts the rest:
+
+```powershell
+xc post-thread --resume 9101 checks/checks.spi
+```
+
+```text
+(pending)
+```
+
+A thread whose posts differ from the file is refused before anything is posted:
+
+```powershell
+xc post-thread --resume 9201 checks/checks.spi; $LASTEXITCODE
+```
+
+```text
+(pending)
 ```
 
 ### Renewing the OAuth 2.0 token
@@ -625,7 +709,7 @@ What you can build on `xc` today:
 - **Read someone's home timeline** without their login: `--following h` rebuilds it from the accounts they follow (cap it; follows cost $0.010 each).
 - **Follow conversations:** `--depth 3` shows what a post quotes, answers or reposts.
 - **Post from scripts or CI:** `xc post` and `xc delete` with OAuth 1.0a keys that never expire, exit codes for every failure; `xc refresh` renews an OAuth 2.0 user token in place.
-- **Publish a program as a thread:** `xc post-thread FILE` (try `--dry-run` first, remove it with `xc delete-thread ID`), and anyone reads it back with `xc thread ID`: any age, latest edits, missing posts and missing cells named. `xc`'s own source travels this way: every top-level definition fits 280 weight (`edition: 3`), and with its `CELL k/n` header line all but 40 cells fit one post (1029 posts for the whole client; `build.ps1` names the cells that need two). To run what a thread carries, save it (`xc thread ID > program.spi`) and, from `apps/sim`, `mix xsim.thread_run --file ../client/oauth1.spi --program program.spi` evaluates both under Cells and passes only when the thread has the file's cells and every test verdict matches.
+- **Publish a program as a thread:** `xc post-thread FILE` (try `--dry-run` first, remove it with `xc delete-thread ID`), and anyone reads it back with `xc thread ID`: any age, latest edits, missing posts and missing cells named. `xc`'s own source travels this way: every top-level definition fits 280 weight (`edition: 3`), and every cell fits one post with its `CELL k/n` header line (`build.ps1` prints the post total for the whole client and names any cell that needs two). To run what a thread carries, save it (`xc thread ID > program.spi`) and, from `apps/sim`, `mix xsim.thread_run --file ../client/oauth1.spi --program program.spi` evaluates both under Cells and passes only when the thread has the file's cells and every test verdict matches.
 - **Agents as users:** `--json` gives one JSON object per entry, so an agent can call `xc` as a tool.
 - **Run anywhere:** one static binary; credentials only from environment variables, so a Kubernetes secret maps onto it directly.
 
@@ -642,17 +726,26 @@ Shared modules, compiled into every crate that opens them:
 | Module | Role |
 | --- | --- |
 | `prelude.spi` | list, result and text-splitting helpers; `cut` slices UTF-8 bytes on every backend |
-| `glyphs.spi` | the only per-backend text primitives (graphemes, NFC, X weights, whitespace, code points) as Rust/Gleam pairs, so everything above them compiles to both |
-| `protocol.spi` | the `cN k/n` frame header, rendered by the writer and parsed by the reader from one definition (`header_rejection` says why a line is no header), and `thread_flaw` (`MissingFrames`, `ReplyGap`) with its notes and exit code |
+| `events.spi` | the simulator's event stream (xsim-events v1): an `event` union over content, revisions and reactions, its compact JSON encoder, and a decoder that reads a stream back byte for byte or says why it cannot |
+| `exsss.spi` | Erlang's `rand` exsss generator (splitmix64 seeding, xorshift116**, `uniform_s`) on `u64`, so Rust, Gleam and the BEAM simulator draw the same numbers from the same seed |
+| `paging.spi` | a `pager e` (a token to a page or an `e`) walked until the last page; `xc_thread` injects its search requests, the tests a fake |
+| `glyphs.spi` | the only per-backend text primitives (graphemes, NFC, X weights, whitespace, code points, `split_all`, which splits a whole stream in one pass) as Rust/Gleam pairs, so everything above them compiles to both |
+| `protocol.spi` | `cell_id`, a nominal string for the cell name that frames, flaws and the sim world are keyed on; `post_id`, a nominal string for an X post id (`post_text` unwraps it at the wire and JSON edges, `same_post` compares, `optional_post` reads an absent parent as `None`); the `cN k/n` frame header, rendered by the writer and parsed by the reader from one definition (`header_rejection` says why a line is no header), and `thread_flaw` (`MissingFrames`, `ReplyGap`) with its notes and exit code |
 | `splitter.spi` | a file to its cells and each cell to posts of at most 280 weight: link dots defused, cuts between words, the `--dry-run` preview and price |
-| `posts.spi` | posts, references, urls and media; display entries and their one-line form between crates; newest-first merge sort, per-author caps, reference trees and hints |
+| `personas.spi` | the simulator's personas (lurker, fickle, editor, breaker) as a union, their seeded actions, and `break_source` (the last number of a test cell bumped) |
+| `scenario.spi` | a file's cells to a seeded scenario: posts chained to their parents, likes, unlikes, edits, breaking edits, persona actions and churn woven in |
+| `schedule.spi` | posts and edits exploded into `CELL k/n` frames, deliveries jittered and duplicated by a seeded schedule, and the whole stream as xsim-events v1 |
+| `final_state.spi` | the state every replay of a scenario must reach: live cells with their latest distinct revision, likes as distinct users per post, laid out as the simulator's JSON |
+| `world.spi` | a scenario materialized as the X world the client e2e reads: framed posts with edit versions, replies, likes and timestamps from a base time, posts or whole cells lost on purpose, and the program a thread reader must rebuild |
+| `invariants.spi` | the simulator's checks over a runner snapshot as a `rule` union with `Held` or `Broken` ids: sequential equivalence, no stale results, one compile per prefix, withdrawn demand hidden, unwanted results freed, and schedules that commute; run folders and thread numbers masked before comparing |
+| `posts.spi` | `user_id`, a nominal string so a user id never mixes with a `post_id`; posts, references, urls and media, framed thread posts and which edit is `latest`; display entries and their one-line form between crates; newest-first merge sort, per-author caps, reference trees and hints |
 | `reading.spi` | the reading side of `splitter`: a posted text back to its header and body (link dots restored), frames grouped into cells in posting order, and each cell `Whole` (its source) or `Holed` (a `thread_flaw`) |
 | `cli.spi` | arguments to a typed command (`ShowTimeline`, `PublishPost`, `RemovePost`) with filters and views; validators arrive as a `checks` record |
 | `oauth1.spi` | OAuth 1.0a: RFC 3986 percent-encoding, the signature base string, HMAC-SHA1 (`hmac`, `sha1`, `base64` crates) |
-| `wire.spi` | `reads r` and `writes r`, GADTs indexed by their reply, so a request determines its reply type; `api app_context` and `api user_context`, so a client built from the app token cannot write; JSON (`serde_json`) primitives; typed failures |
+| `wire.spi` | `reads r` and `writes r`, GADTs indexed by their reply, so a request determines its reply type; one users read keyed by names or ids; `api app_context` and `api user_context`, so a client built from the app token cannot write; JSON (`serde_json`) primitives; typed failures |
 | `transport.spi` | requests through `xc_net`, reply classification, `id:username` account lines |
 
-Each entry is one Rust crate, so every generated file stays reviewable (`scripts/gate.ps1` reports generated lines against 1000), and the build reports the compiler's `--x-compat` findings, so every top-level definition fits one 280-weight post. Crates exchange strings, numbers and tuples:
+Each entry is one Rust crate, and every generated file stays reviewable: `scripts/gate.ps1` fails the build on any file over 1,000 lines, and a crate whose generated file would exceed that is split into `<crate>_partN.rs` modules by `scripts/rust-modules.ps1`. The build also reports the compiler's `--x-compat` findings, so every top-level definition fits one 280-weight post. Crates exchange strings, numbers and tuples:
 
 | Crate | Entry | Role |
 | --- | --- | --- |
@@ -673,4 +766,6 @@ Each entry is one Rust crate, so every generated file stays reviewable (`scripts
 | `xc_token` | `token/token.spi` | OAuth 2.0 token renewal and the in-place env file rewrite (`xc refresh`) |
 | `xc` | `xc/xc.spi` | entry: environment, credentials, the order of calls, exit codes, output |
 
-Tests: the test blocks of `glyphs`, `protocol`, `splitter` and `reading` run on both Rust (with the `unicode-segmentation` and `unicode-normalization` crates) and Gleam, and must print the same, which is how the splitter is kept ready for the simulator's BEAM port; `reading`'s post a file with CJK, a link-like dot and a long cell, read the posts back and must get exactly the file's cells, and a dropped post must leave its cell `Holed`; those of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, the app token cannot write, and an app context cannot be signed with OAuth 1.0a keys. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Accept` rewrites its outputs after an intended change; review the diff), whose world includes four threads the simulator posted (complete, edited three times, missing one post, missing a whole cell) (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`); `xc post-thread` must write exactly the posts the simulator's own splitter makes of `oauth1.spi` (`e2e/thread-oauth1.expected.json`, from `mix xsim.frames`), each replying to the one before, `xc thread` must read the file back, and `xc delete-thread` must remove every one of those posts. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>` HTML-escaped.
+`simframes/simframes.spi` is the one entry that is not a crate (it is still a Cells notebook, with a Gleam test of how threads and cells are separated): it exports the splitter (`split_cell`, `file_cells`, `thread_posts`), the scenario's event stream and final state (`scenario_stream`, `scenario_final`) and the e2e worlds (`world_files`) to Gleam for the simulator. The simulator's Elixir side is now glue around that build: `Xsim.Frames` adapts the splitter, `Xsim.Scenario` draws scenarios and schedules deliveries through Spiral (the xsim-events stream is the interface), `Xsim.Invariants` hands the runner's state to Spiral's checks, and only the runner, the world it supervises and the executors stay Elixir. `apps/sim/test/spiral_test.exs` requires the Gleam build to write the simulator's event, final-state and world fixtures byte for byte.
+
+Every crate entry is a Cells notebook too: `///- --package ..` puts them in this package, `///> _` skips the export cell, and their tests cover the pure functions; `build.ps1` runs them with the shared modules. Tests: the test blocks of `paging`, `glyphs`, `protocol`, `splitter`, `invariants` and `reading` run on both Rust (with the `unicode-segmentation` and `unicode-normalization` crates) and Gleam, and must print the same, which is how the splitter is kept ready for the simulator's BEAM port; `reading`'s post a file with CJK, a link-like dot and a long cell, read the posts back and must get exactly the file's cells, and a dropped post must leave its cell `Holed`; those of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, the app token cannot write, and an app context cannot be signed with OAuth 1.0a keys. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Accept` rewrites its outputs after an intended change; review the diff), whose world includes four threads the simulator posted (complete, edited three times, missing one post, missing a whole cell) (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`); `xc post-thread` must write exactly the posts the simulator makes of `oauth1.spi` (`e2e/thread-oauth1.expected.json`, from `mix xsim.frames`); the simulator splits with the same `splitter.spi` compiled to Gleam (`simframes/simframes.spi`, built by `apps/sim/build.ps1` into `apps/sim/frames`, then split by `scripts/gleam-modules.ps1` into modules of at most 1,000 lines), so this checks that the Rust and BEAM builds of one splitter agree, each replying to the one before, `xc thread` must read the file back, and `xc delete-thread` must remove every one of those posts. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>` HTML-escaped.

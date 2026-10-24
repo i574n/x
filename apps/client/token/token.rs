@@ -240,110 +240,110 @@ fn rewritten_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str
 fn refreshed_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> (i32, Rc<str>) {
     let mut v5: std::io::Result<String> = std::fs::read_to_string(&*v4);
     let mut v6: bool = v5.is_ok();
-    let mut v7: bool = v6 == false;
-    if v7 {
-        let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cannot read "); } LIT.with(|lit| lit.clone()) };
-        let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v4));
-        (3i32, v9.clone())
-    } else {
-        let mut v10: Rc<str> = Rc::<str>::from(v5.as_deref().unwrap_or(""));
-        let mut v11: Rc<str> = Rc::<str>::from(v3.bytes().map(|b| if b.is_ascii_alphanumeric() || b"-._~".contains(&b) { (b as char).to_string() } else { format!("%{:02X}", b) }).collect::<String>());
-        let mut v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("grant_type=refresh_token&refresh_token="); } LIT.with(|lit| lit.clone()) };
-        let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v11));
-        let mut v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&client_id="); } LIT.with(|lit| lit.clone()) };
-        let mut v15: Rc<str> = Rc::<str>::from(format!("{}{}", v13, v14));
-        let mut v16: Rc<str> = Rc::<str>::from(v1.bytes().map(|b| if b.is_ascii_alphanumeric() || b"-._~".contains(&b) { (b as char).to_string() } else { format!("%{:02X}", b) }).collect::<String>());
-        let mut v17: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v16));
-        let mut v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/2/oauth2/token"); } LIT.with(|lit| lit.clone()) };
-        let mut v19: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v18));
-        let (mut v20, mut v21): (i32, Rc<str>) = xc_net::xc_post_form(&*v19, &*v1, &*v2, &*v17);
-        let mut v22: bool = v20 >= 200i32;
-        let mut v24: bool = if v22 {
-            let mut v23: bool = v20 < 300i32;
-            v23
+    if v6 {
+        let mut v7: Rc<str> = Rc::<str>::from(v5.as_deref().unwrap_or(""));
+        let mut v8: Rc<str> = Rc::<str>::from(v3.bytes().map(|b| if b.is_ascii_alphanumeric() || b"-._~".contains(&b) { (b as char).to_string() } else { format!("%{:02X}", b) }).collect::<String>());
+        let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("grant_type=refresh_token&refresh_token="); } LIT.with(|lit| lit.clone()) };
+        let mut v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v8));
+        let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&client_id="); } LIT.with(|lit| lit.clone()) };
+        let mut v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
+        let mut v13: Rc<str> = Rc::<str>::from(v1.bytes().map(|b| if b.is_ascii_alphanumeric() || b"-._~".contains(&b) { (b as char).to_string() } else { format!("%{:02X}", b) }).collect::<String>());
+        let mut v14: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v13));
+        let mut v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/2/oauth2/token"); } LIT.with(|lit| lit.clone()) };
+        let mut v16: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v15));
+        let (mut v17, mut v18): (i32, Rc<str>) = xc_net::xc_post_form(&*v16, &*v1, &*v2, &*v14);
+        let mut v19: bool = v17 >= 200i32;
+        let mut v21: bool = if v19 {
+            let mut v20: bool = v17 < 300i32;
+            v20
         } else {
             false
         };
-        if v24 {
-            let mut v25: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v21).unwrap_or_default();
-            let mut v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expires_in"); } LIT.with(|lit| lit.clone()) };
-            let mut v27: serde_json::Value = v25.get(&*v26).cloned().unwrap_or_default();
-            let mut v28: i32 = v27.as_i64().unwrap_or(0) as i32;
-            let mut v29: Rc<str> = Rc::<str>::from(format!("{:?}", v28));
-            let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("access_token"); } LIT.with(|lit| lit.clone()) };
-            let mut v31: serde_json::Value = v25.get(&*v30).cloned().unwrap_or_default();
+        if v21 {
+            let mut v22: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v18).unwrap_or_default();
+            let mut v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("expires_in"); } LIT.with(|lit| lit.clone()) };
+            let mut v24: serde_json::Value = v22.get(&*v23).cloned().unwrap_or_default();
+            let mut v25: i32 = v24.as_i64().unwrap_or(0) as i32;
+            let mut v26: Rc<str> = Rc::<str>::from(format!("{:?}", v25));
+            let mut v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("access_token"); } LIT.with(|lit| lit.clone()) };
+            let mut v28: serde_json::Value = v22.get(&*v27).cloned().unwrap_or_default();
+            let mut v29: Rc<str> = Rc::<str>::from(v28.as_str().unwrap_or(""));
+            let mut v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("refresh_token"); } LIT.with(|lit| lit.clone()) };
+            let mut v31: serde_json::Value = v22.get(&*v30).cloned().unwrap_or_default();
             let mut v32: Rc<str> = Rc::<str>::from(v31.as_str().unwrap_or(""));
-            let mut v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("refresh_token"); } LIT.with(|lit| lit.clone()) };
-            let mut v34: serde_json::Value = v25.get(&*v33).cloned().unwrap_or_default();
-            let mut v35: Rc<str> = Rc::<str>::from(v34.as_str().unwrap_or(""));
-            let mut v36: bool = v32.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            let mut v38: bool = if v36 {
+            let mut v33: bool = v29.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            let mut v35: bool = if v33 {
                 true
             } else {
-                let mut v37: bool = v35.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v37
+                let mut v34: bool = v32.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                v34
             };
-            if v38 {
-                let mut v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the token reply had no access_token or refresh_token"); } LIT.with(|lit| lit.clone()) };
-                (4i32, v39.clone())
+            if v35 {
+                let mut v36: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the token reply had no access_token or refresh_token"); } LIT.with(|lit| lit.clone()) };
+                (4i32, v36.clone())
             } else {
-                let mut v40: Rc<str> = rewritten_1(v10.clone(), v32.clone(), v35.clone(), v29.clone());
-                let mut v41: bool = std::fs::write(&*v4, (v40).as_bytes()).is_ok();
-                if v41 {
-                    let mut v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("renewed X_OAUTH2_ACCESS_TOKEN and X_OAUTH2_REFRESH_TOKEN in "); } LIT.with(|lit| lit.clone()) };
-                    let mut v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v4));
-                    let mut v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; the access token expires in "); } LIT.with(|lit| lit.clone()) };
+                let mut v37: Rc<str> = rewritten_1(v7.clone(), v29.clone(), v32.clone(), v26.clone());
+                let mut v38: bool = std::fs::write(&*v4, (v37).as_bytes()).is_ok();
+                if v38 {
+                    let mut v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("renewed X_OAUTH2_ACCESS_TOKEN and X_OAUTH2_REFRESH_TOKEN in "); } LIT.with(|lit| lit.clone()) };
+                    let mut v40: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v4));
+                    let mut v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; the access token expires in "); } LIT.with(|lit| lit.clone()) };
+                    let mut v42: Rc<str> = Rc::<str>::from(format!("{}{}", v40, v41));
+                    let mut v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v26));
+                    let mut v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" s"); } LIT.with(|lit| lit.clone()) };
                     let mut v45: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v44));
-                    let mut v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v29));
-                    let mut v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" s"); } LIT.with(|lit| lit.clone()) };
-                    let mut v48: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v47));
-                    (0i32, v48.clone())
+                    (0i32, v45.clone())
                 } else {
-                    let mut v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write "); } LIT.with(|lit| lit.clone()) };
-                    let mut v50: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v4));
-                    (4i32, v50.clone())
+                    let mut v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not write "); } LIT.with(|lit| lit.clone()) };
+                    let mut v47: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v4));
+                    (4i32, v47.clone())
                 }
             }
         } else {
-            let mut v55: bool = v20 == 0i32;
-            if v55 {
-                let mut v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cannot reach "); } LIT.with(|lit| lit.clone()) };
-                let mut v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cannot reach /2/oauth2/token"); } LIT.with(|lit| lit.clone()) };
-                let mut v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                let mut v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cannot reach /2/oauth2/token: "); } LIT.with(|lit| lit.clone()) };
-                let mut v60: Rc<str> = Rc::<str>::from(format!("{}{}", v59, v21));
-                (4i32, v60.clone())
+            let mut v52: bool = v17 == 0i32;
+            let mut v78: Rc<str> = if v52 {
+                let mut v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cannot reach "); } LIT.with(|lit| lit.clone()) };
+                let mut v54: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cannot reach /2/oauth2/token"); } LIT.with(|lit| lit.clone()) };
+                let mut v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
+                let mut v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cannot reach /2/oauth2/token: "); } LIT.with(|lit| lit.clone()) };
+                let mut v57: Rc<str> = Rc::<str>::from(format!("{}{}", v56, v18));
+                v57.clone()
             } else {
-                let mut v61: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v21).unwrap_or_default();
-                let mut v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("error_description"); } LIT.with(|lit| lit.clone()) };
-                let mut v63: serde_json::Value = v61.get(&*v62).cloned().unwrap_or_default();
+                let mut v58: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v18).unwrap_or_default();
+                let mut v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("error_description"); } LIT.with(|lit| lit.clone()) };
+                let mut v60: serde_json::Value = v58.get(&*v59).cloned().unwrap_or_default();
+                let mut v61: Rc<str> = Rc::<str>::from(v60.as_str().unwrap_or(""));
+                let mut v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("error"); } LIT.with(|lit| lit.clone()) };
+                let mut v63: serde_json::Value = v58.get(&*v62).cloned().unwrap_or_default();
                 let mut v64: Rc<str> = Rc::<str>::from(v63.as_str().unwrap_or(""));
-                let mut v65: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("error"); } LIT.with(|lit| lit.clone()) };
-                let mut v66: serde_json::Value = v61.get(&*v65).cloned().unwrap_or_default();
-                let mut v67: Rc<str> = Rc::<str>::from(v66.as_str().unwrap_or(""));
-                let mut v68: bool = v64.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let mut v71: Rc<str> = if v68 {
-                    v64.clone()
+                let mut v65: bool = v61.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                let mut v68: Rc<str> = if v65 {
+                    v61.clone()
                 } else {
-                    let mut v69: bool = v67.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    if v69 {
-                        v67.clone()
+                    let mut v66: bool = v64.clone() != { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    if v66 {
+                        v64.clone()
                     } else {
-                        v21.clone()
+                        v18.clone()
                     }
                 };
-                let mut v72: Rc<str> = Rc::<str>::from(format!("{:?}", v20));
-                let mut v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) };
-                let mut v74: Rc<str> = Rc::<str>::from(format!("{}{}", v73, v72));
-                let mut v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
+                let mut v69: Rc<str> = Rc::<str>::from(format!("{:?}", v17));
+                let mut v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) };
+                let mut v71: Rc<str> = Rc::<str>::from(format!("{}{}", v70, v69));
+                let mut v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
+                let mut v73: Rc<str> = Rc::<str>::from(format!("{}{}", v71, v72));
+                let mut v74: Rc<str> = Rc::<str>::from(format!("{}{}", v73, v15));
+                let mut v75: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
                 let mut v76: Rc<str> = Rc::<str>::from(format!("{}{}", v74, v75));
-                let mut v77: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v18));
-                let mut v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                let mut v79: Rc<str> = Rc::<str>::from(format!("{}{}", v77, v78));
-                let mut v80: Rc<str> = Rc::<str>::from(format!("{}{}", v79, v71));
-                (4i32, v80.clone())
-            }
+                let mut v77: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v68));
+                v77.clone()
+            };
+            (4i32, v78.clone())
         }
+    } else {
+        let mut v81: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cannot read "); } LIT.with(|lit| lit.clone()) };
+        let mut v82: Rc<str> = Rc::<str>::from(format!("{}{}", v81, v4));
+        (3i32, v82.clone())
     }
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>)> {

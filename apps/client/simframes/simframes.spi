@@ -1,0 +1,119 @@
+///- --package ..
+///> gleam
+test simframes static =
+    open testing
+
+open sm'_operators
+open prelude
+open glyphs
+open protocol
+open splitter
+open schedule
+open invariants
+open world
+open scenario
+open personas
+
+inl split_export () : () =
+    !!!!Export("split_cell", ((fun (label, limit, source) => split_cell (cell_id label) limit source) : string * i32 * string -> list string))
+
+inl splitter_exports () : () =
+    split_export ()
+    !!!!Export("file_cells", ((fun text => file_cells text) : string -> list string))
+    !!!!Export("thread_posts", ((fun text => posts_of text) : string -> list string))
+
+type staged_cells = string * i32 * i32 * i32 * string * i32 * bool
+
+inl staged_stream (x : staged_cells) : string =
+    inl cells, seed, users, edits, personas, permille, framed = x
+    scenario_stream {seed users edits personas permille framed} (split_all (char_of 0i32) cells)
+
+inl staged_final (x : staged_cells) : string =
+    inl cells, seed, users, edits, personas, permille, framed = x
+    scenario_final {seed users edits personas permille framed} (split_all (char_of 0i32) cells)
+
+inl stream_export () : () =
+    !!!!Export("scenario_stream", ((fun x => staged_stream x) : staged_cells -> string))
+    !!!!Export("scenario_final", ((fun x => staged_final x) : staged_cells -> string))
+
+type world_cells = string * i32 * i32 * string * i32 * i32 * i32 * string * string * string
+
+inl ask_of (x : world_cells) : world_ask =
+    inl _, seed, edits, personas, id_base, lost, lost_cells, base_time, user_id, username = x
+    {seed edits personas id_base losses = {lost lost_cells}; base_time account = {user_id username}}
+
+inl staged_world (x : world_cells) : string * string =
+    inl cells, _, _, _, _, _, _, _, _, _ = x
+    world_files (ask_of x) (split_all (char_of 0i32) cells)
+
+inl world_export () : () = !!!!Export("world_files", ((fun x => staged_world x) : world_cells -> string * string))
+
+type run_cells = string * i32 * i32 * i32 * i32 * i32 * string * bool * i32 * i32
+
+inl threads_of (text : string) : list (list string) = split_all (char_of 1i32) text |> each (split_all (char_of 0i32))
+
+test threads_of_splits_threads_then_cells =
+    inl ~s = "a" ++# char_of 0i32 ++# "b" ++# char_of 1i32 ++# "c"
+    threads_of s |> each (delimited ",") |> delimited "|" |> _assert_eq "a,b|c"
+
+inl run_cast (x : run_cells) : casting =
+    inl _, seed, users, edits, breaking, churn, personas, _, _, _ = x
+    inl c = plain_casting seed
+    {c with users = users; edits = edits; breaking = breaking; churn = churn; personas = parsed_personas personas}
+
+inl run_ask_of (x : run_cells) : run_ask =
+    inl _, _, _, _, _, _, _, framed, schedule, permille = x
+    {cast = run_cast x; framed; schedule; permille}
+
+inl staged_run (x : run_cells) : string * i32 * i32 * string =
+    inl threads, _, _, _, _, _, _, _, _, _ = x
+    inl text, posts, events, broken = corpus_run (run_ask_of x) (threads_of threads)
+    text, posts, events, delimited (char_of 0i32) broken
+
+inl run_export () : () = !!!!Export("corpus_run", ((fun x => staged_run x) : run_cells -> string * i32 * i32 * string))
+
+inl joined_broken (r : string * list string) : string * string =
+    inl text, broken = r
+    text, delimited (char_of 0i32) broken
+
+inl corpus_raw (x : run_cells) : string * string =
+    inl threads, _, _, _, _, _, _, _, _, _ = x
+    from_corpus (run_cast x) (threads_of threads) |> raw_scenario |> joined_broken
+
+inl cells_raw (x : run_cells) : string * string =
+    inl cells, _, _, _, _, _, _, _, _, _ = x
+    from_cells (run_cast x) "" (pieces (char_of 0i32) cells) |> raw_scenario |> joined_broken
+
+type pacing_cells = string * i32 * i32 * i32
+
+inl paced (x : pacing_cells) : string =
+    inl text, seed, permille, window = x
+    rescheduled text seed {permille window}
+
+inl raw_exports () : () =
+    !!!!Export("corpus_raw", ((fun x => corpus_raw x) : run_cells -> string * string))
+    !!!!Export("cells_raw", ((fun x => cells_raw x) : run_cells -> string * string))
+
+inl facade_exports () : () =
+    raw_exports ()
+    !!!!Export("rescheduled", ((fun x => paced x) : pacing_cells -> string))
+    !!!!Export("break_source", ((fun s => break_source s) : string -> string))
+
+inl check_exports () : () =
+    !!!!Export("checked_text", ((fun t => checked_text t) : string -> string))
+    !!!!Export("commute_text", ((fun (a, b) => commute_text a b) : string * string -> string))
+
+inl invariant_exports () : () =
+    check_exports ()
+    !!!!Export("breaking_text", ((fun t => breaking_text t) : string -> string))
+    !!!!Export("masked_text", ((fun t => masked_text t) : string -> string))
+
+///> _
+inl main () : i32 =
+    invariant_exports ()
+    facade_exports ()
+    run_export ()
+    world_export ()
+    splitter_exports ()
+    stream_export ()
+    0i32

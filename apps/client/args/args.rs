@@ -355,14 +355,14 @@ fn advance_4(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
                 let mut v25: US7 = US7::US7_Originals;
                 US6::US6_Switched(v25.clone())
             } else {
-                let mut v27: bool = v16.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--hints"); } LIT.with(|lit| lit.clone()) };
+                let mut v27: bool = v16.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--json"); } LIT.with(|lit| lit.clone()) };
                 if v27 {
-                    let mut v28: US7 = US7::US7_Hints;
+                    let mut v28: US7 = US7::US7_Json;
                     US6::US6_Switched(v28.clone())
                 } else {
-                    let mut v30: bool = v16.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--json"); } LIT.with(|lit| lit.clone()) };
+                    let mut v30: bool = v16.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--hints"); } LIT.with(|lit| lit.clone()) };
                     if v30 {
-                        let mut v31: US7 = US7::US7_Json;
+                        let mut v31: US7 = US7::US7_Hints;
                         US6::US6_Switched(v31.clone())
                     } else {
                         let mut v33: bool = v16.clone() == { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--per-account"); } LIT.with(|lit| lit.clone()) };

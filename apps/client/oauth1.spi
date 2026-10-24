@@ -3,101 +3,39 @@ test oauth1 static =
     open testing
 
 open sm'_operators
-open prelude
 
-type oauth1 = {consumer_key : string; consumer_secret : string; token : string; token_secret : string}
+type oauth1 = oauth.oauth1_credentials
 
-type pair = string * string
+type pair = oauth.oauth1_pair
 
-nominal digest_bytes = $'Vec<u8>'
+inl percent (s : string) : string = sm'.percent_encode s
 
-inl percent (s : string) : string =
-    $'Rc::<str>::from(!s.bytes().map(|b| if b.is_ascii_alphanumeric() || b"-._~".contains(&b) { (b as char).to_string() } else { format\!("%{:02X}", b) }).collect::<String>())'
+nominal system_time = $'std::time::SystemTime'
 
-inl hmac_sha1 (key : string) (text : string) : digest_bytes =
-    $'{ let mut m = <hmac::Hmac<sha1::Sha1> as hmac::KeyInit>::new_from_slice(!key.as_bytes()).unwrap(); hmac::Mac::update(&mut m, !text.as_bytes()); hmac::Mac::finalize(m).into_bytes().to_vec() }'
+nominal elapsed = $'std::time::Duration'
 
-inl base64_of (b : digest_bytes) : string =
-    $'Rc::<str>::from(base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &!b))'
+inl system_now () : system_time = $'std::time::SystemTime::now()'
 
-inl sha1_hex (text : string) : string =
-    $'Rc::<str>::from(<sha1::Sha1 as sha1::Digest>::digest(!text.as_bytes()).iter().map(|b| format\!("{:02x}", b)).collect::<String>())'
+inl since_epoch (t : system_time) : elapsed = $'!t.duration_since(std::time::UNIX_EPOCH).unwrap_or_default()'
+
+inl whole_seconds (d : elapsed) : u64 = $'!d.as_secs()'
+
+inl sub_micros (d : elapsed) : u32 = $'!d.subsec_micros()'
+
+inl process_id () : u32 = $'std::process::id()'
 
 inl clock_seed () : string =
-    $'Rc::<str>::from(format\!("{}-{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos(), std::process::id()))'
+    inl d = since_epoch (system_now ())
+    inl micros : u64 = whole_seconds d * 1000000u64 + conv (sub_micros d)
+    sm'.obj_to_string micros ++# "-" ++# sm'.obj_to_string (process_id ())
 
-inl unix_seconds () : string =
-    $'Rc::<str>::from(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs().to_string())'
+inl unix_seconds () : string = since_epoch (system_now ()) |> whole_seconds |> sm'.obj_to_string
 
-inl fresh_nonce () : string = sha1_hex (clock_seed ())
-
-inl before ((ka, va) : pair) ((kb, vb) : pair) : bool =
-    if ka <> kb then comp ka kb |> lt_is else comp va vb |> lt_is
-
-let rec insert_sorted (x : pair) (l : list pair) : list pair =
-    match l with
-    | Cons (y, ys) when before y x => Cons (y, insert_sorted x ys)
-    | _ => Cons (x, l)
-
-inl sorted_pairs (l : list pair) : list pair = listm.fold (fun acc x => insert_sorted x acc) Nil l
-
-inl param_string (params : list pair) : string =
-    params |> each (fun (k, v) => percent k, percent v) |> sorted_pairs
-    |> each (fun (k, v) => k ++# "=" ++# v) |> sm'.concat_list "&"
-
-inl base_string (method : string) (url : string) (params : list pair) : string =
-    method ++# "&" ++# percent url ++# "&" ++# percent (param_string params)
-
-inl signing_key (o : oauth1) : string = percent o.consumer_secret ++# "&" ++# percent o.token_secret
-
-inl oauth_params (o : oauth1) (nonce : string) (stamp : string) : list pair =
-    [("oauth_consumer_key", o.consumer_key); ("oauth_nonce", nonce); ("oauth_signature_method", "HMAC-SHA1");
-     ("oauth_timestamp", stamp); ("oauth_token", o.token); ("oauth_version", "1.0")]
-
-inl signature (o : oauth1) (method : string) (url : string) (params : list pair) : string =
-    base_string method url params |> hmac_sha1 (signing_key o) |> base64_of
-
-inl quoted ((k, v) : pair) : string = percent k ++# "=\"" ++# percent v ++# "\""
-
-inl signed_params (o : oauth1) (method : string) (url : string) (params : list pair) : list pair =
-    listm.append params [("oauth_signature", signature o method url params)]
+inl fresh_nonce () : string = crypto.sha1_hex (clock_seed ())
 
 let oauth_header (o : oauth1) (method : string) (url : string) (nonce : string) (stamp : string) : string =
-    inl params = oauth_params o nonce stamp
-    "OAuth " ++# (signed_params o method url params |> each quoted |> sm'.concat_list ", ")
+    oauth.authorization_header o method url nonce stamp
 
-inl doc_credentials () : oauth1 =
-    {consumer_key = "xvz1evFS4wEEPTGEFPHBog"; consumer_secret = "kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw";
-     token = "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb"; token_secret = "LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE"}
-
-inl doc_nonce () : string = "kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg"
-
-inl doc_params () : list pair =
-    inl status = "Hello Ladies + Gentlemen, a signed OAuth request!"
-    listm.append [("include_entities", "true"); ("status", status)] (oauth_params (doc_credentials ()) (doc_nonce ()) "1318622958")
-
-inl doc_base_head () : string =
-    "POST&https%3A%2F%2Fapi.x" ++# ".com%2F1.1%2Fstatuses%2Fupdate.json&include_entities%3Dtrue%26oauth_consumer_key%3Dxvz1evFS4wEEPTGEFPHBog"
-
-inl doc_base_middle () : string =
-    "%26oauth_nonce%3DkYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1318622958"
-
-inl doc_base_tail () : string =
-    "%26oauth_token%3D370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb%26oauth_version%3D1.0%26status%3D"
-    ++# "Hello%2520Ladies%2520%252B%2520Gentlemen%252C%2520a%2520signed%2520OAuth%2520request%2521"
-
-///> rust
-test percent_encodes_everything_but_unreserved =
-    inl ~text = "a b+c,d!~-._/é"
-    percent text |> _assert_eq "a%20b%2Bc%2Cd%21~-._%2F%C3%A9"
-
-///> rust
-test base_string_matches_the_published_example =
-    inl ~method = "POST"
-    base_string method "https://api.x.com/1.1/statuses/update.json" (doc_params ())
-    |> _assert_eq (doc_base_head () ++# doc_base_middle () ++# doc_base_tail ())
-
-///> rust
-test signing_key_joins_both_secrets =
-    inl ~o = doc_credentials ()
-    signing_key o |> _assert_eq "kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw&LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE"
+///> rust -d sha1
+test a_fresh_nonce_is_forty_hex_digits =
+    sm'.length (fresh_nonce ()) |> _assert_eq 40i32

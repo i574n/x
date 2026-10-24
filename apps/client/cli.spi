@@ -19,15 +19,19 @@ type request =
     {source : source; per_account : i32; limit : i32; per_author : i32; cap : following_cap;
      filters : filters; depth : i32; hints : bool; json : bool}
 
+union thread_op =
+    | ReadThread : string
+    | PostThread : string
+    | PreviewThread : string
+    | DeleteThread : string
+    | ResumeThread : string * string
+
 union command =
     | ShowTimeline : request
     | PublishPost : string
     | RemovePost : string
     | RefreshToken : string
-    | ReadThread : string
-    | PostThread : string
-    | PreviewThread : string
-    | DeleteThread : string
+    | OnThread : thread_op
     | ShowHelp
     | Rejected : string
 
@@ -72,13 +76,15 @@ inl usage_reads () : string = "       xc thread ID          the program a thread
 
 inl usage_thread_writes () : string =
     "       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"
-    ++# "       xc delete-thread ID   delete your posts of that thread (user credentials)\n"
+    ++# "       xc post-thread --resume ROOT_ID FILE   finish a half-posted thread of FILE after its last post\n"
+
+inl usage_thread_deletes () : string = "       xc delete-thread ID   delete your posts of that thread (user credentials)\n"
 
 inl usage_environment () : string =
     "env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"
 
 inl usage_counts () : string =
-    "       --per-account N   posts fetched per account, 5..100 (default 5)\n"
+    "       --per-account N   posts shown per account, 1..100 (default 5)\n"
     ++# "       --limit N         timeline entries shown (default 20)\n"
     ++# "       --per-author N    entries shown per author (default all)\n"
 
@@ -96,7 +102,7 @@ inl usage_output () : string = "       --json            one JSON object per ent
 inl usage_following () : string =
     "       --max-following N accounts followed by USERNAME to include, or all (default 20)"
 
-inl usage_commands () : string = usage_synopsis () ++# usage_writes () ++# usage_reads () ++# usage_thread_writes ()
+inl usage_commands () : string = usage_synopsis () ++# usage_writes () ++# usage_reads () ++# usage_thread_writes () ++# usage_thread_deletes ()
 
 inl usage () : string =
     inl filters, views = usage_counts () ++# usage_filters (), usage_views () ++# usage_output ()
@@ -121,13 +127,15 @@ inl flag_of (text : string) : arg_kind =
     elif text = "--depth" then Valued Depth
     else value_flag_of text
 
-inl output_kind (text : string) : arg_kind = if text = "--json" then Switched Json else flag_of text
+inl output_kind (text : string) : arg_kind =
+    if text = "--json" then Switched Json
+    elif text = "--hints" then Switched Hints
+    else flag_of text
 
 inl kind_of (text : string) : arg_kind =
     if text = "--no-replies" then Switched NoReplies
     elif text = "--no-reposts" then Switched NoReposts
     elif text = "--originals" then Switched Originals
-    elif text = "--hints" then Switched Hints
     else output_kind text
 
 inl char_at (i : i32) (text : string) : string = sm'.slice i i text
@@ -162,7 +170,7 @@ inl username_of_text (text : string) : option string =
 
 inl range_of (f : flag) : i32 * i32 =
     match f with
-    | PerAccount => 5i32, 100i32
+    | PerAccount => 1i32, 100i32
     | Depth => 0i32, 3i32
     | _ => 1i32, 100000i32
 
@@ -182,7 +190,7 @@ inl with_count (f : flag) (d : draft) (n : i32) : draft =
     | Depth => {d with depth = n}
     | _ => {d with cap = AtMost n}
 
-let bounded (c : checks) (f : flag) (name : string) (text : string) (d : draft) : result draft string =
+let bounded (c : checks) (f : flag) (name : string) (text : string) (d : draft) : step =
     inl low, high = range_of f
     match c.count text with
     | Some n when n >= low && n <= high => Ok (with_count f d n)
@@ -211,13 +219,13 @@ let with_date (c : checks) (g : flag) (name : string) (value : string) (d : draf
     | None => Error (date_expected name value)
     | Some at => Ok (with_filters d (dated g at d.filters))
 
-inl all_following (d : draft) : step = Ok {d with cap = AllFollowing}
+inl uncapped (d : draft) : step = Ok {d with cap = AllFollowing}
 
 let apply_flag (c : checks) (f : flag) (n : string) (v : string) (d : draft) : step =
     match f with
     | Following => with_following c v d
     | StartTime | EndTime => with_date c f n v d
-    | MaxFollowing when v = "all" => all_following d
+    | MaxFollowing when v = "all" => uncapped d
     | _ => bounded c f n v d
 
 inl switched (s : switch) (f : filters) : filters =
@@ -232,9 +240,11 @@ let apply_switch (s : switch) (d : draft) : step =
     | Json => Ok {d with json = true}
     | _ => Ok (with_filters d (switched s d.filters))
 
+inl unknown_option (arg : string) : string = "unknown option " ++# arg
+
 let with_username (c : checks) (arg : string) (d : draft) : step =
     match c.username arg with
-    | _ when sm'.starts_with "-" arg => Error ("unknown option " ++# arg)
+    | _ when sm'.starts_with "-" arg => Error (unknown_option arg)
     | Some h => Ok {d with usernames = Cons (h, d.usernames)}
     | None => Error (not_a_username arg)
 
@@ -246,8 +256,10 @@ inl following_alone () : string = "--following takes one account and no other us
 
 inl nothing_named () : string = "name at least one account, or --following USERNAME"
 
+inl usernames_in (d : draft) : list string = listm.rev d.usernames
+
 let finish (d : draft) : command =
-    match d.following, listm.rev d.usernames with
+    match d.following, usernames_in d with
     | Some h, Nil => request_of d (FollowingOf h)
     | Some _, _ => Rejected (following_alone ())
     | None, Nil => Rejected (nothing_named ())
@@ -263,12 +275,16 @@ inl is_help (arg : string) : bool = arg = "--help" || arg = "-h" || arg = "help"
 
 inl needs_value (a : string) : progress = Error (a ++# " needs a value"), Nil
 
+inl valued (c : checks) (d : draft) (a : string) (f : flag) (r : args) : progress =
+    match r with
+    | Nil => needs_value a
+    | Cons (v, r') => apply_flag c f a v d, r'
+
 let advance (c : checks) (d : draft) (a : string) (r : args) : progress =
-    match kind_of a, r with
-    | Switched s, _ => apply_switch s d, r
-    | Valued _, Nil => needs_value a
-    | Valued f, Cons (v, r') => apply_flag c f a v d, r'
-    | Plain, _ => with_username c a d, r
+    match kind_of a with
+    | Switched s => apply_switch s d, r
+    | Valued f => valued c d a f r
+    | Plain => with_username c a d, r
 
 let rec parse_from (c : checks) (d : draft) (args : list string) : command =
     match args with
@@ -276,7 +292,7 @@ let rec parse_from (c : checks) (d : draft) (args : list string) : command =
     | Cons (arg, rest) =>
         match advance c d arg rest with
         | Ok d, more => parse_from c d more
-        | Error message, _ => Rejected message
+        | Error why, _ => Rejected why
 
 inl no_filters () : filters = {start_time = ""; end_time = ""; no_replies = false; no_reposts = false}
 
@@ -293,19 +309,24 @@ let one_value (name : string) (args : list string) (make : string -> command) : 
     | Cons (value, Nil) when value <> "" => make value
     | _ => Rejected (name ++# " takes exactly one argument")
 
+inl dry_or_post (rest : args) : command =
+    match rest with
+    | Cons (flag, Cons (path, Nil)) when flag = "--dry-run" => OnThread (PreviewThread path)
+    | _ => one_value "post-thread" rest (PostThread >> OnThread)
+
 inl thread_post_command (rest : args) : command =
     match rest with
-    | Cons (flag, Cons (path, Nil)) when flag = "--dry-run" => PreviewThread path
-    | _ => one_value "post-thread" rest PostThread
+    | Cons (flag, Cons (root, Cons (path, Nil))) when flag = "--resume" => OnThread (ResumeThread (root, path))
+    | _ => dry_or_post rest
 
 let thread_command (sub : string) (rest : args) : command =
     if sub = "post-thread" then thread_post_command rest
-    elif sub = "delete-thread" then one_value sub rest DeleteThread
+    elif sub = "delete-thread" then one_value sub rest (DeleteThread >> OnThread)
     else Rejected (unknown_command sub)
 
 let other_command (sub : string) (rest : args) : command =
     if sub = "refresh" then one_value sub rest RefreshToken
-    elif sub = "thread" then one_value sub rest ReadThread
+    elif sub = "thread" then one_value sub rest (ReadThread >> OnThread)
     else thread_command sub rest
 
 let write_command (sub : string) (rest : args) : command =
@@ -333,9 +354,11 @@ inl source_text (s : source) : string =
     | Accounts hs => "accounts " ++# sm'.concat_list "," hs
     | FollowingOf h => "following-of " ++# h
 
-inl flags_text (f : filters) : string =
+inl dates_text (f : filters) : string =
     (if f.start_time = "" then "" else " start_time=" ++# f.start_time) ++# (if f.end_time = "" then "" else " end_time=" ++# f.end_time)
-    ++# (if f.no_replies then " no-replies" else "") ++# (if f.no_reposts then " no-reposts" else "")
+
+inl flags_text (f : filters) : string =
+    dates_text f ++# (if f.no_replies then " no-replies" else "") ++# (if f.no_reposts then " no-reposts" else "")
 
 inl counts_text (r : request) : string =
     " per=" ++# sm'.obj_to_string r.per_account ++# " limit=" ++# sm'.obj_to_string r.limit
@@ -348,12 +371,22 @@ let request_text (r : request) : string =
     inl hints = (if r.hints then " hints" else "") ++# (if r.json then " json" else "")
     source_text r.source ++# counts_text r ++# views_text r ++# flags_text r.filters ++# hints
 
-inl described_thread (c : command) : string =
-    match c with
+inl thread_edit_text (t : thread_op) : string =
+    match t with
+    | DeleteThread id => "delete-thread " ++# id
+    | ResumeThread (root, path) => "post-thread --resume " ++# root ++# " " ++# path
+    | _ => ""
+
+inl thread_op_text (t : thread_op) : string =
+    match t with
     | ReadThread id => "thread " ++# id
     | PostThread path => "post-thread " ++# path
     | PreviewThread path => "post-thread --dry-run " ++# path
-    | DeleteThread id => "delete-thread " ++# id
+    | _ => thread_edit_text t
+
+inl thread_text (c : command) : string =
+    match c with
+    | OnThread t => thread_op_text t
     | _ => ""
 
 inl described_write (c : command) : string =
@@ -361,7 +394,7 @@ inl described_write (c : command) : string =
     | PublishPost text => "post " ++# text
     | RemovePost id => "delete " ++# id
     | RefreshToken path => "refresh " ++# path
-    | _ => described_thread c
+    | _ => thread_text c
 
 inl describe (c : command) : string =
     match c with
@@ -407,10 +440,15 @@ test depth_is_capped_at_three =
     parsed ["timeline"; "--depth"; n; "a"] |> _assert_eq "rejected: --depth expects a number from 0 to 3, got '4'"
 
 ///> zig
-test per_account_below_the_api_minimum_is_rejected =
-    inl ~n = "4"
+test per_account_rejects_zero =
+    inl ~n = "0"
     parsed ["timeline"; "--per-account"; n; "alice"]
-    |> _assert_eq "rejected: --per-account expects a number from 5 to 100, got '4'"
+    |> _assert_eq "rejected: --per-account expects a number from 1 to 100, got '0'"
+
+///> zig
+test per_account_takes_one =
+    inl ~n = "1"
+    parsed ["timeline"; "--per-account"; n; "alice"] |> _assert_eq "accounts alice per=1 limit=20 author=0 depth=0 cap=20"
 
 ///> zig
 test following_excludes_other_usernames =
@@ -429,9 +467,12 @@ test a_flag_needs_a_value =
     parsed ["timeline"; flag] |> _assert_eq "rejected: --limit needs a value"
 
 ///> zig
-test unknown_options_and_commands_are_rejected =
+test unknown_options_are_rejected =
     inl ~flag = "--verbose"
     parsed ["timeline"; flag] |> _assert_eq "rejected: unknown option --verbose"
+
+///> zig
+test unknown_commands_are_rejected =
     inl ~sub = "home"
     parsed [sub; "carol"] |> _assert_eq "rejected: unknown command home; try: xc timeline"
 
@@ -457,6 +498,11 @@ test post_thread_takes_a_file_and_an_optional_dry_run =
     inl ~path = "prelude.spi"
     parsed ["post-thread"; path] |> _assert_eq "post-thread prelude.spi"
     parsed ["post-thread"; "--dry-run"; path] |> _assert_eq "post-thread --dry-run prelude.spi"
+
+///> zig
+test post_thread_resumes_from_a_root =
+    inl ~path = "prelude.spi"
+    parsed ["post-thread"; "--resume"; "9003"; path] |> _assert_eq "post-thread --resume 9003 prelude.spi"
 
 ///> zig
 test delete_thread_takes_one_id =

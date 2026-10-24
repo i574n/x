@@ -1,0 +1,99 @@
+///- --package . --timeout 600000
+///> rust
+///> gleam
+test paging static =
+    open testing
+
+open sm'_operators
+open prelude
+
+type page = {next_token : string; body : string}
+
+type pager e = string -> result page e
+
+type cursor_stop = {token : string; pages : i32}
+
+union cursor_halt =
+    | CursorRepeated : cursor_stop
+    | CursorBudget : cursor_stop
+
+inl page_budget () : i32 = 500i32
+
+type walk = {seen : list string; pages : i32; bodies : list string}
+
+inl start_walk () : walk = {seen = Nil; pages = 0i32; bodies = Nil}
+
+inl walk_step (w : walk) (p : page) : walk =
+    {seen = Cons (p.next_token, w.seen); pages = w.pages + 1i32; bodies = Cons (p.body, w.bodies)}
+
+inl repeats (w : walk) (p : page) : bool = has (fun t => t = p.next_token) w.seen
+
+inl halt_at (w : walk) (p : page) : option cursor_halt =
+    if repeats w p then Some (CursorRepeated {token = p.next_token; pages = w.pages + 1i32}) else None
+
+inl walk_bodies (w : walk) (p : page) : list string = listm.rev (walk_step w p).bodies
+
+type walker e = {halted : cursor_halt -> e; budget : i32; fetch : pager e}
+
+let rec walked_from forall e. (k : walker e) (token : string) (w : walk) : result (list string) e =
+    if w.pages >= k.budget then Error (k.halted (CursorBudget {token pages = w.pages}))
+    else k.fetch token |> then_ok (next_of k w)
+
+and let next_of forall e. (k : walker e) (w : walk) (p : page) : result (list string) e =
+    if p.next_token = "" then Ok (walk_bodies w p) else walk_on k w p
+
+and let walk_on forall e. (k : walker e) (w : walk) (p : page) : result (list string) e =
+    match halt_at w p with
+    | Some h => Error (k.halted h)
+    | None => walked_from k p.next_token (walk_step w p)
+
+inl all_pages forall e. (halted : cursor_halt -> e) (fetch : pager e) : result (list string) e =
+    walked_from {halted budget = page_budget (); fetch} "" (start_walk ())
+
+inl whole_second (created_at : string) : string =
+    if sm'.length created_at < 19i32 then created_at else cut 0i32 19i32 created_at ++# "Z"
+
+inl two_pages (token : string) : result page string =
+    if token = "" then Ok {next_token = "t2"; body = "a"}
+    elif token = "t2" then Ok {next_token = ""; body = "b"}
+    else Error token
+
+inl walked (r : result (list string) string) : string =
+    match r with
+    | Ok bodies => delimited "," bodies
+    | Error e => "stopped at " ++# e
+
+inl halt_text (h : cursor_halt) : string =
+    match h with
+    | CursorRepeated s => "repeated " ++# s.token ++# " after " ++# sm'.obj_to_string s.pages
+    | CursorBudget s => "budget at " ++# sm'.obj_to_string s.pages
+
+inl walk_with (budget : i32) (fetch : pager string) (first : string) : result (list string) string =
+    walked_from {halted = halt_text; budget = budget; fetch = fetch} first (start_walk ())
+
+test pages_follow_next_tokens =
+    inl ~first = ""
+    walk_with 500i32 two_pages first |> walked |> _assert_eq "a,b"
+
+inl broken (token : string) : result page string = if token = "" then Ok {next_token = "bad"; body = "a"} else Error token
+
+test a_failed_page_stops_the_walk =
+    inl ~first = ""
+    walk_with 500i32 broken first |> walked |> _assert_eq "stopped at bad"
+
+inl looping (token : string) : result page string = Ok {next_token = "t1"; body = token}
+
+test a_repeated_cursor_stops_the_walk =
+    inl ~first = ""
+    walk_with 500i32 looping first |> walked |> _assert_eq "stopped at repeated t1 after 2"
+
+inl endless (token : string) : result page string = Ok {next_token = token ++# "x"; body = "b"}
+
+test the_page_budget_stops_an_endless_cursor =
+    inl ~first = ""
+    walk_with 3i32 endless first |> walked |> _assert_eq "stopped at budget at 3"
+
+test searches_start_at_a_whole_second =
+    inl ~at = "2026-10-18T12:00:00.000Z"
+    whole_second at |> _assert_eq "2026-10-18T12:00:00Z"
+    whole_second "2026" |> _assert_eq "2026"

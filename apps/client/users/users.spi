@@ -1,3 +1,8 @@
+///- --package ..
+///> rust -d serde_json
+test users static =
+    open testing
+
 open sm'_operators
 open prelude
 open posts
@@ -16,7 +21,7 @@ inl found_lookup (doc : json) : lookup_reply =
     | users_reply {found unknown} => 0i32, account_lines found, sm'.concat_list "," unknown, ""
 
 let named (base : string) (bearer : string) (hs : string) : lookup_reply =
-    match get_raw (app_api base bearer) (read_path (UsersNamed (pieces "," hs))) with
+    match get_raw (app_api base bearer) (read_path (Users (Named (pieces "," hs)))) with
     | Ok (doc, _) => found_lookup doc
     | Error f => failed_lookup f
 
@@ -26,12 +31,12 @@ inl grown (wanted : i32) (acc : accounts) (doc : json) : accounts * string =
         inl acc = listm.append acc page
         acc, (if listm.length acc >= wanted then "" else next_token)
 
-inl page_path (id : string) (n : i32) (cursor : string) (acc : accounts) =
-    read_path (FollowedBy (id, page_size (n - listm.length acc), cursor))
+inl page_path (id : user_id) (n : i32) (cursor : string) (acc : accounts) =
+    read_path (FollowedBy {follower = id; size = page_size (n - listm.length acc); pagination_token = cursor})
 
-inl page_of (a : app) (id : string) (n : i32) (cursor : string) (acc : accounts) : got fetched = get_raw a (page_path id n cursor acc)
+inl page_of (a : app) (id : user_id) (n : i32) (cursor : string) (acc : accounts) : got fetched = get_raw a (page_path id n cursor acc)
 
-let rec pages (a : app) (id : string) (n : i32) (cursor : string) (acc : accounts) : got accounts =
+let rec pages (a : app) (id : user_id) (n : i32) (cursor : string) (acc : accounts) : got accounts =
     page_of a id n cursor acc |> then_ok fun (doc, _) =>
         inl l, more = grown n acc doc
         if more = "" then Ok (take_first n l) else pages a id n more l
@@ -41,14 +46,51 @@ inl listed_of (r : got accounts) : listed =
     | Ok l => 0i32, account_lines l, ""
     | Error f => 4i32, "", describe_failure f
 
+inl following_read_limit () : i32 = 200i32
+
+inl too_wide () : string =
+    "--max-following all would read more than " ++# sm'.obj_to_string (following_read_limit ()) ++# " timelines; pass a number to confirm"
+
+inl capped_listing (r : got accounts) : listed =
+    match r with
+    | Ok l when (listm.length l : i32) > following_read_limit () => 4i32, "", too_wide ()
+    | _ => listed_of r
+
+inl following_wanted (cap : i32) : i32 = if cap < 0i32 then following_read_limit () + 1i32 else cap
+
 let followed (base : string) (bearer : string) (id : string) (cap : i32) : listed =
-    inl wanted = if cap < 0i32 then 2147483647i32 else cap
-    pages (app_api base bearer) id wanted "" Nil |> listed_of
+    inl r = pages (app_api base bearer) (user_id id) (following_wanted cap) "" Nil
+    if cap < 0i32 then capped_listing r else listed_of r
+
+inl listed_items (key : string) (body : string) : list string = parse_json body |> field key |> collect json_text
+
+inl merged_users (bodies : list string) : string =
+    object [member "data" (items (bodies |> spread (listed_items "data"))); member "errors" (items (bodies |> spread (listed_items "errors")))]
+
+inl ids_chunks (ids : string) : list (list user_id) = chunked (lookup_limit ()) (pieces "," ids |> each user_id)
+
+inl users_listed (r : got (list (json * string))) : listed =
+    match r with
+    | Ok docs => 0i32, merged_users (docs |> each (fun (_, body) => body)), ""
+    | Error f => 4i32, "", describe_failure f
 
 let by_ids (base : string) (bearer : string) (ids : string) : listed =
-    match get_raw (app_api base bearer) (read_path (UsersById (pieces "," ids))) with
-    | Ok (_, body) => 0i32, body, ""
-    | Error f => 4i32, "", describe_failure f
+    inl a = app_api base bearer
+    users_listed (all_got (ids_chunks ids |> each (fun c => get_raw a (read_path (Users (Ids c))))) Nil)
+
+inl account_doc (id : string) (username : string) : string = object [member "id" (quoted_text id); member "username" (quoted_text username)]
+
+inl two_accounts () : string =
+    object [member "data" (items [account_doc "1" "a"; account_doc "2" "b"]); member "meta" (object [member "next_token" (quoted_text "n2")])]
+
+inl grown_text (wanted : i32) : string =
+    inl l, more = grown wanted Nil (parse_json (two_accounts ()))
+    sm'.obj_to_string (listm.length l : i32) ++# "|" ++# more
+
+test following_pages_stop_once_enough_accounts_are_found =
+    inl ~wanted = 2i32
+    grown_text wanted |> _assert_eq "2|"
+    grown_text 5i32 |> _assert_eq "2|n2"
 
 type asked = string * string * string
 
@@ -56,6 +98,7 @@ inl lookup_exports () : () =
     !!!!Export("xc_users_named", ((fun (base, bearer, hs) => named base bearer hs) : asked -> lookup_reply))
     !!!!Export("xc_users_by_ids", ((fun (base, bearer, ids) => by_ids base bearer ids) : asked -> listed))
 
+///> _
 inl main () : i32 =
     !!!!Export("xc_users_followed", ((fun (base, bearer, id, cap) => followed base bearer id cap) : string * string * string * i32 -> listed))
     lookup_exports ()
