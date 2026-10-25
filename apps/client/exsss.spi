@@ -2,109 +2,109 @@
 ///> rust
 ///> gleam
 test exsss static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
+:< sm'_operators
+:< prelude
 
-inl xor64 (a : u64) (b : u64) : u64 = !!!!BitwiseXor(a, b)
+:= xor64 (a : u64) (b : u64) : u64 = !!!!BitwiseXor(a, b)
 
-inl and64 (a : u64) (b : u64) : u64 = !!!!BitwiseAnd(a, b)
+:= and64 (a : u64) (b : u64) : u64 = !!!!BitwiseAnd(a, b)
 
-inl or64 (a : u64) (b : u64) : u64 = !!!!BitwiseOr(a, b)
+:= or64 (a : u64) (b : u64) : u64 = !!!!BitwiseOr(a, b)
 
-inl shl64 (a : u64) (n : i32) : u64 = !!!!ShiftLeft(a, n)
+:= shl64 (a : u64) (n : i32) : u64 = !!!!ShiftLeft(a, n)
 
-inl shr64 (a : u64) (n : i32) : u64 = !!!!ShiftRight(a, n)
+:= shr64 (a : u64) (n : i32) : u64 = !!!!ShiftRight(a, n)
 
-inl low_bits (bits : i32) : u64 = shl64 1u64 bits - 1u64
+:= low_bits (bits : i32) : u64 = shl64 1u64 bits - 1u64
 
-inl word_mask () : u64 = low_bits 58i32
+:= word_mask () : u64 = low_bits 58i32
 
-inl shifted_in (a : u64) (n : i32) : u64 = shl64 (and64 a (low_bits (58i32 - n))) n
+:= shifted_in (a : u64) (n : i32) : u64 = shl64 (and64 a (low_bits (58i32 - n))) n
 
-inl splitmix (x0 : u64) : u64 * u64 =
-    inl x = x0 + 11400714819323198485u64
-    inl z0 = xor64 x (shr64 x 30i32) * 13787848793156543929u64
-    inl z1 = xor64 z0 (shr64 z0 27i32) * 10723151780598845931u64
+:= splitmix (x0 : u64) : u64 * u64 =
+    := x = x0 + 11400714819323198485u64
+    := z0 = xor64 x (shr64 x 30i32) * 13787848793156543929u64
+    := z1 = xor64 z0 (shr64 z0 27i32) * 10723151780598845931u64
     xor64 z1 (shr64 z1 31i32), x
 
-let rec word_from (x0 : u64) : u64 * u64 =
-    inl z0, x = splitmix x0
-    inl z = and64 z0 (word_mask ())
-    if z = 0u64 then word_from x else z, x
+:~ ^ word_from (x0 : u64) : u64 * u64 =
+    := z0, x = splitmix x0
+    := z = and64 z0 (word_mask ())
+    ? z = 0u64 ?> word_from x |: z, x
 
-type exsss = {head : u64; tail : u64}
+:== exsss = {head : u64; tail : u64}
 
-let seeded (a1 : u64) (a2 : u64) (a3 : u64) : exsss =
-    inl _, x0 = word_from a1
-    inl head, x1 = word_from (xor64 a2 x0)
-    inl tail, _ = word_from (xor64 a3 x1)
+:~ seeded (a1 : u64) (a2 : u64) (a3 : u64) : exsss =
+    := _, x0 = word_from a1
+    := head, x1 = word_from (xor64 a2 x0)
+    := tail, _ = word_from (xor64 a3 x1)
     {head tail}
 
-inl scrambled (s : u64) : u64 =
-    inl a = s + shifted_in s 2i32
-    inl b = or64 (shifted_in a 7i32) (and64 (shr64 a 51i32) (low_bits 7i32))
+:= scrambled (s : u64) : u64 =
+    := a = s + shifted_in s 2i32
+    := b = or64 (shifted_in a 7i32) (and64 (shr64 a 51i32) (low_bits 7i32))
     and64 (b + shifted_in b 3i32) (word_mask ())
 
-inl xorshifted (s0 : u64) (s1 : u64) : u64 =
-    inl b = xor64 (and64 s1 (word_mask ())) (shifted_in s1 24i32)
+:= xorshifted (s0 : u64) (s1 : u64) : u64 =
+    := b = xor64 (and64 s1 (word_mask ())) (shifted_in s1 24i32)
     xor64 (xor64 b s0) (xor64 (shr64 b 11i32) (shr64 s0 41i32))
 
-let stepped (st : exsss) : u64 * exsss =
-    inl s0 = and64 st.tail (word_mask ())
+:~ stepped (st : exsss) : u64 * exsss =
+    := s0 = and64 st.tail (word_mask ())
     scrambled s0, {head = s0; tail = xorshifted s0 st.head}
 
-inl two_58 () : u64 = shl64 1u64 58i32
+:= two_58 () : u64 = shl64 1u64 58i32
 
-let rec uniform (range : u64) (st : exsss) : u64 * exsss =
-    inl v, next = stepped st
-    inl i = v % range
-    if v < range then v + 1u64, next
-    elif v - i <= two_58 () - range then i + 1u64, next
-    else uniform range next
+:~ ^ uniform (range : u64) (st : exsss) : u64 * exsss =
+    := v, next = stepped st
+    := i = v % range
+    ? v < range ?> v + 1u64, next
+    |? v - i <= two_58 () - range ?> i + 1u64, next
+    |: uniform range next
 
-inl rolled (range : i32) (st : exsss) : i32 * exsss =
-    inl v, next = uniform (!!!!Conv(`u64, range)) st
+:= rolled (range : i32) (st : exsss) : i32 * exsss =
+    := v, next = uniform (!!!!Conv(`u64, range)) st
     !!!!Conv(`i32, v), next
 
-inl seeded_i32 (a1 : i32) (a2 : i32) (a3 : i32) : exsss = seeded (!!!!Conv(`u64, a1)) (!!!!Conv(`u64, a2)) (!!!!Conv(`u64, a3))
+:= seeded_i32 (a1 : i32) (a2 : i32) (a3 : i32) : exsss = seeded (!!!!Conv(`u64, a1)) (!!!!Conv(`u64, a2)) (!!!!Conv(`u64, a3))
 
-let rec rolls (range : i32) (n : i32) (st : exsss) (acc : list i32) : list i32 * exsss =
-    if n <= 0i32 then listm.rev acc, st
-    else rolled range st |> fun (v, next) => rolls range (n - 1i32) next (Cons (v, acc))
+:~ ^ rolls (range : i32) (n : i32) (st : exsss) (acc : list i32) : list i32 * exsss =
+    ? n <= 0i32 ?> listm.rev acc, st
+    |: rolled range st |> \ (v, next) => rolls range (n - 1i32) next (Cons (v, acc))
 
-inl rolls_text (l : list i32) : string = l |> each sm'.obj_to_string |> delimited ","
+:= rolls_text (l : list i32) : string = l |> each sm'.obj_to_string |> delimited ","
 
 test splitmix_matches_erlang =
-    inl ~x = 0u64
-    inl z, next = splitmix x
+    := ~x = 0u64
+    := z, next = splitmix x
     sm'.obj_to_string z ++# " " ++# sm'.obj_to_string next |> _assert_eq "16294208416658607535 11400714819323198485"
 
 test seeds_match_erlang =
-    inl ~a = 1i32
-    inl st = seeded_i32 a 8i32 16i32
+    := ~a = 1i32
+    := st = seeded_i32 a 8i32 16i32
     sm'.obj_to_string st.head ++# "|" ++# sm'.obj_to_string st.tail |> _assert_eq "12818512559991394|13862513069590033"
 
 test rolls_match_erlang =
-    inl ~a = 1i32
-    inl l, _ = rolls 8i32 10i32 (seeded_i32 a 8i32 16i32) Nil
+    := ~a = 1i32
+    := l, _ = rolls 8i32 10i32 (seeded_i32 a 8i32 16i32) Nil
     rolls_text l |> _assert_eq "7,2,7,6,2,2,4,2,1,7"
 
-inl after_ten () : exsss = rolls 8i32 10i32 (seeded_i32 1i32 8i32 16i32) Nil |> fun (_, st) => st
+:= after_ten () : exsss = rolls 8i32 10i32 (seeded_i32 1i32 8i32 16i32) Nil |> \ (_, st) => st
 
-inl wide_draws (range : u64) : string =
-    inl a, st = uniform range (after_ten ())
-    inl b, st = uniform 1099511627776u64 st
-    inl c, _ = uniform 2u64 st
+:= wide_draws (range : u64) : string =
+    := a, st = uniform range (after_ten ())
+    := b, st = uniform 1099511627776u64 st
+    := c, _ = uniform 2u64 st
     sm'.obj_to_string a ++# " " ++# sm'.obj_to_string b ++# " " ++# sm'.obj_to_string c
 
 test wide_ranges_match_erlang =
-    inl ~range = 1000u64
+    := ~range = 1000u64
     wide_draws range |> _assert_eq "868 1069216062450 2"
 
 test another_seed_matches_erlang =
-    inl ~a = 1i32
-    inl e, st = rolled 6i32 (seeded_i32 a 36i32 28i32)
-    inl g, _ = rolled 1000i32 st
+    := ~a = 1i32
+    := e, st = rolled 6i32 (seeded_i32 a 36i32 28i32)
+    := g, _ = rolled 1000i32 st
     sm'.obj_to_string e ++# " " ++# sm'.obj_to_string g |> _assert_eq "2 170"

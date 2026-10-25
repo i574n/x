@@ -1,608 +1,600 @@
 ///- --package .
 test wire static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open protocol
-open posts
-open cli
-open oauth1
-open paging
+:< sm'_operators
+:< prelude
+:< protocol
+:< posts
+:< cli
+:< oauth1
+:< paging
 
-nominal json = $'serde_json::Value'
+:! json = $'serde_json::Value'
 
-inl parse_json (text : string) : json =
+:= parse_json (text : string) : json =
     $'serde_json::from_str::<serde_json::Value>(&*!text).unwrap_or_default()'
 
-inl field (key : string) (v : json) : json = $'!v.get(&*!key).cloned().unwrap_or_default()'
+:= field (key : string) (v : json) : json = $'!v.get(&*!key).cloned().unwrap_or_default()'
 
-inl text_of (v : json) : string = $'Rc::<str>::from(!v.as_str().unwrap_or(""))'
+:= text_of (v : json) : string = $'Rc::<str>::from(!v.as_str().unwrap_or(""))'
 
-inl json_text (v : json) : string = $'Rc::<str>::from((!v).to_string())'
+:= json_text (v : json) : string = $'Rc::<str>::from((!v).to_string())'
 
-inl json_string (s : string) : string = $'Rc::<str>::from(serde_json::Value::from(&*!s).to_string())'
+:= json_string (s : string) : string = $'Rc::<str>::from(serde_json::Value::from(&*!s).to_string())'
 
-inl flag_of_json (v : json) : bool = $'!v.as_bool().unwrap_or(false)'
+:= flag_of_json (v : json) : bool = $'!v.as_bool().unwrap_or(false)'
 
-inl number_of (v : json) : i32 = ($'!v.as_i64().unwrap_or(0)' : i64) |> conv
+:= number_of (v : json) : i32 = ($'!v.as_i64().unwrap_or(0)' : i64) |> conv
 
-inl count_of (v : json) : i32 = ($'!v.as_array().map_or(0, Vec::len)' : convert.unativeint) |> convert.convert
+:= count_of (v : json) : i32 = ($'!v.as_array().map_or(0, Vec::len)' : convert.unativeint) |> convert.convert
 
-inl item (i : i32) (v : json) : json =
-    inl at : convert.unativeint = convert.convert i
+:= item (i : i32) (v : json) : json =
+    := at : convert.unativeint = convert.convert i
     $'!v.get(!at).cloned().unwrap_or_default()'
 
-inl absent (v : json) : bool = $'!v.is_null()'
+:= absent (v : json) : bool = $'!v.is_null()'
 
-inl text_body (text : string) : string =
+:= text_body (text : string) : string =
     $'Rc::<str>::from(serde_json::json\!({"text": &*!text}).to_string())'
 
-inl reply_body (text : string) (to : string) : string =
+:= reply_body (text : string) (to : string) : string =
     $'Rc::<str>::from(serde_json::json\!({"text": &*!text, "reply": {"in_reply_to_tweet_id": &*!to}}).to_string())'
 
-inl unescaped (t : string) : string = t |> sm'.replace "&lt;" "<" |> sm'.replace "&gt;" ">" |> sm'.replace "&amp;" "&"
+:= unescaped (t : string) : string = t |> sm'.replace "&lt;" "<" |> sm'.replace "&gt;" ">" |> sm'.replace "&amp;" "&"
 
-nominal app_context = ()
+:! app_context = ()
 
-nominal user_context = ()
+:! user_context = ()
 
-union authorizer c =
-    | BearerToken :: forall c. string -> authorizer c
+:| authorizer c =
+    | BearerToken :: \* c. string -> authorizer c
     | Signed :: oauth1 * string * string -> authorizer user_context
 
-type endpoint c = {base : string; auth : authorizer c}
+:== endpoint c = {base : string; auth : authorizer c}
 
-nominal api c = endpoint c
+:! api c = endpoint c
 
-type app = api app_context
+:== app = api app_context
 
-type halted_cursor = {resource : string; halt : cursor_halt}
+:== halted_cursor = {resource : string; halt : cursor_halt}
 
-union failure =
-    | HttpStatus : {status : i32; resource : string; detail : string}
-    | Transport : {resource : string; detail : string}
-    | Undecodable : {resource : string; body : string}
+:| failure =
+    | Reported : string
     | NoSuchAccount : string
     | CursorHalted : halted_cursor
 
-type got r = result r failure
+:== got r = result r failure
 
-let rec after_first forall t. (n : i32) (items : list t) : list t =
-    match items with
-    | Cons (_, rest) when n > 0i32 => after_first (n - 1i32) rest
+:~ ^ after_first \* t. (n : i32) (items : list t) : list t =
+    ?= items ?|
+    | Cons (_, rest) ?& n > 0i32 => after_first (n - 1i32) rest
     | _ => items
 
-let rec chunked forall t. (n : i32) (items : list t) : list (list t) =
-    match items with
+:~ ^ chunked \* t. (n : i32) (items : list t) : list (list t) =
+    ?= items ?|
     | Nil => Nil
     | _ => Cons (take_first n items, chunked n (after_first n items))
 
-let rec all_got forall r. (each_got : list (got r)) (acc : list r) : got (list r) =
-    match each_got with
+:~ ^ all_got \* r. (each_got : list (got r)) (acc : list r) : got (list r) =
+    ?= each_got ?|
     | Nil => Ok (listm.rev acc)
     | Cons (Error f, _) => Error f
     | Cons (Ok x, rest) => all_got rest (Cons (x, acc))
 
-type usernames = list string
+:== usernames = list string
 
-type query = {max_results : i32; filters : filters; depth : i32; hints : bool}
+:== query = {max_results : i32; filters : filters; depth : i32; hints : bool}
 
-nominal users_reply = {found : accounts; unknown : list string}
+:! users_reply = {found : accounts; unknown : list string}
 
-nominal page_reply = {page : accounts; next_token : string}
+:! page_reply = {page : accounts; next_token : string}
 
-nominal posts_reply = {pool : pool; primary : list post; skipped : string}
+:! posts_reply = {pool : pool; primary : list post; skipped : string}
 
-nominal created_reply = {id : post_id; text : string}
+:! created_reply = {id : post_id; text : string}
 
-nominal deleted_reply = {deleted : bool}
+:! deleted_reply = {deleted : bool}
 
-nominal conversation_id = string
+:! conversation_id = string
 
-inl conversation_text (c : conversation_id) : string =
-    match c with
+:= conversation_text (c : conversation_id) : string =
+    ?= c ?|
     | conversation_id s => s
 
-nominal root_reply = {conversation_id : conversation_id; author_id : user_id; created_at : string; missing : string}
+:! root_reply = {conversation_id : conversation_id; author_id : user_id; created_at : string; missing : string}
 
-type thread_search = {conversation_id : conversation_id; author_id : user_id; start_time : string}
+:== thread_search = {conversation_id : conversation_id; author_id : user_id; start_time : string}
 
-nominal thread_page = {framed : list framed; next_token : string}
+:! thread_page = {framed : list framed; next_token : string}
 
-type following_page = {follower : user_id; size : i32; pagination_token : string}
+:== following_page = {follower : user_id; size : i32; pagination_token : string}
 
-union threads r =
+:| threads r =
     | ThreadRoot :: post_id -> threads root_reply
     | ThreadPage :: thread_search * string -> threads thread_page
 
-union user_key =
+:| user_key =
     | Named : usernames
     | Ids : user_ids
 
-union reads r =
+:| reads r =
     | Users :: user_key -> reads users_reply
     | FollowedBy :: following_page -> reads page_reply
     | PostsOf :: account * query -> reads posts_reply
     | PostsById :: post_ids * query -> reads posts_reply
 
-union writes r =
+:| writes r =
     | CreatePost :: string -> writes created_reply
     | ReplyPost :: string * created_reply -> writes created_reply
     | DeletePost :: post_id -> writes deleted_reply
 
-union verb =
+:| verb =
     | Read
     | Write : string
     | Remove
 
-inl trimmed_base (base_url : string) : string =
-    inl n : i32 = sm'.length base_url
-    if sm'.ends_with "/" base_url then sm'.slice 0i32 (n - 2i32) base_url else base_url
+:= trimmed_base (base_url : string) : string =
+    := n : i32 = sm'.length base_url
+    ? sm'.ends_with "/" base_url ?> sm'.slice 0i32 (n - 2i32) base_url |: base_url
 
-inl header_kind forall c. (a : authorizer c) : string =
-    match a with
+:= header_kind \* c. (a : authorizer c) : string =
+    ?= a ?|
     | BearerToken _ => "bearer"
     | Signed _ => "signed"
-inl endpoint_of forall c. (base_url : string) (token : string) : endpoint c = {base = trimmed_base base_url; auth = BearerToken token}
+:= endpoint_of \* c. (base_url : string) (token : string) : endpoint c = {base = trimmed_base base_url; auth = BearerToken token}
 
-inl app_api (base_url : string) (token : string) : api app_context = api (endpoint_of base_url token)
+:= app_api (base_url : string) (token : string) : api app_context = api (endpoint_of base_url token)
 
-inl user_api (base_url : string) (token : string) : api user_context = api (endpoint_of base_url token)
+:= user_api (base_url : string) (token : string) : api user_context = api (endpoint_of base_url token)
 
-inl signed_api (base_url : string) (o : oauth1) (nonce : string) (stamp : string) : api user_context =
+:= signed_api (base_url : string) (o : oauth1) (nonce : string) (stamp : string) : api user_context =
     api {base = trimmed_base base_url; auth = Signed (o, nonce, stamp)}
 
-inl base_of forall c. (a : api c) : string =
-    match a with
+:= base_of \* c. (a : api c) : string =
+    ?= a ?|
     | api e => e.base
 
-inl following_path (p : following_page) : string =
-    inl first = "/2/users/" ++# user_text p.follower ++# "/following?max_results=" ++# sm'.obj_to_string p.size
-    if p.pagination_token = "" then first else first ++# "&pagination_token=" ++# p.pagination_token
+:= following_path (p : following_page) : string =
+    := first = "/2/users/" ++# user_text p.follower ++# "/following?max_results=" ++# sm'.obj_to_string p.size
+    ? p.pagination_token = "" ?> first |: first ++# "&pagination_token=" ++# p.pagination_token
 
-inl expansions_of (q : query) : list string =
-    listm.append (if q.depth > 0 then ["referenced_posts"; "referenced_posts.author_id"] else Nil)
-        (if q.hints then ["attachments.media_keys"] else Nil)
+:= expansions_of (q : query) : list string =
+    listm.append (? q.depth > 0 ?> ["referenced_posts"; "referenced_posts.author_id"] |: Nil)
+        (? q.hints ?> ["attachments.media_keys"] |: Nil)
 
-inl expansion_params (q : query) : string =
-    inl media = if q.hints then "&media.fields=type,alt_text" else ""
-    match expansions_of q with
+:= expansion_params (q : query) : string =
+    := media = ? q.hints ?> "&media.fields=type,alt_text" |: ""
+    ?= expansions_of q ?|
     | Nil => ""
     | names => "&expansions=" ++# sm'.concat_list "," names ++# media
 
-inl fields_params (q : query) : string =
+:= fields_params (q : query) : string =
     "&post.fields=created_at,author_id,public_metrics,entities,attachments" ++# expansion_params q
 
-inl exclude_param (f : filters) : string =
-    match f.no_replies, f.no_reposts with
-    | true, true => "&exclude=replies,retweets"
-    | true, false => "&exclude=replies"
-    | false, true => "&exclude=retweets"
-    | false, false => ""
+:= exclude_param (f : filters) : string =
+    ?= f.no_replies, f.no_reposts ?|
+    | !+, !+ => "&exclude=replies,retweets"
+    | !+, !- => "&exclude=replies"
+    | !-, !+ => "&exclude=retweets"
+    | !-, !- => ""
 
-inl window_params (f : filters) : string =
-    inl start_time = if f.start_time = "" then "" else "&start_time=" ++# f.start_time
-    start_time ++# (if f.end_time = "" then "" else "&end_time=" ++# f.end_time)
+:= window_params (f : filters) : string =
+    := start_time = ? f.start_time = "" ?> "" |: "&start_time=" ++# f.start_time
+    start_time ++# (? f.end_time = "" ?> "" |: "&end_time=" ++# f.end_time)
 
-inl timeline_floor () : i32 = 5i32
+:= timeline_floor () : i32 = 5i32
 
-inl requested_posts (shown : i32) : i32 = if shown < timeline_floor () then timeline_floor () else shown
+:= requested_posts (shown : i32) : i32 = ? shown < timeline_floor () ?> timeline_floor () |: shown
 
-let posts_path (u : user_id) (q : query) : string =
+:~ posts_path (u : user_id) (q : query) : string =
     "/2/users/" ++# user_text u ++# "/tweets?max_results=" ++# sm'.obj_to_string (requested_posts q.max_results)
     ++# fields_params q ++# window_params q.filters ++# exclude_param q.filters
 
-inl joined (prefix : string) (ids : list string) : string = prefix ++# sm'.concat_list "," ids
+:= joined (prefix : string) (ids : list string) : string = prefix ++# sm'.concat_list "," ids
 
-let lookup_path (l : post_ids) (q : query) : string = joined "/2/tweets?ids=" (l |> each post_text) ++# fields_params q
+:~ lookup_path (l : post_ids) (q : query) : string = joined "/2/tweets?ids=" (l |> each post_text) ++# fields_params q
 
-inl users_path (k : user_key) : string =
-    match k with
+:= users_path (k : user_key) : string =
+    ?= k ?|
     | Named hs => joined "/2/users/by?usernames=" hs
     | Ids l => joined "/2/users?ids=" (l |> each user_text)
 
-inl root_path (id : post_id) : string = "/2/tweets/" ++# post_text id ++# "?post.fields=conversation_id,author_id,created_at"
+:= root_path (id : post_id) : string = "/2/tweets/" ++# post_text id ++# "?post.fields=conversation_id,author_id,created_at"
 
-inl search_head (s : thread_search) : string =
+:= search_head (s : thread_search) : string =
     "/2/tweets/search/all?query=conversation_id%3A" ++# conversation_text s.conversation_id ++# "%20from%3A" ++# user_text s.author_id ++# "&start_time=" ++# s.start_time
 
-inl page_path (s : thread_search) (token : string) : string =
-    inl first = search_head s ++# "&max_results=100&post.fields=conversation_id,entities,referenced_posts"
-    if token = "" then first else first ++# "&next_token=" ++# token
+:= page_path (s : thread_search) (token : string) : string =
+    := first = search_head s ++# "&max_results=100&post.fields=conversation_id,entities,referenced_posts"
+    ? token = "" ?> first |: first ++# "&next_token=" ++# token
 
-inl thread_path forall r. (q : threads r) : string =
-    match q with
+:= thread_path \* r. (q : threads r) : string =
+    ?= q ?|
     | ThreadRoot id => root_path id
     | ThreadPage (s, t) => page_path s t
 
-inl read_path forall r. (q : reads r) : string =
-    match q with
+:= read_path \* r. (q : reads r) : string =
+    ?= q ?|
     | Users k => users_path k
     | FollowedBy p => following_path p
     | PostsOf (a, qy) => posts_path a.id qy
     | PostsById (l, qy) => lookup_path l qy
 
-inl write_path forall r. (q : writes r) : string =
-    match q with
+:= write_path \* r. (q : writes r) : string =
+    ?= q ?|
     | CreatePost _ | ReplyPost _ => "/2/tweets"
     | DeletePost id => "/2/tweets/" ++# post_text id
 
-inl write_verb forall r. (q : writes r) : verb =
-    match q with
+:= write_verb \* r. (q : writes r) : verb =
+    ?= q ?|
     | CreatePost text => Write (text_body text)
     | ReplyPost (text, created_reply {id}) => Write (reply_body text (post_text id))
     | DeletePost _ => Remove
 
-inl method_of (v : verb) : string =
-    match v with
+:= method_of (v : verb) : string =
+    ?= v ?|
     | Read => "GET"
     | Write _ => "POST"
     | Remove => "DELETE"
 
-inl body_of_verb (v : verb) : string =
-    match v with
+:= body_of_verb (v : verb) : string =
+    ?= v ?|
     | Write body => body
     | _ => ""
 
-inl collect forall t. (f : json -> t) (items : json) : list t =
-    let rec from (i : i32) (acc : list t) : list t =
-        if i < 0i32 then acc else from (i - 1) (Cons (f (item i items), acc))
+:= collect \* t. (f : json -> t) (items : json) : list t =
+    :~ ^ from (i : i32) (acc : list t) : list t =
+        ? i < 0i32 ?> acc |: from (i - 1) (Cons (f (item i items), acc))
     from (count_of items - 1) Nil
 
-inl texts (items : json) : list string = items |> collect text_of
+:= texts (items : json) : list string = items |> collect text_of
 
-inl at_key (key : string) (v : json) : string = v |> field key |> text_of
+:= at_key (key : string) (v : json) : string = v |> field key |> text_of
 
-inl account_of (v : json) : account = {id = user_id (at_key "id" v); username = at_key "username" v}
+:= account_of (v : json) : account = {id = user_id (at_key "id" v); username = at_key "username" v}
 
-inl reference_of (v : json) : list reference = reference_as (at_key "type" v) (post_id (at_key "id" v))
+:= reference_of (v : json) : list reference = reference_as (at_key "type" v) (post_id (at_key "id" v))
 
-inl url_entity_of (v : json) : url_entity =
+:= url_entity_of (v : json) : url_entity =
     {url = at_key "url" v; expanded_url = at_key "expanded_url" v; title = at_key "title" v}
 
-inl urls_in (v : json) : list url_entity = v |> field "entities" |> field "urls" |> collect url_entity_of
+:= urls_in (v : json) : list url_entity = v |> field "entities" |> field "urls" |> collect url_entity_of
 
-inl refs_in (v : json) : list reference = v |> field "referenced_posts" |> collect reference_of |> spread id
+:= refs_in (v : json) : list reference = v |> field "referenced_posts" |> collect reference_of |> spread id
 
-inl keys_in (v : json) : list string = v |> field "attachments" |> field "media_keys" |> texts
+:= keys_in (v : json) : list string = v |> field "attachments" |> field "media_keys" |> texts
 
-inl public_metrics_in (v : json) : public_metrics =
-    inl m = v |> field "public_metrics"
-    inl n (key : string) : i32 = m |> field key |> number_of
+:= public_metrics_in (v : json) : public_metrics =
+    := m = v |> field "public_metrics"
+    := n (key : string) : i32 = m |> field key |> number_of
     {reply_count = n "reply_count"; repost_count = n "repost_count"; like_count = n "like_count"}
 
-inl post_texts (v : json) : post_id * user_id * string * string =
+:= post_texts (v : json) : post_id * user_id * string * string =
     post_id (at_key "id" v), user_id (at_key "author_id" v), at_key "created_at" v, unescaped (at_key "text" v)
 
-let post_by (author : string) (v : json) : post =
-    inl id, author_id, created_at, text = post_texts v
+:~ post_by (author : string) (v : json) : post =
+    := id, author_id, created_at, text = post_texts v
     heap {id author_id author_username = author; created_at text public_metrics = public_metrics_in v;
      refs = refs_in v; urls = urls_in v; media_keys = keys_in v}
 
-inl medium_of (v : json) : medium = {media_key = at_key "media_key" v; kind = at_key "type" v; alt_text = at_key "alt_text" v}
+:= medium_of (v : json) : medium = {media_key = at_key "media_key" v; kind = at_key "type" v; alt_text = at_key "alt_text" v}
 
-inl accounts_in (doc : json) : accounts = doc |> field "data" |> collect account_of
+:= accounts_in (doc : json) : accounts = doc |> field "data" |> collect account_of
 
-inl named_accounts (users : json) : accounts =
-    users |> collect account_of |> keep (fun (a : account) => a.username <> "")
+:= named_accounts (users : json) : accounts =
+    users |> collect account_of |> keep (\ (a : account) => a.username <> "")
 
-inl unknown_in (doc : json) : list string = doc |> field "errors" |> collect (at_key "value")
+:= unknown_in (doc : json) : list string = doc |> field "errors" |> collect (at_key "value")
 
-inl next_token_in (doc : json) : string = doc |> field "meta" |> at_key "next_token"
+:= next_token_in (doc : json) : string = doc |> field "meta" |> at_key "next_token"
 
-inl first_error (doc : json) : string =
-    inl e = doc |> field "errors" |> item 0i32
-    inl detail = at_key "detail" e
-    if detail <> "" then detail else at_key "title" e
+:= first_error (doc : json) : string =
+    := e = doc |> field "errors" |> item 0i32
+    := detail = at_key "detail" e
+    ? detail <> "" ?> detail |: at_key "title" e
 
-inl included_pool (primary : list post) (inc : json) : pool =
-    inl extra = inc |> field "posts" |> collect (post_by "")
+:= included_pool (primary : list post) (inc : json) : pool =
+    := extra = inc |> field "posts" |> collect (post_by "")
     {posts = listm.append primary extra; media = inc |> field "media" |> collect medium_of; users = inc |> field "users" |> named_accounts}
 
-let posts_of_doc (author : string) (doc : json) : posts_reply =
-    inl primary = doc |> field "data" |> collect (post_by author)
+:~ posts_of_doc (author : string) (doc : json) : posts_reply =
+    := primary = doc |> field "data" |> collect (post_by author)
     posts_reply {pool = included_pool primary (doc |> field "includes"); primary; skipped = first_error doc}
 
-inl users_of_doc (doc : json) : users_reply = users_reply {found = accounts_in doc; unknown = unknown_in doc}
+:= users_of_doc (doc : json) : users_reply = users_reply {found = accounts_in doc; unknown = unknown_in doc}
 
-inl page_of_doc (doc : json) : page_reply = page_reply {page = accounts_in doc; next_token = next_token_in doc}
+:= page_of_doc (doc : json) : page_reply = page_reply {page = accounts_in doc; next_token = next_token_in doc}
 
-inl replied_to_in (v : json) : string =
-    inl refs = v |> field "referenced_posts"
-    let rec scan (i : i32) : string =
-        if i >= count_of refs then ""
-        elif at_key "type" (item i refs) = "replied_to" then at_key "id" (item i refs)
-        else scan (i + 1i32)
-    scan 0i32
+:~ ^ first_reply_from (i : i32) (refs : json) : string =
+    ? i >= count_of refs ?> ""
+    |? at_key "type" (item i refs) = "replied_to" ?> at_key "id" (item i refs)
+    |: first_reply_from (i + 1i32) refs
 
-inl framed_of (v : json) : framed =
+:= replied_to_in (v : json) : string = v |> field "referenced_posts" |> first_reply_from 0i32
+
+:= framed_of (v : json) : framed =
     {id = post_id (at_key "id" v); text = unescaped (at_key "text" v); history = v |> field "edit_history_post_ids" |> texts |> each post_id; urls = urls_in v; parent = optional_post (replied_to_in v)}
 
-inl root_of (doc : json) : root_reply =
-    inl d = doc |> field "data"
+:= root_of (doc : json) : root_reply =
+    := d = doc |> field "data"
     root_reply {conversation_id = conversation_id (at_key "conversation_id" d); author_id = user_id (at_key "author_id" d); created_at = at_key "created_at" d; missing = first_error doc}
 
-inl decode_thread forall r. (q : threads r) (doc : json) : r =
-    match q with
+:= decode_thread \* r. (q : threads r) (doc : json) : r =
+    ?= q ?|
     | ThreadRoot _ => root_of doc
     | ThreadPage _ => thread_page {framed = doc |> field "data" |> collect framed_of; next_token = next_token_in doc}
 
-inl decode_read forall r. (q : reads r) (doc : json) : r =
-    match q with
+:= decode_read \* r. (q : reads r) (doc : json) : r =
+    ?= q ?|
     | Users _ => users_of_doc doc
     | FollowedBy _ => page_of_doc doc
     | PostsOf (a, _) => posts_of_doc a.username doc
     | PostsById _ => posts_of_doc "" doc
 
-inl created_of (d : json) : created_reply = created_reply {id = post_id (at_key "id" d); text = at_key "text" d}
+:= created_of (d : json) : created_reply = created_reply {id = post_id (at_key "id" d); text = at_key "text" d}
 
-inl decode_write forall r. (q : writes r) (doc : json) : r =
-    inl d = doc |> field "data"
-    match q with
+:= decode_write \* r. (q : writes r) (doc : json) : r =
+    := d = doc |> field "data"
+    ?= q ?|
     | CreatePost _ | ReplyPost _ => created_of d
     | DeletePost _ => deleted_reply {deleted = d |> field "deleted" |> flag_of_json}
 
-inl clipped (n : i32) (text : string) : string =
-    if sm'.length text <= n then text else sm'.slice 0i32 (n - 1i32) text ++# "..."
+:= clipped (n : i32) (text : string) : string =
+    ? sm'.length text <= n ?> text |: sm'.slice 0i32 (n - 1i32) text ++# "..."
 
-inl distinct_parts (title : string) (detail : string) : bool = title <> "" && detail <> "" && title <> detail
+:= distinct_parts (title : string) (detail : string) : bool = title <> "" && detail <> "" && title <> detail
 
-inl title_and_detail (title : string) (detail : string) (body : string) : string =
-    if distinct_parts title detail then title ++# ": " ++# detail
-    elif detail <> "" then detail
-    elif title <> "" then title
-    else clipped 300i32 (single_line body)
+:= title_and_detail (title : string) (detail : string) (body : string) : string =
+    ? distinct_parts title detail ?> title ++# ": " ++# detail
+    |? detail <> "" ?> detail
+    |? title <> "" ?> title
+    |: clipped 300i32 (single_line body)
 
-inl problem_detail (body : string) : string =
-    inl doc = parse_json body
+:= problem_detail (body : string) : string =
+    := doc = parse_json body
     title_and_detail (at_key "title" doc) (at_key "detail" doc) body
 
-inl ok_json (resource : string) (body : string) : got json =
-    inl doc = parse_json body
-    if absent doc then Error (Undecodable {resource body = clipped 300i32 body}) else Ok doc
+:= accepted (status : i32) : bool = status >= 200i32 && status < 300i32
 
-inl accepted (status : i32) : bool = status >= 200i32 && status < 300i32
+:= ids_of (l : list post) : post_ids = l |> each (\ (p : post) => p.id)
 
-inl refused (resource : string) (status : i32) (body : string) : got json =
-    Error (HttpStatus {status resource detail = problem_detail body})
+:= refs_of (l : list post) : post_ids = l |> spread (\ (p : post) => p.refs |> each (\ (r : reference) => r.id))
 
-inl classify (resource : string) (status : i32) (body : string) : got json =
-    if status = 0i32 then Error (Transport {resource detail = body})
-    elif not (accepted status) then refused resource status body
-    else ok_json resource body
+:= distinct (l : list string) : list string =
+    listm.fold (\ acc x => ? has ((=) x) acc ?> acc |: listm.append acc [x]) Nil l
 
-inl ids_of (l : list post) : post_ids = l |> each (fun (p : post) => p.id)
+:= distinct_posts (l : post_ids) : post_ids =
+    listm.fold (\ acc x => ? has (same_post x) acc ?> acc |: listm.append acc [x]) Nil l
 
-inl refs_of (l : list post) : post_ids = l |> spread (fun (p : post) => p.refs |> each (fun (r : reference) => r.id))
+:= without_ids (ids : post_ids) (l : list post) : list post =
+    l |> keep (\ (p : post) => not (has (same_post p.id) ids))
 
-inl distinct (l : list string) : list string =
-    listm.fold (fun acc x => if has ((=) x) acc then acc else listm.append acc [x]) Nil l
+:= absorb (old : pool) (fresh : pool) : pool =
+    merge_pools fresh {old ?| posts = without_ids (ids_of fresh.posts) old.posts}
 
-inl distinct_posts (l : post_ids) : post_ids =
-    listm.fold (fun acc x => if has (same_post x) acc then acc else listm.append acc [x]) Nil l
-
-inl without_ids (ids : post_ids) (l : list post) : list post =
-    l |> keep (fun (p : post) => not (has (same_post p.id) ids))
-
-inl absorb (old : pool) (fresh : pool) : pool =
-    merge_pools fresh {old with posts = without_ids (ids_of fresh.posts) old.posts}
-
-inl wanted_of (c : following_cap) : i32 =
-    match c with
+:= wanted_of (c : following_cap) : i32 =
+    ?= c ?|
     | AtMost n => n
     | AllFollowing => 2147483647i32
 
-inl page_size (remaining : i32) : i32 = if remaining < 1000i32 then remaining else 1000i32
+:= page_size (remaining : i32) : i32 = ? remaining < 1000i32 ?> remaining |: 1000i32
 
-inl answered (status : i32) (resource : string) (detail : string) : string =
+:= answered (status : i32) (resource : string) (detail : string) : string =
     "X API answered " ++# sm'.obj_to_string status ++# " for " ++# resource ++# ": " ++# detail
 
-inl unreached (resource : string) (detail : string) : string =
+:= unreached (resource : string) (detail : string) : string =
     "could not reach the X API for " ++# resource ++# ": " ++# detail
 
-inl unexpected (resource : string) (body : string) : string =
+:= unexpected (resource : string) (body : string) : string =
     "unexpected X API reply for " ++# resource ++# ": " ++# body
 
-inl no_account (h : string) : string = "no X account @" ++# h
+:= no_account (h : string) : string = "no X account @" ++# h
 
-inl pages_text (s : cursor_stop) : string = sm'.obj_to_string s.pages ++# " pages"
+:= decodable (resource : string) (body : string) : result string string =
+    ? absent (parse_json body) ?> Error (unexpected resource (clipped 300i32 body)) |: Ok body
 
-inl cursor_halt_text (h : cursor_halt) : string =
-    match h with
+:= refusal (resource : string) (status : i32) (body : string) : string =
+    ? status = 0i32 ?> unreached resource body |: answered status resource (problem_detail body)
+
+:~ classified (resource : string) (status : i32) (body : string) : result string string =
+    ? accepted status ?> decodable resource body |: Error (refusal resource status body)
+
+:= pages_text (s : cursor_stop) : string = sm'.obj_to_string s.pages ++# " pages"
+
+:= cursor_halt_text (h : cursor_halt) : string =
+    ?= h ?|
     | CursorRepeated s => "the API repeated cursor " ++# s.token ++# " after " ++# pages_text s
     | CursorBudget s => "stopped after " ++# pages_text s ++# " (page budget)"
 
-inl cursor_text (x : halted_cursor) : string = x.resource ++# ": " ++# cursor_halt_text x.halt
+:= cursor_text (x : halted_cursor) : string = x.resource ++# ": " ++# cursor_halt_text x.halt
 
-inl other_failure (f : failure) : string =
-    match f with
+:= other_failure (f : failure) : string =
+    ?= f ?|
     | NoSuchAccount h => no_account h
     | CursorHalted x => cursor_text x
     | _ => ""
 
-inl describe_failure (f : failure) : string =
-    match f with
-    | HttpStatus x => answered x.status x.resource x.detail
-    | Transport x => unreached x.resource x.detail
-    | Undecodable x => unexpected x.resource x.body
+:~ describe_failure (f : failure) : string =
+    ?= f ?|
+    | Reported text => text
     | _ => other_failure f
 
-inl plain_query () : query = {max_results = 5i32; filters = no_filters (); depth = 0i32; hints = false}
+:= plain_query () : query = {max_results = 5i32; filters = no_filters (); depth = 0i32; hints = !-}
 
-inl erin () : account = {id = user_id "7"; username = "erin"}
+:= erin () : account = {id = user_id "7"; username = "erin"}
 
-inl fields_query () : string = "&post.fields=created_at,author_id,public_metrics,entities,attachments"
+:= fields_query () : string = "&post.fields=created_at,author_id,public_metrics,entities,attachments"
 
-inl plain_posts () : string = "/2/users/7/tweets?max_results=5" ++# fields_query ()
+:= plain_posts () : string = "/2/users/7/tweets?max_results=5" ++# fields_query ()
 
-inl expansions_query () : string =
+:= expansions_query () : string =
     "&expansions=referenced_posts,referenced_posts.author_id,attachments.media_keys&media.fields=type,alt_text"
 
 ///> zig
 test users_lookup_path =
-    inl ~h = "alice"
+    := ~h = "alice"
     read_path (Users (Named [h; "bob"])) |> _assert_eq "/2/users/by?usernames=alice,bob"
 
 ///> zig
 test following_path_carries_the_token =
-    inl ~pagination_token = "t1"
+    := ~pagination_token = "t1"
     read_path (FollowedBy {follower = user_id "42"; size = 2i32; pagination_token})
     |> _assert_eq "/2/users/42/following?max_results=2&pagination_token=t1"
 
 ///> zig
 test first_following_page_has_no_token =
-    inl ~size = 1000i32
+    := ~size = 1000i32
     read_path (FollowedBy {follower = user_id "42"; size; pagination_token = ""}) |> _assert_eq "/2/users/42/following?max_results=1000"
 
 ///> zig
 test plain_posts_path_asks_for_no_expansions =
-    inl ~n = 5i32
-    inl q = plain_query ()
-    read_path (PostsOf (erin (), {q with max_results = n})) |> _assert_eq (plain_posts ())
+    := ~n = 5i32
+    := q = plain_query ()
+    read_path (PostsOf (erin (), {q ?| max_results = n})) |> _assert_eq (plain_posts ())
 
 ///> zig
 test posts_below_the_api_floor_ask_for_five =
-    inl ~n = 1i32
-    inl q = plain_query ()
-    read_path (PostsOf (erin (), {q with max_results = n})) |> _assert_eq (plain_posts ())
+    := ~n = 1i32
+    := q = plain_query ()
+    read_path (PostsOf (erin (), {q ?| max_results = n})) |> _assert_eq (plain_posts ())
 
-inl filtered (f : filters) : string =
-    inl q = plain_query ()
-    read_path (PostsOf (erin (), {q with filters = f}))
+:= filtered (f : filters) : string =
+    := q = plain_query ()
+    read_path (PostsOf (erin (), {q ?| filters = f}))
 
 ///> zig
 test start_time_is_sent =
-    inl ~start_time = "2026-10-15T00:00:00Z"
-    inl f = no_filters ()
-    filtered {f with start_time} |> _assert_eq (plain_posts () ++# "&start_time=" ++# start_time)
+    := ~start_time = "2026-10-15T00:00:00Z"
+    := f = no_filters ()
+    filtered {f ?| start_time} |> _assert_eq (plain_posts () ++# "&start_time=" ++# start_time)
 
-inl archive_page (start_time : string) : string =
+:= archive_page (start_time : string) : string =
     "/2/tweets/search/all?query=conversation_id%3A7%20from%3A5&start_time=" ++# start_time
     ++# "&max_results=100&post.fields=conversation_id,entities,referenced_posts"
 
-inl root_search (start_time : string) : thread_search = {conversation_id = conversation_id "7"; author_id = user_id "5"; start_time}
+:= root_search (start_time : string) : thread_search = {conversation_id = conversation_id "7"; author_id = user_id "5"; start_time}
 
 ///> zig
 test thread_pages_search_the_archive_from_the_root =
-    inl ~start_time = "2026-09-01T18:12:00Z"
+    := ~start_time = "2026-09-01T18:12:00Z"
     thread_path (ThreadPage (root_search start_time, "t2"))
     |> _assert_eq (archive_page start_time ++# "&next_token=t2")
 
 ///> zig
 test originals_exclude_replies_and_reposts =
-    inl ~on = true
-    inl f = no_filters ()
-    filtered {f with no_replies = on; no_reposts = on} |> _assert_eq (plain_posts () ++# "&exclude=replies,retweets")
+    := ~on = !+
+    := f = no_filters ()
+    filtered {f ?| no_replies = on; no_reposts = on} |> _assert_eq (plain_posts () ++# "&exclude=replies,retweets")
 
 ///> zig
 test depth_and_hints_add_expansions =
-    inl ~depth = 1i32
-    inl q = plain_query ()
-    read_path (PostsById ([post_id "1"; post_id "2"], {q with depth; hints = true}))
+    := ~depth = 1i32
+    := q = plain_query ()
+    read_path (PostsById ([post_id "1"; post_id "2"], {q ?| depth; hints = !+}))
     |> _assert_eq ("/2/tweets?ids=1,2" ++# fields_query () ++# expansions_query ())
 
 ///> zig
 test writes_use_their_verbs_and_paths =
-    inl ~id = post_id "9"
+    := ~id = post_id "9"
     write_path (DeletePost id) |> _assert_eq "/2/tweets/9"
-    match write_verb (DeletePost id) with
+    ?= write_verb (DeletePost id) ?|
     | Remove => ()
     | _ => _assert_eq "Remove" "other"
 
 ///> zig
 test endpoint_drops_a_trailing_slash =
-    inl ~base = "http://127.0.0.1:9/"
+    := ~base = "http://127.0.0.1:9/"
     base_of (app_api base "k") |> _assert_eq "http://127.0.0.1:9"
 
 ///> zig
 test page_size_never_exceeds_the_api_maximum =
-    inl ~remaining = 2147483647i32
+    := ~remaining = 2147483647i32
     page_size remaining |> _assert_eq 1000i32
 
 ///> zig
 test a_users_lookup_is_not_a_posts_read fails "Expected: reads posts_reply" =
-    inl q : reads posts_reply = Users (Named ["alice"])
+    := q : reads posts_reply = Users (Named ["alice"])
     read_path q |> ignore
 
 ///> zig
 test a_deletion_does_not_reply_with_a_created_post fails "Expected: writes created_reply" =
-    inl q : writes created_reply = DeletePost (post_id "9")
+    := q : writes created_reply = DeletePost (post_id "9")
     write_path q |> ignore
 
 ///> zig
 test the_app_token_cannot_write fails "Expected: api user_context" =
-    inl a : api user_context = app_api "http://127.0.0.1:9" "k"
+    := a : api user_context = app_api "http://127.0.0.1:9" "k"
     a |> ignore
 
-inl quoted_text (s : string) : string = "\"" ++# s ++# "\""
+:= quoted_text (s : string) : string = "\"" ++# s ++# "\""
 
-inl member (k : string) (v : string) : string = quoted_text k ++# ":" ++# v
+:= member (k : string) (v : string) : string = quoted_text k ++# ":" ++# v
 
-inl object (l : list string) : string = "{" ++# sm'.concat_list "," l ++# "}"
+:= object (l : list string) : string = "{" ++# sm'.concat_list "," l ++# "}"
 
-inl items (l : list string) : string = "[" ++# sm'.concat_list "," l ++# "]"
+:= items (l : list string) : string = "[" ++# sm'.concat_list "," l ++# "]"
 
-inl metrics_json () : string = object [member "reply_count" "2"; member "repost_count" "1"; member "like_count" "14"]
+:= metrics_json () : string = object [member "reply_count" "2"; member "repost_count" "1"; member "like_count" "14"]
 
-inl quote_json () : string = items [object [member "type" (quoted_text "quoted"); member "id" (quoted_text "2")]]
+:= quote_json () : string = items [object [member "type" (quoted_text "quoted"); member "id" (quoted_text "2")]]
 
-inl post_json () : string =
-    inl named = [member "id" (quoted_text "1"); member "author_id" (quoted_text "7"); member "text" (quoted_text "hi")]
+:= post_json () : string =
+    := named = [member "id" (quoted_text "1"); member "author_id" (quoted_text "7"); member "text" (quoted_text "hi")]
     object (listm.append named [member "public_metrics" (metrics_json ()); member "referenced_posts" (quote_json ())])
 
-inl posts_doc () : json = parse_json (object [member "data" (items [post_json ()])])
+:= posts_doc () : json = parse_json (object [member "data" (items [post_json ()])])
 
-inl post_summary (p : post) : string =
-    inl refs = refs_text p.refs
+:= post_summary (p : post) : string =
+    := refs = refs_text p.refs
     post_text p.id ++# " " ++# p.author_username ++# " " ++# sm'.obj_to_string p.public_metrics.like_count ++# " " ++# refs
 
 ///> rust -d serde_json
 test posts_decode_ids_counts_and_references =
-    match posts_of_doc "erin" (posts_doc ()) with
+    ?= posts_of_doc "erin" (posts_doc ()) ?|
     | posts_reply {primary} => primary |> each post_summary |> sm'.concat_list "|" |> _assert_eq "1 erin 14 quoted:2"
 
-inl account_names (l : accounts) : string = l |> each (fun (a : account) => user_text a.id ++# ":" ++# a.username) |> sm'.concat_list ","
+:= account_names (l : accounts) : string = l |> each (\ (a : account) => user_text a.id ++# ":" ++# a.username) |> sm'.concat_list ","
 
-inl users_doc () : json =
-    inl bob = object [member "id" (quoted_text "9"); member "username" (quoted_text "bob")]
+:= users_doc () : json =
+    := bob = object [member "id" (quoted_text "9"); member "username" (quoted_text "bob")]
     parse_json (object [member "data" (items [bob]); member "errors" (items [object [member "value" (quoted_text "ghost")]])])
 
 ///> rust -d serde_json
 test users_lookup_names_found_and_unknown =
-    match users_of_doc (users_doc ()) with
+    ?= users_of_doc (users_doc ()) ?|
     | users_reply {found unknown} => account_names found ++# " " ++# sm'.concat_list "," unknown |> _assert_eq "9:bob ghost"
 
-inl next_page_doc () : json = parse_json (object [member "data" (items []); member "meta" (object [member "next_token" (quoted_text "n2")])])
+:= next_page_doc () : json = parse_json (object [member "data" (items []); member "meta" (object [member "next_token" (quoted_text "n2")])])
 
 ///> rust -d serde_json
 test a_page_carries_its_next_token =
-    match page_of_doc (next_page_doc ()) with
+    ?= page_of_doc (next_page_doc ()) ?|
     | page_reply {next_token} => next_token |> _assert_eq "n2"
 
 ///> rust -d serde_json
 test errors_prefer_their_detail =
-    inl problem = object [member "title" (quoted_text "T"); member "detail" (quoted_text "D")]
+    := problem = object [member "title" (quoted_text "T"); member "detail" (quoted_text "D")]
     parse_json (object [member "errors" (items [problem])]) |> first_error |> _assert_eq "D"
 
 ///> rust -d serde_json
 test text_comes_back_unescaped =
-    inl ~escaped = "a |&gt; b &amp;&amp; c &lt;d&gt; &amp;lt;"
+    := ~escaped = "a |&gt; b &amp;&amp; c &lt;d&gt; &amp;lt;"
     unescaped escaped |> _assert_eq "a |> b && c <d> &lt;"
 
 ///> rust -d serde_json
 test replies_name_their_parent =
     write_verb (ReplyPost ("hi", created_reply {id = post_id "7"; text = "c1 1/2"})) |> body_of_verb |> _assert_eq "{\"reply\":{\"in_reply_to_tweet_id\":\"7\"},\"text\":\"hi\"}"
 
-inl blank_keys () : oauth1 = {consumer_key = ""; consumer_secret = ""; token = ""; token_secret = ""}
+:= blank_keys () : oauth1 = {consumer_key = ""; consumer_secret = ""; token = ""; token_secret = ""}
 
 ///> rust -d serde_json
 test only_a_user_context_is_signed =
-    inl ~nonce = "n"
-    match signed_api "https://api.x.com" (blank_keys ()) nonce "1" with
+    := ~nonce = "n"
+    ?= signed_api "https://api.x.com" (blank_keys ()) nonce "1" ?|
     | api {auth} => header_kind auth |> _assert_eq "signed"
 
 ///> rust -d serde_json
 test an_app_token_cannot_be_signed fails "Unification failure" =
-    inl a : authorizer app_context = Signed (blank_keys (), "n", "1")
+    := a : authorizer app_context = Signed (blank_keys (), "n", "1")
     a

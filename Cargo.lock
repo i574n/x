@@ -671,14 +671,17 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 name = "xc"
 version = "0.0.1"
 dependencies = [
+ "xc_api",
  "xc_args",
  "xc_assemble",
+ "xc_chain",
  "xc_digest",
  "xc_fetch",
  "xc_frames",
  "xc_jsonl",
  "xc_locate",
  "xc_net",
+ "xc_preview",
  "xc_refs",
  "xc_thread",
  "xc_token",
@@ -688,10 +691,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "xc_api"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "xc_args"
 version = "0.0.1"
 dependencies = [
  "xc_checks",
+ "xc_timeline",
 ]
 
 [[package]]
@@ -699,6 +710,22 @@ name = "xc_assemble"
 version = "0.0.1"
 dependencies = [
  "serde_json",
+]
+
+[[package]]
+name = "xc_cells"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "xc_chain"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "xc_thread",
 ]
 
 [[package]]
@@ -720,6 +747,7 @@ name = "xc_fetch"
 version = "0.0.1"
 dependencies = [
  "serde_json",
+ "xc_api",
  "xc_net",
 ]
 
@@ -730,6 +758,7 @@ dependencies = [
  "serde_json",
  "unicode-normalization",
  "unicode-segmentation",
+ "xc_cells",
 ]
 
 [[package]]
@@ -737,6 +766,7 @@ name = "xc_jsonl"
 version = "0.0.1"
 dependencies = [
  "serde_json",
+ "xc_select",
 ]
 
 [[package]]
@@ -758,19 +788,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "xc_preview"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "xc_frames",
+]
+
+[[package]]
 name = "xc_refs"
 version = "0.0.1"
 dependencies = [
  "serde_json",
+ "xc_api",
  "xc_net",
 ]
+
+[[package]]
+name = "xc_resume"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "xc_select"
+version = "0.0.1"
 
 [[package]]
 name = "xc_thread"
 version = "0.0.1"
 dependencies = [
  "serde_json",
+ "xc_api",
  "xc_net",
+]
+
+[[package]]
+name = "xc_timeline"
+version = "0.0.1"
+dependencies = [
+ "xc_checks",
 ]
 
 [[package]]
@@ -786,6 +844,7 @@ name = "xc_users"
 version = "0.0.1"
 dependencies = [
  "serde_json",
+ "xc_api",
  "xc_net",
 ]
 
@@ -794,6 +853,7 @@ name = "xc_view"
 version = "0.0.1"
 dependencies = [
  "xc_net",
+ "xc_select",
 ]
 
 [[package]]
@@ -801,7 +861,9 @@ name = "xc_write"
 version = "0.0.1"
 dependencies = [
  "serde_json",
+ "xc_api",
  "xc_net",
+ "xc_resume",
 ]
 
 [[package]]

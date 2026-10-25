@@ -15,3 +15,5 @@ path = "write.rs"
 [dependencies]
 serde_json = { workspace = true }
 xc_net = { path = "../net" }
+xc_api = { path = "../api" }
+xc_resume = { path = "../resume" }

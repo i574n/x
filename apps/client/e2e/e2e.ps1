@@ -79,10 +79,11 @@ try {
     }
 
     $postsPath = "/2/users/{0}/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments"
+    $nothingRead = "xc: 2 API requests, 0 posts read, 0 shown"
     $extra = @(
         @{ Script = "xc timeline alice"; Token = "wrong-token"; Text = "xc: X API answered 401 for /2/users/by?usernames=alice: Unauthorized"; Exit = 4 },
-        @{ Script = "xc timeline busy"; Token = $world.token; Text = "xc: X API answered 429 for $($postsPath -f 107): Too Many Requests"; Exit = 4 },
-        @{ Script = "xc timeline gateway"; Token = $world.token; Text = "xc: X API answered 502 for $($postsPath -f 108): Bad Gateway"; Exit = 4 },
+        @{ Script = "xc timeline busy"; Token = $world.token; Text = "$nothingRead`nxc: X API answered 429 for $($postsPath -f 107): Too Many Requests"; Exit = 4 },
+        @{ Script = "xc timeline gateway"; Token = $world.token; Text = "$nothingRead`nxc: X API answered 502 for $($postsPath -f 108): Bad Gateway"; Exit = 4 },
         @{ Script = "xc timeline nobody"; Token = $world.token; Text = "xc: no X account @nobody"; Exit = 4 },
         @{ Script = "xc delete 9001"; Token = $world.token; Text = "xc: X API answered 404 for /2/tweets/9001: Not Found Error: Could not find post with id: [9001]."; Exit = 4 }
     )
@@ -129,7 +130,8 @@ try {
 
     Check ((Step-Of $results 'X_BEARER_TOKEN = \$null').Requests.Count -eq 0) "a run without X_BEARER_TOKEN sent requests"
     $all = Queries-Of (Step-Of $results 'following carol --max-following all')
-    Check ($all -contains "GET /2/users/103/following?max_results=1000&pagination_token=p2") "--max-following all did not follow next_token: $($all -join ' ')"
+    $boundedPages = "GET /2/users/103/following?max_results=201", "GET /2/users/103/following?max_results=199&pagination_token=p2"
+    Check ((@($all | Where-Object { $_ -like '*/following?*' }) -join ' ') -ceq ($boundedPages -join ' ')) "--max-following all did not read the 201-account bound across next_token: $($all -join ' ')"
     $capped = @((Step-Of $results 'max-following 2').Requests | Where-Object { $_.path -like '*/following' })
     Check ($capped.Count -eq 1 -and $capped[0].query -eq "max_results=2") "--max-following 2 read more than one page of 2"
     Check (@(Queries-Of (Step-Of $results '--start-time') | Where-Object { $_ -match 'start_time=2026-10-15T12:00:00Z&end_time=2026-10-15T13:06:00Z' }).Count -eq 1) "--start-time/--end-time did not become start_time/end_time"

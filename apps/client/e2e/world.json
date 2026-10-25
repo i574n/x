@@ -96,11 +96,11 @@
             "username": "loner",
             "following": [],
             "posts": [
-                {"id":"9101","created_at":"2026-10-17T09:00:00.000Z","text":"c1 1/1\n///- --package ..\n///> rust\ntest checks static =\n    open testing","conversation_id":"9101"},
-                {"id":"9102","created_at":"2026-10-17T09:01:00.000Z","text":"c2 1/1\nopen sm'_operators\nopen prelude\nopen cli","conversation_id":"9101","refs":[{"type":"replied_to","id":"9101"}]},
-                {"id":"9103","created_at":"2026-10-17T09:02:00.000Z","text":"c3 1/1\ninl count_or_none (t : string) : i32 =\n    match count_of_text t with\n    | Some n => n\n    | None => -1i32","conversation_id":"9101","refs":[{"type":"replied_to","id":"9102"}]},
-                {"id":"9201","created_at":"2026-10-16T09:00:00.000Z","text":"c1 1/1\n///- --package ..\n///> rust\ntest checks static =\n    open testing","conversation_id":"9201"},
-                {"id":"9202","created_at":"2026-10-16T09:01:00.000Z","text":"c2 1/1\nopen sm'_operators\nopen prelude\nopen cli edited","conversation_id":"9201","refs":[{"type":"replied_to","id":"9201"}]},
+                {"id":"9101","created_at":"2026-10-17T09:00:00.000Z","text":"c1 1/1\n///- --package ..\n///> rust\ntest checks static =\n    :< testing","conversation_id":"9101"},
+                {"id":"9102","created_at":"2026-10-17T09:01:00.000Z","text":"c2 1/1\n:< sm'_operators\n:< prelude\n:< cli","conversation_id":"9101","refs":[{"type":"replied_to","id":"9101"}]},
+                {"id":"9103","created_at":"2026-10-17T09:02:00.000Z","text":"c3 1/1\n:= count_or_none (t : string) : i32 =\n    ?= count_of_text t ?|\n    | Some n => n\n    | None => -1i32","conversation_id":"9101","refs":[{"type":"replied_to","id":"9102"}]},
+                {"id":"9201","created_at":"2026-10-16T09:00:00.000Z","text":"c1 1/1\n///- --package ..\n///> rust\ntest checks static =\n    :< testing","conversation_id":"9201"},
+                {"id":"9202","created_at":"2026-10-16T09:01:00.000Z","text":"c2 1/1\n:< sm'_operators\n:< prelude\n:< cli edited","conversation_id":"9201","refs":[{"type":"replied_to","id":"9201"}]},
                 {"id": "10001", "created_at": "2026-10-15T10:00:00.000Z", "text": "nobody to follow yet"}
             ]
         },

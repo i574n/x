@@ -2,143 +2,143 @@
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
 test reading static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open posts
-open glyphs
-open protocol
-open splitter
+:< sm'_operators
+:< prelude
+:< posts
+:< glyphs
+:< protocol
+:< splitter
 
-type frame_fields = {cell : cell_id; k : i32; n : i32; body : string; original : post_id; parent : option post_id}
+:== frame_fields = {cell : cell_id; k : i32; n : i32; body : string; original : post_id; parent : option post_id}
 
-type frame = heap frame_fields
+:== frame = heap frame_fields
 
-type frame_text = {header : frame_header; body : string}
+:== frame_text = {header : frame_header; body : string}
 
-inl header_end (i : i32) (text : string) : i32 = if i < 0i32 then sm'.length text else i
+:= header_end (i : i32) (text : string) : i32 = ? i < 0i32 ?> sm'.length text |: i
 
-inl head_of (i : i32) (text : string) : string = cut 0i32 (header_end i text) text
+:= head_of (i : i32) (text : string) : string = cut 0i32 (header_end i text) text
 
-inl restored_body (i : i32) (text : string) : string = if i < 0i32 then "" else after i text |> sm'.replace (defused_dot ()) "."
+:= restored_body (i : i32) (text : string) : string = ? i < 0i32 ?> "" |: after i text |> sm'.replace (defused_dot ()) "."
 
-let frame_text_of (text : string) : option frame_text =
-    inl i : i32 = sm'.index_of "\n" text
-    match parsed (head_of i text) with
+:~ frame_text_of (text : string) : option frame_text =
+    := i : i32 = sm'.index_of "\n" text
+    ?= parsed (head_of i text) ?|
     | Ok header => Some {header body = restored_body i text}
     | Error _ => None
 
-inl frame_in (t : frame_text) (original : post_id) (parent : option post_id) : frame =
+:= frame_in (t : frame_text) (original : post_id) (parent : option post_id) : frame =
     heap {cell = t.header.cell; k = t.header.part; n = t.header.part_count; body = t.body; original; parent}
 
-type cell_frames = {cell : cell_id; n : i32; first : post_id; frames : list frame}
+:== cell_frames = {cell : cell_id; n : i32; first : post_id; frames : list frame}
 
-inl merged (c : cell_frames) (f : frame) : cell_frames =
-    inl first = if later_id c.first f.original then f.original else c.first
-    {c with n = if f.n > c.n then f.n else c.n; first; frames = Cons (f, c.frames)}
+:= merged (c : cell_frames) (f : frame) : cell_frames =
+    := first = ? later_id c.first f.original ?> f.original |: c.first
+    {c ?| n = ? f.n > c.n ?> f.n |: c.n; first; frames = Cons (f, c.frames)}
 
-inl opened (f : frame) : cell_frames = {cell = f.cell; n = f.n; first = f.original; frames = [f]}
+:= opened (f : frame) : cell_frames = {cell = f.cell; n = f.n; first = f.original; frames = [f]}
 
-let rec grouped (l : list cell_frames) (f : frame) : list cell_frames =
-    match l with
-    | Cons (c, rest) when same_cell c.cell f.cell => Cons (merged c f, rest)
+:~ ^ grouped (l : list cell_frames) (f : frame) : list cell_frames =
+    ?= l ?|
+    | Cons (c, rest) ?& same_cell c.cell f.cell => Cons (merged c f, rest)
     | Cons (c, rest) => Cons (c, grouped rest f)
     | Nil => [opened f]
 
-let rec placed (c : cell_frames) (l : list cell_frames) : list cell_frames =
-    match l with
-    | Cons (d, rest) when later_id c.first d.first => Cons (d, placed c rest)
+:~ ^ placed (c : cell_frames) (l : list cell_frames) : list cell_frames =
+    ?= l ?|
+    | Cons (d, rest) ?& later_id c.first d.first => Cons (d, placed c rest)
     | _ => Cons (c, l)
 
-inl frame_at (c : cell_frames) (k : i32) : list frame = c.frames |> keep (fun (f : frame) => f.k = k && f.n = c.n)
+:= frame_at (c : cell_frames) (k : i32) : list frame = c.frames |> keep (\ (f : frame) => f.k = k && f.n = c.n)
 
-inl missing_ks (c : cell_frames) : list i32 =
-    listm.init c.n (fun i => i + 1i32) |> keep (fun k => listm.length (frame_at c k) <> 1i32)
+:= missing_ks (c : cell_frames) : list i32 =
+    listm.init c.n (\ i => i + 1i32) |> keep (\ k => listm.length (frame_at c k) <> 1i32)
 
-inl part_body (c : cell_frames) (k : i32) : string = frame_at c k |> each (fun (f : frame) => f.body) |> delimited ""
+:= part_body (c : cell_frames) (k : i32) : string = frame_at c k |> each (\ (f : frame) => f.body) |> delimited ""
 
-inl source_of (c : cell_frames) : string = listm.init c.n (fun i => part_body c (i + 1i32)) |> delimited ""
+:= source_of (c : cell_frames) : string = listm.init c.n (\ i => part_body c (i + 1i32)) |> delimited ""
 
-union private cell_reading =
+:| private cell_reading =
     | Whole : string
     | Holed : thread_flaw
 
-inl reading_of (c : cell_frames) : cell_reading =
-    match missing_ks c with
+:= reading_of (c : cell_frames) : cell_reading =
+    ?= missing_ks c ?|
     | Nil => Whole (source_of c)
     | missing => Holed (MissingFrames {cell = c.cell; missing; part_count = c.n})
 
-type program = {sources : list string; flaws : list thread_flaw}
+:== program = {sources : list string; flaws : list thread_flaw}
 
-inl with_cell (p : program) (c : cell_frames) : program =
-    match reading_of c with
-    | Whole source => {p with sources = listm.append p.sources [source]}
-    | Holed flaw => {p with flaws = listm.append p.flaws [flaw]}
+:= with_cell (p : program) (c : cell_frames) : program =
+    ?= reading_of c ?|
+    | Whole source => {p ?| sources = listm.append p.sources [source]}
+    | Holed flaw => {p ?| flaws = listm.append p.flaws [flaw]}
 
-inl unknown_parent (known : post_ids) (f : frame) : list post_id =
-    match f.parent with
-    | Some p when not (has (same_post p) known) => [p]
+:= unknown_parent (known : post_ids) (f : frame) : list post_id =
+    ?= f.parent ?|
+    | Some p ?& not (has (same_post p) known) => [p]
     | _ => Nil
 
-inl gap_flaws (known : post_ids) (c : cell_frames) : list thread_flaw =
-    frame_at c 1i32 |> spread (unknown_parent known) |> each (fun parent => ReplyGap {cell = c.cell; parent})
+:= gap_flaws (known : post_ids) (c : cell_frames) : list thread_flaw =
+    frame_at c 1i32 |> spread (unknown_parent known) |> each (\ parent => ReplyGap {cell = c.cell; parent})
 
-inl gaps (known : post_ids) (cells : list cell_frames) : list thread_flaw =
-    match cells with
+:= gaps (known : post_ids) (cells : list cell_frames) : list thread_flaw =
+    ?= cells ?|
     | Cons (_, rest) => rest |> spread (gap_flaws known)
     | Nil => Nil
 
-inl ordered (l : list frame) : list cell_frames =
-    l |> listm.fold grouped Nil |> listm.fold (fun acc c => placed c acc) Nil
+:= ordered (l : list frame) : list cell_frames =
+    l |> listm.fold grouped Nil |> listm.fold (\ acc c => placed c acc) Nil
 
-let assembled (frames : list frame) (known : post_ids) : program =
-    inl cells = ordered frames
-    inl p = cells |> listm.fold with_cell {sources = Nil; flaws = Nil}
-    {p with flaws = listm.append p.flaws (gaps known cells)}
+:~ assembled (frames : list frame) (known : post_ids) : program =
+    := cells = ordered frames
+    := p = cells |> listm.fold with_cell {sources = Nil; flaws = Nil}
+    {p ?| flaws = listm.append p.flaws (gaps known cells)}
 
-inl frames_in (text : string) (original : post_id) (parent : option post_id) : list frame =
-    match frame_text_of text with
+:= frames_in (text : string) (original : post_id) (parent : option post_id) : list frame =
+    ?= frame_text_of text ?|
     | Some t => [frame_in t original parent]
     | None => Nil
 
-inl numbered_post (k : i32) : post_id = post_id (sm'.obj_to_string k)
+:= numbered_post (k : i32) : post_id = post_id (sm'.obj_to_string k)
 
-let rec chained (k : i32) (parent : option post_id) (l : list string) (acc : list frame) : list frame =
-    match l with
+:~ ^ chained (k : i32) (parent : option post_id) (l : list string) (acc : list frame) : list frame =
+    ?= l ?|
     | Nil => acc
     | Cons (t, rest) => chained (k + 1i32) (Some (numbered_post k)) rest (listm.append (frames_in t (numbered_post k) parent) acc)
 
-inl ids_to (n : i32) : post_ids = listm.init n (fun i => numbered_post (i + 1i32))
+:= ids_to (n : i32) : post_ids = listm.init n (\ i => numbered_post (i + 1i32))
 
-inl read_thread (posts : list string) : program = assembled (chained 1i32 None posts Nil) (ids_to (listm.length posts))
+:= read_thread (posts : list string) : program = assembled (chained 1i32 None posts Nil) (ids_to (listm.length posts))
 
-inl mixed_cells () : string =
+:= mixed_cells () : string =
     "go x.io now\n\n" ++# repeated 150i32 "日本" "" ++# "\n\n" ++# repeated 120i32 "ab " ""
 
 test posted_cells_rebuild_exactly =
-    inl ~text = mixed_cells ()
-    inl p = posts_of text |> read_thread
+    := ~text = mixed_cells ()
+    := p = posts_of text |> read_thread
     p.sources |> delimited "|" |> _assert_eq (file_cells text |> delimited "|")
     p.flaws |> listm.length |> _assert_eq 0i32
 
-inl carries_defused_dot (t : string) : bool = sm'.index_of (defused_dot ()) t >= 0i32
+:= carries_defused_dot (t : string) : bool = sm'.index_of (defused_dot ()) t >= 0i32
 
-inl ends_in_space (t : string) : bool = trimmed_end t <> t
+:= ends_in_space (t : string) : bool = trimmed_end t <> t
 
 test posted_frames_keep_no_trailing_space =
-    inl ~text = mixed_cells ()
-    inl posts = posts_of text
-    (listm.length posts > 3i32) |> _assert_eq true
-    has ends_in_space posts |> _assert_eq false
-    has carries_defused_dot posts |> _assert_eq true
+    := ~text = mixed_cells ()
+    := posts = posts_of text
+    (listm.length posts > 3i32) |> _assert_eq !+
+    has ends_in_space posts |> _assert_eq !-
+    has carries_defused_dot posts |> _assert_eq !+
 
-inl without_post (k : i32) (l : list string) : list string = listm.init (listm.length l) id |> keep (fun i => i <> k) |> each (fun i => field_at i l)
+:= without_post (k : i32) (l : list string) : list string = listm.init (listm.length l) id |> keep (\ i => i <> k) |> each (\ i => field_at i l)
 
-inl notes_of (p : program) : string = p.flaws |> each note_of |> delimited "|"
+:= notes_of (p : program) : string = p.flaws |> each note_of |> delimited "|"
 
 test a_lost_frame_leaves_its_cell_holed =
-    inl ~lost = 2i32
-    inl p = posts_of (mixed_cells ()) |> without_post lost |> read_thread
+    := ~lost = 2i32
+    := p = posts_of (mixed_cells ()) |> without_post lost |> read_thread
     notes_of p |> _assert_eq "cell c2 is missing frame 2 of 3"
     p.sources |> listm.length |> _assert_eq 2i32

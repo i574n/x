@@ -1,85 +1,85 @@
 ///- --package ..
 ///> rust -d serde_json
 test refs static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open protocol
-open posts
-open cli
-open wire
-open transport
+:< sm'_operators
+:< prelude
+:< protocol
+:< posts
+:< cli
+:< wire
+:< transport
 
-type traced = {author_ids : list string; named : list string; failure : string; bodies : list string}
+:== traced = {author_ids : list string; named : list string; failure : string; bodies : list string}
 
-inl entry (body : string) : string = "{\"role\":\"lookup\",\"author\":\"\",\"doc\":" ++# body ++# "}"
+:= entry (body : string) : string = "{\"role\":\"lookup\",\"author\":\"\",\"doc\":" ++# body ++# "}"
 
-inl ids_at (key : string) (items : json) : list string = items |> collect (field key >> text_of)
+:= ids_at (key : string) (items : json) : list string = items |> collect (field key >> text_of)
 
-inl referenced (data : json) : post_ids =
+:= referenced (data : json) : post_ids =
     data |> collect (field "referenced_posts" >> ids_at "id") |> spread id |> each post_id
 
-inl named_ids (inc : json) : list string = inc |> field "users" |> named_accounts |> each (fun (a : account) => user_text a.id)
+:= named_ids (inc : json) : list string = inc |> field "users" |> named_accounts |> each (\ (a : account) => user_text a.id)
 
-inl seen_authors (doc : json) : list string =
+:= seen_authors (doc : json) : list string =
     listm.append (doc |> field "data" |> ids_at "author_id") (doc |> field "includes" |> field "posts" |> ids_at "author_id")
 
-inl with_named (inc : json) (t : traced) : traced = {t with named = listm.append t.named (named_ids inc)}
+:= with_named (inc : json) (t : traced) : traced = {t ?| named = listm.append t.named (named_ids inc)}
 
-let absorbed (doc : json) (body : string) (t : traced) : traced =
-    inl t = with_named (doc |> field "includes") t
-    {t with author_ids = listm.append t.author_ids (seen_authors doc); bodies = listm.append t.bodies [entry body]}
+:~ absorbed (doc : json) (body : string) (t : traced) : traced =
+    := t = with_named (doc |> field "includes") t
+    {t ?| author_ids = listm.append t.author_ids (seen_authors doc); bodies = listm.append t.bodies [entry body]}
 
-inl posts_chunks (a : app) (q : query) (wanted : post_ids) : got (list fetched) =
-    chunked (lookup_limit ()) wanted |> each (fun c => get_raw a (read_path (PostsById (c, q)))) |> fun l => all_got l Nil
+:= posts_chunks (a : app) (q : query) (wanted : post_ids) : got (list fetched) =
+    chunked (lookup_limit ()) wanted |> each (\ c => get_raw a (read_path (PostsById (c, q)))) |> \ l => all_got l Nil
 
-inl failed_with (f : failure) (t : traced) : traced = {t with failure = describe_failure f}
+:= failed_with (f : failure) (t : traced) : traced = {t ?| failure = describe_failure f}
 
-inl next_ids (doc : json) : post_ids = referenced (doc |> field "data")
+:= next_ids (doc : json) : post_ids = referenced (doc |> field "data")
 
-inl next_of_all (docs : list fetched) : post_ids = docs |> spread (fun (doc, _) => next_ids doc)
+:= next_of_all (docs : list fetched) : post_ids = docs |> spread (\ (doc, _) => next_ids doc)
 
-inl absorbed_all (docs : list fetched) (t : traced) : traced = docs |> listm.fold (fun t (doc, body) => absorbed doc body t) t
+:= absorbed_all (docs : list fetched) (t : traced) : traced = docs |> listm.fold (\ t (doc, body) => absorbed doc body t) t
 
-let rec deepen (a : app) (q : query) (level : i32) (l : post_ids) (t : traced) : traced =
-    match distinct_posts l with
+:~ ^ deepen (a : app) (q : query) (level : i32) (l : post_ids) (t : traced) : traced =
+    ?= distinct_posts l ?|
     | Nil => t
-    | _ when level >= q.depth => t
+    | _ ?& level >= q.depth => t
     | wanted => posts_chunks a q wanted |> deepened a q level t
 
-and let deepened (a : app) (q : query) (level : i32) (t : traced) (r : got (list fetched)) : traced =
-    match r with
+:& :~ deepened (a : app) (q : query) (level : i32) (t : traced) (r : got (list fetched)) : traced =
+    ?= r ?|
     | Error f => failed_with f t
     | Ok docs => deepen a q (level + 1) (next_of_all docs) (absorbed_all docs t)
 
-inl unnamed (t : traced) : list string =
-    t.author_ids |> keep (fun id => id <> "" && not (has ((=) id) t.named)) |> distinct
+:= unnamed (t : traced) : list string =
+    t.author_ids |> keep (\ id => id <> "" && not (has ((=) id) t.named)) |> distinct
 
-type refs_reply = string * string * string
+:== refs_reply = string * string * string
 
-inl reply_of (t : traced) : refs_reply = sm'.concat_list "," t.bodies, t.failure, sm'.concat_list "," (unnamed t)
+:= reply_of (t : traced) : refs_reply = sm'.concat_list "," t.bodies, t.failure, sm'.concat_list "," (unnamed t)
 
-inl started (authors : string) (named : string) : traced =
+:= started (authors : string) (named : string) : traced =
     {author_ids = pieces "," authors; named = pieces "," named; failure = ""; bodies = Nil}
 
-let traced_refs (base : string) (bearer : string) (refs : string) (authors : string) (named : string) (q : query) : refs_reply =
+:~ traced_refs (base : string) (bearer : string) (refs : string) (authors : string) (named : string) (q : query) : refs_reply =
     deepen (app_api base bearer) q 1i32 (pieces "," refs |> each post_id) (started authors named) |> reply_of
 
-inl query_of (depth : i32) (hints : bool) : query = {max_results = 5i32; filters = no_filters (); depth hints}
+:= query_of (depth : i32) (hints : bool) : query = {max_results = 5i32; filters = no_filters (); depth hints}
 
-inl lookup_doc () : string =
-    inl quoted_ref = items [object [member "id" (quoted_text "4")]]
+:= lookup_doc () : string =
+    := quoted_ref = items [object [member "id" (quoted_text "4")]]
     object [member "data" (items [object [member "author_id" (quoted_text "9"); member "referenced_posts" quoted_ref]])]
 
-inl unnamed_after (body : string) : string = absorbed (parse_json body) body (started "7" "7") |> unnamed |> delimited ","
+:= unnamed_after (body : string) : string = absorbed (parse_json body) body (started "7" "7") |> unnamed |> delimited ","
 
 test lookups_name_unseen_authors_and_the_next_level =
-    inl ~body = lookup_doc ()
+    := ~body = lookup_doc ()
     unnamed_after body |> _assert_eq "9"
     next_ids (parse_json body) |> each post_text |> delimited "," |> _assert_eq "4"
 
 ///> _
-inl main () : i32 =
-    !!!!Export("xc_refs", ((fun (base, bearer, refs, authors, named, depth, hints) => traced_refs base bearer refs authors named (query_of depth hints)) : string * string * string * string * string * i32 * bool -> refs_reply))
+:= main () : i32 =
+    !!!!Export("xc_refs", ((\ (base, bearer, refs, authors, named, depth, hints) => traced_refs base bearer refs authors named (query_of depth hints)) : string * string * string * string * string * i32 * bool -> refs_reply))
     0i32

@@ -13,4 +13,5 @@ name = "xc_jsonl"
 path = "jsonl.rs"
 
 [dependencies]
+xc_select = { path = "../select" }
 serde_json = { workspace = true }

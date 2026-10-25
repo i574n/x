@@ -14,3 +14,4 @@ path = "args.rs"
 
 [dependencies]
 xc_checks = { path = "../checks" }
+xc_timeline = { path = "../timeline" }

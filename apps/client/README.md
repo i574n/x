@@ -54,9 +54,10 @@ usage: xc timeline [options] USERNAME...
        xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN
        xc thread ID          the program a thread of framed posts (CELL k/n) carries
        xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)
+       xc post-thread --resume ROOT_ID FILE   finish a half-posted thread of FILE after its last post
        xc delete-thread ID   delete your posts of that thread (user credentials)
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
-       --per-account N   posts fetched per account, 5..100 (default 5)
+       --per-account N   posts shown per account, 1..100 (default 5)
        --limit N         timeline entries shown (default 20)
        --per-author N    entries shown per author (default all)
        --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)
@@ -77,7 +78,12 @@ xc timeline hana
 ```
 
 ```text
-(pending)
+xc: 2 API requests, 5 posts read, 5 shown
+2026-10-16 07:00  @hana  日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本語日本  [0 replies, 0 reposts, 0 likes]
+2026-10-16 06:00  @hana  family day 👨‍👩‍👧‍👦 👍🏽  [0 replies, 0 reposts, 0 likes]
+2026-10-16 05:00  @hana  café crème at noon  [0 replies, 0 reposts, 0 likes]
+2026-10-16 04:00  @hana  안녕하세요 세계, 오늘도 좋은 하루  [0 replies, 0 reposts, 0 likes]
+2026-10-16 03:00  @hana  東京で朝ごはん、今日は晴れ  [0 replies, 0 reposts, 0 likes]
 ```
 
 ```powershell
@@ -85,6 +91,7 @@ xc timeline alice '@bob'
 ```
 
 ```text
+xc: 3 API requests, 7 posts read, 7 shown
 2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
 2026-10-15 09:05  @bob  RT @alice: lunch: ramen  [0 replies, 0 reposts, 0 likes]
 2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
@@ -101,7 +108,9 @@ xc timeline --per-account 1 alice '@bob'
 ```
 
 ```text
-(pending)
+xc: 3 API requests, 7 posts read, 2 shown
+2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
+2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
 ```
 
 Unknown accounts are reported and skipped; `--limit` cuts the merged list:
@@ -111,6 +120,7 @@ xc timeline --limit 2 alice ghost
 ```
 
 ```text
+xc: 2 API requests, 3 posts read, 2 shown
 xc: no X account @ghost
 2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
 2026-10-15 04:00  @alice  morning run done  [0 replies, 0 reposts, 0 likes]
@@ -125,6 +135,7 @@ xc timeline --following carol --max-following 2
 ```
 
 ```text
+xc: 5 API requests, 9 posts read, 9 shown
 xc: home timeline of @carol from 2 followed accounts
 2026-10-15 10:00  @carol  worth reading  [0 replies, 2 reposts, 5 likes]
 2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
@@ -144,6 +155,7 @@ xc timeline --following carol --max-following all --per-author 1
 ```
 
 ```text
+xc: 8 API requests, 14 posts read, 4 shown
 xc: home timeline of @carol from 4 followed accounts
 xc: skipped @dave: Sorry, you are not authorized to see the posts of @dave.
 2026-10-15 11:00  @erin  the whole thread  [0 replies, 0 reposts, 1 like]
@@ -159,8 +171,13 @@ xc timeline --following loner --max-following all
 ```
 
 ```text
+xc: 3 API requests, 5 posts read, 5 shown
 xc: home timeline of @loner from 0 followed accounts
-2026-10-15 06:00  @loner  nobody to follow yet  [0 replies, 0 reposts, 0 likes]
+2026-10-17 05:02  @loner  c3 1/1 := count_or_none (t : string) : i32 =     ?= count_of_text t ?|     | Some n => n     | None => -1i32  [0 replies, 0 reposts, 0 likes]
+2026-10-17 05:01  @loner  c2 1/1 :< sm'_operators :< prelude :< cli  [0 replies, 0 reposts, 0 likes]
+2026-10-17 05:00  @loner  c1 1/1 ///- --package .. ///> rust test checks static =     :< testing  [0 replies, 0 reposts, 0 likes]
+2026-10-16 05:01  @loner  c2 1/1 :< sm'_operators :< prelude :< cli edited  [0 replies, 0 reposts, 0 likes]
+2026-10-16 05:00  @loner  c1 1/1 ///- --package .. ///> rust test checks static =     :< testing  [0 replies, 0 reposts, 0 likes]
 ```
 
 ### Filters that lower the bill
@@ -172,6 +189,7 @@ xc timeline --start-time 2026-10-15T12:00:00Z --end-time 2026-10-15T13:06:00Z bo
 ```
 
 ```text
+xc: 2 API requests, 2 posts read, 2 shown
 2026-10-15 09:05  @bob  RT @alice: lunch: ramen  [0 replies, 0 reposts, 0 likes]
 2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
 ```
@@ -183,6 +201,7 @@ xc timeline --originals --hints alice bob
 ```
 
 ```text
+xc: 3 API requests, 5 posts read, 5 shown
 2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
 2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
 2026-10-15 05:45  @bob  shipped v2 release notes soon  [4 replies, 7 reposts, 31 likes]
@@ -201,6 +220,7 @@ xc timeline --depth 3 --limit 1 erin
 ```
 
 ```text
+xc: 5 API requests, 10 posts read, 1 shown
 2026-10-15 11:00  @erin  the whole thread  [0 replies, 0 reposts, 1 like]
   > quoted @carol: worth reading  [0 replies, 2 reposts, 5 likes]
     > quoted @bob: agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
@@ -214,6 +234,7 @@ xc timeline --depth 1 --limit 2 bob
 ```
 
 ```text
+xc: 3 API requests, 5 posts read, 2 shown
 2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
   > replied to @alice: lunch: ramen  [2 replies, 1 repost, 14 likes]
 2026-10-15 09:05  @bob  reposted @alice: lunch: ramen  [2 replies, 1 repost, 14 likes]
@@ -228,6 +249,7 @@ xc timeline --json --depth 1 --limit 1 bob
 ```
 
 ```text
+xc: 3 API requests, 5 posts read, 1 shown
 {"id":"2004","username":"bob","created_at":"2026-10-15T13:10:00.000Z","text":"agreed, ramen wins","reply_count":1,"repost_count":0,"like_count":3,"refs":[{"type":"replied_to","id":"1002"}],"hints":[],"level":0,"via":""}
 {"id":"1002","username":"alice","created_at":"2026-10-15T12:30:00.000Z","text":"lunch: ramen","reply_count":2,"repost_count":1,"like_count":14,"refs":[],"hints":[],"level":1,"via":"2004"}
 ```
@@ -241,56 +263,54 @@ xc thread 3000001
 ```
 
 ```text
-///- --package .
+xc: 2 API requests
+///- --package . --timeout 600000
 ///- --test static
-open testing
-open sm'_operators
-inl each forall a b. (f : a -> b) (l : list a) : list b =
-    listm.foldBack (fun x acc => Cons (f x, acc)) l Nil
-inl keep forall t. (ok : t -> bool) (l : list t) : list t =
-    listm.foldBack (fun x acc => if ok x then Cons (x, acc) else acc) l Nil
-inl spread forall a b. (f : a -> list b) (l : list a) : list b =
-    listm.foldBack (fun x acc => listm.append (f x) acc) l Nil
-inl first_where forall t. (ok : t -> bool) (l : list t) : option t =
-    listm.foldBack (fun x acc => if ok x then Some x else acc) l None
-inl has forall t. (ok : t -> bool) (l : list t) : bool =
-    match first_where ok l with
-    | Some _ => true
-    | None => false
-inl take_first forall t. (n : i32) (l : list t) : list t =
-    let rec go (n : i32) (l : list t) : list t =
-        match l with
-        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)
+:< testing
+:< sm'_operators
+:= each \* a b. (f : a -> b) (l : list a) : list b = listm.foldBack (\ x acc => Cons (f x, acc)) l Nil
+:= keep \* t. (ok : t -> bool) (l : list t) : list t = listm'.filter ok l
+:= spread \* a b. (f : a -> list b) (l : list a) : list b =
+    listm.foldBack (\ x acc => listm.append (f x) acc) l Nil
+:= first_where \* t. (ok : t -> bool) (l : list t) : option t = listm'.try_find_ ok l
+:= has \* t. (ok : t -> bool) (l : list t) : bool = listm'.exists' ok l
+:= take_first \* t. (n : i32) (l : list t) : list t =
+    :~ ^ go (n : i32) (l : list t) : list t =
+        ?= l ?|
+        | Cons (x, xs) ?& n > 0 => Cons (x, go (n - 1) xs)
         | _ => Nil
     go n l
-inl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =
-    match r with
+:= then_ok \* a b e. (f : a -> result b e) (r : result a e) : result b e =
+    ?= r ?|
     | Ok x => f x
     | Error e => Error e
-inl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
-inl cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s
-let rec split_on (sep : string) (s : string) : list string =
-    inl i : i32 = sm'.index_of sep s
-    if i < 0i32 then [s]
-    else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))
-inl pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_on sep s
-let delimited (sep : string) (l : list string) : string = sm'.concat_list sep l
-inl rest_from (i : i32) (s : string) : string = cut i (sm'.length s - i) s
-inl starts_at (prefix : string) (s : string) (i : i32) : bool =
-    if i < 0i32 || i > sm'.length s then false else sm'.starts_with prefix (rest_from i s)
-inl digit_first (rest : string) : bool = has (fun d => sm'.starts_with (sm'.obj_to_string d) rest) (listm.init 10i32 id)
-let rec digits_end (s : string) (i : i32) : i32 =
-    if i < sm'.length s && digit_first (rest_from i s) then digits_end s (i + 1i32) else i
-inl digit_at (i : i32) (text : string) : i32 =
+:= map_ok \* a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
+:= cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s
+:~ ^ split_on (sep : string) (s : string) : list string =
+    := i : i32 = sm'.index_of sep s
+    ? i < 0i32 ?> [s]
+    |: Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))
+:= pieces (sep : string) (s : string) : list string = ? s = "" ?> Nil |: split_on sep s
+:~ delimited (sep : string) (l : list string) : string = sm'.concat_list sep l
+:= rest_from (i : i32) (s : string) : string = cut i (sm'.length s - i) s
+:= first_line (text : string) : string =
+    := i : i32 = sm'.index_of "\n" text
+    ? i < 0i32 ?> text |: cut 0i32 i text
+:= starts_at (prefix : string) (s : string) (i : i32) : bool =
+    ? i < 0i32 || i > sm'.length s ?> !- |: sm'.starts_with prefix (rest_from i s)
+:= digit_first (rest : string) : bool = has (\ d => sm'.starts_with (sm'.obj_to_string d) rest) (listm.init 10i32 id)
+:~ ^ digits_end (s : string) (i : i32) : i32 =
+    ? i < sm'.length s && digit_first (rest_from i s) ?> digits_end s (i + 1i32) |: i
+:= digit_at (i : i32) (text : string) : i32 =
     "0123456789" |> sm'.index_of (sm'.slice i i text)
-let rec digits (text : string) (i : i32) (n : i32) : option i32 =
-    if i >= sm'.length text then Some n
-    else
-        inl d = digit_at i text
-        if d < 0 || n > 100000000 then None else digits text (i + 1) (n * 10 + d)
-inl without_digits (text : string) : string = listm.init 10i32 id |> listm.fold (fun t d => sm'.replace (sm'.obj_to_string d) "" t) text
-let count_of_text (text : string) : option i32 =
-    if text = "" || without_digits text <> "" then None else digits text 0 0
+:~ ^ digits (text : string) (i : i32) (n : i32) : option i32 =
+    ? i >= sm'.length text ?> Some n
+    |:
+        := d = digit_at i text
+        ? d < 0 || n > 100000000 ?> None |: digits text (i + 1) (n * 10 + d)
+:= without_digits (text : string) : string = listm.init 10i32 id |> listm.fold (\ t d => sm'.replace (sm'.obj_to_string d) "" t) text
+:~ count_of_text (text : string) : option i32 =
+    ? text = "" || without_digits text <> "" ?> None |: digits text 0 0
 ```
 
 A post that does not exist:
@@ -301,6 +321,7 @@ xc thread 999; $LASTEXITCODE
 
 ```text
 xc: X API answered 404 for /2/tweets/999?post.fields=conversation_id,author_id,created_at: Could not find post with id: [999].
+xc: 1 API request
 4
 ```
 
@@ -315,6 +336,7 @@ xc timeline quiet
 ```
 
 ```text
+xc: 2 API requests, 0 posts read, 0 shown
 xc: no posts matched
 ```
 
@@ -325,6 +347,7 @@ xc timeline --following mixed --max-following all; $LASTEXITCODE
 ```
 
 ```text
+xc: 6 API requests, 4 posts read, 4 shown
 xc: home timeline of @mixed from 3 followed accounts
 xc: stopped early, showing what was read before: X API answered 429 for /2/users/107/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments: Too Many Requests
 2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
@@ -353,7 +376,8 @@ xc post ('日' * 141); $LASTEXITCODE
 ```
 
 ```text
-(pending)
+xc: X API answered 400 for /2/tweets: Invalid Request: text must be 1 to 280 characters
+4
 ```
 
 ```powershell
@@ -416,54 +440,54 @@ xc post-thread --dry-run checks/checks.spi
 ```
 
 ```text
---- post 1 of 9, weight 72
+--- post 1 of 9, weight 70
 c1 1/1
 ///- --package ..
 ///> rust
 test checks static =
-    open testing
---- post 2 of 9, weight 47
+    :< testing
+--- post 2 of 9, weight 41
 c2 1/1
-open sm'_operators
-open prelude
-open cli
---- post 3 of 9, weight 114
+:< sm'_operators
+:< prelude
+:< cli
+--- post 3 of 9, weight 108
 c3 1/1
-inl count_or_none (t : string) : i32 =
-    match count_of_text t with
+:= count_or_none (t : string) : i32 =
+    ?= count_of_text t ?|
     | Some n => n
     | None => -1i32
---- post 4 of 9, weight 107
+--- post 4 of 9, weight 101
 c4 1/1
-inl text_or_empty (o : option string) : string =
-    match o with
+:= text_or_empty (o : option string) : string =
+    ?= o ?|
     | Some s => s
     | None => ""
---- post 5 of 9, weight 88
+--- post 5 of 9, weight 87
 c5 1/1
-inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
---- post 6 of 9, weight 135
+:= local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
+--- post 6 of 9, weight 129
 c6 1/1
-inl date_or_empty (t : string) : string =
-    if shaped "9999-99-99" t then local_midnight t else text_or_empty (date_of_text t)
---- post 7 of 9, weight 88
+:= date_or_empty (t : string) : string =
+    ? shaped "9999-99-99" t ?> local_midnight t |: text_or_empty (date_of_text t)
+--- post 7 of 9, weight 87
 c7 1/1
-inl username_or_empty (t : string) : string = username_of_text t |> text_or_empty
---- post 8 of 9, weight 268
+:= username_or_empty (t : string) : string = username_of_text t |> text_or_empty
+--- post 8 of 9, weight 265
 c8 1/1
 test counts_and_usernames_have_empty_answers =
-    inl ~t = "12"
+    := ~t = "12"
     count_or_none t |> _assert_eq 12i32
-    (count_or_none "1x" < 0i32) |> _assert_eq true
+    (count_or_none "1x" < 0i32) |> _assert_eq !+
     username_or_empty ("@" ++# "bob") |> _assert_eq "bob"
     username_or_empty "al-ice" |> _assert_eq ""
---- post 9 of 9, weight 273
+--- post 9 of 9, weight 266
 c9 1/1
 ///> _
-inl main () : i32 =
-    !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
-    !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
-    !!!!Export("xc_username", ((fun t => username_or_empty t) : string -> string))
+:= main () : i32 =
+    !!!!Export("xc_count", ((\ t => count_or_none t) : string -> i32))
+    !!!!Export("xc_date", ((\ t => date_or_empty t) : string -> string))
+    !!!!Export("xc_username", ((\ t => username_or_empty t) : string -> string))
     0i32
 --- 9 posts, $0.135 to create
 ```
@@ -493,36 +517,37 @@ xc thread 9003
 ```
 
 ```text
+xc: 2 API requests
 ///- --package ..
 ///> rust
 test checks static =
-    open testing
-open sm'_operators
-open prelude
-open cli
-inl count_or_none (t : string) : i32 =
-    match count_of_text t with
+    :< testing
+:< sm'_operators
+:< prelude
+:< cli
+:= count_or_none (t : string) : i32 =
+    ?= count_of_text t ?|
     | Some n => n
     | None => -1i32
-inl text_or_empty (o : option string) : string =
-    match o with
+:= text_or_empty (o : option string) : string =
+    ?= o ?|
     | Some s => s
     | None => ""
-inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
-inl date_or_empty (t : string) : string =
-    if shaped "9999-99-99" t then local_midnight t else text_or_empty (date_of_text t)
-inl username_or_empty (t : string) : string = username_of_text t |> text_or_empty
+:= local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
+:= date_or_empty (t : string) : string =
+    ? shaped "9999-99-99" t ?> local_midnight t |: text_or_empty (date_of_text t)
+:= username_or_empty (t : string) : string = username_of_text t |> text_or_empty
 test counts_and_usernames_have_empty_answers =
-    inl ~t = "12"
+    := ~t = "12"
     count_or_none t |> _assert_eq 12i32
-    (count_or_none "1x" < 0i32) |> _assert_eq true
+    (count_or_none "1x" < 0i32) |> _assert_eq !+
     username_or_empty ("@" ++# "bob") |> _assert_eq "bob"
     username_or_empty "al-ice" |> _assert_eq ""
 ///> _
-inl main () : i32 =
-    !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
-    !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
-    !!!!Export("xc_username", ((fun t => username_or_empty t) : string -> string))
+:= main () : i32 =
+    !!!!Export("xc_count", ((\ t => count_or_none t) : string -> i32))
+    !!!!Export("xc_date", ((\ t => date_or_empty t) : string -> string))
+    !!!!Export("xc_username", ((\ t => username_or_empty t) : string -> string))
     0i32
 ```
 
@@ -551,7 +576,13 @@ xc post-thread --resume 9101 checks/checks.spi
 ```
 
 ```text
-(pending)
+resumed after post 3 of 9
+posted 9012 c4 1/1
+posted 9013 c5 1/1
+posted 9014 c6 1/1
+posted 9015 c7 1/1
+posted 9016 c8 1/1
+posted 9017 c9 1/1
 ```
 
 A thread whose posts differ from the file is refused before anything is posted:
@@ -561,7 +592,8 @@ xc post-thread --resume 9201 checks/checks.spi; $LASTEXITCODE
 ```
 
 ```text
-(pending)
+xc: post 2 of the thread differs from post 2 of the file (found 'c2 1/1', planned 'c2 1/1'); nothing posted
+4
 ```
 
 ### Renewing the OAuth 2.0 token
@@ -607,6 +639,7 @@ xc timeline broke; $LASTEXITCODE
 ```
 
 ```text
+xc: 2 API requests, 0 posts read, 0 shown
 xc: X API answered 402 for /2/users/106/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments: CreditsDepleted: Your enrolled account does not have any credits to fulfill this request.
 4
 ```
@@ -625,16 +658,17 @@ xc timeline --per-account 500 alice; $LASTEXITCODE
 ```
 
 ```text
-xc: --per-account expects a number from 5 to 100, got '500'
+xc: --per-account expects a number from 1 to 100, got '500'
 usage: xc timeline [options] USERNAME...
        xc timeline [options] [--max-following N|all] --following USERNAME
        xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)
        xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN
        xc thread ID          the program a thread of framed posts (CELL k/n) carries
        xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)
+       xc post-thread --resume ROOT_ID FILE   finish a half-posted thread of FILE after its last post
        xc delete-thread ID   delete your posts of that thread (user credentials)
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
-       --per-account N   posts fetched per account, 5..100 (default 5)
+       --per-account N   posts shown per account, 1..100 (default 5)
        --limit N         timeline entries shown (default 20)
        --per-author N    entries shown per author (default all)
        --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)
@@ -745,7 +779,7 @@ Shared modules, compiled into every crate that opens them:
 | `wire.spi` | `reads r` and `writes r`, GADTs indexed by their reply, so a request determines its reply type; one users read keyed by names or ids; `api app_context` and `api user_context`, so a client built from the app token cannot write; JSON (`serde_json`) primitives; typed failures |
 | `transport.spi` | requests through `xc_net`, reply classification, `id:username` account lines |
 
-Each entry is one Rust crate, and every generated file stays reviewable: `scripts/gate.ps1` fails the build on any file over 1,000 lines, and a crate whose generated file would exceed that is split into `<crate>_partN.rs` modules by `scripts/rust-modules.ps1`. The build also reports the compiler's `--x-compat` findings, so every top-level definition fits one 280-weight post. Crates exchange strings, numbers and tuples:
+Each entry is one Rust crate, and every generated file stays reviewable: `scripts/gate.ps1` fails the build on any file over 1,000 lines. A crate that would exceed that is split by hand into sibling crates that call each other's exports: `api` classifies X replies for every crate that fetches, `chain` reads a thread's pages from `thread`, `cells` and `preview` sit beside `frames`, `select` orders entries for `view` and `jsonl`, `timeline` parses what `args` hands it, and `resume` plans what `write` posts. The build also reports the compiler's `--x-compat` findings, so every top-level definition fits one 280-weight post. Crates exchange strings, numbers and tuples:
 
 | Crate | Entry | Role |
 | --- | --- | --- |

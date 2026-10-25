@@ -4,11 +4,11 @@
         "p2"
     ],
     "program": [
-        "///- --package .",
+        "///- --package . --timeout 600000",
         "",
         "///- --test static",
         "",
-        "open testing"
+        ":< testing"
     ],
     "root": "5000001"
 }

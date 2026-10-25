@@ -1,0 +1,19 @@
+///- --package ..
+///> rust
+test timeline static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< cli
+:< fields
+
+:~ timeline_fields () : command_fields =
+    ?= process_args () ?|
+    | Cons (_, rest) => parse_from (external_checks ()) (seeded_draft ()) rest |> fields_of
+    | Nil => fields_of ShowHelp
+
+///> _
+:= main () : i32 =
+    !!!!Export("xc_timeline_fields", ((\ () => timeline_fields ()) : () -> command_fields))
+    0i32

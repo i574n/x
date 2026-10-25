@@ -26,84 +26,108 @@ pub type Uh4 {
 }
 
 pub type Us0 {
-    Us0Text(f0i0 : String)
-    Us0Whole(f1i0 : Int)
-    Us0Null
+    Us0Some(f0i0 : String)
+    Us0None
+}
+
+pub type Us1 {
+    Us1Text(f0i0 : String)
+    Us1Whole(f1i0 : Int)
+    Us1Null
 }
 
 pub type Uh5 {
     Uh5Nil
-    Uh5Cons(String, Us0, Uh5)
-}
-
-pub type Us1 {
-    Us1Some(f0i0 : Uh5)
-    Us1None
+    Uh5Cons(String, Us1, Uh5)
 }
 
 pub type Us2 {
-    Us2Some(f0i0 : Int)
+    Us2Some(f0i0 : Uh5)
     Us2None
 }
 
 pub type Us3 {
-    Us3Some(f0i0 : String, f0i1 : Us0)
+    Us3Some(f0i0 : Int)
     Us3None
 }
 
 pub type Us4 {
-    Us4Some(f0i0 : String, f0i1 : String)
+    Us4Some(f0i0 : String, f0i1 : Us1)
     Us4None
 }
 
 pub type Us5 {
-    Us5Some(f0i0 : String, f0i1 : Bool, f0i2 : String)
-    Us5None
+    Us5Visible
+    Us5BrokenId
+    Us5Evicting
+    Us5Wanted
+    Us5Result
 }
 
 pub type Us6 {
-    Us6Held
-    Us6Broken(f1i0 : Uh3)
+    Us6Some(f0i0 : Us5)
+    Us6None
 }
 
 pub type Us7 {
-    Us7SequentialEquivalence
-    Us7NoStaleResults
-    Us7OneCompilePerPrefix
-    Us7WithdrawnDemandHidden
-    Us7UnwantedResultsFreed
+    Us7Started
+    Us7Cancelled
+    Us7Evicted
+}
+
+pub type Us8 {
+    Us8Some(f0i0 : Us7)
+    Us8None
+}
+
+pub type Us10 {
+    Us10PlainRow(f0i0 : Us5)
+    Us10TallyRow(f1i0 : Us7)
+}
+
+pub type Us9 {
+    Us9Some(f0i0 : Us10)
+    Us9None
+}
+
+pub type Us11 {
+    Us11Some(f0i0 : String, f0i1 : Bool, f0i2 : String)
+    Us11None
+}
+
+pub type Us12 {
+    Us12Held
+    Us12Broken(f1i0 : Uh3)
+}
+
+pub type Us13 {
+    Us13SequentialEquivalence
+    Us13NoStaleResults
+    Us13OneCompilePerPrefix
+    Us13WithdrawnDemandHidden
+    Us13UnwantedResultsFreed
 }
 
 pub type Uh6 {
     Uh6Nil
-    Uh6Cons(Us7, Us6, Uh6)
+    Uh6Cons(Us13, Us12, Uh6)
 }
 
-pub type Us8 {
-    Us8Some(f0i0 : String, f0i1 : String, f0i2 : Bool, f0i3 : String)
-    Us8None
-}
-
-pub type Us9 {
-    Us9Some(f0i0 : String)
-    Us9None
-}
-
-pub type Us10 {
-    Us10Lurker
-    Us10Fickle
-    Us10Editor
-    Us10Breaker
+pub type Us14 {
+    Us14Lurker
+    Us14Fickle
+    Us14Editor
+    Us14Breaker
 }
 
 pub type Uh7 {
     Uh7Nil
-    Uh7Cons(Us10, Uh7)
+    Uh7Cons(Us14, Uh7)
 }
 
-pub type Us11 {
-    Us11Some(f0i0 : Us10)
-    Us11None
+pub type Us15 {
+    Us15Some(f0i0 : Us14)
+    Us15None
 }
 
 pub type Uh8 {
@@ -113,34 +137,34 @@ pub type Uh8 {
 
 pub type Uh9 {
     Uh9Nil
-    Uh9Cons(String, Us9, String, Uh9)
+    Uh9Cons(String, Us0, String, Uh9)
 }
 
-pub type Us13 {
-    Us13Posted(f0i0 : String, f0i1 : Us9, f0i2 : String)
-    Us13Framed(f1i0 : String, f1i1 : Us9, f1i2 : Int, f1i3 : Int, f1i4 : String)
+pub type Us17 {
+    Us17Posted(f0i0 : String, f0i1 : Us0, f0i2 : String)
+    Us17Framed(f1i0 : String, f1i1 : Us0, f1i2 : Int, f1i3 : Int, f1i4 : String)
 }
 
-pub type Us14 {
-    Us14Edited(f0i0 : String, f0i1 : String)
-    Us14FrameEdited(f1i0 : String, f1i1 : Int, f1i2 : Int, f1i3 : Int, f1i4 : String)
-    Us14Deleted(f2i0 : String)
+pub type Us18 {
+    Us18Edited(f0i0 : String, f0i1 : String)
+    Us18FrameEdited(f1i0 : String, f1i1 : Int, f1i2 : Int, f1i3 : Int, f1i4 : String)
+    Us18Deleted(f2i0 : String)
 }
 
-pub type Us15 {
-    Us15Liked(f0i0 : String, f0i1 : String)
-    Us15Unliked(f1i0 : String, f1i1 : String)
+pub type Us19 {
+    Us19Liked(f0i0 : String, f0i1 : String)
+    Us19Unliked(f1i0 : String, f1i1 : String)
 }
 
-pub type Us12 {
-    Us12Content(f0i0 : Us13)
-    Us12Revision(f1i0 : Us14)
-    Us12Reaction(f2i0 : Us15)
+pub type Us16 {
+    Us16Content(f0i0 : Us17)
+    Us16Revision(f1i0 : Us18)
+    Us16Reaction(f2i0 : Us19)
 }
 
 pub type Uh10 {
     Uh10Nil
-    Uh10Cons(Us12, Uh10)
+    Uh10Cons(Us16, Uh10)
 }
 
 pub type Uh11 {
@@ -158,9 +182,9 @@ pub type Uh13 {
     Uh13Cons(Int, Uh13)
 }
 
-pub type Us16 {
-    Us16Some(f0i0 : String, f0i1 : Us9, f0i2 : String)
-    Us16None
+pub type Us20 {
+    Us20Some(f0i0 : String, f0i1 : Us0, f0i2 : String)
+    Us20None
 }
 
 pub type Uh14 {
@@ -170,27 +194,27 @@ pub type Uh14 {
 
 pub type Uh15 {
     Uh15Nil
-    Uh15Cons(Int, Us12, Uh15)
+    Uh15Cons(Int, Us16, Uh15)
 }
 
-pub type Us17 {
-    Us17Ok(f0i0 : Uh15)
-    Us17Error(f1i0 : String)
+pub type Us21 {
+    Us21Ok(f0i0 : Uh15)
+    Us21Error(f1i0 : String)
 }
 
-pub type Us18 {
-    Us18Ok(f0i0 : Int, f0i1 : Us12)
-    Us18Error(f1i0 : String)
+pub type Us22 {
+    Us22Ok(f0i0 : Int, f0i1 : Us16)
+    Us22Error(f1i0 : String)
 }
 
-pub type Us19 {
-    Us19Some(f0i0 : Us12)
-    Us19None
+pub type Us23 {
+    Us23Some(f0i0 : Us16)
+    Us23None
 }
 
 pub type Uh16 {
     Uh16Nil
-    Uh16Cons(Int, Int, Us12, Uh16)
+    Uh16Cons(Int, Int, Us16, Uh16)
 }
 
 pub type Uh17 {
@@ -208,14 +232,14 @@ pub type Uh19 {
     Uh19Cons(Int, Int, String, Uh19)
 }
 
-pub type Us20 {
-    Us20Some(f0i0 : String, f0i1 : Int)
-    Us20None
+pub type Us24 {
+    Us24Some(f0i0 : String, f0i1 : Int)
+    Us24None
 }
 
 pub type Uh20 {
     Uh20Nil
-    Uh20Cons(String, Us9, Uh3, Bool, Uh20)
+    Uh20Cons(String, Us0, Uh3, Bool, Uh20)
 }
 
 pub type Uh21 {
@@ -223,24 +247,19 @@ pub type Uh21 {
     Uh21Cons(String, Uh3, Uh21)
 }
 
-pub type Us21 {
-    Us21Some(f0i0 : String, f0i1 : Uh3)
-    Us21None
-}
-
-pub type Us22 {
-    Us22Some(f0i0 : String)
-    Us22None
+pub type Us25 {
+    Us25Some(f0i0 : String)
+    Us25None
 }
 
 pub type Uh22 {
     Uh22Nil
-    Uh22Cons(String, Us22, Uh3, Uh22)
+    Uh22Cons(String, Us25, Uh3, Uh22)
 }
 
-pub type Us23 {
-    Us23Some(f0i0 : String)
-    Us23None
+pub type Us26 {
+    Us26Some(f0i0 : String)
+    Us26None
 }
 
 pub type Uh24 {
@@ -250,7 +269,7 @@ pub type Uh24 {
 
 pub type Uh23 {
     Uh23Nil
-    Uh23Cons(String, String, Int, Int, Us23, Uh24, Uh23)
+    Uh23Cons(String, String, Int, Int, Us26, Uh24, Uh23)
 }
 
 pub type Uh25 {
@@ -268,19 +287,14 @@ pub type Uh27 {
     Uh27Cons(String, Uh27)
 }
 
-pub type Us24 {
-    Us24Some(f0i0 : String, f0i1 : String)
-    Us24None
+pub type Us27 {
+    Us27Some(f0i0 : String, f0i1 : String)
+    Us27None
 }
 
-pub type Us25 {
-    Us25Some(f0i0 : String, f0i1 : String, f0i2 : Int, f0i3 : Int, f0i4 : Us23, f0i5 : Uh24)
-    Us25None
-}
-
-pub type Us26 {
-    Us26Some(f0i0 : String, f0i1 : Us22, f0i2 : Uh3)
-    Us26None
+pub type Us28 {
+    Us28Some(f0i0 : String, f0i1 : String, f0i2 : Int, f0i3 : Int, f0i4 : Us26, f0i5 : Uh24)
+    Us28None
 }
 
 pub type Uh28 {

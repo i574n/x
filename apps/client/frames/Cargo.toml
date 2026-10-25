@@ -13,6 +13,7 @@ name = "xc_frames"
 path = "frames.rs"
 
 [dependencies]
+xc_cells = { path = "../cells" }
 serde_json = { workspace = true }
 unicode-normalization = "0.1"
 unicode-segmentation = "1.13"

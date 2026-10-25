@@ -20,13 +20,18 @@ modules:
     posts
     reading
     cli
+    fields
     oauth1
     wire
     transport
     net/
         net
+    api/
+        api
     checks/
         checks
+    timeline/
+        timeline
     args/
         args
     users/
@@ -35,10 +40,14 @@ modules:
         fetch
     refs/
         refs
+    resume/
+        resume
     write/
         write
     digest/
         digest
+    select/
+        select
     view/
         view
     jsonl/
@@ -47,8 +56,14 @@ modules:
         token
     thread/
         thread
+    chain/
+        chain
+    cells/
+        cells
     frames/
         frames
+    preview/
+        preview
     simframes/
         simframes
     locate/

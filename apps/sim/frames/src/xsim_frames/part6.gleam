@@ -1,24 +1,781 @@
-import gleam/bit_array
-import gleam/list
 import gleam/string
-import xsim_frames/types.{type Uh3, type Uh5, type Us9, type Uh9, type Us12, type Uh10, type Uh15, type Us17, type Us18, type Uh16, type Uh18, Global, Uh10Cons, Uh10Nil, Uh15Cons, Uh15Nil, Uh16Cons, Uh16Nil, Uh18Cons, Uh18Nil, Uh3Cons, Uh3Nil, Uh5Nil, Uh7Nil, Uh8Nil, Us0Text, Us12Content, Us12Reaction, Us12Revision, Us13Framed, Us13Posted, Us14Deleted, Us14Edited, Us14FrameEdited, Us15Liked, Us15Unliked, Us17Error, Us17Ok, Us18Error, Us18Ok, Us19None, Us19Some, Us1None, Us1Some, Us9None, Us9Some}
-import xsim_frames/part1.{count_at_13, fields_from_4, spiral_binary_split_first, spiral_string_length, spiral_string_slice, spiral_wrap_signed, spiral_wrap_unsigned, split_on_2, text_at_10, value_of_11, x_binary_split, x_light, x_spaced}
-import xsim_frames/part2.{delimited_34, method37}
-import xsim_frames/part3.{listed_pieces_52, method46, method47, method48, method49, method53, seeded_59, uniform_62}
-import xsim_frames/part4.{break_source_75}
-import xsim_frames/part5.{from_cells_56, from_corpus_54, method106, method107, stream_108}
+import xsim_frames/types.{type Uh3, type Us0, type Uh5, type Uh7, type Uh8, type Uh9, type Us16, type Uh10, type Uh11, type Uh14, type Uh15, Global, Uh10Cons, Uh10Nil, Uh11Cons, Uh11Nil, Uh12Nil, Uh14Cons, Uh14Nil, Uh15Cons, Uh15Nil, Uh3Cons, Uh3Nil, Uh7Nil, Uh8Cons, Uh8Nil, Uh9Cons, Uh9Nil, Us0None, Us0Some, Us16Content, Us16Reaction, Us16Revision, Us17Framed, Us17Posted, Us18Deleted, Us18Edited, Us18FrameEdited, Us19Liked, Us19Unliked, Us1Text}
+import xsim_frames/part1.{spiral_string_length, spiral_string_slice, spiral_wrap_signed, spiral_wrap_unsigned, split_on_2, unicode_erlang_characters_to_binary, x_binary_split}
+import xsim_frames/part2.{concat_balanced_20, delimited_19, method15, value_of_11}
+import xsim_frames/part4.{listed_pieces_58, method52, method53, method54, method55, method59, method63, method64, method67, method72, method73, method74, method75, method76, method77, seeded_65}
+import xsim_frames/part5.{method100, method101, method104, method80, method86, method95, method99, persona_events_87, round_robin_93}
 
-pub fn raw_scenario_105(_v0: Uh9, v1: Uh10, v2: Uh3) -> #(String, Uh3) {
+pub fn woven_103(v0: Int, v1: Int, v2: Uh10, v3: Uh10, v4: Uh10) -> Uh10 {
+    case v3  {
+        Uh10Cons(v8, v9) -> {
+            let v10 = spiral_wrap_signed(v1 + 1, 32)
+            let #(v23, v24, v25, v26) =
+                case v2  {
+                    Uh10Cons(v11, v12) -> {
+                        let v13 = v10 % v0
+                        let v14 = v13 == 0
+                        case v14 {
+                            True -> {
+                                let v15 = Uh10Cons(v8, v4)
+                                let v16 = Uh10Cons(v11, v15)
+                                #(v0, v10, v12, v16)
+                            }
+                            False -> {
+                                let v17 = Uh10Cons(v8, v4)
+                                #(v0, v10, v2, v17)
+                            }
+                        }
+                    }
+                    _ -> {
+                        let v22 = Uh10Cons(v8, v4)
+                        #(v0, v10, v2, v22)
+                    }
+                }
+            woven_103(v23, v24, v25, v9, v26)
+        }
+        Uh10Nil -> {
+            let v5 = Uh10Nil
+            let v6 = method104(v4, v5)
+            method74(v6, v2)
+        }
+    }
+}
+
+pub fn method105(v0: Uh10, v1: Uh3) -> Uh3 {
+    case v0  {
+        Uh10Cons(v2, v3) -> {
+            let v4 = method105(v3, v1)
+            let v13 =
+                case v2  {
+                    Us16Revision(v5) -> {
+                        case v5  {
+                            Us18Edited(v6, v7) -> {
+                                let v8 = Uh3Nil
+                                Uh3Cons(v7, v8)
+                            }
+                            _ -> {
+                                Uh3Nil
+                            }
+                        }
+                    }
+                    _ -> {
+                        Uh3Nil
+                    }
+                }
+            method15(v13, v4)
+        }
+        Uh10Nil -> {
+            v1
+        }
+    }
+}
+
+pub fn from_cells_62(v0: Int, v1: Int, v2: Int, v3: Int, v4: Int, v5: Uh7, v6: Bool, v7: String, v8: Uh3) -> #(Uh9, Uh10, Uh3) {
+    let v9 = Uh9Nil
+    let v10 = Us0None
+    let v11 = 0
+    let #(v12, _v13, _v14) = method63(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
+    let v15 = Uh9Nil
+    let v16 = method64(v12, v15)
+    let v17 = spiral_wrap_signed(v0 * 7, 32)
+    let v18 = spiral_wrap_signed(v17 + 1, 32)
+    let v19 = spiral_wrap_signed(v0 * 13, 32)
+    let v20 = spiral_wrap_signed(v19 + 3, 32)
+    let v21 = spiral_wrap_unsigned(v0, 64)
+    let v22 = spiral_wrap_unsigned(v18, 64)
+    let v23 = spiral_wrap_unsigned(v20, 64)
+    let #(v24, v25) = seeded_65(v21, v22, v23)
+    let v26 = Uh12Nil
+    let #(v27, v28, v29) = method67(v1, v16, v26, v24, v25)
+    let v30 = Uh12Nil
+    let v31 = method72(v27, v30)
+    let v32 = Uh10Nil
+    let #(v33, v34, v35) = method73(v31, v32, v28, v29)
+    let v36 = Uh9Nil
+    let v37 = method75(v16, v36)
+    let #(v45, v46, v47) =
+        case v37  {
+            Uh9Nil -> {
+                let v38 = Uh10Nil
+                #(v38, v34, v35)
+            }
+            _ -> {
+                let v39 = 0
+                let v40 = method76(v2, v39)
+                let v41 = Uh10Nil
+                method77(v37, v40, v41, v34, v35)
+            }
+        }
+    let v48 = Uh9Nil
+    let v49 = method80(v16, v48)
+    let #(v57, v58, v59) =
+        case v49  {
+            Uh9Nil -> {
+                let v50 = Uh10Nil
+                #(v50, v46, v47)
+            }
+            _ -> {
+                let v51 = 0
+                let v52 = method76(v3, v51)
+                let v53 = Uh10Nil
+                method86(v49, v52, v53, v46, v47)
+            }
+        }
+    let #(v60, v61, _v62, _v63) = persona_events_87(v16, v5, v58, v59)
+    let v64 = Uh10Nil
+    let v65 = method99(v16, v64)
+    let v66 = Uh10Nil
+    let v67 = method100(v31, v66)
+    let v68 = method74(v33, v60)
+    let v69 = method74(v57, v68)
+    let v70 = method74(v45, v69)
+    let v71 = method74(v67, v70)
+    let v80 =
+        case v16  {
+            Uh9Cons(v72, v73, v74, v75) -> {
+                let v76 = 0
+                method101(v4, v72, v73, v74, v76)
+            }
+            Uh9Nil -> {
+                Uh10Nil
+            }
+        }
+    let v92 =
+        case v80  {
+            Uh10Nil -> {
+                v71
+            }
+            _ -> {
+                let v81 = 0
+                let v82 = method95(v71, v81)
+                let v83 = 0
+                let v84 = method95(v80, v83)
+                let v85 = spiral_wrap_signed(v84 + 1, 32)
+                let v86 = v82 / v85
+                let v87 = v86 < 1
+                let v88 =
+                    case v87 {
+                        True -> {
+                            1
+                        }
+                        False -> {
+                            v86
+                        }
+                    }
+                let v89 = 0
+                let v90 = Uh10Nil
+                woven_103(v88, v89, v80, v71, v90)
+            }
+        }
+    let v93 = method74(v65, v92)
+    let v94 = Uh3Nil
+    let v95 = method105(v57, v94)
+    let v96 = method15(v95, v61)
+    #(v16, v93, v96)
+}
+
+pub fn method106(v0: Uh11, v1: Uh11) -> Uh11 {
+    case v0  {
+        Uh11Cons(v2, v3, v4, v5) -> {
+            let v6 = method106(v5, v1)
+            Uh11Cons(v2, v3, v4, v6)
+        }
+        Uh11Nil -> {
+            v1
+        }
+    }
+}
+
+pub fn method61(v0: Int, v1: Int, v2: Int, v3: Int, v4: Int, v5: Uh7, v6: Bool, v7: Uh8, v8: Uh11, v9: Int) -> #(Uh11, Int) {
+    let #(v27, v28) =
+        case v7  {
+            Uh8Cons(v10, v11) -> {
+                let v12 = spiral_wrap_signed(v0 + v9, 32)
+                let v13 = string.inspect(v9)
+                let v14 = "f"
+                let v15 = v14 <> v13 
+                let #(v16, v17, v18) = from_cells_62(v12, v1, v2, v3, v4, v5, v6, v15, v10)
+                let v19 = Uh11Nil
+                let v20 = Uh11Cons(v16, v17, v18, v19)
+                let v21 = method106(v8, v20)
+                let v22 = spiral_wrap_signed(v9 + 1, 32)
+                method61(v0, v1, v2, v3, v4, v5, v6, v11, v21, v22)
+            }
+            _ -> {
+                let #(v25, v26) =
+                    case v7  {
+                        Uh8Nil -> {
+                            #(v8, v9)
+                        }
+                        _ -> panic as "spiral: union case ruled out by partial evaluation"
+                    }
+                #(v25, v26)
+            }
+        }
+    #(v27, v28)
+}
+
+pub fn method107(v0: Uh11, v1: Uh14) -> Uh14 {
+    case v0  {
+        Uh11Cons(v2, v3, v4, v5) -> {
+            let v6 = method107(v5, v1)
+            Uh14Cons(v3, v6)
+        }
+        Uh11Nil -> {
+            v1
+        }
+    }
+}
+
+pub fn method109(v0: Uh9, v1: Uh9) -> Uh9 {
+    case v0  {
+        Uh9Cons(v2, v3, v4, v5) -> {
+            let v6 = method109(v5, v1)
+            Uh9Cons(v2, v3, v4, v6)
+        }
+        Uh9Nil -> {
+            v1
+        }
+    }
+}
+
+pub fn method108(v0: Uh11, v1: Uh9) -> Uh9 {
+    case v0  {
+        Uh11Cons(v2, v3, v4, v5) -> {
+            let v6 = method108(v5, v1)
+            method109(v2, v6)
+        }
+        Uh11Nil -> {
+            v1
+        }
+    }
+}
+
+pub fn method110(v0: Uh11, v1: Uh3) -> Uh3 {
+    case v0  {
+        Uh11Cons(v2, v3, v4, v5) -> {
+            let v6 = method110(v5, v1)
+            method15(v4, v6)
+        }
+        Uh11Nil -> {
+            v1
+        }
+    }
+}
+
+pub fn from_corpus_60(v0: Int, v1: Int, v2: Int, v3: Int, v4: Int, v5: Uh7, v6: Bool, v7: Uh8) -> #(Uh9, Uh10, Uh3) {
+    let v8 = Uh11Nil
+    let v9 = 0
+    let #(v10, _v11) = method61(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9)
+    let v12 = Uh14Nil
+    let v13 = method107(v10, v12)
+    let v14 = Uh10Nil
+    let v15 = round_robin_93(v13, v14)
+    let v16 = Uh9Nil
+    let v17 = method108(v10, v16)
+    let v18 = Uh3Nil
+    let v19 = method110(v10, v18)
+    #(v17, v15, v19)
+}
+
+pub fn method112(v0: Uh10, v1: Uh15, v2: Int) -> #(Uh15, Int) {
+    case v0  {
+        Uh10Cons(v3, v4) -> {
+            let v5 = spiral_wrap_signed(v2 + 1, 32)
+            let v6 = Uh15Cons(v2, v3, v1)
+            method112(v4, v6, v5)
+        }
+        Uh10Nil -> {
+            #(v1, v2)
+        }
+    }
+}
+
+pub fn method113(v0: Uh15, v1: Uh15) -> Uh15 {
+    case v0  {
+        Uh15Cons(v2, v3, v4) -> {
+            let v5 = Uh15Cons(v2, v3, v1)
+            method113(v4, v5)
+        }
+        Uh15Nil -> {
+            v1
+        }
+    }
+}
+
+pub fn without_controls_118(v0: String) -> String {
+    let v1 = unicode_erlang_characters_to_binary([0])
+    let v2 = "\\u00"
+    let v3 = "0"
+    let v4 = v2 <> v3 
+    let v5 = v4 <> v3 
+    let v6 = v0 |> string.replace(v1, v5)
+    let v7 = unicode_erlang_characters_to_binary([1])
+    let v8 = v2 <> v3 
+    let v9 = "1"
+    let v10 = v8 <> v9 
+    let v11 = v6 |> string.replace(v7, v10)
+    let v12 = unicode_erlang_characters_to_binary([2])
+    let v13 = v2 <> v3 
+    let v14 = "2"
+    let v15 = v13 <> v14 
+    let v16 = v11 |> string.replace(v12, v15)
+    let v17 = unicode_erlang_characters_to_binary([3])
+    let v18 = v2 <> v3 
+    let v19 = "3"
+    let v20 = v18 <> v19 
+    let v21 = v16 |> string.replace(v17, v20)
+    let v22 = unicode_erlang_characters_to_binary([4])
+    let v23 = v2 <> v3 
+    let v24 = "4"
+    let v25 = v23 <> v24 
+    let v26 = v21 |> string.replace(v22, v25)
+    let v27 = unicode_erlang_characters_to_binary([5])
+    let v28 = v2 <> v3 
+    let v29 = "5"
+    let v30 = v28 <> v29 
+    let v31 = v26 |> string.replace(v27, v30)
+    let v32 = unicode_erlang_characters_to_binary([6])
+    let v33 = v2 <> v3 
+    let v34 = "6"
+    let v35 = v33 <> v34 
+    let v36 = v31 |> string.replace(v32, v35)
+    let v37 = unicode_erlang_characters_to_binary([7])
+    let v38 = v2 <> v3 
+    let v39 = "7"
+    let v40 = v38 <> v39 
+    let v41 = v36 |> string.replace(v37, v40)
+    let v42 = unicode_erlang_characters_to_binary([8])
+    let v43 = "\\b"
+    let v44 = v41 |> string.replace(v42, v43)
+    let v45 = unicode_erlang_characters_to_binary([9])
+    let v46 = "\\t"
+    let v47 = v44 |> string.replace(v45, v46)
+    let v48 = unicode_erlang_characters_to_binary([10])
+    let v49 = "\\n"
+    let v50 = v47 |> string.replace(v48, v49)
+    let v51 = unicode_erlang_characters_to_binary([11])
+    let v52 = v2 <> v3 
+    let v53 = "b"
+    let v54 = v52 <> v53 
+    let v55 = v50 |> string.replace(v51, v54)
+    let v56 = unicode_erlang_characters_to_binary([12])
+    let v57 = "\\f"
+    let v58 = v55 |> string.replace(v56, v57)
+    let v59 = unicode_erlang_characters_to_binary([13])
+    let v60 = "\\r"
+    let v61 = v58 |> string.replace(v59, v60)
+    let v62 = unicode_erlang_characters_to_binary([14])
+    let v63 = v2 <> v3 
+    let v64 = "e"
+    let v65 = v63 <> v64 
+    let v66 = v61 |> string.replace(v62, v65)
+    let v67 = unicode_erlang_characters_to_binary([15])
+    let v68 = v2 <> v3 
+    let v69 = "f"
+    let v70 = v68 <> v69 
+    let v71 = v66 |> string.replace(v67, v70)
+    let v72 = unicode_erlang_characters_to_binary([16])
+    let v73 = v2 <> v9 
+    let v74 = v73 <> v3 
+    let v75 = v71 |> string.replace(v72, v74)
+    let v76 = unicode_erlang_characters_to_binary([17])
+    let v77 = v2 <> v9 
+    let v78 = v77 <> v9 
+    let v79 = v75 |> string.replace(v76, v78)
+    let v80 = unicode_erlang_characters_to_binary([18])
+    let v81 = v2 <> v9 
+    let v82 = v81 <> v14 
+    let v83 = v79 |> string.replace(v80, v82)
+    let v84 = unicode_erlang_characters_to_binary([19])
+    let v85 = v2 <> v9 
+    let v86 = v85 <> v19 
+    let v87 = v83 |> string.replace(v84, v86)
+    let v88 = unicode_erlang_characters_to_binary([20])
+    let v89 = v2 <> v9 
+    let v90 = v89 <> v24 
+    let v91 = v87 |> string.replace(v88, v90)
+    let v92 = unicode_erlang_characters_to_binary([21])
+    let v93 = v2 <> v9 
+    let v94 = v93 <> v29 
+    let v95 = v91 |> string.replace(v92, v94)
+    let v96 = unicode_erlang_characters_to_binary([22])
+    let v97 = v2 <> v9 
+    let v98 = v97 <> v34 
+    let v99 = v95 |> string.replace(v96, v98)
+    let v100 = unicode_erlang_characters_to_binary([23])
+    let v101 = v2 <> v9 
+    let v102 = v101 <> v39 
+    let v103 = v99 |> string.replace(v100, v102)
+    let v104 = unicode_erlang_characters_to_binary([24])
+    let v105 = v2 <> v9 
+    let v106 = "8"
+    let v107 = v105 <> v106 
+    let v108 = v103 |> string.replace(v104, v107)
+    let v109 = unicode_erlang_characters_to_binary([25])
+    let v110 = v2 <> v9 
+    let v111 = "9"
+    let v112 = v110 <> v111 
+    let v113 = v108 |> string.replace(v109, v112)
+    let v114 = unicode_erlang_characters_to_binary([26])
+    let v115 = v2 <> v9 
+    let v116 = "a"
+    let v117 = v115 <> v116 
+    let v118 = v113 |> string.replace(v114, v117)
+    let v119 = unicode_erlang_characters_to_binary([27])
+    let v120 = v2 <> v9 
+    let v121 = v120 <> v53 
+    let v122 = v118 |> string.replace(v119, v121)
+    let v123 = unicode_erlang_characters_to_binary([28])
+    let v124 = v2 <> v9 
+    let v125 = "c"
+    let v126 = v124 <> v125 
+    let v127 = v122 |> string.replace(v123, v126)
+    let v128 = unicode_erlang_characters_to_binary([29])
+    let v129 = v2 <> v9 
+    let v130 = "d"
+    let v131 = v129 <> v130 
+    let v132 = v127 |> string.replace(v128, v131)
+    let v133 = unicode_erlang_characters_to_binary([30])
+    let v134 = v2 <> v9 
+    let v135 = v134 <> v64 
+    let v136 = v132 |> string.replace(v133, v135)
+    let v137 = unicode_erlang_characters_to_binary([31])
+    let v138 = v2 <> v9 
+    let v139 = v138 <> v69 
+    let v140 = v136 |> string.replace(v137, v139)
+    v140
+}
+
+pub fn quoted_117(v0: String) -> String {
+    let v1 = "\\"
+    let v2 = "\\\\"
+    let v3 = v0 |> string.replace(v1, v2)
+    let v4 = "\""
+    let v5 = "\\\""
+    let v6 = v3 |> string.replace(v4, v5)
+    let v7 = without_controls_118(v6)
+    let v8 = v4 <> v7 
+    let v9 = v8 <> v4 
+    v9
+}
+
+pub fn encoded_116(v0: Int, v1: Us16) -> String {
+    let v266 =
+        case v1  {
+            Us16Content(v2) -> {
+                case v2  {
+                    Us17Framed(v42, v43, v44, v45, v46) -> {
+                        let v47 = string.inspect(v0)
+                        let v48 = "at"
+                        let v49 = quoted_117(v48)
+                        let v50 = ":"
+                        let v51 = v49 <> v50 
+                        let v52 = v51 <> v47 
+                        let v53 = quoted_117(v46)
+                        let v54 = "body"
+                        let v55 = quoted_117(v54)
+                        let v56 = v55 <> v50 
+                        let v57 = v56 <> v53 
+                        let v58 = string.inspect(v44)
+                        let v59 = "k"
+                        let v60 = quoted_117(v59)
+                        let v61 = v60 <> v50 
+                        let v62 = v61 <> v58 
+                        let v63 = "frame"
+                        let v64 = quoted_117(v63)
+                        let v65 = "kind"
+                        let v66 = quoted_117(v65)
+                        let v67 = v66 <> v50 
+                        let v68 = v67 <> v64 
+                        let v69 = string.inspect(v45)
+                        let v70 = "n"
+                        let v71 = quoted_117(v70)
+                        let v72 = v71 <> v50 
+                        let v73 = v72 <> v69 
+                        let v78 =
+                            case v43  {
+                                Us0None -> {
+                                    let v76 = "null"
+                                    v76
+                                }
+                                Us0Some(v74) -> {
+                                    quoted_117(v74)
+                                }
+                            }
+                        let v79 = "parent"
+                        let v80 = quoted_117(v79)
+                        let v81 = v80 <> v50 
+                        let v82 = v81 <> v78 
+                        let v83 = quoted_117(v42)
+                        let v84 = "post"
+                        let v85 = quoted_117(v84)
+                        let v86 = v85 <> v50 
+                        let v87 = v86 <> v83 
+                        let v88 = Uh3Nil
+                        let v89 = Uh3Cons(v87, v88)
+                        let v90 = Uh3Cons(v82, v89)
+                        let v91 = Uh3Cons(v73, v90)
+                        let v92 = Uh3Cons(v68, v91)
+                        let v93 = Uh3Cons(v62, v92)
+                        let v94 = Uh3Cons(v57, v93)
+                        Uh3Cons(v52, v94)
+                    }
+                    Us17Posted(v3, v4, v5) -> {
+                        let v6 = string.inspect(v0)
+                        let v7 = "at"
+                        let v8 = quoted_117(v7)
+                        let v9 = ":"
+                        let v10 = v8 <> v9 
+                        let v11 = v10 <> v6 
+                        let v12 = "post"
+                        let v13 = quoted_117(v12)
+                        let v14 = "kind"
+                        let v15 = quoted_117(v14)
+                        let v16 = v15 <> v9 
+                        let v17 = v16 <> v13 
+                        let v22 =
+                            case v4  {
+                                Us0None -> {
+                                    let v20 = "null"
+                                    v20
+                                }
+                                Us0Some(v18) -> {
+                                    quoted_117(v18)
+                                }
+                            }
+                        let v23 = "parent"
+                        let v24 = quoted_117(v23)
+                        let v25 = v24 <> v9 
+                        let v26 = v25 <> v22 
+                        let v27 = quoted_117(v3)
+                        let v28 = quoted_117(v12)
+                        let v29 = v28 <> v9 
+                        let v30 = v29 <> v27 
+                        let v31 = quoted_117(v5)
+                        let v32 = "source"
+                        let v33 = quoted_117(v32)
+                        let v34 = v33 <> v9 
+                        let v35 = v34 <> v31 
+                        let v36 = Uh3Nil
+                        let v37 = Uh3Cons(v35, v36)
+                        let v38 = Uh3Cons(v30, v37)
+                        let v39 = Uh3Cons(v26, v38)
+                        let v40 = Uh3Cons(v17, v39)
+                        Uh3Cons(v11, v40)
+                    }
+                }
+            }
+            Us16Reaction(v203) -> {
+                case v203  {
+                    Us19Liked(v204, v205) -> {
+                        let v206 = string.inspect(v0)
+                        let v207 = "at"
+                        let v208 = quoted_117(v207)
+                        let v209 = ":"
+                        let v210 = v208 <> v209 
+                        let v211 = v210 <> v206 
+                        let v212 = "like"
+                        let v213 = quoted_117(v212)
+                        let v214 = "kind"
+                        let v215 = quoted_117(v214)
+                        let v216 = v215 <> v209 
+                        let v217 = v216 <> v213 
+                        let v218 = quoted_117(v204)
+                        let v219 = "post"
+                        let v220 = quoted_117(v219)
+                        let v221 = v220 <> v209 
+                        let v222 = v221 <> v218 
+                        let v223 = quoted_117(v205)
+                        let v224 = "user"
+                        let v225 = quoted_117(v224)
+                        let v226 = v225 <> v209 
+                        let v227 = v226 <> v223 
+                        let v228 = Uh3Nil
+                        let v229 = Uh3Cons(v227, v228)
+                        let v230 = Uh3Cons(v222, v229)
+                        let v231 = Uh3Cons(v217, v230)
+                        Uh3Cons(v211, v231)
+                    }
+                    Us19Unliked(v233, v234) -> {
+                        let v235 = string.inspect(v0)
+                        let v236 = "at"
+                        let v237 = quoted_117(v236)
+                        let v238 = ":"
+                        let v239 = v237 <> v238 
+                        let v240 = v239 <> v235 
+                        let v241 = "unlike"
+                        let v242 = quoted_117(v241)
+                        let v243 = "kind"
+                        let v244 = quoted_117(v243)
+                        let v245 = v244 <> v238 
+                        let v246 = v245 <> v242 
+                        let v247 = quoted_117(v233)
+                        let v248 = "post"
+                        let v249 = quoted_117(v248)
+                        let v250 = v249 <> v238 
+                        let v251 = v250 <> v247 
+                        let v252 = quoted_117(v234)
+                        let v253 = "user"
+                        let v254 = quoted_117(v253)
+                        let v255 = v254 <> v238 
+                        let v256 = v255 <> v252 
+                        let v257 = Uh3Nil
+                        let v258 = Uh3Cons(v256, v257)
+                        let v259 = Uh3Cons(v251, v258)
+                        let v260 = Uh3Cons(v246, v259)
+                        Uh3Cons(v240, v260)
+                    }
+                }
+            }
+            Us16Revision(v98) -> {
+                case v98  {
+                    Us18Deleted(v178) -> {
+                        let v179 = string.inspect(v0)
+                        let v180 = "at"
+                        let v181 = quoted_117(v180)
+                        let v182 = ":"
+                        let v183 = v181 <> v182 
+                        let v184 = v183 <> v179 
+                        let v185 = "delete"
+                        let v186 = quoted_117(v185)
+                        let v187 = "kind"
+                        let v188 = quoted_117(v187)
+                        let v189 = v188 <> v182 
+                        let v190 = v189 <> v186 
+                        let v191 = quoted_117(v178)
+                        let v192 = "post"
+                        let v193 = quoted_117(v192)
+                        let v194 = v193 <> v182 
+                        let v195 = v194 <> v191 
+                        let v196 = Uh3Nil
+                        let v197 = Uh3Cons(v195, v196)
+                        let v198 = Uh3Cons(v190, v197)
+                        Uh3Cons(v184, v198)
+                    }
+                    Us18Edited(v99, v100) -> {
+                        let v101 = string.inspect(v0)
+                        let v102 = "at"
+                        let v103 = quoted_117(v102)
+                        let v104 = ":"
+                        let v105 = v103 <> v104 
+                        let v106 = v105 <> v101 
+                        let v107 = "edit"
+                        let v108 = quoted_117(v107)
+                        let v109 = "kind"
+                        let v110 = quoted_117(v109)
+                        let v111 = v110 <> v104 
+                        let v112 = v111 <> v108 
+                        let v113 = quoted_117(v99)
+                        let v114 = "post"
+                        let v115 = quoted_117(v114)
+                        let v116 = v115 <> v104 
+                        let v117 = v116 <> v113 
+                        let v118 = quoted_117(v100)
+                        let v119 = "source"
+                        let v120 = quoted_117(v119)
+                        let v121 = v120 <> v104 
+                        let v122 = v121 <> v118 
+                        let v123 = Uh3Nil
+                        let v124 = Uh3Cons(v122, v123)
+                        let v125 = Uh3Cons(v117, v124)
+                        let v126 = Uh3Cons(v112, v125)
+                        Uh3Cons(v106, v126)
+                    }
+                    Us18FrameEdited(v128, v129, v130, v131, v132) -> {
+                        let v133 = string.inspect(v0)
+                        let v134 = "at"
+                        let v135 = quoted_117(v134)
+                        let v136 = ":"
+                        let v137 = v135 <> v136 
+                        let v138 = v137 <> v133 
+                        let v139 = quoted_117(v132)
+                        let v140 = "body"
+                        let v141 = quoted_117(v140)
+                        let v142 = v141 <> v136 
+                        let v143 = v142 <> v139 
+                        let v144 = string.inspect(v130)
+                        let v145 = "k"
+                        let v146 = quoted_117(v145)
+                        let v147 = v146 <> v136 
+                        let v148 = v147 <> v144 
+                        let v149 = "edit_frame"
+                        let v150 = quoted_117(v149)
+                        let v151 = "kind"
+                        let v152 = quoted_117(v151)
+                        let v153 = v152 <> v136 
+                        let v154 = v153 <> v150 
+                        let v155 = string.inspect(v131)
+                        let v156 = "n"
+                        let v157 = quoted_117(v156)
+                        let v158 = v157 <> v136 
+                        let v159 = v158 <> v155 
+                        let v160 = quoted_117(v128)
+                        let v161 = "post"
+                        let v162 = quoted_117(v161)
+                        let v163 = v162 <> v136 
+                        let v164 = v163 <> v160 
+                        let v165 = string.inspect(v129)
+                        let v166 = "rev"
+                        let v167 = quoted_117(v166)
+                        let v168 = v167 <> v136 
+                        let v169 = v168 <> v165 
+                        let v170 = Uh3Nil
+                        let v171 = Uh3Cons(v169, v170)
+                        let v172 = Uh3Cons(v164, v171)
+                        let v173 = Uh3Cons(v159, v172)
+                        let v174 = Uh3Cons(v154, v173)
+                        let v175 = Uh3Cons(v148, v174)
+                        let v176 = Uh3Cons(v143, v175)
+                        Uh3Cons(v138, v176)
+                    }
+                }
+            }
+        }
+    let v267 = ","
+    let v268 = concat_balanced_20(v267, v266)
+    let v269 = "{"
+    let v270 = v269 <> v268 
+    let v271 = "}"
+    let v272 = v270 <> v271 
+    v272
+}
+
+pub fn method115(v0: Uh15, v1: Uh3) -> Uh3 {
+    case v0  {
+        Uh15Cons(v2, v3, v4) -> {
+            let v5 = method115(v4, v1)
+            let v6 = encoded_116(v2, v3)
+            Uh3Cons(v6, v5)
+        }
+        Uh15Nil -> {
+            v1
+        }
+    }
+}
+
+pub fn stream_114(v0: Uh15) -> String {
+    let v1 = Uh3Nil
+    let v2 = method115(v0, v1)
+    let v3 = "\n"
+    let v4 = "{\"format\":\"xsim-events\",\"version\":1}"
+    let v5 = Uh3Cons(v4, v2)
+    let v6 = concat_balanced_20(v3, v5)
+    let v7 = v6 <> v3 
+    v7
+}
+
+pub fn raw_scenario_111(_v0: Uh9, v1: Uh10, v2: Uh3) -> #(String, Uh3) {
     let v3 = Uh15Nil
     let v4 = 0
-    let #(v5, _v6) = method106(v1, v3, v4)
+    let #(v5, _v6) = method112(v1, v3, v4)
     let v7 = Uh15Nil
-    let v8 = method107(v5, v7)
-    let v9 = stream_108(v8)
+    let v8 = method113(v5, v7)
+    let v9 = stream_114(v8)
     #(v9, v2)
 }
 
-pub fn closure4(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Bool, Int, Int)) -> #(String, String) {
+pub fn closure10(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Bool, Int, Int)) -> #(String, String) {
     fn (dom) {
         let #(v0, v1, v2, v3, v4, v5, v6, _v7, _v8, _v9) = dom
         let v10 = ","
@@ -35,26 +792,26 @@ pub fn closure4(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Bool
                 }
             }
         let v17 = Uh3Nil
-        let v18 = method46(v16, v17)
+        let v18 = method52(v16, v17)
         let v19 = Uh7Nil
-        let v20 = method47(v18, v19)
+        let v20 = method53(v18, v19)
         let v21 = False
-        let v22 = case string.utf_codepoint(1) { Ok(c) -> string.from_utf_codepoints([c]) Error(_) -> "" }
+        let v22 = unicode_erlang_characters_to_binary([1])
         let v23 = x_binary_split(v0, v22, [Global])
         let v24 = Uh3Nil
-        let v25 = listed_pieces_52(v23, v24)
-        let v26 = case string.utf_codepoint(0) { Ok(c) -> string.from_utf_codepoints([c]) Error(_) -> "" }
+        let v25 = listed_pieces_58(v23, v24)
+        let v26 = unicode_erlang_characters_to_binary([0])
         let v27 = Uh8Nil
-        let v28 = method53(v26, v25, v27)
-        let #(v29, v30, v31) = from_corpus_54(v1, v2, v3, v4, v5, v20, v21, v28)
-        let #(v32, v33) = raw_scenario_105(v29, v30, v31)
-        let v34 = case string.utf_codepoint(0) { Ok(c) -> string.from_utf_codepoints([c]) Error(_) -> "" }
-        let v35 = delimited_34(v34, v33)
+        let v28 = method59(v26, v25, v27)
+        let #(v29, v30, v31) = from_corpus_60(v1, v2, v3, v4, v5, v20, v21, v28)
+        let #(v32, v33) = raw_scenario_111(v29, v30, v31)
+        let v34 = unicode_erlang_characters_to_binary([0])
+        let v35 = delimited_19(v34, v33)
         #(v32, v35)
     }
 }
 
-pub fn closure6(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Bool, Int, Int)) -> #(String, String) {
+pub fn closure12(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Bool, Int, Int)) -> #(String, String) {
     fn (dom) {
         let #(v0, v1, v2, v3, v4, v5, v6, _v7, _v8, _v9) = dom
         let v10 = ","
@@ -71,12 +828,12 @@ pub fn closure6(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Bool
                 }
             }
         let v17 = Uh3Nil
-        let v18 = method46(v16, v17)
+        let v18 = method52(v16, v17)
         let v19 = Uh7Nil
-        let v20 = method47(v18, v19)
+        let v20 = method53(v18, v19)
         let v21 = False
         let v22 = ""
-        let v23 = case string.utf_codepoint(0) { Ok(c) -> string.from_utf_codepoints([c]) Error(_) -> "" }
+        let v23 = unicode_erlang_characters_to_binary([0])
         let v24 = v0 == ""
         let v27 =
             case v24 {
@@ -87,25 +844,25 @@ pub fn closure6(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Bool
                     split_on_2(v23, v0)
                 }
             }
-        let #(v28, v29, v30) = from_cells_56(v1, v2, v3, v4, v5, v20, v21, v22, v27)
-        let #(v31, v32) = raw_scenario_105(v28, v29, v30)
-        let v33 = case string.utf_codepoint(0) { Ok(c) -> string.from_utf_codepoints([c]) Error(_) -> "" }
-        let v34 = delimited_34(v33, v32)
+        let #(v28, v29, v30) = from_cells_62(v1, v2, v3, v4, v5, v20, v21, v22, v27)
+        let #(v31, v32) = raw_scenario_111(v28, v29, v30)
+        let v33 = unicode_erlang_characters_to_binary([0])
+        let v34 = delimited_19(v33, v32)
         #(v31, v34)
     }
 }
 
-pub fn method115(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method121(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method115(v3, v1)
+            let v4 = method121(v3, v1)
             let v5 = spiral_string_length(v2)
             let v6 = 0
-            let v7 = method48(v2, v5, v6)
+            let v7 = method54(v2, v5, v6)
             let v8 = spiral_wrap_signed(v5 - 1, 32)
             let v9 = spiral_string_slice(v2, v7, v8)
             let v10 = spiral_string_length(v9)
-            let v11 = method49(v9, v10)
+            let v11 = method55(v9, v10)
             let v12 = spiral_string_slice(v9, 0, v11)
             Uh3Cons(v12, v4)
         }
@@ -115,10 +872,10 @@ pub fn method115(v0: Uh3, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn method116(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method122(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method116(v3, v1)
+            let v4 = method122(v3, v1)
             let v5 = v2 != ""
             case v5 {
                 True -> {
@@ -135,790 +892,15 @@ pub fn method116(v0: Uh3, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn parent_at_119(v0: Uh5) -> Us9 {
+pub fn parent_at_125(v0: Uh5) -> Us0 {
     let v1 = "parent"
     let v2 = value_of_11(v1, v0)
     case v2  {
-        Us0Text(v3) -> {
-            Us9Some(v3)
+        Us1Text(v3) -> {
+            Us0Some(v3)
         }
         _ -> {
-            Us9None
-        }
-    }
-}
-
-pub fn decoded_118(v0: String) -> Us18 {
-    let v1 = spiral_string_length(v0)
-    let v2 = 0 > v1
-    let v7 =
-        case v2 {
-            True -> {
-                False
-            }
-            False -> {
-                let v3 = spiral_wrap_signed(v1 - 1, 32)
-                let v4 = spiral_string_slice(v0, 0, v3)
-                let v5 = "{"
-                let v6 = v4 |> string.starts_with(v5)
-                v6
-            }
-        }
-    let v12 =
-        case v7 {
-            True -> {
-                let v8 = 1
-                let v9 = Uh5Nil
-                fields_from_4(v0, v8, v9)
-            }
-            False -> {
-                Us1None
-            }
-        }
-    case v12  {
-        Us1None -> {
-            let v102 = "not a compact xsim-events line: "
-            let v103 = v102 <> v0 
-            Us18Error(v103)
-        }
-        Us1Some(v13) -> {
-            let v14 = "kind"
-            let v15 = text_at_10(v14, v13)
-            let v16 = v15 == "post"
-            let v89 =
-                case v16 {
-                    True -> {
-                        let v17 = "post"
-                        let v18 = text_at_10(v17, v13)
-                        let v19 = parent_at_119(v13)
-                        let v20 = "source"
-                        let v21 = text_at_10(v20, v13)
-                        let v22 = Us13Posted(v18, v19, v21)
-                        let v23 = Us12Content(v22)
-                        Us19Some(v23)
-                    }
-                    False -> {
-                        let v25 = v15 == "frame"
-                        case v25 {
-                            True -> {
-                                let v26 = "post"
-                                let v27 = text_at_10(v26, v13)
-                                let v28 = parent_at_119(v13)
-                                let v29 = "k"
-                                let v30 = count_at_13(v29, v13)
-                                let v31 = "n"
-                                let v32 = count_at_13(v31, v13)
-                                let v33 = "body"
-                                let v34 = text_at_10(v33, v13)
-                                let v35 = Us13Framed(v27, v28, v30, v32, v34)
-                                let v36 = Us12Content(v35)
-                                Us19Some(v36)
-                            }
-                            False -> {
-                                let v38 = v15 == "edit"
-                                case v38 {
-                                    True -> {
-                                        let v39 = "post"
-                                        let v40 = text_at_10(v39, v13)
-                                        let v41 = "source"
-                                        let v42 = text_at_10(v41, v13)
-                                        let v43 = Us14Edited(v40, v42)
-                                        let v44 = Us12Revision(v43)
-                                        Us19Some(v44)
-                                    }
-                                    False -> {
-                                        let v46 = v15 == "edit_frame"
-                                        case v46 {
-                                            True -> {
-                                                let v47 = "post"
-                                                let v48 = text_at_10(v47, v13)
-                                                let v49 = "rev"
-                                                let v50 = count_at_13(v49, v13)
-                                                let v51 = "k"
-                                                let v52 = count_at_13(v51, v13)
-                                                let v53 = "n"
-                                                let v54 = count_at_13(v53, v13)
-                                                let v55 = "body"
-                                                let v56 = text_at_10(v55, v13)
-                                                let v57 = Us14FrameEdited(v48, v50, v52, v54, v56)
-                                                let v58 = Us12Revision(v57)
-                                                Us19Some(v58)
-                                            }
-                                            False -> {
-                                                let v60 = v15 == "delete"
-                                                case v60 {
-                                                    True -> {
-                                                        let v61 = "post"
-                                                        let v62 = text_at_10(v61, v13)
-                                                        let v63 = Us14Deleted(v62)
-                                                        let v64 = Us12Revision(v63)
-                                                        Us19Some(v64)
-                                                    }
-                                                    False -> {
-                                                        let v66 = v15 == "like"
-                                                        case v66 {
-                                                            True -> {
-                                                                let v67 = "post"
-                                                                let v68 = text_at_10(v67, v13)
-                                                                let v69 = "user"
-                                                                let v70 = text_at_10(v69, v13)
-                                                                let v71 = Us15Liked(v68, v70)
-                                                                let v72 = Us12Reaction(v71)
-                                                                Us19Some(v72)
-                                                            }
-                                                            False -> {
-                                                                let v74 = v15 == "unlike"
-                                                                case v74 {
-                                                                    True -> {
-                                                                        let v75 = "post"
-                                                                        let v76 = text_at_10(v75, v13)
-                                                                        let v77 = "user"
-                                                                        let v78 = text_at_10(v77, v13)
-                                                                        let v79 = Us15Unliked(v76, v78)
-                                                                        let v80 = Us12Reaction(v79)
-                                                                        Us19Some(v80)
-                                                                    }
-                                                                    False -> {
-                                                                        Us19None
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            case v89  {
-                Us19None -> {
-                    let v94 = text_at_10(v14, v13)
-                    let v95 = "unknown event kind '"
-                    let v96 = v95 <> v94 
-                    let v97 = "'"
-                    let v98 = v96 <> v97 
-                    Us18Error(v98)
-                }
-                Us19Some(v90) -> {
-                    let v91 = "at"
-                    let v92 = count_at_13(v91, v13)
-                    Us18Ok(v92, v90)
-                }
-            }
-        }
-    }
-}
-
-pub fn all_decoded_117(v0: Uh3, v1: Uh15) -> Us17 {
-    case v0  {
-        Uh3Cons(v5, v6) -> {
-            let v7 = decoded_118(v5)
-            case v7  {
-                Us18Error(v12) -> {
-                    Us17Error(v12)
-                }
-                Us18Ok(v8, v9) -> {
-                    let v10 = Uh15Cons(v8, v9, v1)
-                    all_decoded_117(v6, v10)
-                }
-            }
-        }
-        Uh3Nil -> {
-            let v2 = Uh15Nil
-            let v3 = method107(v1, v2)
-            Us17Ok(v3)
-        }
-    }
-}
-
-pub fn decoded_stream_114(v0: String) -> Us17 {
-    let v1 = v0 == ""
-    let v7 =
-        case v1 {
-            True -> {
-                Uh3Nil
-            }
-            False -> {
-                let v3 = "\n"
-                let v4 = x_binary_split(v0, v3, [Global])
-                let v5 = Uh3Nil
-                listed_pieces_52(v4, v5)
-            }
-        }
-    let v8 = Uh3Nil
-    let v9 = method115(v7, v8)
-    let v10 = Uh3Nil
-    let v11 = method116(v9, v10)
-    case v11  {
-        Uh3Cons(v12, v13) -> {
-            let v14 = spiral_string_length(v12)
-            let v15 = 0 > v14
-            let v20 =
-                case v15 {
-                    True -> {
-                        False
-                    }
-                    False -> {
-                        let v16 = spiral_wrap_signed(v14 - 1, 32)
-                        let v17 = spiral_string_slice(v12, 0, v16)
-                        let v18 = "{"
-                        let v19 = v17 |> string.starts_with(v18)
-                        v19
-                    }
-                }
-            let v25 =
-                case v20 {
-                    True -> {
-                        let v21 = 1
-                        let v22 = Uh5Nil
-                        fields_from_4(v12, v21, v22)
-                    }
-                    False -> {
-                        Us1None
-                    }
-                }
-            let v35 =
-                case v25  {
-                    Us1None -> {
-                        False
-                    }
-                    Us1Some(v26) -> {
-                        let v27 = "format"
-                        let v28 = text_at_10(v27, v26)
-                        let v29 = v28 == "xsim-events"
-                        case v29 {
-                            True -> {
-                                let v30 = "version"
-                                let v31 = count_at_13(v30, v26)
-                                let v32 = v31 == 1
-                                v32
-                            }
-                            False -> {
-                                False
-                            }
-                        }
-                    }
-                }
-            case v35 {
-                True -> {
-                    let v36 = Uh15Nil
-                    all_decoded_117(v13, v36)
-                }
-                False -> {
-                    let v38 = "not an xsim-events v1 stream"
-                    Us17Error(v38)
-                }
-            }
-        }
-        _ -> {
-            let v41 = "not an xsim-events v1 stream"
-            Us17Error(v41)
-        }
-    }
-}
-
-pub fn method120(v0: Uh15, v1: Uh10) -> Uh10 {
-    case v0  {
-        Uh15Cons(v2, v3, v4) -> {
-            let v5 = method120(v4, v1)
-            Uh10Cons(v3, v5)
-        }
-        Uh15Nil -> {
-            v1
-        }
-    }
-}
-
-pub fn method123(v0: Int, v1: Int, v2: Int, v3: Us12, v4: Int) -> Uh16 {
-    let v5 = v4 < v0
-    case v5 {
-        True -> {
-            let v6 = spiral_wrap_signed(v1 + v2, 32)
-            let v7 = spiral_wrap_signed(v6 + v4, 32)
-            let v8 = spiral_wrap_signed(v7 + 1, 32)
-            let v9 = spiral_wrap_signed(v4 + 1, 32)
-            let v10 = method123(v0, v1, v2, v3, v9)
-            Uh16Cons(v8, v1, v3, v10)
-        }
-        False -> {
-            Uh16Nil
-        }
-    }
-}
-
-pub fn method124(v0: Uh16, v1: Uh16) -> Uh16 {
-    case v0  {
-        Uh16Cons(v2, v3, v4, v5) -> {
-            let v6 = method124(v5, v1)
-            Uh16Cons(v2, v3, v4, v6)
-        }
-        Uh16Nil -> {
-            v1
-        }
-    }
-}
-
-pub fn method122(v0: Int, v1: Int, v2: Uh10, v3: Uh16, v4: Int, v5: Int, v6: Int) -> #(Uh16, Int, Int, Int) {
-    let #(v33, v34, v35, v36) =
-        case v2  {
-            Uh10Cons(v7, v8) -> {
-                let v9 = spiral_wrap_unsigned(v1, 64)
-                let #(v10, v11, v12) = uniform_62(v9, v4, v5)
-                let v13 = spiral_wrap_signed(v10, 32)
-                let v14 = 1000
-                let #(v15, v16, v17) = uniform_62(v14, v11, v12)
-                let v18 = spiral_wrap_signed(v15, 32)
-                let v19 = v18 <= v0
-                let v20 =
-                    case v19 {
-                        True -> {
-                            2
-                        }
-                        False -> {
-                            1
-                        }
-                    }
-                let v21 = 0
-                let v22 = method123(v20, v6, v13, v7, v21)
-                let v23 = method124(v22, v3)
-                let v24 = spiral_wrap_signed(v6 + 1, 32)
-                method122(v0, v1, v8, v23, v16, v17, v24)
-            }
-            _ -> {
-                let #(v29, v30, v31, v32) =
-                    case v2  {
-                        Uh10Nil -> {
-                            #(v3, v4, v5, v6)
-                        }
-                        _ -> panic as "spiral: union case ruled out by partial evaluation"
-                    }
-                #(v29, v30, v31, v32)
-            }
-        }
-    #(v33, v34, v35, v36)
-}
-
-pub fn halved_keyed_126(v0: Uh16) -> #(Uh16, Uh16) {
-    case v0  {
-        Uh16Cons(v1, v2, v3, v4) -> {
-            case v4  {
-                Uh16Cons(v5, v6, v7, v8) -> {
-                    let #(v9, v10) = halved_keyed_126(v8)
-                    let v11 = Uh16Cons(v1, v2, v3, v9)
-                    let v12 = Uh16Cons(v5, v6, v7, v10)
-                    #(v11, v12)
-                }
-                _ -> {
-                    let v13 = Uh16Nil
-                    #(v0, v13)
-                }
-            }
-        }
-        _ -> {
-            let v16 = Uh16Nil
-            #(v0, v16)
-        }
-    }
-}
-
-pub fn merged_keyed_127(v0: Uh16, v1: Uh16) -> Uh16 {
-    case v0  {
-        Uh16Nil -> {
-            v1
-        }
-        _ -> {
-            case v1  {
-                Uh16Nil -> {
-                    v0
-                }
-                _ -> {
-                    case v0  {
-                        Uh16Cons(v2, v3, v4, v5) -> {
-                            case v1  {
-                                Uh16Cons(v6, v7, v8, v9) -> {
-                                    let v10 = v2 < v6
-                                    let v14 =
-                                        case v10 {
-                                            True -> {
-                                                True
-                                            }
-                                            False -> {
-                                                let v11 = v2 == v6
-                                                case v11 {
-                                                    True -> {
-                                                        let v12 = v3 <= v7
-                                                        v12
-                                                    }
-                                                    False -> {
-                                                        False
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    case v14 {
-                                        True -> {
-                                            let v15 = merged_keyed_127(v5, v1)
-                                            Uh16Cons(v2, v3, v4, v15)
-                                        }
-                                        False -> {
-                                            let v17 = merged_keyed_127(v0, v9)
-                                            Uh16Cons(v6, v7, v8, v17)
-                                        }
-                                    }
-                                }
-                                _ -> panic as "spiral: union case ruled out by partial evaluation"
-                            }
-                        }
-                        _ -> panic as "spiral: union case ruled out by partial evaluation"
-                    }
-                }
-            }
-        }
-    }
-}
-
-pub fn sorted_keyed_125(v0: Uh16) -> Uh16 {
-    case v0  {
-        Uh16Cons(v1, v2, v3, v4) -> {
-            case v4  {
-                Uh16Nil -> {
-                    v0
-                }
-                _ -> {
-                    let #(v5, v6) = halved_keyed_126(v0)
-                    let v7 = sorted_keyed_125(v5)
-                    let v8 = sorted_keyed_125(v6)
-                    merged_keyed_127(v7, v8)
-                }
-            }
-        }
-        Uh16Nil -> {
-            v0
-        }
-    }
-}
-
-pub fn method128(v0: Uh16, v1: Uh15) -> Uh15 {
-    case v0  {
-        Uh16Cons(v2, v3, v4, v5) -> {
-            let v6 = method128(v5, v1)
-            Uh15Cons(v3, v4, v6)
-        }
-        Uh16Nil -> {
-            v1
-        }
-    }
-}
-
-pub fn deliveries_121(v0: Uh10, v1: Int, v2: Int, v3: Int) -> Uh15 {
-    let v4 = spiral_wrap_signed(v1 * 31, 32)
-    let v5 = spiral_wrap_signed(v4 + 5, 32)
-    let v6 = spiral_wrap_signed(v1 * 17, 32)
-    let v7 = spiral_wrap_signed(v6 + 11, 32)
-    let v8 = spiral_wrap_unsigned(v1, 64)
-    let v9 = spiral_wrap_unsigned(v5, 64)
-    let v10 = spiral_wrap_unsigned(v7, 64)
-    let #(v11, v12) = seeded_59(v8, v9, v10)
-    let v13 = Uh16Nil
-    let v14 = 0
-    let #(v15, _v16, _v17, _v18) = method122(v2, v3, v0, v13, v11, v12, v14)
-    let v19 = sorted_keyed_125(v15)
-    let v20 = Uh15Nil
-    method128(v19, v20)
-}
-
-pub fn rescheduled_113(v0: String, v1: Int, v2: Int, v3: Int) -> String {
-    let v4 = decoded_stream_114(v0)
-    case v4  {
-        Us17Error(v10) -> {
-            v10
-        }
-        Us17Ok(v5) -> {
-            let v6 = Uh10Nil
-            let v7 = method120(v5, v6)
-            let v8 = deliveries_121(v7, v1, v2, v3)
-            stream_108(v8)
-        }
-    }
-}
-
-pub fn closure7(capt: Nil) -> fn(#(String, Int, Int, Int)) -> String {
-    fn (dom) {
-        let #(v0, v1, v2, v3) = dom
-        rescheduled_113(v0, v1, v2, v3)
-    }
-}
-
-pub fn closure8(capt: Nil) -> fn(String) -> String {
-    fn (v0) {
-        break_source_75(v0)
-    }
-}
-
-pub fn graphemes_from_134(v0: String, v1: Uh3) -> Uh3 {
-    let v2 = case string.pop_grapheme(v0) { Ok(pair) -> string.byte_size(pair.0) Error(_) -> 0 }
-    let v3 = v2 == 0
-    case v3 {
-        True -> {
-            let v4 = Uh3Nil
-            method37(v1, v4)
-        }
-        False -> {
-            let v6 = spiral_string_length(v0)
-            let v7 = spiral_wrap_signed(v6 - v2, 32)
-            let v8 = spiral_wrap_signed(v2 + v7, 32)
-            let v9 = spiral_wrap_signed(v8 - 1, 32)
-            let v10 = spiral_string_slice(v0, v2, v9)
-            let v11 = spiral_wrap_signed(v2 - 1, 32)
-            let v12 = spiral_string_slice(v0, 0, v11)
-            let v13 = Uh3Cons(v12, v1)
-            graphemes_from_134(v10, v13)
-        }
-    }
-}
-
-pub fn method136(v0: Uh18, v1: Uh18) -> Uh18 {
-    case v0  {
-        Uh18Cons(v2, v3, v4) -> {
-            let v5 = Uh18Cons(v2, v3, v1)
-            method136(v4, v5)
-        }
-        Uh18Nil -> {
-            v1
-        }
-    }
-}
-
-pub fn defused_135(v0: String, v1: Uh3, v2: Uh18) -> Uh18 {
-    case v1  {
-        Uh3Cons(v5, v6) -> {
-            let v11 =
-                case v6  {
-                    Uh3Cons(v7, v8) -> {
-                        v7
-                    }
-                    Uh3Nil -> {
-                        let v9 = ""
-                        v9
-                    }
-                }
-            let v12 = v5 == "."
-            let v21 =
-                case v12 {
-                    True -> {
-                        let v13 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                        let v14 = "0123456789_-"
-                        let v15 = v13 <> v14 
-                        let v16 = spiral_string_length(v0)
-                        let v17 = v16 == 1
-                        case v17 {
-                            True -> {
-                                let v18 = case v0 { "" -> 0 _ -> case spiral_binary_split_first(v15, v0) { [spiral_head, _] -> bit_array.byte_size(bit_array.from_string(spiral_head)) _ -> -1 } }
-                                let v19 = v18 >= 0
-                                v19
-                            }
-                            False -> {
-                                False
-                            }
-                        }
-                    }
-                    False -> {
-                        False
-                    }
-                }
-            let v28 =
-                case v21 {
-                    True -> {
-                        let v22 = spiral_string_length(v11)
-                        let v23 = v22 == 1
-                        case v23 {
-                            True -> {
-                                let v24 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                let v25 = case v11 { "" -> 0 _ -> case spiral_binary_split_first(v24, v11) { [spiral_head, _] -> bit_array.byte_size(bit_array.from_string(spiral_head)) _ -> -1 } }
-                                let v26 = v25 >= 0
-                                v26
-                            }
-                            False -> {
-                                False
-                            }
-                        }
-                    }
-                    False -> {
-                        False
-                    }
-                }
-            let #(v36, v37) =
-                case v28 {
-                    True -> {
-                        let v29 = case string.utf_codepoint(8203) { Ok(c) -> string.from_utf_codepoints([c]) Error(_) -> "" }
-                        let v30 = "."
-                        let v31 = v29 <> v30 
-                        let v32 = case string.utf_codepoint(8203) { Ok(c) -> string.from_utf_codepoints([c]) Error(_) -> "" }
-                        let v33 = v32 <> v30 
-                        let v34 = string.to_utf_codepoints(v33) |> list.fold(0, fn(sum, c) { sum + case x_light(string.utf_codepoint_to_int(c)) { True -> 1 False -> 2 } })
-                        #(v31, v34)
-                    }
-                    False -> {
-                        let v35 = string.to_utf_codepoints(v5) |> list.fold(0, fn(sum, c) { sum + case x_light(string.utf_codepoint_to_int(c)) { True -> 1 False -> 2 } })
-                        #(v5, v35)
-                    }
-                }
-            let v38 = Uh18Cons(v36, v37, v2)
-            defused_135(v5, v6, v38)
-        }
-        Uh3Nil -> {
-            let v3 = Uh18Nil
-            method136(v2, v3)
-        }
-    }
-}
-
-pub fn units_of_133(v0: String) -> Uh18 {
-    let v1 = ""
-    let v2 = Uh3Nil
-    let v3 = graphemes_from_134(v0, v2)
-    let v4 = Uh18Nil
-    defused_135(v1, v3, v4)
-}
-
-pub fn closure10(capt: Nil) -> fn(#(String, Int)) -> Bool {
-    fn (dom) {
-        let #(v0, _v1) = dom
-        let v2 = string.to_utf_codepoints(v0) |> list.all(fn(c) { x_spaced(string.utf_codepoint_to_int(c)) })
-        let v3 = v2 == False
-        v3
-    }
-}
-
-pub fn taken_while_140(v0: fn(#(String, Int)) -> Bool, v1: Uh18, v2: Uh18) -> #(Uh18, Uh18) {
-    case v1  {
-        Uh18Cons(v3, v4, v5) -> {
-            let v6 = v0( #(v3, v4)  )
-            case v6 {
-                True -> {
-                    let v7 = Uh18Cons(v3, v4, v2)
-                    taken_while_140(v0, v5, v7)
-                }
-                False -> {
-                    let v10 = Uh18Nil
-                    let v11 = method136(v2, v10)
-                    #(v11, v1)
-                }
-            }
-        }
-        _ -> {
-            let v14 = Uh18Nil
-            let v15 = method136(v2, v14)
-            #(v15, v1)
-        }
-    }
-}
-
-pub fn closure11(capt: Nil) -> fn(#(String, Int)) -> Bool {
-    fn (dom) {
-        let #(v0, _v1) = dom
-        let v2 = string.to_utf_codepoints(v0) |> list.all(fn(c) { x_spaced(string.utf_codepoint_to_int(c)) })
-        v2
-    }
-}
-
-pub fn method141(v0: Uh18, v1: Int) -> Int {
-    case v0  {
-        Uh18Cons(v2, v3, v4) -> {
-            let v5 = spiral_wrap_signed(v1 + 1, 32)
-            method141(v4, v5)
-        }
-        Uh18Nil -> {
-            v1
-        }
-    }
-}
-
-pub fn method142(v0: Uh18, v1: Uh18) -> Uh18 {
-    case v0  {
-        Uh18Cons(v2, v3, v4) -> {
-            let v5 = method142(v4, v1)
-            Uh18Cons(v2, v3, v5)
-        }
-        Uh18Nil -> {
-            v1
-        }
-    }
-}
-
-pub fn split_point_139(v0: Uh18) -> #(Uh18, Uh18) {
-    let v1 = closure10(Nil)
-    let v2 = Uh18Nil
-    let #(v3, v4) = taken_while_140(v1, v0, v2)
-    let v5 = closure11(Nil)
-    let v6 = Uh18Nil
-    let #(v7, v8) = taken_while_140(v5, v4, v6)
-    let v9 =
-        case v8  {
-            Uh18Nil -> {
-                False
-            }
-            _ -> {
-                True
-            }
-        }
-    let v16 =
-        case v9 {
-            True -> {
-                let v10 = 0
-                let v11 = method141(v3, v10)
-                let v12 = 0
-                let v13 = method141(v7, v12)
-                let v14 = spiral_wrap_signed(v11 + v13, 32)
-                let v15 = v14 <= 60
-                v15
-            }
-            False -> {
-                False
-            }
-        }
-    case v16 {
-        True -> {
-            let v17 = method142(v3, v7)
-            #(v17, v8)
-        }
-        False -> {
-            let v18 = Uh18Nil
-            let #(v19, v20) = taken_while_140(v5, v0, v18)
-            let v21 =
-                case v20  {
-                    Uh18Nil -> {
-                        False
-                    }
-                    _ -> {
-                        True
-                    }
-                }
-            case v21 {
-                True -> {
-                    #(v19, v20)
-                }
-                False -> {
-                    let v22 = Uh18Nil
-                    #(v22, v0)
-                }
-            }
-        }
-    }
-}
-
-pub fn method143(v0: Uh18, v1: Uh3) -> Uh3 {
-    case v0  {
-        Uh18Cons(v2, v3, v4) -> {
-            let v5 = method143(v4, v1)
-            Uh3Cons(v2, v5)
-        }
-        Uh18Nil -> {
-            v1
+            Us0None
         }
     }
 }

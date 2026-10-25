@@ -98,7 +98,14 @@ for ($k = 0; $k -lt $parts.Count; $k++) { foreach ($m in $parts[$k]) { $placemen
 foreach ($m in $top) { $placement[$m] = $module }
 
 function Publish([string] $text) { [regex]::Replace($text, '(?m)^(?!pub )((opaque )?type |const |fn )', 'pub $1') }
-function Get-UsedImports([string] $text) { @($imports | Where-Object { $alias = ($_ -replace '^import\s+', '' -split '/')[-1].Trim(); $text -match "\b$([regex]::Escape($alias))\." }) }
+function Get-UsedImports([string] $text) {
+    @($imports | Where-Object {
+        $path, $names = ($_ -replace '^import\s+', '') -split '\.\{', 2
+        $alias = ($path -split '/')[-1].Trim()
+        $unqualified = @(if ($names) { $names.TrimEnd('}', ' ') -split ',' | ForEach-Object { ($_ -replace '^\s*type\s+', '').Trim() } | Where-Object { $_ } })
+        $text -match "\b$([regex]::Escape($alias))\." -or @($unqualified | Where-Object { $text -match "\b$([regex]::Escape($_))\b" }).Count
+    })
+}
 
 $partsDir = Join-Path $srcDir $module
 Remove-Item -LiteralPath $partsDir -Recurse -Force -ErrorAction Ignore

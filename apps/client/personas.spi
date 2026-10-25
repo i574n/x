@@ -2,197 +2,197 @@
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
 test personas static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open exsss
-open glyphs
-open events
+:< sm'_operators
+:< prelude
+:< exsss
+:< glyphs
+:< events
 
-union persona =
+:| persona =
     | Lurker
     | Fickle
     | Editor
     | Breaker
 
-inl persona_name (p : persona) : string =
-    match p with
+:= persona_name (p : persona) : string =
+    ?= p ?|
     | Lurker => "lurker"
     | Fickle => "fickle"
     | Editor => "editor"
     | Breaker => "breaker"
 
-inl persona_of (name : string) : option persona =
-    if name = "lurker" then Some Lurker elif name = "fickle" then Some Fickle
-    elif name = "editor" then Some Editor elif name = "breaker" then Some Breaker else None
+:= persona_of (name : string) : option persona =
+    ? name = "lurker" ?> Some Lurker |? name = "fickle" ?> Some Fickle
+    |? name = "editor" ?> Some Editor |? name = "breaker" ?> Some Breaker |: None
 
-inl repeated_persona (p : persona) (count : i32) : list persona = listm.init count (fun _ => p)
+:= repeated_persona (p : persona) (count : i32) : list persona = listm.init count (\ _ => p)
 
-inl named_count (name : string) (count : string) : list persona =
-    match persona_of name, count_of_text count with
+:= named_count (name : string) (count : string) : list persona =
+    ?= persona_of name, count_of_text count ?|
     | Some p, Some n => repeated_persona p n
     | _ => Nil
 
-inl entry_personas (entry : string) : list persona =
-    match split_on "=" (sm'.trim entry) with
+:= entry_personas (entry : string) : list persona =
+    ?= split_on "=" (sm'.trim entry) ?|
     | Cons (name, Cons (count, Nil)) => named_count name count
     | _ => Nil
 
-inl parsed_personas (text : string) : list persona =
-    pieces "+" (sm'.replace "," "+" text) |> keep (fun e => e <> "") |> spread entry_personas
+:= parsed_personas (text : string) : list persona =
+    pieces "+" (sm'.replace "," "+" text) |> keep (\ e => e <> "") |> spread entry_personas
 
-inl test_cell (source : string) : bool = sm'.contains "///- --test" source
+:= test_cell (source : string) : bool = sm'.contains "///- --test" source
 
-inl ends_blank (s : string) : bool = has (fun b => sm'.ends_with b s) [" "; "\t"; "\n"; "\r"; char_of 11i32; char_of 12i32]
+:= ends_blank (s : string) : bool = has (\ b => sm'.ends_with b s) [" "; "\t"; "\n"; "\r"; char_of 11i32; char_of 12i32]
 
-inl ends_digit (s : string) : bool = has (fun d => sm'.ends_with (sm'.obj_to_string d) s) (listm.init 10i32 id)
+:= ends_digit (s : string) : bool = has (\ d => sm'.ends_with (sm'.obj_to_string d) s) (listm.init 10i32 id)
 
-let rec blank_start (s : string) (i : i32) : i32 = if i > 0i32 && ends_blank (cut 0i32 i s) then blank_start s (i - 1i32) else i
+:~ ^ blank_start (s : string) (i : i32) : i32 = ? i > 0i32 && ends_blank (cut 0i32 i s) ?> blank_start s (i - 1i32) |: i
 
-let rec digits_start (s : string) (i : i32) : i32 = if i > 0i32 && ends_digit (cut 0i32 i s) then digits_start s (i - 1i32) else i
+:~ ^ digits_start (s : string) (i : i32) : i32 = ? i > 0i32 && ends_digit (cut 0i32 i s) ?> digits_start s (i - 1i32) |: i
 
-let rec unpadded (d : string) : string = if sm'.length d > 1i32 && sm'.starts_with "0" d then unpadded (rest_from 1i32 d) else d
+:~ ^ unpadded (d : string) : string = ? sm'.length d > 1i32 && sm'.starts_with "0" d ?> unpadded (rest_from 1i32 d) |: d
 
-inl all_but_last (d : string) : string = cut 0i32 (sm'.length d - 1i32) d
+:= all_but_last (d : string) : string = cut 0i32 (sm'.length d - 1i32) d
 
-inl last_digit (d : string) : i32 = if d = "" then -1i32 else digit_at (sm'.length d - 1i32) d
+:= last_digit (d : string) : i32 = ? d = "" ?> -1i32 |: digit_at (sm'.length d - 1i32) d
 
-let rec plus_one (d : string) : string =
-    inl last = last_digit d
-    if last < 0i32 then "1"
-    elif last = 9i32 then plus_one (all_but_last d) ++# "0"
-    else all_but_last d ++# sm'.obj_to_string (last + 1i32)
+:~ ^ plus_one (d : string) : string =
+    := last = last_digit d
+    ? last < 0i32 ?> "1"
+    |? last = 9i32 ?> plus_one (all_but_last d) ++# "0"
+    |: all_but_last d ++# sm'.obj_to_string (last + 1i32)
 
-inl bumped_at (s : string) (start : i32) (stop : i32) : string =
+:= bumped_at (s : string) (start : i32) (stop : i32) : string =
     cut 0i32 start s ++# plus_one (unpadded (cut start (stop - start) s)) ++# rest_from stop s
 
-inl ends_dot (s : string) (i : i32) : bool = i > 0i32 && sm'.ends_with "." (cut 0i32 i s)
+:= ends_dot (s : string) (i : i32) : bool = i > 0i32 && sm'.ends_with "." (cut 0i32 i s)
 
-inl decimal_break (s : string) (fraction : i32) : string =
-    inl dot = fraction - 1i32
-    inl whole = digits_start s dot
-    if whole = dot || ends_dot s whole then s else bumped_at s whole dot
+:= decimal_break (s : string) (fraction : i32) : string =
+    := dot = fraction - 1i32
+    := whole = digits_start s dot
+    ? whole = dot || ends_dot s whole ?> s |: bumped_at s whole dot
 
-let break_source (s : string) : string =
-    inl stop = blank_start s (sm'.length s)
-    inl start = digits_start s stop
-    if start = stop then s elif ends_dot s start then decimal_break s start else bumped_at s start stop
+:~ break_source (s : string) : string =
+    := stop = blank_start s (sm'.length s)
+    := start = digits_start s stop
+    ? start = stop ?> s |? ends_dot s start ?> decimal_break s start |: bumped_at s start stop
 
-inl breakable (source : string) : bool = test_cell source && break_source source <> source
+:= breakable (source : string) : bool = test_cell source && break_source source <> source
 
-let rec picked forall t. (i : i32) (l : list t) : option t =
-    match l with
-    | Cons (x, rest) => if i <= 0i32 then Some x else picked (i - 1i32) rest
+:~ ^ picked \* t. (i : i32) (l : list t) : option t =
+    ?= l ?|
+    | Cons (x, rest) => ? i <= 0i32 ?> Some x |: picked (i - 1i32) rest
     | Nil => None
 
-inl liked_by (user : string) (r : rooted) : event = Reaction (Liked {post_id = r.post_id; user})
+:= liked_by (user : string) (r : rooted) : event = Reaction (Liked {post_id = r.post_id; user})
 
-inl unliked_by (user : string) (r : rooted) : event = Reaction (Unliked {post_id = r.post_id; user})
+:= unliked_by (user : string) (r : rooted) : event = Reaction (Unliked {post_id = r.post_id; user})
 
-inl edited_to (source : string) (r : rooted) : event = Revision (Edited {post_id = r.post_id; source})
+:= edited_to (source : string) (r : rooted) : event = Revision (Edited {post_id = r.post_id; source})
 
-type acted = {act_events : list event; broken : list string; rng : exsss}
+:== acted = {act_events : list event; broken : list string; rng : exsss}
 
-inl quiet_act (st : exsss) : acted = {act_events = Nil; broken = Nil; rng = st}
+:= quiet_act (st : exsss) : acted = {act_events = Nil; broken = Nil; rng = st}
 
-inl lurked (user : string) (acc : list event * exsss) (r : rooted) : list event * exsss =
-    inl l, st = acc
-    inl roll, st = rolled 2i32 st
-    (if roll = 1i32 then listm.append l [liked_by user r] else l), st
+:= lurked (user : string) (acc : list event * exsss) (r : rooted) : list event * exsss =
+    := l, st = acc
+    := roll, st = rolled 2i32 st
+    (? roll = 1i32 ?> listm.append l [liked_by user r] |: l), st
 
-inl lurker_act (user : string) (posts : list rooted) (st : exsss) : acted =
-    inl act_events, rng = posts |> listm.fold (lurked user) (Nil, st)
+:= lurker_act (user : string) (posts : list rooted) (st : exsss) : acted =
+    := act_events, rng = posts |> listm.fold (lurked user) (Nil, st)
     {act_events broken = Nil; rng}
 
-inl toggled (user : string) (r : rooted) (k : i32) : event = if k % 2i32 = 0i32 then liked_by user r else unliked_by user r
+:= toggled (user : string) (r : rooted) (k : i32) : event = ? k % 2i32 = 0i32 ?> liked_by user r |: unliked_by user r
 
-inl drawn_from (pool : list rooted) (st : exsss) : option rooted * exsss =
-    inl i, st = rolled (listm.length pool) st
+:= drawn_from (pool : list rooted) (st : exsss) : option rooted * exsss =
+    := i, st = rolled (listm.length pool) st
     picked (i - 1i32) pool, st
 
-inl toggle_drawn (user : string) (posts : list rooted) (st : exsss) : acted =
-    match drawn_from posts st with
+:= toggle_drawn (user : string) (posts : list rooted) (st : exsss) : acted =
+    ?= drawn_from posts st ?|
     | Some r, rng => {act_events = listm.init 5i32 (toggled user r); broken = Nil; rng}
     | None, _ => quiet_act st
 
-inl fickle_act (user : string) (posts : list rooted) (st : exsss) : acted =
-    match posts with
+:= fickle_act (user : string) (posts : list rooted) (st : exsss) : acted =
+    ?= posts ?|
     | Nil => quiet_act st
     | _ => toggle_drawn user posts st
 
-inl rewritten (user : string) (r : rooted) : list event =
-    inl rewrites = listm.init 3i32 (fun k => edited_to (r.source ++# sm'.replicate (k + 1i32) " " ++# "\n") r)
+:= rewritten (user : string) (r : rooted) : list event =
+    := rewrites = listm.init 3i32 (\ k => edited_to (r.source ++# sm'.replicate (k + 1i32) " " ++# "\n") r)
     Cons (liked_by user r, listm.append rewrites [edited_to r.source r])
 
-inl rewrite_drawn (user : string) (pool : list rooted) (st : exsss) : acted =
-    match drawn_from pool st with
+:= rewrite_drawn (user : string) (pool : list rooted) (st : exsss) : acted =
+    ?= drawn_from pool st ?|
     | Some r, rng => {act_events = rewritten user r; broken = Nil; rng}
     | None, _ => quiet_act st
 
-inl editor_act (user : string) (posts : list rooted) (st : exsss) : acted =
-    match posts |> keep (fun (r : rooted) => not (test_cell r.source)) with
+:= editor_act (user : string) (posts : list rooted) (st : exsss) : acted =
+    ?= posts |> keep (\ (r : rooted) => not (test_cell r.source)) ?|
     | Nil => quiet_act st
     | pool => rewrite_drawn user pool st
 
-inl broken_by (user : string) (r : rooted) : list event = [liked_by user r; edited_to (break_source r.source) r; edited_to r.source r]
+:= broken_by (user : string) (r : rooted) : list event = [liked_by user r; edited_to (break_source r.source) r; edited_to r.source r]
 
-inl break_drawn (user : string) (pool : list rooted) (st : exsss) : acted =
-    match drawn_from pool st with
+:= break_drawn (user : string) (pool : list rooted) (st : exsss) : acted =
+    ?= drawn_from pool st ?|
     | Some r, rng => {act_events = broken_by user r; broken = [break_source r.source]; rng}
     | None, _ => quiet_act st
 
-inl breaker_act (user : string) (posts : list rooted) (st : exsss) : acted =
-    match posts |> keep (fun (r : rooted) => breakable r.source) with
+:= breaker_act (user : string) (posts : list rooted) (st : exsss) : acted =
+    ?= posts |> keep (\ (r : rooted) => breakable r.source) ?|
     | Nil => quiet_act st
     | pool => break_drawn user pool st
 
-inl act (p : persona) (user : string) (posts : list rooted) (st : exsss) : acted =
-    match p with
+:= act (p : persona) (user : string) (posts : list rooted) (st : exsss) : acted =
+    ?= p ?|
     | Lurker => lurker_act user posts st
     | Fickle => fickle_act user posts st
     | Editor => editor_act user posts st
     | Breaker => breaker_act user posts st
 
-inl rest_of (l : list event) : list event =
-    match l with
+:= rest_of (l : list event) : list event =
+    ?= l ?|
     | Cons (_, rest) => rest
     | Nil => Nil
 
-inl live_streams (streams : list (list event)) : list (list event) = streams |> keep (fun l => listm.length l > 0i32)
+:= live_streams (streams : list (list event)) : list (list event) = streams |> keep (\ l => listm.length l > 0i32)
 
-let rec round_robin (streams : list (list event)) (acc : list event) : list event =
-    match live_streams streams with
+:~ ^ round_robin (streams : list (list event)) (acc : list event) : list event =
+    ?= live_streams streams ?|
     | Nil => acc
     | live => round_robin (live |> each rest_of) (listm.append acc (live |> spread (take_first 1i32)))
 
-type cast = {streams : list (list event); broken : list string; rng : exsss; n : i32}
+:== cast = {streams : list (list event); broken : list string; rng : exsss; n : i32}
 
-inl user_of (p : persona) (n : i32) : string = persona_name p ++# sm'.obj_to_string n
+:= user_of (p : persona) (n : i32) : string = persona_name p ++# sm'.obj_to_string n
 
-inl acted_in (posts : list rooted) (c : cast) (p : persona) : cast =
-    inl a = act p (user_of p c.n) posts c.rng
+:= acted_in (posts : list rooted) (c : cast) (p : persona) : cast =
+    := a = act p (user_of p c.n) posts c.rng
     {streams = listm.append c.streams [a.act_events]; broken = listm.append c.broken a.broken; rng = a.rng; n = c.n + 1i32}
 
-let persona_events (posts : list rooted) (personas : list persona) (st : exsss) : acted =
-    inl c = personas |> listm.fold (acted_in posts) {streams = Nil; broken = Nil; rng = st; n = 1i32}
+:~ persona_events (posts : list rooted) (personas : list persona) (st : exsss) : acted =
+    := c = personas |> listm.fold (acted_in posts) {streams = Nil; broken = Nil; rng = st; n = 1i32}
     {act_events = round_robin c.streams Nil; broken = c.broken; rng = c.rng}
 
 test numbers_at_the_end_are_broken =
-    inl ~s = "///- --test\n1 + 1 |> _assert_eq 2  \n"
+    := ~s = "///- --test\n1 + 1 |> _assert_eq 2  \n"
     break_source s |> _assert_eq "///- --test\n1 + 1 |> _assert_eq 3  \n"
     break_source "x 1.50" |> _assert_eq "x 2.50"
     break_source "x 099" |> _assert_eq "x 100"
 
 test numbers_after_a_dot_or_none_stay =
-    inl ~s = "v1.2.3"
+    := ~s = "v1.2.3"
     break_source s |> _assert_eq "v1.2.3"
     break_source "x .5" |> _assert_eq "x .5"
     break_source "no digits" |> _assert_eq "no digits"
 
-inl persona_text (l : list persona) : string = l |> each persona_name |> delimited ","
+:= persona_text (l : list persona) : string = l |> each persona_name |> delimited ","
 
 test persona_lists_parse_like_the_simulator =
-    inl ~text = "fickle=1+editor=2"
+    := ~text = "fickle=1+editor=2"
     parsed_personas text |> persona_text |> _assert_eq "fickle,editor,editor"
     parsed_personas "lurker=0, breaker=1" |> persona_text |> _assert_eq "breaker"

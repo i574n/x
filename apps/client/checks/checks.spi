@@ -1,39 +1,39 @@
 ///- --package ..
 ///> rust
 test checks static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open cli
+:< sm'_operators
+:< prelude
+:< cli
 
-inl count_or_none (t : string) : i32 =
-    match count_of_text t with
+:= count_or_none (t : string) : i32 =
+    ?= count_of_text t ?|
     | Some n => n
     | None => -1i32
 
-inl text_or_empty (o : option string) : string =
-    match o with
+:= text_or_empty (o : option string) : string =
+    ?= o ?|
     | Some s => s
     | None => ""
 
-inl local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
+:= local_midnight (day : string) : string = $'xc_net::xc_local_midnight(&*!day)'
 
-inl date_or_empty (t : string) : string =
-    if shaped "9999-99-99" t then local_midnight t else text_or_empty (date_of_text t)
+:= date_or_empty (t : string) : string =
+    ? shaped "9999-99-99" t ?> local_midnight t |: text_or_empty (date_of_text t)
 
-inl username_or_empty (t : string) : string = username_of_text t |> text_or_empty
+:= username_or_empty (t : string) : string = username_of_text t |> text_or_empty
 
 test counts_and_usernames_have_empty_answers =
-    inl ~t = "12"
+    := ~t = "12"
     count_or_none t |> _assert_eq 12i32
-    (count_or_none "1x" < 0i32) |> _assert_eq true
+    (count_or_none "1x" < 0i32) |> _assert_eq !+
     username_or_empty ("@" ++# "bob") |> _assert_eq "bob"
     username_or_empty "al-ice" |> _assert_eq ""
 
 ///> _
-inl main () : i32 =
-    !!!!Export("xc_count", ((fun t => count_or_none t) : string -> i32))
-    !!!!Export("xc_date", ((fun t => date_or_empty t) : string -> string))
-    !!!!Export("xc_username", ((fun t => username_or_empty t) : string -> string))
+:= main () : i32 =
+    !!!!Export("xc_count", ((\ t => count_or_none t) : string -> i32))
+    !!!!Export("xc_date", ((\ t => date_or_empty t) : string -> string))
+    !!!!Export("xc_username", ((\ t => username_or_empty t) : string -> string))
     0i32

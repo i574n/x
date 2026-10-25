@@ -1,0 +1,55 @@
+///- --package ..
+///> rust -d serde_json
+test preview static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< wire
+
+:== framed_post = {text : string; weight : i32}
+
+:= framed_post_of (v : json) : framed_post = {text = at_key "text" v; weight = v |> field "weight" |> number_of}
+
+:= framed_text (text : string) : string = $'xc_frames::xc_frames(&*!text)'
+
+:= framed_posts (text : string) : list framed_post = framed_text text |> parse_json |> collect framed_post_of
+
+:= post_price_thousandths () : i32 = 15i32
+
+:= dollars (thousandths : i32) : string =
+    := rest = thousandths % 1000i32
+    := pad = ? rest < 10i32 ?> "00" |? rest < 100i32 ?> "0" |: ""
+    "$" ++# sm'.obj_to_string (thousandths / 1000i32) ++# "." ++# pad ++# sm'.obj_to_string rest
+
+:= previewed (n : i32) (k : i32) (p : framed_post) : string =
+    "--- post " ++# sm'.obj_to_string k ++# " of " ++# sm'.obj_to_string n ++# ", weight " ++# sm'.obj_to_string p.weight ++# "\n" ++# p.text
+
+:~ ^ previews (n : i32) (k : i32) (l : list framed_post) (acc : list string) : list string =
+    ?= l ?|
+    | Nil => listm.rev acc
+    | Cons (p, rest) => previews n (k + 1i32) rest (Cons (previewed n k p, acc))
+
+:= summary (n : i32) : string =
+    "\n--- " ++# sm'.obj_to_string n ++# " posts, " ++# dollars (n * post_price_thousandths ()) ++# " to create"
+
+:~ preview (text : string) : string =
+    := posts = framed_posts text
+    := n = listm.length posts
+    sm'.concat_list "\n" (previews n 1i32 posts Nil) ++# summary n
+
+test previews_price_every_post =
+    := ~n = 15i32
+    dollars n |> _assert_eq "$0.015"
+    dollars 1725i32 |> _assert_eq "$1.725"
+    summary 2i32 |> _assert_eq "\n--- 2 posts, $0.030 to create"
+
+test a_framed_post_keeps_its_text_and_weight =
+    := ~text = "c1 1/1\na"
+    "[{\"text\":\"c1 1/1\\na\",\"weight\":8}]" |> parse_json |> collect framed_post_of |> each (\ p => p.text, p.weight)
+    |> _assert_eq [text, 8i32]
+
+///> _
+:= main () : i32 =
+    !!!!Export("xc_preview", ((\ t => preview t) : string -> string))
+    0i32

@@ -1,0 +1,107 @@
+///- --package ..
+///> rust -d serde_json
+test chain static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< protocol
+:< posts
+:< wire
+
+:== pages_reply = i32 * string * string
+
+:| chain_reading =
+    | ChainRead : list framed
+    | ChainBranches : string
+    | ChainRoots : string
+    | ChainMissing
+
+:= replies_under (posts : list framed) (at : framed) : list framed =
+    posts |> keep \ (f : framed) => ?= f.parent ?| Some p => same_post p at.id | None => !-
+
+:= outside (posts : list framed) (f : framed) : bool =
+    ?= f.parent ?|
+    | Some p => not (has (\ (g : framed) => same_post g.id p) posts)
+    | None => !+
+
+:= branched (at : framed) : chain_reading = ChainBranches (post_text at.id)
+
+:~ ^ chain_from (all : list framed) (at : framed) (acc : list framed) : chain_reading =
+    ?= replies_under all at ?|
+    | Nil => ChainRead (listm.rev acc)
+    | Cons (next, Nil) => chain_from all next (Cons (next, acc))
+    | _ => branched at
+
+:= orphan (posts : list framed) (f : framed) : bool =
+    ?= f.parent ?|
+    | Some p => not (has (\ (g : framed) => same_post g.id p) posts)
+    | None => !-
+
+:= second_root (posts : list framed) (a : framed) (b : framed) : chain_reading =
+    ChainRoots (post_text (? orphan posts a ?> a |: b).id)
+
+:= chain_of (posts : list framed) : chain_reading =
+    ?= keep (outside posts) posts ?|
+    | Cons (root, Nil) => chain_from posts root [root]
+    | Cons (first, Cons (second, _)) => second_root posts first second
+    | Nil => ChainMissing
+
+:= chain_json (l : list framed) : string =
+    items (l |> each \ (f : framed) => object [member "id" (quoted_text (post_text f.id)); member "text" (json_string f.text)])
+
+:= roots_refusal (id : string) : string =
+    "post " ++# id ++# " replies to a post outside the thread's chain (an edited or deleted post?); --resume needs one unbroken chain"
+
+:= chain_refusal (c : chain_reading) : string =
+    ?= c ?|
+    | ChainBranches id => "the thread branches after post " ++# id ++# "; --resume needs one chain of replies"
+    | ChainRoots id => roots_refusal id
+    | _ => "no posts of that thread found"
+
+:= framed_in (page : json) : list framed = page |> field "data" |> collect framed_of
+
+:= chain_reply (bundle : string) : pages_reply =
+    ?= parse_json bundle |> collect (\ page => page) |> spread framed_in |> keep latest |> chain_of ?|
+    | ChainRead l => 0i32, chain_json l, ""
+    | refused => 4i32, "", chain_refusal refused
+
+:= post_of (id : string) (parent : string) (text : string) : framed = {id = post_id id; text; history = [post_id id]; urls = Nil; parent = optional_post parent}
+
+:= ids_listed (l : list framed) : string = l |> each (\ (f : framed) => post_text f.id) |> delimited ","
+
+:= chain_listed (posts : list framed) : string =
+    ?= chain_of posts ?|
+    | ChainRead l => ids_listed l
+    | ChainBranches id => "branches after " ++# id
+    | ChainRoots id => "second root " ++# id
+    | ChainMissing => "none"
+
+:= three_posts () : list framed = [post_of "3" "2" "c1 3/3"; post_of "1" "" "c1 1/3"; post_of "2" "1" "c1 2/3"]
+
+test a_thread_chain_runs_from_its_root_to_the_last_reply =
+    := ~posts = three_posts ()
+    (chain_listed posts, chain_listed Nil) |> _assert_eq ("1,2,3", "none")
+
+test a_chain_keeps_multiline_quoted_texts =
+    := ~text = "c1 1/1\nsay \"hi\""
+    [post_of "1" "" text] |> chain_json |> parse_json |> collect (at_key "text") |> _assert_eq [text]
+
+test a_branch_or_a_second_root_refuses =
+    := ~posts = three_posts ()
+    (chain_listed (Cons (post_of "4" "1" "x", posts)), chain_listed (Cons (post_of "5" "9" "y", posts)))
+        |> _assert_eq ("branches after 1", "second root 5")
+
+:== ask = string * string * string
+
+:= thread_pages (base : string) (bearer : string) (id : string) : pages_reply = $'xc_thread::xc_thread_pages(&*!base, &*!bearer, &*!id)'
+
+:= chains (x : ask) : pages_reply =
+    x |> \ (base, bearer, id) =>
+        := code, bundle, failure = thread_pages base bearer id
+        ? code = 0i32 ?> chain_reply bundle |: code, "", failure
+
+///> _
+:= main () : i32 =
+    !!!!Export("xc_chain", ((\ x => chains x) : ask -> pages_reply))
+    0i32

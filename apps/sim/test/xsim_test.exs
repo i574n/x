@@ -38,7 +38,7 @@ defmodule XsimTest do
 
   test "results assigned to whoever asked, without cancelling, surface stale revisions" do
     slow = fn sources ->
-      if String.ends_with?(List.last(sources), "\n"), do: :ok, else: Process.sleep(80)
+      if String.ends_with?(List.last(sources), "\n"), do: :ok, else: Process.sleep(250)
       Executors.fake().(sources)
     end
 

@@ -1,151 +1,151 @@
 ///- --package ..
 ///> rust -d serde_json
 test token static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open posts
-open wire
-open oauth1
+:< sm'_operators
+:< prelude
+:< posts
+:< wire
+:< oauth1
 
-nominal file_text = $'std::io::Result<String>'
+:! file_text = $'std::io::Result<String>'
 
-inl read_text (path : string) : file_text = $'std::fs::read_to_string(&*!path)'
+:= read_text (path : string) : file_text = $'std::fs::read_to_string(&*!path)'
 
-inl text_read (r : file_text) : bool = $'!r.is_ok()'
+:= text_read (r : file_text) : bool = $'!r.is_ok()'
 
-inl text_of_file (r : file_text) : string = $'Rc::<str>::from(!r.as_deref().unwrap_or(""))'
+:= text_of_file (r : file_text) : string = $'Rc::<str>::from(!r.as_deref().unwrap_or(""))'
 
-nominal created_file = $'std::io::Result<std::fs::File>'
+:! created_file = $'std::io::Result<std::fs::File>'
 
-nominal open_file = $'std::fs::File'
+:! open_file = $'std::fs::File'
 
-nominal io_outcome = $'std::io::Result<()>'
+:! io_outcome = $'std::io::Result<()>'
 
-inl file_created (path : string) : created_file = $'std::fs::File::create(&*!path)'
+:= file_created (path : string) : created_file = $'std::fs::File::create(&*!path)'
 
-inl creation_ok (r : created_file) : bool = $'!r.is_ok()'
+:= creation_ok (r : created_file) : bool = $'!r.is_ok()'
 
-inl created_handle (r : created_file) : open_file = $'!r.unwrap()'
+:= created_handle (r : created_file) : open_file = $'!r.unwrap()'
 
-inl text_written (f : open_file) (text : string) : io_outcome = $'std::io::Write::write_all(&mut !f, (!text).as_bytes())'
+:= text_written (f : open_file) (text : string) : io_outcome = $'std::io::Write::write_all(&mut !f, (!text).as_bytes())'
 
-inl disk_synced (f : open_file) : io_outcome = $'!f.sync_all()'
+:= disk_synced (f : open_file) : io_outcome = $'!f.sync_all()'
 
-inl io_ok (r : io_outcome) : bool = $'!r.is_ok()'
+:= io_ok (r : io_outcome) : bool = $'!r.is_ok()'
 
-inl synced_write (path : string) (text : string) : bool =
-    inl r = file_created path
-    if creation_ok r
-    then
-        inl f = created_handle r
+:= synced_write (path : string) (text : string) : bool =
+    := r = file_created path
+    ? creation_ok r
+    ?>
+        := f = created_handle r
         io_ok (text_written f text) && io_ok (disk_synced f)
-    else false
+    |: !-
 
-inl renamed (from : string) (into : string) : bool = $'std::fs::rename(&*!from, &*!into).is_ok()'
+:= renamed (from : string) (into : string) : bool = $'std::fs::rename(&*!from, &*!into).is_ok()'
 
-inl temp_of (path : string) : string = path ++# ".tmp"
+:= temp_of (path : string) : string = path ++# ".tmp"
 
-inl file_replaced (path : string) (text : string) : bool = synced_write (temp_of path) text && renamed (temp_of path) path
+:= file_replaced (path : string) (text : string) : bool = synced_write (temp_of path) text && renamed (temp_of path) path
 
-type tokens = {access_token : string; refresh_token : string; expires_in : string}
+:== tokens = {access_token : string; refresh_token : string; expires_in : string}
 
-inl tokens_of (doc : json) : tokens =
-    inl expires_in = sm'.obj_to_string (doc |> field "expires_in" |> number_of)
+:= tokens_of (doc : json) : tokens =
+    := expires_in = sm'.obj_to_string (doc |> field "expires_in" |> number_of)
     {access_token = at_key "access_token" doc; refresh_token = at_key "refresh_token" doc; expires_in}
 
-inl token_form (client_id : string) (refresh_token : string) : string =
+:= token_form (client_id : string) (refresh_token : string) : string =
     "grant_type=refresh_token&refresh_token=" ++# percent refresh_token ++# "&client_id=" ++# percent client_id
 
-inl token_path () : string = "/2/oauth2/token"
+:= token_path () : string = "/2/oauth2/token"
 
-inl post_form (url : string) (user : string) (password : string) (body : string) : i32 * string =
+:= post_form (url : string) (user : string) (password : string) (body : string) : i32 * string =
     $'xc_net::xc_post_form(&*!url, &*!user, &*!password, &*!body)'
 
-inl refusal_detail (body : string) : string =
-    inl doc = parse_json body
-    inl why, code = at_key "error_description" doc, at_key "error" doc
-    if why <> "" then why elif code <> "" then code else body
+:= refusal_detail (body : string) : string =
+    := doc = parse_json body
+    := why, code = at_key "error_description" doc, at_key "error" doc
+    ? why <> "" ?> why |? code <> "" ?> code |: body
 
-inl refusal (status : i32) (body : string) : string =
-    inl detail = refusal_detail body
+:= refusal (status : i32) (body : string) : string =
+    := detail = refusal_detail body
     "X API answered " ++# sm'.obj_to_string status ++# " for " ++# token_path () ++# ": " ++# detail
 
-inl key_line (key : string) (value : string) (line : string) : string =
-    inl cr = if sm'.ends_with "\r" line then "\r" else ""
-    if sm'.starts_with (key ++# "=") line then key ++# "=" ++# value ++# cr else line
+:= key_line (key : string) (value : string) (line : string) : string =
+    := cr = ? sm'.ends_with "\r" line ?> "\r" |: ""
+    ? sm'.starts_with (key ++# "=") line ?> key ++# "=" ++# value ++# cr |: line
 
-inl has_key (key : string) (lines : list string) : bool = has (sm'.starts_with (key ++# "=")) lines
+:= has_key (key : string) (lines : list string) : bool = has (sm'.starts_with (key ++# "=")) lines
 
-inl line_end (lines : list string) : string = if has (sm'.ends_with "\r") lines then "\r" else ""
+:= line_end (lines : list string) : string = ? has (sm'.ends_with "\r") lines ?> "\r" |: ""
 
-inl with_key (key : string) (value : string) (lines : list string) : list string =
-    if has_key key lines then lines |> each (key_line key value) else listm.append lines [key ++# "=" ++# value ++# line_end lines]
+:= with_key (key : string) (value : string) (lines : list string) : list string =
+    ? has_key key lines ?> lines |> each (key_line key value) |: listm.append lines [key ++# "=" ++# value ++# line_end lines]
 
-inl trailing (lines : list string) : list string =
-    match listm.rev lines with
+:= trailing (lines : list string) : list string =
+    ?= listm.rev lines ?|
     | Cons ("", rest) => listm.rev rest
     | _ => lines
 
-let rewritten (text : string) (t : tokens) : string =
-    inl lines = split_on "\n" text |> trailing
-    inl lines = lines |> with_key "X_OAUTH2_ACCESS_TOKEN" t.access_token |> with_key "X_OAUTH2_REFRESH_TOKEN" t.refresh_token
+:~ rewritten (text : string) (t : tokens) : string =
+    := lines = split_on "\n" text |> trailing
+    := lines = lines |> with_key "X_OAUTH2_ACCESS_TOKEN" t.access_token |> with_key "X_OAUTH2_REFRESH_TOKEN" t.refresh_token
     sm'.concat_list "\n" lines ++# "\n"
 
-inl renewed (path : string) (t : tokens) : string =
+:= renewed (path : string) (t : tokens) : string =
     "renewed X_OAUTH2_ACCESS_TOKEN and X_OAUTH2_REFRESH_TOKEN in " ++# path ++# "; the access token expires in " ++# t.expires_in ++# " s"
 
-inl no_tokens () : string = "the token reply had no access_token or refresh_token"
+:= no_tokens () : string = "the token reply had no access_token or refresh_token"
 
-inl aside_of (path : string) : string = path ++# ".renewed"
+:= aside_of (path : string) : string = path ++# ".renewed"
 
-inl set_aside (path : string) : string =
+:= set_aside (path : string) : string =
     "could not replace " ++# path ++# "; the renewed tokens are in " ++# aside_of path ++# ", move it over " ++# path
 
-inl token_lost (path : string) : string =
+:= token_lost (path : string) : string =
     "could not write " ++# path ++# " or " ++# aside_of path ++# "; the renewed refresh token is lost, authorize again"
 
-inl kept_aside (path : string) (text : string) : i32 * string =
-    4i32, (if synced_write (aside_of path) text then set_aside path else token_lost path)
+:= kept_aside (path : string) (text : string) : i32 * string =
+    4i32, (? synced_write (aside_of path) text ?> set_aside path |: token_lost path)
 
-inl saved (path : string) (text : string) (t : tokens) : i32 * string =
-    if t.access_token = "" || t.refresh_token = "" then 4i32, no_tokens ()
-    elif file_replaced path (rewritten text t) then 0i32, renewed path t
-    else kept_aside path (rewritten text t)
+:= saved (path : string) (text : string) (t : tokens) : i32 * string =
+    ? t.access_token = "" || t.refresh_token = "" ?> 4i32, no_tokens ()
+    |? file_replaced path (rewritten text t) ?> 0i32, renewed path t
+    |: kept_aside path (rewritten text t)
 
-type refresh_args = string * string * string * string * string
+:== refresh_args = string * string * string * string * string
 
-inl unreachable_token (body : string) : string = "cannot reach " ++# token_path () ++# ": " ++# body
+:= unreachable_token (body : string) : string = "cannot reach " ++# token_path () ++# ": " ++# body
 
-inl failed_reply (status : i32) (body : string) : i32 * string =
-    4i32, (if status = 0i32 then unreachable_token body else refusal status body)
+:= failed_reply (status : i32) (body : string) : i32 * string =
+    4i32, (? status = 0i32 ?> unreachable_token body |: refusal status body)
 
-inl answered (path : string) (text : string) (reply : i32 * string) : i32 * string =
-    inl status, body = reply
-    if accepted status then saved path text (tokens_of (parse_json body)) else failed_reply status body
+:= answered (path : string) (text : string) (reply : i32 * string) : i32 * string =
+    := status, body = reply
+    ? accepted status ?> saved path text (tokens_of (parse_json body)) |: failed_reply status body
 
-type client = {base : string; client_id : string; client_secret : string}
+:== client = {base : string; client_id : string; client_secret : string}
 
-inl exchanged (c : client) (refresh_token : string) (path : string) (text : string) : i32 * string =
-    inl form = token_form c.client_id refresh_token
+:= exchanged (c : client) (refresh_token : string) (path : string) (text : string) : i32 * string =
+    := form = token_form c.client_id refresh_token
     post_form (c.base ++# token_path ()) c.client_id c.client_secret form |> answered path text
 
-inl unread (path : string) : i32 * string = 3i32, "cannot read " ++# path
+:= unread (path : string) : i32 * string = 3i32, "cannot read " ++# path
 
-let refreshed (x : refresh_args) : i32 * string =
-    inl base, client_id, client_secret, refresh_token, path = x
-    inl file = read_text path
-    if text_read file then exchanged {base client_id client_secret} refresh_token path (text_of_file file)
-    else unread path
+:~ refreshed (x : refresh_args) : i32 * string =
+    := base, client_id, client_secret, refresh_token, path = x
+    := file = read_text path
+    ? text_read file ?> exchanged {base client_id client_secret} refresh_token path (text_of_file file)
+    |: unread path
 
-inl renewed_tokens () : tokens = {access_token = "new"; refresh_token = "r2"; expires_in = "7200"}
+:= renewed_tokens () : tokens = {access_token = "new"; refresh_token = "r2"; expires_in = "7200"}
 
 test renewal_replaces_and_appends_keys =
-    inl ~text = "X_BEARER_TOKEN=kept\r\nX_OAUTH2_ACCESS_TOKEN=old\r\n"
+    := ~text = "X_BEARER_TOKEN=kept\r\nX_OAUTH2_ACCESS_TOKEN=old\r\n"
     rewritten text (renewed_tokens ()) |> _assert_eq "X_BEARER_TOKEN=kept\r\nX_OAUTH2_ACCESS_TOKEN=new\r\nX_OAUTH2_REFRESH_TOKEN=r2\n"
 
 ///> _
-inl main () : i32 =
-    !!!!Export("xc_refresh", ((fun x => refreshed x) : refresh_args -> i32 * string))
+:= main () : i32 =
+    !!!!Export("xc_refresh", ((\ x => refreshed x) : refresh_args -> i32 * string))
     0i32

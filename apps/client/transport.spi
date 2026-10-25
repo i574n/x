@@ -1,66 +1,71 @@
 ///- --package .
 test transport static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open posts
-open oauth1
-open wire
+:< sm'_operators
+:< prelude
+:< posts
+:< oauth1
+:< wire
 
-inl net_send (m : string) (u : string) (a : string) (b : string) : i32 * string =
+:= net_send (m : string) (u : string) (a : string) (b : string) : i32 * string =
     $'xc_net::xc_send(&*!m, &*!u, &*!a, &*!b)'
 
-inl keys_of (o : oauth1) : string * string * string * string = o.consumer_key, o.consumer_secret, o.token, o.token_secret
+:= keys_of (o : oauth1) : string * string * string * string = o.consumer_key, o.consumer_secret, o.token, o.token_secret
 
-inl net_header (o : oauth1) (m : string) (u : string) (nonce : string) (stamp : string) : string =
-    inl ck, cs, t, ts = keys_of o
+:= net_header (o : oauth1) (m : string) (u : string) (nonce : string) (stamp : string) : string =
+    := ck, cs, t, ts = keys_of o
     $'xc_net::xc_oauth1_header(&*!ck, &*!cs, &*!t, &*!ts, &*!m, &*!u, &*!nonce, &*!stamp)'
 
-inl header_for forall c. (a : authorizer c) (method : string) (url : string) : string =
-    match a with
+:= header_for \* c. (a : authorizer c) (method : string) (url : string) : string =
+    ?= a ?|
     | BearerToken t => "Bearer " ++# t
     | Signed (o, nonce, stamp) => net_header o method url nonce stamp
 
-type fetched = json * string
+:== fetched = json * string
 
-inl kept (resource : string) (status : i32) (body : string) : got fetched = classify resource status body |> map_ok fun doc => doc, body
+:= api_classified (resource : string) (status : i32) (body : string) : i32 * string =
+    $'xc_api::xc_classified(&*!resource, !status, &*!body)'
 
-let raw_reply forall c. (e : endpoint c) (v : verb) (resource : string) : got fetched =
-    inl url = e.base ++# resource
-    inl m = method_of v
-    inl status, body = net_send m url (header_for e.auth m url) (body_of_verb v)
+:= kept (resource : string) (status : i32) (body : string) : got fetched =
+    := code, text = api_classified resource status body
+    ? code = 0i32 ?> Ok (parse_json text, text) |: Error (Reported text)
+
+:~ raw_reply \* c. (e : endpoint c) (v : verb) (resource : string) : got fetched =
+    := url = e.base ++# resource
+    := m = method_of v
+    := status, body = net_send m url (header_for e.auth m url) (body_of_verb v)
     kept resource status body
 
-inl bearer_of forall c. (a : authorizer c) : string = match a with BearerToken t => "Bearer " ++# t | Signed _ => ""
+:= bearer_of \* c. (a : authorizer c) : string = ?= a ?| BearerToken t => "Bearer " ++# t | Signed _ => ""
 
-let app_reply (e : endpoint app_context) (resource : string) : got fetched =
-    inl url = e.base ++# resource
-    inl status, body = net_send "GET" url (bearer_of e.auth) ""
+:~ app_reply (e : endpoint app_context) (resource : string) : got fetched =
+    := url = e.base ++# resource
+    := status, body = net_send "GET" url (bearer_of e.auth) ""
     kept resource status body
 
-inl get_raw (a : app) (resource : string) : got fetched =
-    match a with
+:= get_raw (a : app) (resource : string) : got fetched =
+    ?= a ?|
     | api e => app_reply e resource
 
 
-inl account_line (a : account) : string = user_text a.id ++# ":" ++# a.username
+:= account_line (a : account) : string = user_text a.id ++# ":" ++# a.username
 
-inl account_lines (l : accounts) : string = l |> each account_line |> sm'.concat_list "\n"
+:= account_lines (l : accounts) : string = l |> each account_line |> sm'.concat_list "\n"
 
-inl account_of_line (line : string) : account =
-    inl i : i32 = sm'.index_of ":" line
+:= account_of_line (line : string) : account =
+    := i : i32 = sm'.index_of ":" line
     {id = user_id (sm'.substring 0i32 i line); username = sm'.substring (i + 1i32) (sm'.length line - i - 1i32) line}
 
-inl accounts_of_lines (s : string) : accounts = pieces "\n" s |> each account_of_line
+:= accounts_of_lines (s : string) : accounts = pieces "\n" s |> each account_of_line
 
 ///> zig
 test account_lines_round_trip =
-    inl ~h = "bob"
+    := ~h = "bob"
     [{id = user_id "1"; username = "alice"}; {id = user_id "22"; username = h}] |> account_lines |> accounts_of_lines |> account_lines
     |> _assert_eq "1:alice\n22:bob"
 
 ///> zig
 test pieces_of_nothing_are_none =
-    inl ~s = ""
+    := ~s = ""
     pieces "," s |> listm.length |> _assert_eq 0i32

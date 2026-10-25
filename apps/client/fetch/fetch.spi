@@ -1,99 +1,99 @@
 ///- --package ..
 ///> rust -d serde_json
 test fetch static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open posts
-open cli
-open wire
-open transport
+:< sm'_operators
+:< prelude
+:< posts
+:< cli
+:< wire
+:< transport
 
-type slim = {id : string; author_id : string; refs : list string}
+:== slim = {id : string; author_id : string; refs : list string}
 
-inl slim_of (v : json) : slim =
+:= slim_of (v : json) : slim =
     {id = at_key "id" v; author_id = at_key "author_id" v; refs = v |> field "referenced_posts" |> collect (at_key "id")}
 
-type gathered = {primary : list slim; extra : list slim; named : list string; notes : list string; failure : string; bodies : list string}
+:== gathered = {primary : list slim; extra : list slim; named : list string; notes : list string; failure : string; bodies : list string}
 
-inl entry (role : string) (author : string) (keep : i32) (body : string) : string =
-    "{\"role\":\"" ++# role ++# "\",\"author\":\"" ++# author ++# "\",\"keep\":\"" ++# sm'.obj_to_string keep ++# "\",\"doc\":" ++# body ++# "}"
+:= entry (role : string) (author : string) (keep : i32) (body : string) : string =
+    "{\"role\":\"" ++# role ++# "\",\"author\":\"" ++# author ++# "\",\"keep\":" ++# sm'.obj_to_string keep ++# ",\"doc\":" ++# body ++# "}"
 
-inl named_ids (inc : json) : list string = inc |> field "users" |> named_accounts |> each (fun (a : account) => user_text a.id)
+:= named_ids (inc : json) : list string = inc |> field "users" |> named_accounts |> each (\ (a : account) => user_text a.id)
 
-inl absorb_doc (doc : json) (g : gathered) : gathered =
-    inl inc = doc |> field "includes"
-    {g with extra = listm.append g.extra (inc |> field "posts" |> collect slim_of); named = listm.append g.named (named_ids inc)}
+:= absorb_doc (doc : json) (g : gathered) : gathered =
+    := inc = doc |> field "includes"
+    {g ?| extra = listm.append g.extra (inc |> field "posts" |> collect slim_of); named = listm.append g.named (named_ids inc)}
 
-inl note_skip (w : account) (why : string) (g : gathered) : gathered =
-    {g with notes = listm.append g.notes ["skipped @" ++# w.username ++# ": " ++# why]}
+:= note_skip (w : account) (why : string) (g : gathered) : gathered =
+    {g ?| notes = listm.append g.notes ["skipped @" ++# w.username ++# ": " ++# why]}
 
-inl with_doc (w : account) (keep : i32) (body : string) (g : gathered) : gathered =
-    {g with bodies = listm.append g.bodies [entry "primary" w.username keep body]}
+:= with_doc (w : account) (keep : i32) (body : string) (g : gathered) : gathered =
+    {g ?| bodies = listm.append g.bodies [entry "primary" w.username keep body]}
 
-inl with_data (w : account) (doc : json) (data : list slim) (g : gathered) : gathered =
-    inl skipped = first_error doc
-    match data with
-    | Nil when skipped <> "" => note_skip w skipped g
-    | _ => absorb_doc doc {g with primary = listm.append data g.primary}
+:= with_data (w : account) (doc : json) (data : list slim) (g : gathered) : gathered =
+    := skipped = first_error doc
+    ?= data ?|
+    | Nil ?& skipped <> "" => note_skip w skipped g
+    | _ => absorb_doc doc {g ?| primary = listm.append data g.primary}
 
-let add_primary (w : account) (keep : i32) (doc : json) (body : string) (g : gathered) : gathered =
-    inl data = doc |> field "data" |> collect slim_of |> take_first keep
+:~ add_primary (w : account) (keep : i32) (doc : json) (body : string) (g : gathered) : gathered =
+    := data = doc |> field "data" |> collect slim_of |> take_first keep
     with_doc w keep body g |> with_data w doc data
 
-inl posts_of (a : app) (q : query) (w : account) = get_raw a (read_path (PostsOf (w, q)))
+:= posts_of (a : app) (q : query) (w : account) = get_raw a (read_path (PostsOf (w, q)))
 
-inl failed_with (f : failure) (g : gathered) : gathered = {g with failure = describe_failure f}
+:= failed_with (f : failure) (g : gathered) : gathered = {g ?| failure = describe_failure f}
 
-inl gathered_one (a : app) (q : query) (w : account) (g : gathered) : result gathered gathered =
-    match posts_of a q w with
+:= gathered_one (a : app) (q : query) (w : account) (g : gathered) : result gathered gathered =
+    ?= posts_of a q w ?|
     | Ok (doc, body) => Ok (add_primary w q.max_results doc body g)
     | Error f => Error (failed_with f g)
 
-let rec gather (a : app) (q : query) (l : accounts) (g : gathered) : gathered =
-    match l with
+:~ ^ gather (a : app) (q : query) (l : accounts) (g : gathered) : gathered =
+    ?= l ?|
     | Nil => g
     | Cons (w, rest) =>
-        match gathered_one a q w g with
+        ?= gathered_one a q w g ?|
         | Ok g => gather a q rest g
         | Error g => g
 
-inl csv (l : list string) : string = sm'.concat_list "," l
+:= csv (l : list string) : string = sm'.concat_list "," l
 
-type fetch_reply = string * string * string * string * string * string
+:== fetch_reply = string * string * string * string * string * string
 
-inl empty_gathered () : gathered = {primary = Nil; extra = Nil; named = Nil; notes = Nil; failure = ""; bodies = Nil}
+:= empty_gathered () : gathered = {primary = Nil; extra = Nil; named = Nil; notes = Nil; failure = ""; bodies = Nil}
 
-inl ref_ids (g : gathered) : string = g.primary |> spread (fun (p : slim) => p.refs) |> csv
+:= ref_ids (g : gathered) : string = g.primary |> spread (\ (p : slim) => p.refs) |> csv
 
-inl extra_authors (g : gathered) : string = g.extra |> each (fun (p : slim) => p.author_id) |> csv
+:= extra_authors (g : gathered) : string = g.extra |> each (\ (p : slim) => p.author_id) |> csv
 
-inl reply_of (g : gathered) : fetch_reply =
+:= reply_of (g : gathered) : fetch_reply =
     csv g.bodies, sm'.concat_list "\n" g.notes, g.failure, ref_ids g, extra_authors g, csv g.named
 
-let fetched (base : string) (bearer : string) (lines : string) (q : query) : fetch_reply =
+:~ fetched (base : string) (bearer : string) (lines : string) (q : query) : fetch_reply =
     gather (app_api base bearer) q (accounts_of_lines lines) (empty_gathered ()) |> reply_of
 
-inl gathered_from (body : string) : gathered = add_primary (erin ()) 5i32 (parse_json body) body (empty_gathered ())
+:= gathered_from (body : string) : gathered = add_primary (erin ()) 5i32 (parse_json body) body (empty_gathered ())
 
-inl suspended_doc () : string = object [member "data" (items []); member "errors" (items [object [member "detail" (quoted_text "suspended")]])]
+:= suspended_doc () : string = object [member "data" (items []); member "errors" (items [object [member "detail" (quoted_text "suspended")]])]
 
 test references_feed_the_next_lookup =
-    inl ~body = object [member "data" (items [post_json ()])]
+    := ~body = object [member "data" (items [post_json ()])]
     gathered_from body |> ref_ids |> _assert_eq "2"
 
 test an_account_without_posts_is_noted =
-    inl ~body = suspended_doc ()
+    := ~body = suspended_doc ()
     (gathered_from body).notes |> delimited "|" |> _assert_eq ("skipped @" ++# "erin: suspended")
 
-type fetch_args = string * string * string * i32 * string * string * bool * bool * i32 * bool
+:== fetch_args = string * string * string * i32 * string * string * bool * bool * i32 * bool
 
-inl fetched_of (x : fetch_args) : fetch_reply =
-    inl base, bearer, lines, max_results, start_time, end_time, nr, np, depth, hints = x
+:= fetched_of (x : fetch_args) : fetch_reply =
+    := base, bearer, lines, max_results, start_time, end_time, nr, np, depth, hints = x
     fetched base bearer lines {max_results filters = {start_time end_time no_replies = nr; no_reposts = np}; depth hints}
 
 ///> _
-inl main () : i32 =
-    !!!!Export("xc_fetch", ((fun x => fetched_of x) : fetch_args -> fetch_reply))
+:= main () : i32 =
+    !!!!Export("xc_fetch", ((\ x => fetched_of x) : fetch_args -> fetch_reply))
     0i32

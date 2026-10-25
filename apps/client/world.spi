@@ -2,376 +2,376 @@
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
 test world static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open glyphs
-open protocol
-open splitter
-open events
-open final_state
-open personas
-open scenario
+:< sm'_operators
+:< prelude
+:< glyphs
+:< protocol
+:< splitter
+:< events
+:< final_state
+:< personas
+:< scenario
 
-type version = {post_id : post_id; clock : i32; text : string}
+:== version = {post_id : post_id; clock : i32; text : string}
 
-type posted_frame = {original : post_id; cell : cell_id; k : i32; n : i32; reply_to : option post_id; versions : list version}
+:== posted_frame = {original : post_id; cell : cell_id; k : i32; n : i32; reply_to : option post_id; versions : list version}
 
-type frame_key = {cell : cell_id; k : i32}
+:== frame_key = {cell : cell_id; k : i32}
 
-type world =
+:== world =
     {ids : i32; clock : i32; frames : list posted_frame; order : list frame_key;
      last_frame : list (cell_id * post_id); root : option post_id; lost : list cell_id; gone : list cell_id}
 
-type cursor = world * i32
+:== cursor = world * i32
 
-inl empty_world (id_base : i32) : world =
+:= empty_world (id_base : i32) : world =
     {ids = id_base; clock = 0i32; frames = Nil; order = Nil; last_frame = Nil; root = None; lost = Nil; gone = Nil}
 
-type live_cell = {cell : cell_id; parent : option cell_id; revisions : list string}
+:== live_cell = {cell : cell_id; parent : option cell_id; revisions : list string}
 
-type live = list live_cell
+:== live = list live_cell
 
-inl parent_cell (p : option string) : option cell_id =
-    match p with
+:= parent_cell (p : option string) : option cell_id =
+    ?= p ?|
     | Some s => Some (cell_id s)
     | None => None
 
-inl live_of (c : cell_state) : live_cell = {cell = cell_id c.post_id; parent = parent_cell c.parent; revisions = listm.rev c.revisions}
+:= live_of (c : cell_state) : live_cell = {cell = cell_id c.post_id; parent = parent_cell c.parent; revisions = listm.rev c.revisions}
 
-inl next_id (w : world) : post_id * world = post_id (sm'.obj_to_string (w.ids + 1i32)), {w with ids = w.ids + 1i32; clock = w.clock + 1i32}
+:= next_id (w : world) : post_id * world = post_id (sm'.obj_to_string (w.ids + 1i32)), {w ?| ids = w.ids + 1i32; clock = w.clock + 1i32}
 
-inl frame_at (w : world) (cell : cell_id) (k : i32) : option posted_frame =
-    first_where (fun (f : posted_frame) => same_cell f.cell cell && f.k = k) w.frames
+:= frame_at (w : world) (cell : cell_id) (k : i32) : option posted_frame =
+    first_where (\ (f : posted_frame) => same_cell f.cell cell && f.k = k) w.frames
 
-inl original_at (w : world) (cell : cell_id) (k : i32) : option post_id =
-    match frame_at w cell k with
+:= original_at (w : world) (cell : cell_id) (k : i32) : option post_id =
+    ?= frame_at w cell k ?|
     | Some f => Some f.original
     | None => None
 
-inl second_of (p : option (cell_id * post_id)) : option post_id =
-    match p with
+:= second_of (p : option (cell_id * post_id)) : option post_id =
+    ?= p ?|
     | Some (_, v) => Some v
     | None => None
 
-inl looked_up (l : list (cell_id * post_id)) (key : option cell_id) : option post_id =
-    match key with
-    | Some id => second_of (first_where (fun (k, _) => same_cell k id) l)
+:= looked_up (l : list (cell_id * post_id)) (key : option cell_id) : option post_id =
+    ?= key ?|
+    | Some id => second_of (first_where (\ (k, _) => same_cell k id) l)
     | None => None
 
-inl stored_text (cell : cell_id) (k : i32) (n : i32) (body : string) : string = trimmed_end (header cell k n ++# body)
+:= stored_text (cell : cell_id) (k : i32) (n : i32) (body : string) : string = trimmed_end (header cell k n ++# body)
 
-inl reply_for (w : world) (c : live_cell) (k : i32) : option post_id =
-    if k = 1i32 then looked_up w.last_frame c.parent else original_at w c.cell (k - 1i32)
+:= reply_for (w : world) (c : live_cell) (k : i32) : option post_id =
+    ? k = 1i32 ?> looked_up w.last_frame c.parent |: original_at w c.cell (k - 1i32)
 
-inl with_last (cell : cell_id) (id : post_id) (w : world) : world =
-    {w with last_frame = Cons ((cell, id), w.last_frame |> keep (fun (k, _) => not (same_cell k cell)))}
+:= with_last (cell : cell_id) (id : post_id) (w : world) : world =
+    {w ?| last_frame = Cons ((cell, id), w.last_frame |> keep (\ (k, _) => not (same_cell k cell)))}
 
-inl added_frame (f : posted_frame) (w : world) : world =
-    {w with frames = listm.append w.frames [f]; order = listm.append w.order [{cell = f.cell; k = f.k}]}
+:= added_frame (f : posted_frame) (w : world) : world =
+    {w ?| frames = listm.append w.frames [f]; order = listm.append w.order [{cell = f.cell; k = f.k}]}
 
-inl rooted_at (id : post_id) (w : world) : world =
-    match w.root with
+:= rooted_at (id : post_id) (w : world) : world =
+    ?= w.root ?|
     | Some _ => w
-    | None => {w with root = Some id}
+    | None => {w ?| root = Some id}
 
-inl first_frame (c : live_cell) (w : world) (k : i32) (n : i32) (v : version) : posted_frame =
+:= first_frame (c : live_cell) (w : world) (k : i32) (n : i32) (v : version) : posted_frame =
     {original = v.post_id; cell = c.cell; k; n; reply_to = reply_for w c k; versions = [v]}
 
-inl version_at (w : world) (c : live_cell) (k : i32) (n : i32) (body : string) : world * version =
-    inl id, w = next_id w
+:= version_at (w : world) (c : live_cell) (k : i32) (n : i32) (body : string) : world * version =
+    := id, w = next_id w
     w, {post_id = id; clock = w.clock; text = stored_text c.cell k n body}
 
-inl posted_part (c : live_cell) (n : i32) (acc : cursor) (body : string) : cursor =
-    inl w, k = acc
-    inl w, v = version_at w c k n body
+:= posted_part (c : live_cell) (n : i32) (acc : cursor) (body : string) : cursor =
+    := w, k = acc
+    := w, v = version_at w c k n body
     added_frame (first_frame c w k n v) w |> rooted_at v.post_id |> with_last c.cell v.post_id, k + 1i32
 
-inl first_revision (c : live_cell) : string =
-    match c.revisions with
+:= first_revision (c : live_cell) : string =
+    ?= c.revisions ?|
     | Cons (s, _) => s
     | Nil => ""
 
-inl chunks_for (c : live_cell) (source : string) : list string = split_cell c.cell (post_limit ()) source
+:= chunks_for (c : live_cell) (source : string) : list string = split_cell c.cell (post_limit ()) source
 
-inl posted_cell (w : world) (c : live_cell) : world =
-    inl chunks = chunks_for c (first_revision c)
-    inl w, _ = chunks |> listm.fold (posted_part c (listm.length chunks)) (w, 1i32)
+:= posted_cell (w : world) (c : live_cell) : world =
+    := chunks = chunks_for c (first_revision c)
+    := w, _ = chunks |> listm.fold (posted_part c (listm.length chunks)) (w, 1i32)
     w
 
-inl other_than (cell : cell_id) (k : i32) (f : frame_key) : bool = not (same_cell f.cell cell) || f.k <> k
+:= other_than (cell : cell_id) (k : i32) (f : frame_key) : bool = not (same_cell f.cell cell) || f.k <> k
 
-inl dropped (cell : cell_id) (k : i32) (w : world) : world =
-    inl frames = w.frames |> keep (fun (f : posted_frame) => not (same_cell f.cell cell) || f.k <> k)
-    {w with frames = frames; order = w.order |> keep (other_than cell k)}
+:= dropped (cell : cell_id) (k : i32) (w : world) : world =
+    := frames = w.frames |> keep (\ (f : posted_frame) => not (same_cell f.cell cell) || f.k <> k)
+    {w ?| frames = frames; order = w.order |> keep (other_than cell k)}
 
-inl cell_ks (w : world) (cell : cell_id) : list i32 = w.frames |> keep (fun (f : posted_frame) => same_cell f.cell cell) |> each (fun (f : posted_frame) => f.k)
+:= cell_ks (w : world) (cell : cell_id) : list i32 = w.frames |> keep (\ (f : posted_frame) => same_cell f.cell cell) |> each (\ (f : posted_frame) => f.k)
 
-inl versioned (v : version) (n : i32) (f : posted_frame) : posted_frame = {f with n = n; versions = listm.append f.versions [v]}
+:= versioned (v : version) (n : i32) (f : posted_frame) : posted_frame = {f ?| n = n; versions = listm.append f.versions [v]}
 
-inl replaced (cell : cell_id) (k : i32) (g : posted_frame -> posted_frame) (w : world) : world =
-    {w with frames = w.frames |> each (fun (f : posted_frame) => if same_cell f.cell cell && f.k = k then g f else f)}
+:= replaced (cell : cell_id) (k : i32) (g : posted_frame -> posted_frame) (w : world) : world =
+    {w ?| frames = w.frames |> each (\ (f : posted_frame) => ? same_cell f.cell cell && f.k = k ?> g f |: f)}
 
-inl edited_in (c : live_cell) (k : i32) (n : i32) (v : version) (w : world) : world =
-    match frame_at w c.cell k with
+:= edited_in (c : live_cell) (k : i32) (n : i32) (v : version) (w : world) : world =
+    ?= frame_at w c.cell k ?|
     | Some _ => replaced c.cell k (versioned v n) w
     | None => added_frame (first_frame c w k n v) w
 
-inl edited_part (c : live_cell) (n : i32) (acc : cursor) (body : string) : cursor =
-    inl w, k = acc
-    inl w, v = version_at w c k n body
+:= edited_part (c : live_cell) (n : i32) (acc : cursor) (body : string) : cursor =
+    := w, k = acc
+    := w, v = version_at w c k n body
     edited_in c k n v w, k + 1i32
 
-inl trimmed_to (cell : cell_id) (n : i32) (w : world) : world = cell_ks w cell |> keep (fun k => k > n) |> listm.fold (fun w k => dropped cell k w) w
+:= trimmed_to (cell : cell_id) (n : i32) (w : world) : world = cell_ks w cell |> keep (\ k => k > n) |> listm.fold (\ w k => dropped cell k w) w
 
-inl revised_with (c : live_cell) (w : world) (source : string) : world =
-    inl chunks = chunks_for c source
-    inl n = listm.length chunks
-    inl w, _ = chunks |> listm.fold (edited_part c n) (trimmed_to c.cell n w, 1i32)
+:= revised_with (c : live_cell) (w : world) (source : string) : world =
+    := chunks = chunks_for c source
+    := n = listm.length chunks
+    := w, _ = chunks |> listm.fold (edited_part c n) (trimmed_to c.cell n w, 1i32)
     w
 
-inl later_revisions (c : live_cell) : list string =
-    match c.revisions with
+:= later_revisions (c : live_cell) : list string =
+    ?= c.revisions ?|
     | Cons (_, later) => later
     | Nil => Nil
 
-inl edited_cell (w : world) (c : live_cell) : world = later_revisions c |> listm.fold (revised_with c) w
+:= edited_cell (w : world) (c : live_cell) : world = later_revisions c |> listm.fold (revised_with c) w
 
-inl tail_cells (cells : live) : live =
-    match cells with
+:= tail_cells (cells : live) : live =
+    ?= cells ?|
     | Cons (_, rest) => rest
     | Nil => Nil
 
-inl on_step (step : i32) (i : i32) : bool = i >= step - 1i32 && (i - step + 1i32) % step = 0i32
+:= on_step (step : i32) (i : i32) : bool = i >= step - 1i32 && (i - step + 1i32) % step = 0i32
 
-inl every_step forall t. (step : i32) (l : list t) : list t =
-    inl _, picked = l |> listm.fold (fun ((i, acc) : i32 * list t) (x : t) => (i + 1i32, (if on_step step i then Cons (x, acc) else acc))) (0i32, Nil)
+:= every_step \* t. (step : i32) (l : list t) : list t =
+    := _, picked = l |> listm.fold (\ ((i, acc) : i32 * list t) (x : t) => (i + 1i32, (? on_step step i ?> Cons (x, acc) |: acc))) (0i32, Nil)
     listm.rev picked
 
-inl cell_ids (cells : live) : list cell_id = cells |> each (fun (c : live_cell) => c.cell)
+:= cell_ids (cells : live) : list cell_id = cells |> each (\ (c : live_cell) => c.cell)
 
-inl split_cell_at (w : world) (id : cell_id) : bool =
-    match frame_at w id 2i32 with
-    | Some _ => true
-    | None => false
+:= split_cell_at (w : world) (id : cell_id) : bool =
+    ?= frame_at w id 2i32 ?|
+    | Some _ => !+
+    | None => !-
 
-inl loss_step (candidates : list cell_id) (count : i32) : i32 =
-    inl step = listm.length candidates / (count + 1i32)
-    if step < 1i32 then 1i32 else step
+:= loss_step (candidates : list cell_id) (count : i32) : i32 =
+    := step = listm.length candidates / (count + 1i32)
+    ? step < 1i32 ?> 1i32 |: step
 
-inl lost_one (w : world) (id : cell_id) : world =
-    inl w2 = dropped id 2i32 w
-    {w2 with lost = listm.append w.lost [id]}
+:= lost_one (w : world) (id : cell_id) : world =
+    := w2 = dropped id 2i32 w
+    {w2 ?| lost = listm.append w.lost [id]}
 
-inl lose (w : world) (cells : live) (count : i32) : world =
-    inl candidates = tail_cells cells |> cell_ids |> keep (split_cell_at w)
-    if count <= 0i32 then w else every_step (loss_step candidates count) candidates |> take_first count |> listm.fold lost_one w
+:= lose (w : world) (cells : live) (count : i32) : world =
+    := candidates = tail_cells cells |> cell_ids |> keep (split_cell_at w)
+    ? count <= 0i32 ?> w |: every_step (loss_step candidates count) candidates |> take_first count |> listm.fold lost_one w
 
-inl parent_is (id : cell_id) (c : live_cell) : bool =
-    match c.parent with
+:= parent_is (id : cell_id) (c : live_cell) : bool =
+    ?= c.parent ?|
     | Some p => same_cell p id
-    | None => false
+    | None => !-
 
-inl gone_one (w : world) (id : cell_id) : world =
-    inl w2 = cell_ks w id |> listm.fold (fun w k => dropped id k w) w
-    {w2 with gone = listm.append w.gone [id]}
+:= gone_one (w : world) (id : cell_id) : world =
+    := w2 = cell_ks w id |> listm.fold (\ w k => dropped id k w) w
+    {w2 ?| gone = listm.append w.gone [id]}
 
-inl losable (w : world) (cells : live) (id : cell_id) : bool = has (parent_is id) cells && not (has (same_cell id) w.lost)
+:= losable (w : world) (cells : live) (id : cell_id) : bool = has (parent_is id) cells && not (has (same_cell id) w.lost)
 
-inl lose_cells (w : world) (cells : live) (count : i32) : world =
-    if count <= 0i32 then w else tail_cells cells |> cell_ids |> keep (losable w cells) |> take_first count |> listm.fold gone_one w
+:= lose_cells (w : world) (cells : live) (count : i32) : world =
+    ? count <= 0i32 ?> w |: tail_cells cells |> cell_ids |> keep (losable w cells) |> take_first count |> listm.fold gone_one w
 
-type losses = {lost : i32; lost_cells : i32}
+:== losses = {lost : i32; lost_cells : i32}
 
-inl laid_down (cells : live) (id_base : i32) : world = cells |> listm.fold edited_cell (cells |> listm.fold posted_cell (empty_world id_base))
+:= laid_down (cells : live) (id_base : i32) : world = cells |> listm.fold edited_cell (cells |> listm.fold posted_cell (empty_world id_base))
 
-let materialized (cells : live) (id_base : i32) (l : losses) : world = lose_cells (lose (laid_down cells id_base) cells l.lost) cells l.lost_cells
+:~ materialized (cells : live) (id_base : i32) (l : losses) : world = lose_cells (lose (laid_down cells id_base) cells l.lost) cells l.lost_cells
 
-inl originals (w : world) : post_ids = w.frames |> each (fun (f : posted_frame) => f.original)
+:= originals (w : world) : post_ids = w.frames |> each (\ (f : posted_frame) => f.original)
 
-inl gap_of (w : world) (f : posted_frame) : list cell_id =
-    match f.reply_to with
-    | Some id when f.k = 1i32 && not (has (same_post id) (originals w)) => [f.cell]
+:= gap_of (w : world) (f : posted_frame) : list cell_id =
+    ?= f.reply_to ?|
+    | Some id ?& f.k = 1i32 && not (has (same_post id) (originals w)) => [f.cell]
     | _ => Nil
 
-inl keyed_frame (w : world) (o : frame_key) : list posted_frame =
-    match frame_at w o.cell o.k with
+:= keyed_frame (w : world) (o : frame_key) : list posted_frame =
+    ?= frame_at w o.cell o.k ?|
     | Some f => [f]
     | None => Nil
 
-inl ordered_frames (w : world) : list posted_frame = w.order |> spread (keyed_frame w)
+:= ordered_frames (w : world) : list posted_frame = w.order |> spread (keyed_frame w)
 
-let gaps (w : world) : list cell_id = ordered_frames w |> spread (gap_of w)
+:~ gaps (w : world) : list cell_id = ordered_frames w |> spread (gap_of w)
 
-inl body_text (text : string) : string =
-    inl i = sm'.index_of "\n" text
-    if i < 0i32 then "" else rest_from (i + 1i32) text |> sm'.replace (defused_dot ()) "."
+:= body_text (text : string) : string =
+    := i = sm'.index_of "\n" text
+    ? i < 0i32 ?> "" |: rest_from (i + 1i32) text |> sm'.replace (defused_dot ()) "."
 
-inl last_text (f : posted_frame) : string = f.versions |> listm.fold (fun _ (v : version) => v.text) ""
+:= last_text (f : posted_frame) : string = f.versions |> listm.fold (\ _ (v : version) => v.text) ""
 
-let rec by_k (f : posted_frame) (l : list posted_frame) : list posted_frame =
-    match l with
-    | Cons (g, rest) when g.k < f.k => Cons (g, by_k f rest)
+:~ ^ by_k (f : posted_frame) (l : list posted_frame) : list posted_frame =
+    ?= l ?|
+    | Cons (g, rest) ?& g.k < f.k => Cons (g, by_k f rest)
     | _ => Cons (f, l)
 
-inl sort_by_k (l : list posted_frame) : list posted_frame = l |> listm.fold (fun acc f => by_k f acc) Nil
+:= sort_by_k (l : list posted_frame) : list posted_frame = l |> listm.fold (\ acc f => by_k f acc) Nil
 
-inl rebuilt (w : world) (cell : cell_id) : string =
-    w.frames |> keep (fun (f : posted_frame) => same_cell f.cell cell) |> sort_by_k |> each (fun f => body_text (last_text f)) |> delimited ""
+:= rebuilt (w : world) (cell : cell_id) : string =
+    w.frames |> keep (\ (f : posted_frame) => same_cell f.cell cell) |> sort_by_k |> each (\ f => body_text (last_text f)) |> delimited ""
 
-inl kept_in (w : world) (id : cell_id) : bool = not (has (same_cell id) w.lost) && not (has (same_cell id) w.gone)
+:= kept_in (w : world) (id : cell_id) : bool = not (has (same_cell id) w.lost) && not (has (same_cell id) w.gone)
 
-let program (cells : live) (w : world) : string = cells |> cell_ids |> keep (kept_in w) |> each (rebuilt w) |> delimited "\n\n"
+:~ program (cells : live) (w : world) : string = cells |> cell_ids |> keep (kept_in w) |> each (rebuilt w) |> delimited "\n\n"
 
-type moment = {days : i32; seconds : i32}
+:== moment = {days : i32; seconds : i32}
 
-type civil = {y : i32; m : i32; d : i32}
+:== civil = {y : i32; m : i32; d : i32}
 
-inl number_in (s : string) (start : i32) (len : i32) : i32 =
-    match count_of_text (cut start len s) with
+:= number_in (s : string) (start : i32) (len : i32) : i32 =
+    ?= count_of_text (cut start len s) ?|
     | Some n => n
     | None => 0i32
 
-inl day_of_year (m : i32) (d : i32) : i32 = (153i32 * (if m > 2i32 then m - 3i32 else m + 9i32) + 2i32) / 5i32 + d - 1i32
+:= day_of_year (m : i32) (d : i32) : i32 = (153i32 * (? m > 2i32 ?> m - 3i32 |: m + 9i32) + 2i32) / 5i32 + d - 1i32
 
-inl days_from_civil (y : i32) (m : i32) (d : i32) : i32 =
-    inl y = if m <= 2i32 then y - 1i32 else y
-    inl yoe = y % 400i32
+:= days_from_civil (y : i32) (m : i32) (d : i32) : i32 =
+    := y = ? m <= 2i32 ?> y - 1i32 |: y
+    := yoe = y % 400i32
     y / 400i32 * 146097i32 + yoe * 365i32 + yoe / 4i32 - yoe / 100i32 + day_of_year m d - 719468i32
 
-inl year_of_era (doe : i32) : i32 = (doe - doe / 1460i32 + doe / 36524i32 - doe / 146096i32) / 365i32
+:= year_of_era (doe : i32) : i32 = (doe - doe / 1460i32 + doe / 36524i32 - doe / 146096i32) / 365i32
 
-inl day_in_era (doe : i32) (yoe : i32) : i32 = doe - (365i32 * yoe + yoe / 4i32 - yoe / 100i32)
+:= day_in_era (doe : i32) (yoe : i32) : i32 = doe - (365i32 * yoe + yoe / 4i32 - yoe / 100i32)
 
-inl month_of (mp : i32) : i32 = if mp < 10i32 then mp + 3i32 else mp - 9i32
+:= month_of (mp : i32) : i32 = ? mp < 10i32 ?> mp + 3i32 |: mp - 9i32
 
-inl civil_of (year : i32) (doy : i32) : civil =
-    inl mp = (5i32 * doy + 2i32) / 153i32
-    inl m = month_of mp
-    {y = if m <= 2i32 then year + 1i32 else year; m; d = doy - (153i32 * mp + 2i32) / 5i32 + 1i32}
+:= civil_of (year : i32) (doy : i32) : civil =
+    := mp = (5i32 * doy + 2i32) / 153i32
+    := m = month_of mp
+    {y = ? m <= 2i32 ?> year + 1i32 |: year; m; d = doy - (153i32 * mp + 2i32) / 5i32 + 1i32}
 
-inl civil_from_days (days : i32) : civil =
-    inl z = days + 719468i32
-    inl doe = z % 146097i32
-    inl yoe = year_of_era doe
+:= civil_from_days (days : i32) : civil =
+    := z = days + 719468i32
+    := doe = z % 146097i32
+    := yoe = year_of_era doe
     civil_of (yoe + z / 146097i32 * 400i32) (day_in_era doe yoe)
 
-inl moment_of (iso : string) : moment =
-    inl days = days_from_civil (number_in iso 0i32 4i32) (number_in iso 5i32 2i32) (number_in iso 8i32 2i32)
+:= moment_of (iso : string) : moment =
+    := days = days_from_civil (number_in iso 0i32 4i32) (number_in iso 5i32 2i32) (number_in iso 8i32 2i32)
     {days seconds = number_in iso 11i32 2i32 * 3600i32 + number_in iso 14i32 2i32 * 60i32 + number_in iso 17i32 2i32}
 
-inl padded (width : i32) (n : i32) : string =
-    inl t = sm'.obj_to_string n
+:= padded (width : i32) (n : i32) : string =
+    := t = sm'.obj_to_string n
     sm'.replicate (width - sm'.length t) "0" ++# t
 
-inl clock_text (s : i32) : string = padded 2i32 (s / 3600i32) ++# ":" ++# padded 2i32 (s / 60i32 % 60i32) ++# ":" ++# padded 2i32 (s % 60i32)
+:= clock_text (s : i32) : string = padded 2i32 (s / 3600i32) ++# ":" ++# padded 2i32 (s / 60i32 % 60i32) ++# ":" ++# padded 2i32 (s % 60i32)
 
-inl date_text (c : civil) : string = padded 4i32 c.y ++# "-" ++# padded 2i32 c.m ++# "-" ++# padded 2i32 c.d
+:= date_text (c : civil) : string = padded 4i32 c.y ++# "-" ++# padded 2i32 c.m ++# "-" ++# padded 2i32 c.d
 
-inl stamped (base : moment) (clock : i32) : string =
-    inl total = base.seconds + clock
+:= stamped (base : moment) (clock : i32) : string =
+    := total = base.seconds + clock
     date_text (civil_from_days (base.days + total / 86400i32)) ++# "T" ++# clock_text (total % 86400i32) ++# ".000Z"
 
-inl replies_here (id : post_id) (f : posted_frame) : bool =
-    match f.reply_to with
+:= replies_here (id : post_id) (f : posted_frame) : bool =
+    ?= f.reply_to ?|
     | Some p => same_post p id
-    | None => false
+    | None => !-
 
-inl replies_to (w : world) (id : post_id) : i32 = w.frames |> keep (replies_here id) |> listm.length
+:= replies_to (w : world) (id : post_id) : i32 = w.frames |> keep (replies_here id) |> listm.length
 
-inl tally_count (r : replay) (cell : cell_id) : i32 = r.tallies |> keep (fun (t : tally) => t.post_id = cell_text cell) |> spread (fun (t : tally) => t.users) |> listm.length
+:= tally_count (r : replay) (cell : cell_id) : i32 = r.tallies |> keep (\ (t : tally) => t.post_id = cell_text cell) |> spread (\ (t : tally) => t.users) |> listm.length
 
-inl likes_for_cell (r : replay) (f : posted_frame) : i32 = if f.k <> 1i32 then 0i32 else tally_count r f.cell
+:= likes_for_cell (r : replay) (f : posted_frame) : i32 = ? f.k <> 1i32 ?> 0i32 |: tally_count r f.cell
 
-inl metrics_json (w : world) (r : replay) (f : posted_frame) : string =
+:= metrics_json (w : world) (r : replay) (f : posted_frame) : string =
     laid_out [pair "like_count" (number (likes_for_cell r f)); pair "reply_count" (number (replies_to w f.original))] (braces ()) 5i32
 
-inl reply_ref (id : post_id) : string = laid_out [pair "id" (quoted (post_text id)); pair "type" (quoted "replied_to")] (braces ()) 6i32
+:= reply_ref (id : post_id) : string = laid_out [pair "id" (quoted (post_text id)); pair "type" (quoted "replied_to")] (braces ()) 6i32
 
-inl refs_json (f : posted_frame) : string =
-    match f.reply_to with
+:= refs_json (f : posted_frame) : string =
+    ?= f.reply_to ?|
     | Some id => laid_out [reply_ref id] (square ()) 5i32
     | None => "[]"
 
-inl root_json (w : world) : string =
-    match w.root with
+:= root_json (w : world) : string =
+    ?= w.root ?|
     | Some r => quoted (post_text r)
     | None => "null"
 
-type posting_view = {posted : world; replay : replay; base : moment}
+:== posting_view = {posted : world; replay : replay; base : moment}
 
-inl history_json (f : posted_frame) : string = laid_out (f.versions |> each (fun (v : version) => quoted (post_text v.post_id))) (square ()) 5i32
+:= history_json (f : posted_frame) : string = laid_out (f.versions |> each (\ (v : version) => quoted (post_text v.post_id))) (square ()) 5i32
 
-inl dated_fields (p : posting_view) (f : posted_frame) (v : version) : list string =
+:= dated_fields (p : posting_view) (f : posted_frame) (v : version) : list string =
     [pair "conversation_id" (root_json p.posted); pair "created_at" (quoted (stamped p.base v.clock)); pair "edit_history" (history_json f)]
 
-inl post_fields_of (p : posting_view) (f : posted_frame) (v : version) : list string =
+:= post_fields_of (p : posting_view) (f : posted_frame) (v : version) : list string =
     [pair "id" (quoted (post_text v.post_id)); pair "metrics" (metrics_json p.posted p.replay f); pair "refs" (refs_json f); pair "text" (quoted v.text)]
 
-inl post_json (p : posting_view) (f : posted_frame) (v : version) : string =
+:= post_json (p : posting_view) (f : posted_frame) (v : version) : string =
     laid_out (listm.append (dated_fields p f v) (post_fields_of p f v)) (braces ()) 4i32
 
-inl frame_posts (p : posting_view) (f : posted_frame) : list string = f.versions |> each (post_json p f)
+:= frame_posts (p : posting_view) (f : posted_frame) : list string = f.versions |> each (post_json p f)
 
-type account_view = {user_id : string; username : string}
+:== account_view = {user_id : string; username : string}
 
-inl user_fields (a : account_view) (posts : list string) : list string =
+:= user_fields (a : account_view) (posts : list string) : list string =
     [pair "id" (quoted a.user_id); pair "name" (quoted a.username); pair "posts" (laid_out posts (square ()) 3i32); pair "username" (quoted a.username)]
 
-inl world_json (p : posting_view) (a : account_view) : string =
-    inl user = laid_out (user_fields a (ordered_frames p.posted |> spread (frame_posts p))) (braces ()) 2i32
+:= world_json (p : posting_view) (a : account_view) : string =
+    := user = laid_out (user_fields a (ordered_frames p.posted |> spread (frame_posts p))) (braces ()) 2i32
     laid_out [pair "users" (laid_out [user] (square ()) 1i32)] (braces ()) 0i32 ++# "\n"
 
-inl lines_of_program (text : string) : list string = if text = "" then Nil else split_on "\n" text
+:= lines_of_program (text : string) : list string = ? text = "" ?> Nil |: split_on "\n" text
 
-inl quoted_list (l : list string) : string = laid_out (l |> each quoted) (square ()) 1i32
+:= quoted_list (l : list string) : string = laid_out (l |> each quoted) (square ()) 1i32
 
-inl cells_json (l : list cell_id) : string = quoted_list (l |> each cell_text)
+:= cells_json (l : list cell_id) : string = quoted_list (l |> each cell_text)
 
-inl expected_fields (cells : live) (w : world) : list string =
+:= expected_fields (cells : live) (w : world) : list string =
     [pair "gaps" (cells_json (gaps w)); pair "incomplete" (cells_json w.lost); pair "program" (quoted_list (lines_of_program (program cells w))); pair "root" (root_json w)]
 
-inl expected_json (cells : live) (w : world) : string = laid_out (expected_fields cells w) (braces ()) 0i32 ++# "\n"
+:= expected_json (cells : live) (w : world) : string = laid_out (expected_fields cells w) (braces ()) 0i32 ++# "\n"
 
-type world_ask = {seed : i32; edits : i32; personas : string; id_base : i32; losses : losses; base_time : string; account : account_view}
+:== world_ask = {seed : i32; edits : i32; personas : string; id_base : i32; losses : losses; base_time : string; account : account_view}
 
-inl world_casting (a : world_ask) : casting =
-    inl c = plain_casting a.seed
-    {c with edits = a.edits; personas = parsed_personas a.personas}
+:= world_casting (a : world_ask) : casting =
+    := c = plain_casting a.seed
+    {c ?| edits = a.edits; personas = parsed_personas a.personas}
 
-inl replay_of (a : world_ask) (cells : list string) : replay =
-    inl s = from_cells (world_casting a) "" cells
+:= replay_of (a : world_ask) (cells : list string) : replay =
+    := s = from_cells (world_casting a) "" cells
     final_replay s.all_events
 
-inl posting_of (a : world_ask) (r : replay) (w : world) : posting_view = {posted = w; replay = r; base = moment_of a.base_time}
+:= posting_of (a : world_ask) (r : replay) (w : world) : posting_view = {posted = w; replay = r; base = moment_of a.base_time}
 
-let world_files (a : world_ask) (cells : list string) : string * string =
-    inl r = replay_of a cells
-    inl alive = live_cells r |> each live_of
-    inl w = materialized alive a.id_base a.losses
+:~ world_files (a : world_ask) (cells : list string) : string * string =
+    := r = replay_of a cells
+    := alive = live_cells r |> each live_of
+    := w = materialized alive a.id_base a.losses
     world_json (posting_of a r w) a.account, expected_json alive w
 
 test stamps_carry_into_the_next_day =
-    inl ~base = moment_of "2026-12-31T23:59:30Z"
+    := ~base = moment_of "2026-12-31T23:59:30Z"
     stamped base 45i32 |> _assert_eq "2027-01-01T00:00:15.000Z"
     stamped (moment_of "2026-08-01T08:00:00Z") 1i32 |> _assert_eq "2026-08-01T08:00:01.000Z"
 
-inl two_cells () : live = [{cell = cell_id "p0"; parent = None; revisions = ["a"]}; {cell = cell_id "p1"; parent = Some (cell_id "p0"); revisions = ["b"; "c"]}]
+:= two_cells () : live = [{cell = cell_id "p0"; parent = None; revisions = ["a"]}; {cell = cell_id "p1"; parent = Some (cell_id "p0"); revisions = ["b"; "c"]}]
 
-inl frame_summary (f : posted_frame) : string = post_text f.original ++# ":" ++# sm'.obj_to_string (listm.length f.versions : i32)
+:= frame_summary (f : posted_frame) : string = post_text f.original ++# ":" ++# sm'.obj_to_string (listm.length f.versions : i32)
 
 test edits_add_versions_to_their_frames =
-    inl ~cells = two_cells ()
+    := ~cells = two_cells ()
     materialized cells 100i32 {lost = 0i32; lost_cells = 0i32} |> ordered_frames |> each frame_summary |> delimited "," |> _assert_eq "101:1,102:2"
 
-inl chained_cells () : live =
+:= chained_cells () : live =
     [{cell = cell_id "a"; parent = None; revisions = ["inl a = 1"]}; {cell = cell_id "b"; parent = Some (cell_id "a"); revisions = ["inl b = a"]}; {cell = cell_id "c"; parent = Some (cell_id "b"); revisions = ["inl c = b"]}]
 
-inl lost_cell_view (cells : live) : string =
-    inl w = materialized cells 100i32 {lost = 0i32; lost_cells = 1i32}
+:= lost_cell_view (cells : live) : string =
+    := w = materialized cells 100i32 {lost = 0i32; lost_cells = 1i32}
     delimited "," (w.gone |> each cell_text) ++# "|" ++# delimited "," (gaps w |> each cell_text) ++# "|" ++# program cells w
 
 test a_cell_lost_with_all_its_posts_leaves_a_gap =
-    inl ~cells = chained_cells ()
+    := ~cells = chained_cells ()
     lost_cell_view cells |> _assert_eq "b|c|inl a = 1\n\ninl c = b"

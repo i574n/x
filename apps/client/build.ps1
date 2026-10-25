@@ -15,8 +15,6 @@ foreach ($manifest in Get-ChildItem $PSScriptRoot -Recurse -Depth 1 -Filter Carg
         $entry = Join-Path $manifest.DirectoryName $Matches[1]
         $output = Join-Path $manifest.DirectoryName $Matches[2]
         if (!(BuildSpiral $entry $output "x/apps/client/$crate")) { throw "RUST-FAILED x/apps/client/$crate / compile" }
-        pwsh -NoProfile -File (Join-Path $XRoot 'scripts/rust-modules.ps1') -Source $output
-        if ($LASTEXITCODE) { throw "RUST-FAILED x/apps/client/$crate / rust-modules exit $LASTEXITCODE" }
     }
 }
 { pwsh -NoProfile -File (Join-Path $XRoot 'scripts/gate.ps1') -Enforce } | Invoke-Block
@@ -51,7 +49,7 @@ $spilledFiles = @($postable | Where-Object { $_.Spilled.Count }).Count
 if ($spilledFiles -gt 0) { throw "POSTABLE x/apps/client / $spilledFiles file(s) with cells over one post, see the lines above" }
 
 if (!$fast) {
-    Invoke-SpiralTests $PSScriptRoot @("prelude", "exsss", "paging", "glyphs", "protocol", "splitter", "events", "final_state", "personas", "scenario", "schedule", "world", "invariants", "posts", "reading", "cli", "oauth1", "wire", "transport", "locate/locate", "assemble/assemble", "frames/frames", "simframes/simframes", "jsonl/jsonl", "digest/digest", "view/view", "token/token", "args/args", "checks/checks", "thread/thread", "write/write", "refs/refs", "users/users", "fetch/fetch", "net/net", "xc/xc")
+    Invoke-SpiralTests $PSScriptRoot @("prelude", "exsss", "paging", "glyphs", "protocol", "splitter", "events", "final_state", "personas", "scenario", "schedule", "world", "invariants", "posts", "reading", "cli", "oauth1", "wire", "transport", "locate/locate", "assemble/assemble", "frames/frames", "simframes/simframes", "jsonl/jsonl", "digest/digest", "view/view", "token/token", "args/args", "checks/checks", "thread/thread", "write/write", "refs/refs", "users/users", "fetch/fetch", "net/net", "api/api", "chain/chain", "cells/cells", "preview/preview", "select/select", "timeline/timeline", "resume/resume", "xc/xc")
 }
 
 Write-Output "RUST-OK x/apps/client / $exe"

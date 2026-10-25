@@ -1,0 +1,85 @@
+///- --package ..
+///> rust -d serde_json
+test resume static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< wire
+
+:| resume_plan =
+    | ResumeAfter : {posted : i32; remaining : list string}
+    | PostDiffers : {at : i32; planned : string; found : string}
+    | MorePostedThanPlanned : i32
+
+:= differing (k : i32) (p : string) (f : string) : resume_plan =
+    PostDiffers {at = k + 1i32; planned = first_line p; found = first_line f}
+
+:= resume_end (k : i32) (planned : list string) (found : list string) : resume_plan =
+    ?= found ?|
+    | Nil => ResumeAfter {posted = k; remaining = planned}
+    | _ => MorePostedThanPlanned (k + (listm.length found : i32))
+
+:~ ^ resume_from (k : i32) (planned : list string) (found : list string) : resume_plan =
+    ?= planned, found ?|
+    | Cons (p, ps), Cons (f, fs) => ? p = f ?> resume_from (k + 1i32) ps fs |: differing k p f
+    | _ => resume_end k planned found
+
+:= resume_count (n : i32) : string = sm'.obj_to_string n
+
+:= differs_head (at : i32) : string =
+    := n = resume_count at
+    "post " ++# n ++# " of the thread differs from post " ++# n ++# " of the file"
+
+:= differs_text (at : i32) (found : string) (planned : string) : string =
+    differs_head at ++# " (found '" ++# found ++# "', planned '" ++# planned ++# "'); nothing posted"
+
+:= longer_text (n : i32) : string = "the thread already has " ++# resume_count n ++# " posts, more than the file plans; nothing posted"
+
+:= resume_refusal (plan : resume_plan) : string =
+    ?= plan ?|
+    | PostDiffers d => differs_text d.at d.found d.planned
+    | MorePostedThanPlanned n => longer_text n
+    | ResumeAfter _ => "no posted thread found before the resume point; nothing posted"
+
+:= texts_in (v : json) : list string = v |> collect (at_key "text")
+
+:= strings_json (l : list string) : string = items (l |> each json_string)
+
+:= plan_reply (p : resume_plan) : i32 * i32 * string =
+    ?= p ?|
+    | ResumeAfter r ?& r.posted > 0i32 => 0i32, r.posted, strings_json r.remaining
+    | refused => 4i32, 0i32, resume_refusal refused
+
+:~ resume_plan_of (payload : string) : i32 * i32 * string =
+    := doc = parse_json payload
+    resume_from 0i32 (texts_in (doc |> field "planned")) (texts_in (doc |> field "found")) |> plan_reply
+
+:= plan_text (p : resume_plan) : string =
+    ?= p ?|
+    | ResumeAfter r ?& r.posted > 0i32 => "after " ++# resume_count r.posted ++# ": " ++# sm'.concat_list "|" r.remaining
+    | refused => resume_refusal refused
+
+test a_half_posted_thread_resumes_after_its_last_post =
+    := ~planned = ["c1 1/3\na"; "c1 2/3\nb"; "c1 3/3\nc"]
+    resume_from 0i32 planned ["c1 1/3\na"; "c1 2/3\nb"] |> plan_text |> _assert_eq "after 2: c1 3/3\nc"
+
+:= changed_refusal () : string = "post 2 of the thread differs from post 2 of the file (found 'c1 2/3', planned 'c1 2/3'); nothing posted"
+
+test a_changed_post_refuses_the_resume =
+    := ~planned = ["c1 1/3\na"; "c1 2/3\nb"; "c1 3/3\nc"]
+    resume_from 0i32 planned ["c1 1/3\na"; "c1 2/3\nB"] |> plan_text |> _assert_eq (changed_refusal ())
+
+test a_longer_thread_refuses =
+    := ~planned = ["c1 1/1\na"]
+    resume_from 0i32 planned ["c1 1/1\na"; "c2 1/1\nb"] |> plan_text
+        |> _assert_eq "the thread already has 2 posts, more than the file plans; nothing posted"
+
+test no_posted_thread_refuses =
+    := ~planned = ["c1 1/1\na"]
+    resume_from 0i32 planned Nil |> plan_text |> _assert_eq "no posted thread found before the resume point; nothing posted"
+
+///> _
+:= main () : i32 =
+    !!!!Export("xc_resume_plan", ((\ payload => resume_plan_of payload) : string -> i32 * i32 * string))
+    0i32

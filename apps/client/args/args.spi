@@ -1,123 +1,43 @@
 ///- --package ..
 ///> rust
 test args static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open cli
+:< sm'_operators
+:< prelude
+:< cli
+:< fields
 
-inl process_args () : list string =
-    let rec from (i : i32) (acc : list string) : list string =
-        if i < 0i32 then acc else from (i - 1) (Cons (env.command_line_argument i, acc))
-    from (env.command_line_argument_count () - 1) Nil
+:= timeline_fields () : command_fields = $'xc_timeline::xc_timeline_fields()'
 
-type command_fields =
-    {kind : i32; payload : string; following : bool; usernames : string; max_results : i32; limit : i32; per_author : i32;
-     cap : i32; since : string; until : string; no_replies : bool; no_reposts : bool; depth : i32; hints : bool; json : bool}
+:~ parsed_fields () : command_fields =
+    := a = process_args ()
+    ?= a ?|
+    | Cons (sub, _) ?& sub = "timeline" && not (wants_help a) => timeline_fields ()
+    | _ => parse_writes a |> fields_of
 
-inl blank () : command_fields =
-    {kind = 3; payload = ""; following = false; usernames = ""; max_results = 5; limit = 20; per_author = 0;
-     cap = 20; since = ""; until = ""; no_replies = false; no_reposts = false; depth = 0; hints = false; json = false}
+:= fields_for (l : list string) : command_fields = parse_args l |> fields_of
 
-inl cap_number (c : following_cap) : i32 =
-    match c with
-    | AtMost n => n
-    | AllFollowing => -1i32
-
-inl source_fields (s : source) (f : command_fields) : command_fields =
-    match s with
-    | Accounts hs => {f with following = false; usernames = sm'.concat_list "," hs}
-    | FollowingOf h => {f with following = true; usernames = h}
-
-inl counts_fields (r : request) (f : command_fields) : command_fields =
-    {f with kind = 0i32; max_results = r.per_account; limit = r.limit; per_author = r.per_author; cap = cap_number r.cap}
-
-inl filter_fields (r : request) (f : command_fields) : command_fields =
-    inl x = r.filters
-    {f with since = x.start_time; until = x.end_time; no_replies = x.no_replies; no_reposts = x.no_reposts; depth = r.depth; hints = r.hints}
-
-inl output_fields (r : request) (f : command_fields) : command_fields = {f with json = r.json}
-
-inl request_fields (r : request) : command_fields =
-    blank () |> counts_fields r |> filter_fields r |> output_fields r |> source_fields r.source
-
-inl with_payload (kind : i32) (payload : string) : command_fields =
-    inl z = blank ()
-    {z with kind = kind; payload = payload}
-
-inl thread_edit_payload (t : thread_op) : i32 * string =
-    match t with
-    | DeleteThread id => 9i32, id
-    | ResumeThread (root, path) => 10i32, root ++# "\n" ++# path
-    | _ => 3i32, ""
-
-inl thread_op_payload (t : thread_op) : i32 * string =
-    match t with
-    | ReadThread id => 6i32, id
-    | PostThread path => 7i32, path
-    | PreviewThread path => 8i32, path
-    | _ => thread_edit_payload t
-
-inl thread_payload (c : command) : i32 * string =
-    match c with
-    | OnThread t => thread_op_payload t
-    | _ => 3i32, ""
-
-inl payload_of (c : command) : i32 * string =
-    match c with
-    | PublishPost text => 1i32, text
-    | RemovePost id => 2i32, id
-    | Rejected message => 4i32, message
-    | RefreshToken path => 5i32, path
-    | _ => thread_payload c
-
-let fields_of (c : command) : command_fields =
-    match c with
-    | ShowTimeline r => request_fields r
-    | _ => payload_of c |> fun (kind, payload) => with_payload kind payload
-
-inl runtime_empty () : string = $'Rc::<str>::from(String::new())'
-
-inl seeded_draft () : draft =
-    inl d = initial_draft ()
-    inl f = d.filters
-    {d with filters = {f with start_time = runtime_empty (); end_time = runtime_empty ()}}
-
-inl external_count (t : string) : option i32 =
-    inl n : i32 = $'xc_checks::xc_count(&*!t)'
-    if n < 0i32 then None else Some n
-
-inl external_text (found : string) : option string = if found = "" then None else Some found
-
-inl external_checks () : checks =
-    {count = external_count; instant = fun t => external_text $'xc_checks::xc_date(&*!t)'
-     username = fun t => external_text $'xc_checks::xc_username(&*!t)'}
-
-let parsed_fields () : command_fields = process_args () |> parse_args_with (external_checks ()) (seeded_draft ()) |> fields_of
-
-inl fields_for (l : list string) : command_fields = parse_args l |> fields_of
-
-inl originals_since (day : string) : command_fields = fields_for ["timeline"; "--start-time"; day; "--originals"; "alice"]
+:= originals_since (day : string) : command_fields = fields_for ["timeline"; "--start-time"; day; "--originals"; "alice"]
 
 test a_timeline_fills_the_window_fields =
-    inl ~day = "2026-10-15"
-    inl f = originals_since day
+    := ~day = "2026-10-15"
+    := f = originals_since day
     f.kind |> _assert_eq 0i32
     f.usernames ++# " " ++# f.since |> _assert_eq "alice 2026-10-15T00:00:00Z"
 
 test originals_drop_replies_and_reposts =
-    inl ~day = "2026-10-15"
-    inl f = originals_since day
-    (f.no_replies && f.no_reposts) |> _assert_eq true
+    := ~day = "2026-10-15"
+    := f = originals_since day
+    (f.no_replies && f.no_reposts) |> _assert_eq !+
 
 test other_commands_carry_their_payload =
-    inl ~path = "a.spi"
-    inl f = fields_for ["post-thread"; "--dry-run"; path]
+    := ~path = "a.spi"
+    := f = fields_for ["post-thread"; "--dry-run"; path]
     sm'.obj_to_string f.kind ++# " " ++# f.payload |> _assert_eq "8 a.spi"
 
 ///> _
-inl main () : i32 =
-    !!!!Export("xc_parse_os_args", ((fun () => parsed_fields ()) : () -> command_fields))
-    !!!!Export("xc_usage", ((fun () => usage ()) : () -> string))
+:= main () : i32 =
+    !!!!Export("xc_parse_os_args", ((\ () => parsed_fields ()) : () -> command_fields))
+    !!!!Export("xc_usage", ((\ () => usage ()) : () -> string))
     0i32

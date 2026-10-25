@@ -1,0 +1,42 @@
+///- --package ..
+///> rust -d serde_json
+test api static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< wire
+
+:= reply_of (r : result string string) : i32 * string =
+    ?= r ?|
+    | Ok body => 0i32, body
+    | Error text => 4i32, text
+
+:~ classified_reply (resource : string) (status : i32) (body : string) : i32 * string = classified resource status body |> reply_of
+
+test an_unreached_api_says_why =
+    := ~resource = "/2/users/7"
+    classified_reply resource 0i32 "refused" |> _assert_eq (4i32, "could not reach the X API for /2/users/7: refused")
+
+test an_accepted_reply_keeps_its_body =
+    := ~body = "{\"data\":1}"
+    classified_reply "/2/users/7" 200i32 body |> _assert_eq (0i32, body)
+
+:= returned_posts (doc : json) : i32 =
+    (listm.length (doc |> field "data" |> collect id) : i32) + (listm.length (doc |> field "includes" |> field "posts" |> collect id) : i32)
+
+:= billed_posts (e : json) : i32 =
+    := role = at_key "role" e
+    ? role = "primary" || role = "lookup" ?> returned_posts (e |> field "doc") |: 0i32
+
+:~ posts_read (bundle : string) : i32 = parse_json bundle |> collect id |> listm.fold (\ n e => n + billed_posts e) 0i32
+
+test posts_read_counts_what_x_returned =
+    := ~bundle = "[{\"role\":\"primary\",\"doc\":{\"data\":[{\"id\":\"1\"}]}},{\"role\":\"users\",\"doc\":{\"data\":[{}]}}]"
+    posts_read bundle |> _assert_eq 1i32
+
+///> _
+:= main () : i32 =
+    !!!!Export("xc_posts_read", ((\ bundle => posts_read bundle) : string -> i32))
+    !!!!Export("xc_classified", ((\ (resource, status, body) => classified_reply resource status body) : string * i32 * string -> i32 * string))
+    0i32

@@ -1,81 +1,85 @@
 ///- --package . --timeout 600000
 test prelude static =
-    open testing
+    :< testing
 
-open sm'_operators
+:< sm'_operators
 
-inl each forall a b. (f : a -> b) (l : list a) : list b = listm.map f l
+:= each \* a b. (f : a -> b) (l : list a) : list b = listm.foldBack (\ x acc => Cons (f x, acc)) l Nil
 
-inl keep forall t. (ok : t -> bool) (l : list t) : list t = listm'.filter ok l
+:= keep \* t. (ok : t -> bool) (l : list t) : list t = listm'.filter ok l
 
-inl spread forall a b. (f : a -> list b) (l : list a) : list b =
-    listm.foldBack (fun x acc => listm.append (f x) acc) l Nil
+:= spread \* a b. (f : a -> list b) (l : list a) : list b =
+    listm.foldBack (\ x acc => listm.append (f x) acc) l Nil
 
-inl first_where forall t. (ok : t -> bool) (l : list t) : option t = listm'.try_find_ ok l
+:= first_where \* t. (ok : t -> bool) (l : list t) : option t = listm'.try_find_ ok l
 
-inl has forall t. (ok : t -> bool) (l : list t) : bool = listm'.exists' ok l
+:= has \* t. (ok : t -> bool) (l : list t) : bool = listm'.exists' ok l
 
-inl take_first forall t. (n : i32) (l : list t) : list t =
-    let rec go (n : i32) (l : list t) : list t =
-        match l with
-        | Cons (x, xs) when n > 0 => Cons (x, go (n - 1) xs)
+:= take_first \* t. (n : i32) (l : list t) : list t =
+    :~ ^ go (n : i32) (l : list t) : list t =
+        ?= l ?|
+        | Cons (x, xs) ?& n > 0 => Cons (x, go (n - 1) xs)
         | _ => Nil
     go n l
 
-inl then_ok forall a b e. (f : a -> result b e) (r : result a e) : result b e =
-    match r with
+:= then_ok \* a b e. (f : a -> result b e) (r : result a e) : result b e =
+    ?= r ?|
     | Ok x => f x
     | Error e => Error e
 
-inl map_ok forall a b e. (f : a -> b) (r : result a e) : result b e = resultm.map f r
+:= map_ok \* a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
 
-inl cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s
+:= cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s
 
-let rec split_on (sep : string) (s : string) : list string =
-    inl i : i32 = sm'.index_of sep s
-    if i < 0i32 then [s]
-    else Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))
+:~ ^ split_on (sep : string) (s : string) : list string =
+    := i : i32 = sm'.index_of sep s
+    ? i < 0i32 ?> [s]
+    |: Cons (cut 0i32 i s, split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s))
 
-inl pieces (sep : string) (s : string) : list string = if s = "" then Nil else split_on sep s
+:= pieces (sep : string) (s : string) : list string = ? s = "" ?> Nil |: split_on sep s
 
-let delimited (sep : string) (l : list string) : string = sm'.concat_list sep l
+:~ delimited (sep : string) (l : list string) : string = sm'.concat_list sep l
 
-inl rest_from (i : i32) (s : string) : string = cut i (sm'.length s - i) s
+:= rest_from (i : i32) (s : string) : string = cut i (sm'.length s - i) s
 
-inl starts_at (prefix : string) (s : string) (i : i32) : bool =
-    if i < 0i32 || i > sm'.length s then false else sm'.starts_with prefix (rest_from i s)
+:= first_line (text : string) : string =
+    := i : i32 = sm'.index_of "\n" text
+    ? i < 0i32 ?> text |: cut 0i32 i text
 
-inl digit_first (rest : string) : bool = has (fun d => sm'.starts_with (sm'.obj_to_string d) rest) (listm.init 10i32 id)
+:= starts_at (prefix : string) (s : string) (i : i32) : bool =
+    ? i < 0i32 || i > sm'.length s ?> !- |: sm'.starts_with prefix (rest_from i s)
 
-let rec digits_end (s : string) (i : i32) : i32 =
-    if i < sm'.length s && digit_first (rest_from i s) then digits_end s (i + 1i32) else i
+:= digit_first (rest : string) : bool = has (\ d => sm'.starts_with (sm'.obj_to_string d) rest) (listm.init 10i32 id)
 
-inl digit_at (i : i32) (text : string) : i32 =
+:~ ^ digits_end (s : string) (i : i32) : i32 =
+    ? i < sm'.length s && digit_first (rest_from i s) ?> digits_end s (i + 1i32) |: i
+
+:= digit_at (i : i32) (text : string) : i32 =
     "0123456789" |> sm'.index_of (sm'.slice i i text)
 
-let rec digits (text : string) (i : i32) (n : i32) : option i32 =
-    if i >= sm'.length text then Some n
-    else
-        inl d = digit_at i text
-        if d < 0 || n > 100000000 then None else digits text (i + 1) (n * 10 + d)
+:~ ^ digits (text : string) (i : i32) (n : i32) : option i32 =
+    ? i >= sm'.length text ?> Some n
+    |:
+        := d = digit_at i text
+        ? d < 0 || n > 100000000 ?> None |: digits text (i + 1) (n * 10 + d)
 
-inl without_digits (text : string) : string = listm.init 10i32 id |> listm.fold (fun t d => sm'.replace (sm'.obj_to_string d) "" t) text
+:= without_digits (text : string) : string = listm.init 10i32 id |> listm.fold (\ t d => sm'.replace (sm'.obj_to_string d) "" t) text
 
-let count_of_text (text : string) : option i32 =
-    if text = "" || without_digits text <> "" then None else digits text 0 0
+:~ count_of_text (text : string) : option i32 =
+    ? text = "" || without_digits text <> "" ?> None |: digits text 0 0
 ///> zig
 test take_first_stops_at_the_limit =
-    inl ~n = 2i32
+    := ~n = 2i32
     [1i32; 2; 3] |> take_first n |> listm.length |> _assert_eq 2i32
 
 ///> zig
 test then_ok_stops_at_the_first_error =
-    inl ~e = "no"
-    Error e |> then_ok (fun (x : i32) => Ok (x + 1)) |> _assert_eq (Error "no")
+    := ~e = "no"
+    Error e |> then_ok (\ (x : i32) => Ok (x + 1)) |> _assert_eq (Error "no")
 
 ///> zig
 test keep_and_first_where_agree =
-    inl ~n = 2i32
-    inl l = [1i32; 2; 3; 4]
-    keep (fun x => x > n) l |> listm.length |> _assert_eq 2i32
-    first_where (fun x => x > n) l |> _assert_eq (Some 3i32)
+    := ~n = 2i32
+    := l = [1i32; 2; 3; 4]
+    keep (\ x => x > n) l |> listm.length |> _assert_eq 2i32
+    first_where (\ x => x > n) l |> _assert_eq (Some 3i32)

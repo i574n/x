@@ -1,24 +1,30 @@
 ///- --package ..
 ///> rust -d serde_json unicode-segmentation=1.13 unicode-normalization=0.1
 test frames static =
-    open testing
+    :< testing
 
-open sm'_operators
-open prelude
-open splitter
+:< sm'_operators
+:< prelude
+:< splitter
+:< wire
 
-inl post_json (t : string) : string =
-    inl w = x_weight t
+:= cells_text (text : string) : string = $'xc_cells::xc_file_cells(&*!text)'
+
+:= cells_of (text : string) : list string = cells_text text |> parse_json |> collect text_of
+
+:= post_json (t : string) : string =
+    := w = x_weight t
     $'Rc::<str>::from(serde_json::json\!({"text": &*!t, "weight": !w}).to_string())'
 
-let framed_json (text : string) : string = "[" ++# (posts_of text |> each post_json |> sm'.concat_list ",") ++# "]"
+:~ framed_of_cells (cells : list string) : string = "[" ++# (thread_of 1i32 cells Nil |> each post_json |> sm'.concat_list ",") ++# "]"
+
+:= framed_json (text : string) : string = framed_of_cells (cells_of text)
 
 test each_post_carries_its_weight =
-    inl ~text = "a"
-    framed_json text |> _assert_eq "[{\"text\":\"c1 1/1\\na\",\"weight\":8}]"
+    := ~text = "a"
+    framed_of_cells [text] |> _assert_eq "[{\"text\":\"c1 1/1\\na\",\"weight\":8}]"
 
 ///> _
-inl main () : i32 =
-    !!!!Export("xc_frames", ((fun t => framed_json t) : string -> string))
-    !!!!Export("xc_preview", ((fun t => preview t) : string -> string))
+:= main () : i32 =
+    !!!!Export("xc_frames", ((\ t => framed_json t) : string -> string))
     0i32
