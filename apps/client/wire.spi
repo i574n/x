@@ -66,22 +66,6 @@ test wire static =
 
 :== got r = result r failure
 
-:~ ^ after_first \* t. (n : i32) (items : list t) : list t =
-    ?= items ?|
-    | Cons (_, rest) ?& n > 0i32 => after_first (n - 1i32) rest
-    | _ => items
-
-:~ ^ chunked \* t. (n : i32) (items : list t) : list (list t) =
-    ?= items ?|
-    | Nil => Nil
-    | _ => Cons (take_first n items, chunked n (after_first n items))
-
-:~ ^ all_got \* r. (each_got : list (got r)) (acc : list r) : got (list r) =
-    ?= each_got ?|
-    | Nil => Ok (listm.rev acc)
-    | Cons (Error f, _) => Error f
-    | Cons (Ok x, rest) => all_got rest (Cons (x, acc))
-
 :== usernames = list string
 
 :== query = {max_results : i32; filters : filters; depth : i32; hints : bool}
@@ -245,7 +229,7 @@ test wire static =
 
 := collect \* t. (f : json -> t) (items : json) : list t =
     :~ ^ from (i : i32) (acc : list t) : list t =
-        ? i < 0i32 ?> acc |: from (i - 1) (Cons (f (item i items), acc))
+        ? i < 0i32 ?> acc |: from (i - 1) (f (item i items) :: acc)
     from (count_of items - 1) Nil
 
 := texts (items : json) : list string = items |> collect text_of

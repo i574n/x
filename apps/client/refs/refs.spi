@@ -31,8 +31,21 @@ test refs static =
     := t = with_named (doc |> field "includes") t
     {t ?| author_ids = listm.append t.author_ids (seen_authors doc); bodies = listm.append t.bodies [entry body]}
 
+:= chunk_fetched \* r. (fetch : post_ids -> got r) (wanted : post_ids) : got (list r) =
+    listm'.chunks_ (lookup_limit ()) wanted |> each fetch |> resultm.collect_list
+
 := posts_chunks (a : app) (q : query) (wanted : post_ids) : got (list fetched) =
-    chunked (lookup_limit ()) wanted |> each (\ c => get_raw a (read_path (PostsById (c, q)))) |> \ l => all_got l Nil
+    chunk_fetched (\ c => get_raw a (read_path (PostsById (c, q)))) wanted
+
+:= fetched_sizes (r : got (list i32)) : list i32 =
+    ?= r ?|
+    | Ok sizes => sizes
+    | Error _ => Nil
+
+test a_lookup_level_fetches_every_wanted_post =
+    := ~n = 150i32
+    := wanted = listm.init n (\ i => post_id (sm'.obj_to_string i))
+    chunk_fetched (\ c => Ok (listm.length c : i32)) wanted |> fetched_sizes |> _assert_eq [100i32; 50i32]
 
 := failed_with (f : failure) (t : traced) : traced = {t ?| failure = describe_failure f}
 

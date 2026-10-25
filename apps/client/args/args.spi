@@ -13,7 +13,7 @@ test args static =
 :~ parsed_fields () : command_fields =
     := a = process_args ()
     ?= a ?|
-    | Cons (sub, _) ?& sub = "timeline" && not (wants_help a) => timeline_fields ()
+    | sub :: _ ?& sub = "timeline" && not (wants_help a) => timeline_fields ()
     | _ => parse_writes a |> fields_of
 
 := fields_for (l : list string) : command_fields = parse_args l |> fields_of

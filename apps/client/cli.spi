@@ -245,7 +245,7 @@ test cli static =
 :~ with_username (c : checks) (arg : string) (d : draft) : step =
     ?= c.username arg ?|
     | _ ?& sm'.starts_with "-" arg => Error (unknown_option arg)
-    | Some h => Ok {d ?| usernames = Cons (h, d.usernames)}
+    | Some h => Ok {d ?| usernames = h :: d.usernames}
     | None => Error (not_a_username arg)
 
 := request_of (d : draft) (s : source) : command =
@@ -278,7 +278,7 @@ test cli static =
 := valued (c : checks) (d : draft) (a : string) (f : flag) (r : args) : progress =
     ?= r ?|
     | Nil => needs_value a
-    | Cons (v, r') => apply_flag c f a v d, r'
+    | v :: r' => apply_flag c f a v d, r'
 
 :~ advance (c : checks) (d : draft) (a : string) (r : args) : progress =
     ?= kind_of a ?|
@@ -289,7 +289,7 @@ test cli static =
 :~ ^ parse_from (c : checks) (d : draft) (args : list string) : command =
     ?= args ?|
     | Nil => capped d
-    | Cons (arg, rest) =>
+    | arg :: rest =>
         ?= advance c d arg rest ?|
         | Ok d, more => parse_from c d more
         | Error why, _ => Rejected why
@@ -306,17 +306,17 @@ test cli static =
 
 :~ one_value (name : string) (args : list string) (make : string -> command) : command =
     ?= args ?|
-    | Cons (value, Nil) ?& value <> "" => make value
+    | value :: Nil ?& value <> "" => make value
     | _ => Rejected (name ++# " takes exactly one argument")
 
 := dry_or_post (rest : args) : command =
     ?= rest ?|
-    | Cons (flag, Cons (path, Nil)) ?& flag = "--dry-run" => OnThread (PreviewThread path)
+    | flag :: path :: Nil ?& flag = "--dry-run" => OnThread (PreviewThread path)
     | _ => one_value "post-thread" rest (PostThread >> OnThread)
 
 := thread_post_command (rest : args) : command =
     ?= rest ?|
-    | Cons (flag, Cons (root, Cons (path, Nil))) ?& flag = "--resume" => OnThread (ResumeThread (root, path))
+    | flag :: root :: path :: Nil ?& flag = "--resume" => OnThread (ResumeThread (root, path))
     | _ => dry_or_post rest
 
 :~ thread_command (sub : string) (rest : args) : command =
@@ -339,14 +339,14 @@ test cli static =
 
 :~ parse_args_with (c : checks) (start : draft) (args : list string) : command =
     ?= args ?|
-    | Cons (sub, rest) ?& not (wants_help args) => subcommand c start sub rest
+    | sub :: rest ?& not (wants_help args) => subcommand c start sub rest
     | _ => ShowHelp
 
 := parse_args (args : list string) : command = parse_args_with (pure_checks ()) (initial_draft ()) args
 
 :~ parse_writes (args : list string) : command =
     ?= args ?|
-    | Cons (sub, rest) ?& not (wants_help args) => write_command sub rest
+    | sub :: rest ?& not (wants_help args) => write_command sub rest
     | _ => ShowHelp
 
 := cap_text (c : following_cap) : string =

@@ -85,7 +85,7 @@ test token static =
 
 := trailing (lines : list string) : list string =
     ?= listm.rev lines ?|
-    | Cons ("", rest) => listm.rev rest
+    | "" :: rest => listm.rev rest
     | _ => lines
 
 :~ rewritten (text : string) (t : tokens) : string =

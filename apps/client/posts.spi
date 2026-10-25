@@ -33,7 +33,7 @@ test posts static =
 
 := latest (f : framed) : bool =
     ?= listm.rev f.history ?|
-    | Cons (last, _) => same_post last f.id
+    | last :: _ => same_post last f.id
     | Nil => !+
 
 :== medium = {media_key : string; kind : string; alt_text : string}
@@ -136,7 +136,7 @@ test posts static =
 
 := entry_id (e : entry) : string = post_text e.id
 
-:= counted_fields (e : entry) : list string = Cons (e.reply_count, Cons (e.repost_count, Cons (e.like_count, e.hints)))
+:= counted_fields (e : entry) : list string = e.reply_count :: e.repost_count :: e.like_count :: e.hints
 
 :~ entry_line (role : string) (e : entry) : string =
     := head = [role; entry_id e; e.username; e.created_at; refs_text e.refs; e.text]
@@ -154,12 +154,12 @@ test posts static =
 
 :~ ^ field_at (i : i32) (l : list string) : string =
     ?= l ?|
-    | Cons (x, xs) => ? i = 0i32 ?> x |: field_at (i - 1i32) xs
+    | x :: xs => ? i = 0i32 ?> x |: field_at (i - 1i32) xs
     | Nil => ""
 
 :~ ^ fields_after (i : i32) (l : list string) : list string =
     ?= l ?|
-    | Cons (_, xs) ?& i > 0i32 => fields_after (i - 1i32) xs
+    | _ :: xs ?& i > 0i32 => fields_after (i - 1i32) xs
     | _ => l
 
 := counts_at (l : list string) : string * string * string = field_at 6 l, field_at 7 l, field_at 8 l
@@ -182,7 +182,7 @@ test posts static =
 
 := sorted (d : digest) (r : role_entry) : digest =
     := role, e = r
-    ? role = "p" ?> {d ?| primary = Cons (e, d.primary)} |: {d ?| pool = Cons (e, d.pool)}
+    ? role = "p" ?> {d ?| primary = e :: d.primary} |: {d ?| pool = e :: d.pool}
 
 :~ digest_of (text : string) : digest =
     := d = pieces "\n" text |> spread entry_of_line |> listm.fold sorted {primary = Nil; pool = Nil}
@@ -204,21 +204,21 @@ test posts static =
 :~ ^ merge_newest (a : list entry) (b : list entry) : list entry =
     ?= a ?|
     | Nil => b
-    | Cons (x, xs) =>
+    | x :: xs =>
         ?= b ?|
         | Nil => a
-        | Cons (y, ys) => ? newer x y ?> Cons (x, merge_newest xs b) |: Cons (y, merge_newest a ys)
+        | y :: ys => ? newer x y ?> x :: merge_newest xs b |: y :: merge_newest a ys
 
 :~ ^ halves (l : list entry) : list entry * list entry =
     ?= l ?|
-    | Cons (x, Cons (y, rest)) =>
+    | x :: y :: rest =>
         := left, right = halves rest
-        Cons (x, left), Cons (y, right)
+        x :: left, y :: right
     | _ => l, Nil
 
 :~ ^ newest_first (l : list entry) : list entry =
     ?= l ?|
-    | Nil | Cons (_, Nil) => l
+    | Nil | (_ :: Nil) => l
     | _ =>
         := left, right = halves l
         merge_newest (newest_first left) (newest_first right)
@@ -231,11 +231,11 @@ test posts static =
     | None => 0
 
 := counted (author : string) (seen : list (string * i32)) : list (string * i32) =
-    Cons ((author, count_of_author author seen + 1), keep (\ (a, _) => a <> author) seen)
+    (author, count_of_author author seen + 1) :: keep (\ (a, _) => a <> author) seen
 
 := tally_step (cap : i32) (t : tally) (e : entry) : tally =
     ? count_of_author e.username t.seen >= cap ?> t
-    |: {seen = counted e.username t.seen; kept = Cons (e, t.kept)}
+    |: {seen = counted e.username t.seen; kept = e :: t.kept}
 
 := per_author (cap : i32) (l : list entry) : list entry =
     ? cap <= 0 ?> l
@@ -284,12 +284,12 @@ test posts static =
 
 :& :~ ref_lines (pl : list entry) (o : view_options) (level : i32) (r : reference) : list string =
     ?= find_entry pl r.id ?|
-    | Some e => Cons (ref_line (level + 1) r.kind e, post_lines pl o (level + 1) e)
+    | Some e => ref_line (level + 1) r.kind e :: post_lines pl o (level + 1) e
     | None => [missing_ref (level + 1) r]
 
 := reposted_id (e : entry) : option post_id =
     ?= e.refs ?|
-    | Cons ({kind id}, Nil) =>
+    | {kind id} :: Nil =>
         ?= kind ?|
         | Reposted => Some id
         | _ => None
@@ -306,8 +306,8 @@ test posts static =
 
 :~ entry_lines (pl : list entry) (o : view_options) (e : entry) : list string =
     ?= original_of pl o e ?|
-    | Some q => Cons (repost_line o e q, post_lines pl o 0 q)
-    | None => Cons (render_post o.minute e, post_lines pl o 0 e)
+    | Some q => repost_line o e q :: post_lines pl o 0 q
+    | None => render_post o.minute e :: post_lines pl o 0 e
 
 := at (id : string) (who : string) (stamp : string) : post =
     heap {id = post_id id; author_id = user_id ("u" ++# who); author_username = who; created_at = stamp; text = "t" ++# id;
@@ -359,7 +359,7 @@ test same_second_orders_newer_id_first_across_formats =
 test per_author_keeps_quiet_accounts_visible =
     := ~cap = 1i32
     := loud = [at "5" "loud" "09:05"; at "4" "loud" "09:04"]
-    Cons (at "1" "quiet" "08:00", loud) |> each lone |> selected {limit = 2; per_author = cap} |> entry_ids |> _assert_eq "5,1"
+    at "1" "quiet" "08:00" :: loud |> each lone |> selected {limit = 2; per_author = cap} |> entry_ids |> _assert_eq "5,1"
 
 ///> zig
 test links_are_expanded_and_lines_flattened =

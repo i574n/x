@@ -30,7 +30,7 @@ test chain static =
 :~ ^ chain_from (all : list framed) (at : framed) (acc : list framed) : chain_reading =
     ?= replies_under all at ?|
     | Nil => ChainRead (listm.rev acc)
-    | Cons (next, Nil) => chain_from all next (Cons (next, acc))
+    | next :: Nil => chain_from all next (next :: acc)
     | _ => branched at
 
 := orphan (posts : list framed) (f : framed) : bool =
@@ -43,8 +43,8 @@ test chain static =
 
 := chain_of (posts : list framed) : chain_reading =
     ?= keep (outside posts) posts ?|
-    | Cons (root, Nil) => chain_from posts root [root]
-    | Cons (first, Cons (second, _)) => second_root posts first second
+    | root :: Nil => chain_from posts root [root]
+    | first :: second :: _ => second_root posts first second
     | Nil => ChainMissing
 
 := chain_json (l : list framed) : string =
@@ -89,7 +89,7 @@ test a_chain_keeps_multiline_quoted_texts =
 
 test a_branch_or_a_second_root_refuses =
     := ~posts = three_posts ()
-    (chain_listed (Cons (post_of "4" "1" "x", posts)), chain_listed (Cons (post_of "5" "9" "y", posts)))
+    (chain_listed (post_of "4" "1" "x" :: posts), chain_listed (post_of "5" "9" "y" :: posts))
         |> _assert_eq ("branches after 1", "second root 5")
 
 :== ask = string * string * string

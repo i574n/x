@@ -99,7 +99,10 @@ $streams = Join-Path $PSScriptRoot 'fixtures'
 $argv = @('xsim.events', '--spi', (Join-Path $client 'prelude.spi'), '--seed', '3', '--users', '3', '--edits', '2', '--personas', 'fickle=1+editor=1', '--frames', '--out', (Join-Path $fresh 'prelude.events.jsonl'), '--expected', (Join-Path $fresh 'prelude.final.json'))
 & mix @argv
 if ($LASTEXITCODE -ne 0) { throw "mix xsim.events / exit $LASTEXITCODE" }
-foreach ($name in 'prelude.events.jsonl', 'prelude.final.json') { Confirm-Fixture $name $streams }
+$argv = @('xsim.parity', '--events', (Join-Path $fresh 'prelude.events.jsonl'), '--out', (Join-Path $fresh 'prelude.parity.txt'))
+& mix @argv
+if ($LASTEXITCODE -ne 0) { throw "mix xsim.parity / exit $LASTEXITCODE" }
+foreach ($name in 'prelude.events.jsonl', 'prelude.final.json', 'prelude.parity.txt') { Confirm-Fixture $name $streams }
 { mix test } | Invoke-Block
 
 $lib = Join-Path $SpiralRoot 'lib/spiral'

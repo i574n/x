@@ -36,11 +36,11 @@ test jsonl static =
 
 :& :~ reference_json (pool : list entry) (depth : i32) (level : i32) (e : entry) (r : reference) : list string =
     ?= find_entry pool r.id ?|
-    | Some q => Cons (entry_json (level + 1) (entry_id e) q, referenced_json pool depth (level + 1) q)
+    | Some q => entry_json (level + 1) (entry_id e) q :: referenced_json pool depth (level + 1) q
     | None => Nil
 
 := with_references (pool : list entry) (depth : i32) (e : entry) : list string =
-    Cons (entry_json 0i32 "" e, referenced_json pool depth 0i32 e)
+    entry_json 0i32 "" e :: referenced_json pool depth 0i32 e
 
 := lines_of (pool : list entry) (depth : i32) (shown : list entry) : string = shown |> spread (with_references pool depth) |> sm'.concat_list "\n"
 

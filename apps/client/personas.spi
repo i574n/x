@@ -36,7 +36,7 @@ test personas static =
 
 := entry_personas (entry : string) : list persona =
     ?= split_on "=" (sm'.trim entry) ?|
-    | Cons (name, Cons (count, Nil)) => named_count name count
+    | name :: count :: Nil => named_count name count
     | _ => Nil
 
 := parsed_personas (text : string) : list persona =
@@ -83,7 +83,7 @@ test personas static =
 
 :~ ^ picked \* t. (i : i32) (l : list t) : option t =
     ?= l ?|
-    | Cons (x, rest) => ? i <= 0i32 ?> Some x |: picked (i - 1i32) rest
+    | x :: rest => ? i <= 0i32 ?> Some x |: picked (i - 1i32) rest
     | Nil => None
 
 := liked_by (user : string) (r : rooted) : event = Reaction (Liked {post_id = r.post_id; user})
@@ -123,7 +123,7 @@ test personas static =
 
 := rewritten (user : string) (r : rooted) : list event =
     := rewrites = listm.init 3i32 (\ k => edited_to (r.source ++# sm'.replicate (k + 1i32) " " ++# "\n") r)
-    Cons (liked_by user r, listm.append rewrites [edited_to r.source r])
+    liked_by user r :: listm.append rewrites [edited_to r.source r]
 
 := rewrite_drawn (user : string) (pool : list rooted) (st : exsss) : acted =
     ?= drawn_from pool st ?|
@@ -156,7 +156,7 @@ test personas static =
 
 := rest_of (l : list event) : list event =
     ?= l ?|
-    | Cons (_, rest) => rest
+    | _ :: rest => rest
     | Nil => Nil
 
 := live_streams (streams : list (list event)) : list (list event) = streams |> keep (\ l => listm.length l > 0i32)

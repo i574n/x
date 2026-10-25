@@ -24,7 +24,7 @@ test paging static =
 := start_walk () : walk = {seen = Nil; pages = 0i32; bodies = Nil}
 
 := walk_step (w : walk) (p : page) : walk =
-    {seen = Cons (p.next_token, w.seen); pages = w.pages + 1i32; bodies = Cons (p.body, w.bodies)}
+    {seen = p.next_token :: w.seen; pages = w.pages + 1i32; bodies = p.body :: w.bodies}
 
 := repeats (w : walk) (p : page) : bool = has (\ t => t = p.next_token) w.seen
 

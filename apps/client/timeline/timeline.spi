@@ -10,7 +10,7 @@ test timeline static =
 
 :~ timeline_fields () : command_fields =
     ?= process_args () ?|
-    | Cons (_, rest) => parse_from (external_checks ()) (seeded_draft ()) rest |> fields_of
+    | _ :: rest => parse_from (external_checks ()) (seeded_draft ()) rest |> fields_of
     | Nil => fields_of ShowHelp
 
 ///> _

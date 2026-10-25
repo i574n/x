@@ -32,7 +32,7 @@ test scenario static =
 
 := grown_trunk (c : casting) (prefix : string) (t : trunk) (source : string) : trunk =
     := post_id = post_name prefix t.n
-    {chain = Cons ({post_id parent = t.parent; source}, t.chain); parent = next_parent c t source post_id; n = t.n + 1i32}
+    {chain = {post_id parent = t.parent; source} :: t.chain; parent = next_parent c t source post_id; n = t.n + 1i32}
 
 := posts_of_cells (c : casting) (prefix : string) (cells : list string) : list rooted =
     := t = cells |> listm.fold (grown_trunk c prefix) {chain = Nil; parent = None; n = 0i32}
@@ -45,7 +45,7 @@ test scenario static =
 := likes_for (users : i32) (acc : list social * exsss) (r : rooted) : list social * exsss =
     := l, st = acc
     := k, st = rolled users st
-    listm.init k (like_of r) |> listm.fold (\ acc s => Cons (s, acc)) l, st
+    listm.init k (like_of r) |> listm.fold (\ acc s => s :: acc) l, st
 
 := unliked_from (acc : list event * exsss) (s : social) : list event * exsss =
     := l, st = acc
@@ -72,7 +72,7 @@ test scenario static =
 
 := churned (posts : list rooted) (count : i32) : list event =
     ?= posts ?|
-    | Cons (root, _) => listm.init count (churn_edit root)
+    | root :: _ => listm.init count (churn_edit root)
     | Nil => Nil
 
 := turns (step : i32) (i : i32) : bool = (i + 1i32) % step = 0i32
@@ -82,13 +82,13 @@ test scenario static =
 := taken (w : weaving) (e : event) (acc : flow) : weaving * flow =
     := next = {w ?| i = w.i + 1i32}
     ?= w.churn ?|
-    | Cons (edit, more) ?& turns w.step w.i => {next ?| churn = more}, Cons (edit, Cons (e, acc))
-    | _ => next, Cons (e, acc)
+    | edit :: more ?& turns w.step w.i => {next ?| churn = more}, edit :: e :: acc
+    | _ => next, e :: acc
 
 :~ ^ woven (w : weaving) (l : list event) (acc : list event) : list event =
     ?= l ?|
     | Nil => listm.append (listm.rev acc) w.churn
-    | Cons (e, rest) => taken w e acc |> \ (w, acc) => woven w rest acc
+    | e :: rest => taken w e acc |> \ (w, acc) => woven w rest acc
 
 := weave_step (events : list event) (churn : list event) : i32 =
     := step = listm.length events / (listm.length churn + 1i32)

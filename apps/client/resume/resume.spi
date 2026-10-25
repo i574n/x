@@ -22,7 +22,7 @@ test resume static =
 
 :~ ^ resume_from (k : i32) (planned : list string) (found : list string) : resume_plan =
     ?= planned, found ?|
-    | Cons (p, ps), Cons (f, fs) => ? p = f ?> resume_from (k + 1i32) ps fs |: differing k p f
+    | (p :: ps), (f :: fs) => ? p = f ?> resume_from (k + 1i32) ps fs |: differing k p f
     | _ => resume_end k planned found
 
 := resume_count (n : i32) : string = sm'.obj_to_string n

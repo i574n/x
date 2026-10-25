@@ -43,11 +43,11 @@ test schedule static =
 
 :== exploding = {out : flow; revs : revisions}
 
-:= appended (x : exploding) (l : flow) : exploding = {x ?| out = l |> listm.fold (\ acc e => Cons (e, acc)) x.out}
+:= appended (x : exploding) (l : flow) : exploding = {x ?| out = l |> listm.fold (\ acc e => e :: acc) x.out}
 
 := revised_in (limit : i32) (x : exploding) (s : sourced) : exploding =
     := rev = revision_of x.revs s.post_id + 1i32
-    appended {x ?| revs = Cons ((s.post_id, rev), x.revs)} (framed_edit limit rev s)
+    appended {x ?| revs = (s.post_id, rev) :: x.revs} (framed_edit limit rev s)
 
 := exploded_one (limit : i32) (x : exploding) (e : event) : exploding =
     ?= e ?|
@@ -66,16 +66,16 @@ test schedule static =
     ?= a, b ?|
     | Nil, _ => b
     | _, Nil => a
-    | Cons (x, xs), Cons (y, ys) => ? before x y ?> Cons (x, merged_keyed xs b) |: Cons (y, merged_keyed a ys)
+    | (x :: xs), (y :: ys) => ? before x y ?> x :: merged_keyed xs b |: y :: merged_keyed a ys
 
 :~ ^ halved_keyed (l : list keyed) : list keyed * list keyed =
     ?= l ?|
-    | Cons (x, Cons (y, rest)) => halved_keyed rest |> \ (left, right) => Cons (x, left), Cons (y, right)
+    | x :: y :: rest => halved_keyed rest |> \ (left, right) => x :: left, y :: right
     | _ => l, Nil
 
 :~ ^ sorted_keyed (l : list keyed) : list keyed =
     ?= l ?|
-    | Nil | Cons (_, Nil) => l
+    | Nil | (_ :: Nil) => l
     | _ => halved_keyed l |> \ (left, right) => merged_keyed (sorted_keyed left) (sorted_keyed right)
 
 :== scheduling = {keyed : list keyed; rng : exsss; i : i32}
@@ -129,7 +129,7 @@ test schedule static =
 
 := numbered_one (acc : list delivery * i32) (e : event) : list delivery * i32 =
     := l, i = acc
-    Cons ({at = i; event = e}, l), i + 1i32
+    {at = i; event = e} :: l, i + 1i32
 
 := numbered_flow (l : flow) : list delivery =
     := numbered, _ = l |> listm.fold numbered_one (Nil, 0i32)

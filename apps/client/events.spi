@@ -142,7 +142,7 @@ test events static =
 
 :~ encoded (d : delivery) : string = object (fields_of d.at d.event)
 
-:~ stream (l : list delivery) : string = Cons (stream_header (), each encoded l) |> sm'.concat_list "\n" |> \ t => t ++# "\n"
+:~ stream (l : list delivery) : string = stream_header () :: each encoded l |> sm'.concat_list "\n" |> \ t => t ++# "\n"
 
 :| json_value =
     | Text : string
@@ -213,8 +213,8 @@ test events static =
 
 :~ ^ fields_from (s : string) (i : i32) (acc : fields) : option fields =
     := f, next = field_at s i
-    ? starts_at "," s next ?> fields_from s (next + 1i32) (Cons (f, acc))
-    |? closes s next ?> Some (listm.rev (Cons (f, acc)))
+    ? starts_at "," s next ?> fields_from s (next + 1i32) (f :: acc)
+    |? closes s next ?> Some (listm.rev ((f :: acc)))
     |: None
 
 := fields_of_line (line : string) : option fields = ? starts_at "{" line 0i32 ?> fields_from line 1i32 Nil |: None
@@ -289,11 +289,11 @@ test events static =
 :~ ^ all_decoded (l : list string) (acc : list delivery) : result (list delivery) string =
     ?= l ?|
     | Nil => Ok (listm.rev acc)
-    | Cons (line, rest) => decoded line |> then_ok \ d => all_decoded rest (Cons (d, acc))
+    | line :: rest => decoded line |> then_ok \ d => all_decoded rest (d :: acc)
 
 :~ decoded_stream (text : string) : result (list delivery) string =
     ?= all_pieces "\n" text |> each sm'.trim |> keep (\ l => l <> "") ?|
-    | Cons (head, lines) ?& header_ok head => all_decoded lines Nil
+    | head :: lines ?& header_ok head => all_decoded lines Nil
     | _ => Error "not an xsim-events v1 stream"
 
 := first_frame () : string = "{\"at\":0,\"body\":\"x\",\"k\":1,\"kind\":\"frame\",\"n\":1,\"parent\":null,\"post\":\"p0\"}"

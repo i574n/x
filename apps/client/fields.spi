@@ -4,7 +4,7 @@
 
 := process_args () : list string =
     :~ ^ from (i : i32) (acc : list string) : list string =
-        ? i < 0i32 ?> acc |: from (i - 1) (Cons (env.command_line_argument i, acc))
+        ? i < 0i32 ?> acc |: from (i - 1) (env.command_line_argument i :: acc)
     from (env.command_line_argument_count () - 1) Nil
 
 :== command_fields =

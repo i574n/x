@@ -107,7 +107,7 @@ test glyphs static =
 := gleam_tail (l : gleam_pieces) : gleam_pieces = $'case !l { [_, ..t] -> t [] -> [] }'
 
 :~ ^ listed_pieces (l : gleam_pieces) (acc : list string) : list string =
-    ? gleam_done l ?> listm.rev acc |: listed_pieces (gleam_tail l) (Cons (gleam_head l, acc))
+    ? gleam_done l ?> listm.rev acc |: listed_pieces (gleam_tail l) (gleam_head l :: acc)
 
 := split_all (sep : string) (s : string) : list string =
     backend_switch {
@@ -119,7 +119,7 @@ test glyphs static =
 
 :~ ^ without_blank_tail (l : list string) : list string =
     ?= l ?|
-    | Cons (g, rest) ?& blank g => without_blank_tail rest
+    | g :: rest ?& blank g => without_blank_tail rest
     | _ => l
 
 := trimmed_end (s : string) : string = graphemes s |> listm.rev |> without_blank_tail |> listm.rev |> sm'.concat_list ""

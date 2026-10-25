@@ -67,7 +67,11 @@ test users static =
 := merged_users (bodies : list string) : string =
     object [member "data" (items (bodies |> spread (listed_items "data"))); member "errors" (items (bodies |> spread (listed_items "errors")))]
 
-:= ids_chunks (ids : string) : list (list user_id) = chunked (lookup_limit ()) (pieces "," ids |> each user_id)
+:= ids_chunks (ids : string) : list (list user_id) = listm'.chunks_ (lookup_limit ()) (pieces "," ids |> each user_id)
+
+test user_ids_chunk_to_the_lookup_limit =
+    := ~n = 250i32
+    listm.init n (\ i => sm'.obj_to_string i) |> delimited "," |> ids_chunks |> each (\ c => (listm.length c : i32)) |> _assert_eq [100i32; 100i32; 50i32]
 
 := users_listed (r : got (list (json * string))) : listed =
     ?= r ?|
@@ -76,7 +80,7 @@ test users static =
 
 :~ by_ids (base : string) (bearer : string) (ids : string) : listed =
     := a = app_api base bearer
-    users_listed (all_got (ids_chunks ids |> each (\ c => get_raw a (read_path (Users (Ids c))))) Nil)
+    users_listed (ids_chunks ids |> each (\ c => get_raw a (read_path (Users (Ids c)))) |> resultm.collect_list)
 
 := account_doc (id : string) (username : string) : string = object [member "id" (quoted_text id); member "username" (quoted_text username)]
 

@@ -72,7 +72,7 @@ test exsss static =
 
 :~ ^ rolls (range : i32) (n : i32) (st : exsss) (acc : list i32) : list i32 * exsss =
     ? n <= 0i32 ?> listm.rev acc, st
-    |: rolled range st |> \ (v, next) => rolls range (n - 1i32) next (Cons (v, acc))
+    |: rolled range st |> \ (v, next) => rolls range (n - 1i32) next (v :: acc)
 
 := rolls_text (l : list i32) : string = l |> each sm'.obj_to_string |> delimited ","
 

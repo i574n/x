@@ -122,7 +122,7 @@ test invariants static =
 := equivalence_check (s : snapshot) (baseline : string -> outcome) : finding = found SequentialEquivalence (sequential_equivalence s baseline)
 
 := checked (s : snapshot) (baseline : string -> outcome) : list finding =
-    := always = Cons (equivalence_check s baseline, demand_checks s)
+    := always = equivalence_check s baseline :: demand_checks s
     ? s.evicting ?> listm.append always [found UnwantedResultsFreed (unwanted_freed s)] |: always
 
 := seen_in (b : snapshot) (v : shown) : bool = has (\ (w : shown) => w.id = v.id && same_outcome w.result v.result) b.visible
@@ -219,11 +219,11 @@ test invariants static =
 
 := add_start (t : tally) (s : snapshot) : snapshot = {s ?| starts = listm.append s.starts [t]}
 
-:= add_cancelled (t : tally) (s : snapshot) : snapshot = {s ?| cancelled = Cons (t, s.cancelled)}
+:= add_cancelled (t : tally) (s : snapshot) : snapshot = {s ?| cancelled = t :: s.cancelled}
 
-:= add_evicted (t : tally) (s : snapshot) : snapshot = {s ?| evicted = Cons (t, s.evicted)}
+:= add_evicted (t : tally) (s : snapshot) : snapshot = {s ?| evicted = t :: s.evicted}
 
-:= add_wanted (d : demand) (s : snapshot) : snapshot = {s ?| wanted = Cons (d, s.wanted)}
+:= add_wanted (d : demand) (s : snapshot) : snapshot = {s ?| wanted = d :: s.wanted}
 
 := add_result (key : string) (s : snapshot) : snapshot = {s ?| results = listm.append s.results [key]}
 
@@ -232,7 +232,7 @@ test invariants static =
 := shown_at (l : fields) : shown = {id = text_at "id" l; key = text_at "key" l; result = outcome_at "" l}
 
 := based (r : reading) (l : fields) (v : shown) : reading =
-    ? count_at "based" l = 1i32 ?> {r ?| baselines = Cons ((v.id, outcome_at "base_" l), r.baselines)} |: r
+    ? count_at "based" l = 1i32 ?> {r ?| baselines = (v.id, outcome_at "base_" l) :: r.baselines} |: r
 
 := visible_row (r : reading) (l : fields) : reading =
     := v = shown_at l
@@ -245,7 +245,7 @@ test invariants static =
     | Cancelled => with_snap r (add_cancelled n)
     | Evicted => with_snap r (add_evicted n)
 
-:= broken_row (r : reading) (l : fields) : reading = {r ?| broken_ids = Cons (text_at "id" l, r.broken_ids)}
+:= broken_row (r : reading) (l : fields) : reading = {r ?| broken_ids = text_at "id" l :: r.broken_ids}
 
 := wanted_row (r : reading) (l : fields) : reading = with_snap r (add_wanted {id = text_at "id" l; key = text_at "key" l})
 
@@ -267,7 +267,7 @@ test invariants static =
 := row_of (r : reading) (kind : string) (l : fields) : reading =
     ?= row_kind_of kind ?|
     | Some k => kind_row r k l
-    | None => {r ?| strays = Cons (kind, r.strays)}
+    | None => {r ?| strays = kind :: r.strays}
 
 := read_row (r : reading) (line : string) : reading =
     ?= fields_of_line line ?|

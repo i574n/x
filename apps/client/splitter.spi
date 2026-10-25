@@ -15,7 +15,7 @@ test splitter static =
 
 := first_or_empty (l : list string) : string =
     ?= l ?|
-    | Cons (g, _) => g
+    | g :: _ => g
     | Nil => ""
 
 := posted_unit (prev : string) (g : string) (next : string) : weighed =
@@ -25,7 +25,7 @@ test splitter static =
 :~ ^ defused (prev : string) (l : list string) (acc : units) : units =
     ?= l ?|
     | Nil => listm.rev acc
-    | Cons (g, rest) => defused g rest (Cons (posted_unit prev g (first_or_empty rest), acc))
+    | g :: rest => defused g rest (posted_unit prev g (first_or_empty rest) :: acc)
 
 :~ units_of (s : string) : units = defused "" (graphemes s) Nil
 
@@ -36,7 +36,7 @@ test splitter static =
 
 :~ ^ taken_while (ok : weighed -> bool) (l : units) (acc : units) : units * units =
     ?= l ?|
-    | Cons (u, rest) ?& ok u => taken_while ok rest (Cons (u, acc))
+    | u :: rest ?& ok u => taken_while ok rest (u :: acc)
     | _ => listm.rev acc, l
 
 := word_reach () : i32 = 60i32
@@ -58,7 +58,7 @@ test splitter static =
 := flushed (current : units) (acc : list string) : list string =
     ?= current ?|
     | Nil => acc
-    | _ => Cons (current |> listm.rev |> each (\ u => u.glyph) |> sm'.concat_list "", acc)
+    | _ => (current |> listm.rev |> each (\ u => u.glyph) |> sm'.concat_list "") :: acc
 
 :== pending = {current : units; used : i32; posts : list string}
 
@@ -66,7 +66,7 @@ test splitter static =
 
 := fits (budget : i32) (u : weighed) (p : pending) : bool = p.used + u.weight <= budget || not (has_units p.current)
 
-:= grown (u : weighed) (p : pending) : pending = {p ?| current = Cons (u, p.current); used = p.used + u.weight}
+:= grown (u : weighed) (p : pending) : pending = {p ?| current = u :: p.current; used = p.used + u.weight}
 
 := restarted (p : pending) (rest : units) : units * pending =
     := carried, kept = split_point p.current
@@ -75,7 +75,7 @@ test splitter static =
 :~ ^ chunk (b : i32) (rest : units) (p : pending) : list string =
     ?= rest ?|
     | Nil => listm.rev (flushed p.current p.posts)
-    | Cons (u, more) ?& fits b u p => chunk b more (grown u p)
+    | u :: more ?& fits b u p => chunk b more (grown u p)
     | _ => restarted p rest |> \ (us, q) => chunk b us q
 
 := post_limit () : i32 = 280i32
@@ -97,17 +97,17 @@ test splitter static =
 
 := indented (line : string) : bool = sm'.starts_with " " line || sm'.starts_with "\t" line
 
-:~ ^ with_blanks (n : i32) (acc : list string) : list string = ? n <= 0i32 ?> acc |: with_blanks (n - 1i32) (Cons ("", acc))
+:~ ^ with_blanks (n : i32) (acc : list string) : list string = ? n <= 0i32 ?> acc |: with_blanks (n - 1i32) ("" :: acc)
 
 :== cutting = {cells : list string; current : list string; blanks : i32; seen : bool}
 
-:= finished (c : cutting) : list string = Cons (c.current |> listm.rev |> sm'.concat_list "\n" |> trimmed_end, c.cells)
+:= finished (c : cutting) : list string = (c.current |> listm.rev |> sm'.concat_list "\n" |> trimmed_end) :: c.cells
 
 := opened (c : cutting) (line : string) : cutting =
-    {cells = finished c; current = Cons (line, with_blanks (c.blanks - 1i32) Nil); blanks = 0i32; seen = !+}
+    {cells = finished c; current = line :: with_blanks (c.blanks - 1i32) Nil; blanks = 0i32; seen = !+}
 
 := continued (c : cutting) (line : string) : cutting =
-    {c ?| current = Cons (line, with_blanks c.blanks c.current); blanks = 0i32; seen = !+}
+    {c ?| current = line :: with_blanks c.blanks c.current; blanks = 0i32; seen = !+}
 
 := starts_cell (c : cutting) (line : string) : bool = c.blanks > 0i32 && c.seen && not (indented line)
 
@@ -134,7 +134,7 @@ test splitter static =
 :~ ^ numbered (label : cell_id) (n : i32) (k : i32) (l : list string) (acc : list string) : list string =
     ?= l ?|
     | Nil => listm.rev acc
-    | Cons (body, rest) => numbered label n (k + 1i32) rest (Cons (trimmed_end (header label k n ++# body), acc))
+    | body :: rest => numbered label n (k + 1i32) rest (trimmed_end (header label k n ++# body) :: acc)
 
 :~ cell_posts (i : i32) (cell : string) : list string =
     := chunks = split_cell (cell_label i) (post_limit ()) cell |> frames_or_empty
@@ -143,7 +143,7 @@ test splitter static =
 :~ ^ thread_of (i : i32) (cells : list string) (acc : list (list string)) : list string =
     ?= cells ?|
     | Nil => acc |> listm.rev |> spread id
-    | Cons (cell, rest) => thread_of (i + 1i32) rest (Cons (cell_posts i cell, acc))
+    | cell :: rest => thread_of (i + 1i32) rest (cell_posts i cell :: acc)
 
 := x_weight (t : string) : i32 = units_of t |> listm.fold (\ sum (u : weighed) => sum + u.weight) 0i32
 

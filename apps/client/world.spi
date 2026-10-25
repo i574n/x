@@ -66,7 +66,7 @@ test world static =
     ? k = 1i32 ?> looked_up w.last_frame c.parent |: original_at w c.cell (k - 1i32)
 
 := with_last (cell : cell_id) (id : post_id) (w : world) : world =
-    {w ?| last_frame = Cons ((cell, id), w.last_frame |> keep (\ (k, _) => not (same_cell k cell)))}
+    {w ?| last_frame = (cell, id) :: (w.last_frame |> keep (\ (k, _) => not (same_cell k cell)))}
 
 := added_frame (f : posted_frame) (w : world) : world =
     {w ?| frames = listm.append w.frames [f]; order = listm.append w.order [{cell = f.cell; k = f.k}]}
@@ -90,7 +90,7 @@ test world static =
 
 := first_revision (c : live_cell) : string =
     ?= c.revisions ?|
-    | Cons (s, _) => s
+    | s :: _ => s
     | Nil => ""
 
 := chunks_for (c : live_cell) (source : string) : list string = split_cell c.cell (post_limit ()) source
@@ -133,20 +133,20 @@ test world static =
 
 := later_revisions (c : live_cell) : list string =
     ?= c.revisions ?|
-    | Cons (_, later) => later
+    | _ :: later => later
     | Nil => Nil
 
 := edited_cell (w : world) (c : live_cell) : world = later_revisions c |> listm.fold (revised_with c) w
 
 := tail_cells (cells : live) : live =
     ?= cells ?|
-    | Cons (_, rest) => rest
+    | _ :: rest => rest
     | Nil => Nil
 
 := on_step (step : i32) (i : i32) : bool = i >= step - 1i32 && (i - step + 1i32) % step = 0i32
 
 := every_step \* t. (step : i32) (l : list t) : list t =
-    := _, picked = l |> listm.fold (\ ((i, acc) : i32 * list t) (x : t) => (i + 1i32, (? on_step step i ?> Cons (x, acc) |: acc))) (0i32, Nil)
+    := _, picked = l |> listm.fold (\ ((i, acc) : i32 * list t) (x : t) => (i + 1i32, (? on_step step i ?> x :: acc |: acc))) (0i32, Nil)
     listm.rev picked
 
 := cell_ids (cells : live) : list cell_id = cells |> each (\ (c : live_cell) => c.cell)
@@ -212,8 +212,8 @@ test world static =
 
 :~ ^ by_k (f : posted_frame) (l : list posted_frame) : list posted_frame =
     ?= l ?|
-    | Cons (g, rest) ?& g.k < f.k => Cons (g, by_k f rest)
-    | _ => Cons (f, l)
+    | g :: rest ?& g.k < f.k => g :: by_k f rest
+    | _ => f :: l
 
 := sort_by_k (l : list posted_frame) : list posted_frame = l |> listm.fold (\ acc f => by_k f acc) Nil
 

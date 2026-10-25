@@ -13,7 +13,7 @@ test locate static =
 
 := first_of (l : post_ids) (fallback : post_id) : post_id =
     ?= l ?|
-    | Cons (x, _) => x
+    | x :: _ => x
     | Nil => fallback
 
 := count_member (key : string) (n : i32) : string = member key (sm'.obj_to_string n)
@@ -30,7 +30,7 @@ test locate static =
     | Some t ?& latest f => [frame_json t.header t.body (first_of f.history f.id) f.parent]
     | _ => Nil
 
-:= known_ids (l : list framed) : post_ids = l |> spread (\ (f : framed) => Cons (f.id, f.history))
+:= known_ids (l : list framed) : post_ids = l |> spread (\ (f : framed) => f.id :: f.history)
 
 := page_posts (doc : json) : list json = doc |> collect id |> spread (\ (p : json) => p |> field "data" |> collect id)
 

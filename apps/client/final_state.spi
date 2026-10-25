@@ -17,14 +17,14 @@ test final_state static =
 
 := latest_of (l : list string) : string =
     ?= l ?|
-    | Cons (s, _) => s
+    | s :: _ => s
     | Nil => ""
 
 := with_cell (r : replay) (post_id : string) (f : cell_state -> cell_state) : replay =
     {r ?| cells = r.cells |> each (\ (c : cell_state) => ? c.post_id = post_id ?> f c |: c)}
 
 := revised_cell (source : string) (c : cell_state) : cell_state =
-    ? latest_of c.revisions = source ?> c |: {c ?| revisions = Cons (source, c.revisions)}
+    ? latest_of c.revisions = source ?> c |: {c ?| revisions = source :: c.revisions}
 
 :== user_change = list string -> list string
 
@@ -92,8 +92,8 @@ test final_state static =
 
 :~ ^ inserted (t : tally) (l : list tally) : list tally =
     ?= l ?|
-    | Cons (u, rest) ?& comp t.post_id u.post_id |> gt_is => Cons (u, inserted t rest)
-    | _ => Cons (t, l)
+    | u :: rest ?& comp t.post_id u.post_id |> gt_is => u :: inserted t rest
+    | _ => t :: l
 
 := tallies_json (level : i32) (l : list tally) : string =
     := sorted = l |> listm.fold (\ acc t => inserted t acc) Nil

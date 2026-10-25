@@ -36,20 +36,20 @@ test reading static =
 
 := merged (c : cell_frames) (f : frame) : cell_frames =
     := first = ? later_id c.first f.original ?> f.original |: c.first
-    {c ?| n = ? f.n > c.n ?> f.n |: c.n; first; frames = Cons (f, c.frames)}
+    {c ?| n = ? f.n > c.n ?> f.n |: c.n; first; frames = f :: c.frames}
 
 := opened (f : frame) : cell_frames = {cell = f.cell; n = f.n; first = f.original; frames = [f]}
 
 :~ ^ grouped (l : list cell_frames) (f : frame) : list cell_frames =
     ?= l ?|
-    | Cons (c, rest) ?& same_cell c.cell f.cell => Cons (merged c f, rest)
-    | Cons (c, rest) => Cons (c, grouped rest f)
+    | c :: rest ?& same_cell c.cell f.cell => merged c f :: rest
+    | c :: rest => c :: grouped rest f
     | Nil => [opened f]
 
 :~ ^ placed (c : cell_frames) (l : list cell_frames) : list cell_frames =
     ?= l ?|
-    | Cons (d, rest) ?& later_id c.first d.first => Cons (d, placed c rest)
-    | _ => Cons (c, l)
+    | d :: rest ?& later_id c.first d.first => d :: placed c rest
+    | _ => c :: l
 
 := frame_at (c : cell_frames) (k : i32) : list frame = c.frames |> keep (\ (f : frame) => f.k = k && f.n = c.n)
 
@@ -86,7 +86,7 @@ test reading static =
 
 := gaps (known : post_ids) (cells : list cell_frames) : list thread_flaw =
     ?= cells ?|
-    | Cons (_, rest) => rest |> spread (gap_flaws known)
+    | _ :: rest => rest |> spread (gap_flaws known)
     | Nil => Nil
 
 := ordered (l : list frame) : list cell_frames =
@@ -107,7 +107,7 @@ test reading static =
 :~ ^ chained (k : i32) (parent : option post_id) (l : list string) (acc : list frame) : list frame =
     ?= l ?|
     | Nil => acc
-    | Cons (t, rest) => chained (k + 1i32) (Some (numbered_post k)) rest (listm.append (frames_in t (numbered_post k) parent) acc)
+    | t :: rest => chained (k + 1i32) (Some (numbered_post k)) rest (listm.append (frames_in t (numbered_post k) parent) acc)
 
 := ids_to (n : i32) : post_ids = listm.init n (\ i => numbered_post (i + 1i32))
 

@@ -56,7 +56,7 @@ test write static =
 := continue_hint (p : posting) : string =
     ?= listm.rev p.ids ?|
     | _ ?& p.resumed => "; continue with the same --resume command"
-    | Cons (root, _) => "; continue with: xc post-thread --resume " ++# root ++# " FILE"
+    | root :: _ => "; continue with: xc post-thread --resume " ++# root ++# " FILE"
     | Nil => ""
 
 := stopped (p : posting) (f : failure) : i32 * string =
@@ -69,7 +69,7 @@ test write static =
 
 := advanced (p : posting) (r : created_reply) (text : string) : posting =
     := id = id_of r
-    {p ?| last = After r; lines = Cons ("posted " ++# id ++# " " ++# first_line text, p.lines); ids = Cons (id, p.ids)}
+    {p ?| last = After r; lines = "posted " ++# id ++# " " ++# first_line text :: p.lines; ids = id :: p.ids}
 
 := sent (s : side) (p : posting) (text : string) : got created_reply =
     send_write (s (listm.length p.ids + 1i32)) (next_post p.last text)
@@ -79,7 +79,7 @@ test write static =
 :~ ^ chained (s : side) (l : list string) (p : posting) : i32 * string =
     ?= l ?|
     | Nil => all_posted p
-    | Cons (text, rest) =>
+    | text :: rest =>
         ?= sent s p text ?|
         | Ok r => chained s rest (advanced p r text)
         | Error f => stopped p f
@@ -93,8 +93,8 @@ test write static =
 
 := with_line (acc : removal) (line : result string string) : removal =
     ?= line ?|
-    | Ok text => {acc ?| lines = Cons (text, acc.lines)}
-    | Error message => {lines = Cons (message, acc.lines); failed = !+}
+    | Ok text => {acc ?| lines = text :: acc.lines}
+    | Error message => {lines = message :: acc.lines; failed = !+}
 
 := removed_one (s : side) (acc : removal) (id : string) : removal =
     removal_line id (send_write (s (listm.length acc.lines + 1i32)) (DeletePost (post_id id))) |> with_line acc
