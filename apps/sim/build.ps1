@@ -105,6 +105,16 @@ if ($LASTEXITCODE -ne 0) { throw "mix xsim.parity / exit $LASTEXITCODE" }
 foreach ($name in 'prelude.events.jsonl', 'prelude.final.json', 'prelude.parity.txt') { Confirm-Fixture $name $streams }
 { mix test } | Invoke-Block
 
+$spi = Join-Path $PSScriptRoot 'spi'
+. (Join-Path $SpiralRoot 'lib/spiral/lib.ps1')
+$spiral = Ensure-SpiralCompiler | Select-Object -Last 1
+$report = @(& $spiral.Dotnet $spiral.Compiler --x-compat $spi)
+$code = $LASTEXITCODE
+$report | ForEach-Object { "x/apps/sim/spi / $_" } | Write-Host
+if ($code -ne 0) { throw "X-COMPAT x/apps/sim/spi / x-compat exited $code (2: files without a postability profile)" }
+$counted = $report | Select-String -Pattern 'x-compat report: (\d+) finding' | Select-Object -Last 1
+if (!$counted -or [int] $counted.Matches[0].Groups[1].Value -gt 0) { throw "X-COMPAT x/apps/sim/spi / findings, see the report above" }
+
 $lib = Join-Path $SpiralRoot 'lib/spiral'
 $corpus = Get-ChildItem $lib -Recurse -Filter *.spi |
     Where-Object { $_.FullName -notmatch '[\\/](target|bench)[\\/]' -and (Select-String -LiteralPath $_.FullName -Pattern '^test ' -Quiet) } |
@@ -137,4 +147,23 @@ if (!$fast) {
         }
         $env:SPIRAL_CELLS_COMPILER_PORT = $null
     }
+}
+
+if (!$fast) {
+    Invoke-SpiralTests $spi @(
+        "inbox",
+        "scheduler",
+        "runner_checks",
+        "scenario_checks",
+        "tree_memory",
+        "sim_report",
+        "sim_args",
+        "sim_run",
+        "executors",
+        "cells_executor",
+        "runner_guard",
+        "runner_shell",
+        "memory_watch",
+        "xsim_shell_entry"
+    )
 }

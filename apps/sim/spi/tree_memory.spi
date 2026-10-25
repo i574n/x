@@ -1,0 +1,68 @@
+///- --package . --timeout 600000
+///> rust
+///> gleam
+test tree_memory static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+
+:== memory_reading = { samples : i32; last_mb : i32; procs : i32; peak_mb : i32 }
+
+:== tree_sample = { tree_procs : i32; tree_mb : i32 }
+
+:= no_reading () : memory_reading = { samples = 0i32; last_mb = 0i32; procs = 0i32; peak_mb = 0i32 }
+
+:= larger (a : i32) (b : i32) : i32 = ? a > b ?> a |: b
+
+:= counted_sample (procs : string) (mb : string) : option tree_sample =
+    ?= count_of_text procs, count_of_text mb ?|
+    | Some p, Some m => Some { tree_procs = p; tree_mb = m }
+    | _ => None
+
+:= sample_of (line : string) : option tree_sample =
+    ?= pieces " " (sm'.trim line) ?|
+    | procs :: mb :: Nil => counted_sample procs mb
+    | _ => None
+
+:= with_sample (r : memory_reading) (s : tree_sample) : memory_reading =
+    {
+        samples = r.samples + 1i32
+        last_mb = s.tree_mb
+        procs = larger r.procs s.tree_procs
+        peak_mb = larger r.peak_mb s.tree_mb
+    }
+
+:= read_samples (r : memory_reading) (text : string) : memory_reading =
+    pieces "\n" text
+    |> listm.fold (\ acc line => ?= sample_of line ?| Some s => with_sample acc s | None => acc) r
+
+:= daemon_pid_of (hello : string) : option i32 =
+    ?= pieces "\t" (sm'.trim hello) ?|
+    | name :: _ :: pid :: _ ?& name = "spiral-cells" => count_of_text pid
+    | _ => None
+
+:= reading_text (r : memory_reading) : string =
+    "samples="
+    ++# sm'.obj_to_string r.samples
+    ++# " last="
+    ++# sm'.obj_to_string r.last_mb
+    ++# " procs="
+    ++# sm'.obj_to_string r.procs
+    ++# " peak="
+    ++# sm'.obj_to_string r.peak_mb
+
+test samples_fold_into_the_peak =
+    := ~text = "3 120\n5 340\nbad line\n4 200\n"
+    read_samples (no_reading ()) text |> reading_text |> _assert_eq "samples=3 last=200 procs=5 peak=340"
+
+test readings_continue_across_reads =
+    := ~first = "2 50\n"
+    read_samples (read_samples (no_reading ()) first) "3 70\n"
+    |> reading_text
+    |> _assert_eq "samples=2 last=70 procs=3 peak=70"
+
+test the_daemon_hello_names_its_pid =
+    := ~hello = "spiral-cells\t0.9.1\t4242\textra"
+    (daemon_pid_of hello, daemon_pid_of "other\t1\t2", daemon_pid_of "spiral-cells\t1\tx")
+    |> _assert_eq (Some 4242i32, None, None)

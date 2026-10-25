@@ -1,0 +1,198 @@
+///- --package . --timeout 600000
+///> rust -d sha2
+///> gleam
+test runner_checks static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< events
+:< inbox
+:< scheduler
+:< invariants
+
+:= status_text (t : task_status) : string =
+    ?= t ?|
+    | Done => "ok"
+    | Erred => "error"
+    | Crashed => "crash"
+
+:= outcome_of (r : task_result) : outcome =
+    { ok = ?= r.status ?| Done => !+ | _ => !-; out = status_text r.status ++# "|" ++# r.out }
+
+:~ ^ shown_inserted (v : shown) (l : list shown) : list shown =
+    ?= l ?|
+    | w :: ws ?& lt_is (comp w.id v.id) => w :: shown_inserted v ws
+    | _ => v :: l
+
+:= visible_of (s : scheduler) : list shown =
+    s.visible_map
+    |> dictm.fold \ acc id (e : visible_entry) =>
+            shown_inserted { id = id; key = e.key; result = outcome_of e.result } acc
+        Nil
+
+:= tallies_of (d : dictm.dict string i32) : list tally =
+    d |> dictm.fold (\ acc key count => { key count } :: acc) Nil
+
+:= demands_of (s : scheduler) : list demand =
+    wanted_keys s.in_box |> dictm.fold (\ acc id key => { id key } :: acc) Nil
+
+:= evicting_on (f : fault_set) : bool =
+    ?= f.eviction ?|
+    | NoEviction => !-
+    | _ => !+
+
+:= base_snapshot (s : scheduler) : snapshot =
+    { visible = visible_of s; wanted = demands_of s; starts = Nil; cancelled = Nil
+      evicted = Nil; results = Nil; evicting = !- }
+
+:= counted_snapshot (c : run_counts) (b : snapshot) : snapshot =
+    { b ?| starts = tallies_of c.starts; cancelled = tallies_of c.cancelled; evicted = tallies_of c.evicted }
+
+:= snapshot_of (s : scheduler) : snapshot =
+    := b = base_snapshot s |> counted_snapshot s.run_counts
+    { b ?| results = dictm.keys s.task_work.results; evicting = evicting_on s.faults }
+
+:= runner_checks (s : scheduler) (baseline : list string -> task_result) : list finding =
+    checked (snapshot_of s) (\ id => sources s.in_box id |> baseline |> outcome_of)
+
+:= runs_commute (a : scheduler) (b : scheduler) : verdict = commute (snapshot_of a) (snapshot_of b)
+
+:= source_broken (s : scheduler) (broken : dictm.set string) (id : string) : bool =
+    ?= dictm.find id s.in_box.graph.posts ?|
+    | Some p => dictm.set_has (latest_source p) broken
+    | None => !-
+
+:= broken_shown (s : scheduler) (broken : dictm.set string) (v : shown) : bool =
+    v.result.ok && source_broken s broken v.id
+
+:= breaking_failed (s : scheduler) (broken : dictm.set string) : verdict =
+    snapshot_of s |> ids_where (broken_shown s broken)
+
+:= fake_baseline (l : list string) : task_result = { status = Done; out = fake_out l }
+
+:= wrong_baseline (l : list string) : task_result = { status = Done; out = "other" }
+
+:= edited_at (at : i32) (id : string) (source : string) : delivery =
+    { at; event = Revision (Edited { post_id = id; source }) }
+
+:= verdict_where (wanted : rule -> bool) (l : list finding) : string =
+    l |> listm.fold (\ acc (f : finding) => ? wanted f.rule ?> verdict_text f.verdict |: acc) ""
+
+:= equivalence_rule (r : rule) : bool = ?= r ?| SequentialEquivalence => !+ | _ => !-
+
+:= stale_rule (r : rule) : bool = ?= r ?| NoStaleResults => !+ | _ => !-
+
+:= prefix_rule (r : rule) : bool = ?= r ?| OneCompilePerPrefix => !+ | _ => !-
+
+:= withdrawn_rule (r : rule) : bool = ?= r ?| WithdrawnDemandHidden => !+ | _ => !-
+
+:= rule_under (wanted : rule -> bool) (run : list delivery -> scheduler) (l : list delivery) : string =
+    runner_checks (run l) fake_baseline |> verdict_where wanted
+
+:= all_ok () : string =
+    "sequential_equivalence=ok no_stale_results=ok one_compile_per_prefix=ok withdrawn_demand_hidden=ok"
+
+:= liked_pair (id : string) : list delivery =
+    [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u"
+      post_at 2i32 "p1" (Some id) "inl b = 2"; like_at 3i32 "p1" "u" ]
+
+:= two_thread (id : string) : list delivery =
+    [ post_at 0i32 id None "x"; like_at 1i32 id "u"; post_at 2i32 "p1" (Some id) "y"; like_at 3i32 "p1" "v" ]
+
+:= liked_once (id : string) : list delivery = [ post_at 0i32 id None "x"; like_at 1i32 id "u" ]
+
+test a_sync_run_holds_every_rule =
+    := ~id = "p0"
+    runner_checks (sync_run (plain_faults ()) (liked_pair id)) fake_baseline |> findings_text |> _assert_eq (all_ok ())
+
+test a_differing_baseline_names_the_post =
+    := ~id = "p0"
+    runner_checks (sync_run (plain_faults ()) (liked_once id)) wrong_baseline |> verdict_where equivalence_rule
+    |> _assert_eq "FAIL[p0]"
+
+test sync_and_deferred_runs_commute =
+    := ~id = "p0"
+    := l = two_thread id
+    runs_commute (sync_run (plain_faults ()) l) (deferred_run (plain_faults ()) l) |> verdict_text |> _assert_eq "ok"
+
+:= broken_pair (s : scheduler) : string * string =
+    breaking_failed s (dictm.set_add "x" (dictm.set_empty ())) |> verdict_text, breaking_failed s (dictm.set_empty ())
+    |> verdict_text
+
+test a_broken_source_that_runs_ok_is_named =
+    := ~id = "p0"
+    sync_run (plain_faults ()) (liked_once id) |> broken_pair |> _assert_eq ("FAIL[p0]", "ok")
+
+:= delivered_all (f : fault_set) (l : list delivery) : scheduler =
+    := ~deliveries = l
+    deliveries |> listm.fold (\ s d => delivered_to d s) (new_scheduler f)
+
+:= newest_first_run (f : fault_set) (l : list delivery) : scheduler =
+    := cmds, s = commands_taken (delivered_all f l)
+    cmds |> listm.rev |> listm.fold executed s |> drained |> executed_all |> expired !+ |> settled_view
+
+:= naive_faults () : fault_set =
+    := plain = plain_faults ()
+    { plain ?| naive = !+; cancel = !- }
+
+:= naive_vs_plain
+    (wanted : rule -> bool) (run : fault_set -> list delivery -> scheduler) (l : list delivery)
+    : string * string
+    =
+    rule_under wanted (run (naive_faults ())) l, rule_under wanted (run (plain_faults ())) l
+
+test naive_visibility_without_cancelling_surfaces_a_stale_revision =
+    := ~id = "p0"
+    := l = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u1"; edited_at 2i32 id "inl a = 1\n" ]
+    naive_vs_plain stale_rule newest_first_run l |> _assert_eq ("FAIL[p0]", "ok")
+
+test withdrawn_demand_stays_hidden_unless_assigned_naively =
+    := ~id = "p0"
+    := l = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u1"; unlike_at 2i32 id "u1" ]
+    naive_vs_plain withdrawn_rule deferred_run l |> _assert_eq ("FAIL[p0]", "ok")
+
+:= graced (n : i32) : fault_set =
+    := plain = plain_faults ()
+    { plain ?| eviction = EvictAfter n }
+
+:= lapse_of (id : string) : list delivery = [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u" ]
+
+:= relapsed (f : fault_set) (id : string) : scheduler = sync_run f (listm.append (lapse_of id) [ like_at 3i32 id "u" ])
+
+:= long_lapse (id : string) : scheduler =
+    := more = [ post_at 3i32 "p1" None "y"; like_at 4i32 "p1" "v"; like_at 5i32 "p1" "w" ]
+    sync_run (graced 1i32) (listm.append (lapse_of id) more)
+
+:= lapse_shape (s : scheduler) : i32 * i32 * i32 =
+    s.run_counts.rescues, s.run_counts.recomputes, dictm.size s.life_cycle.doomed
+
+:= grace_shape (id : string) : (i32 * i32 * i32) * string * bool =
+    := short = relapsed (graced 12i32) id
+    lapse_shape short, runs_commute short (relapsed (plain_faults ()) id)
+    |> verdict_text, dictm.size (long_lapse id).run_counts.evicted > 0i32
+
+test a_grace_window_keeps_a_result_through_a_short_lapse_and_frees_it_after =
+    := ~id = "p0"
+    grace_shape id |> _assert_eq ((1i32, 0i32, 0i32), "ok", !+)
+
+:= replay_commutes (l : list delivery) : string =
+    ?= decoded_stream (stream l) ?|
+    | Ok replay => runs_commute (sync_run (plain_faults ()) l) (sync_run (plain_faults ()) replay) |> verdict_text
+    | Error why => why
+
+test a_saved_stream_replays_to_the_same_visible_results =
+    := ~id = "p0"
+    two_thread id |> replay_commutes |> _assert_eq "ok"
+
+:= rerun_faults () : fault_set =
+    := plain = plain_faults ()
+    { plain ?| rerun = !+ }
+
+:= rerun_pair (l : list delivery) : bool * string =
+    rule_under prefix_rule (sync_run (rerun_faults ())) l
+    |> sm'.starts_with "FAIL", rule_under prefix_rule (sync_run (plain_faults ())) l
+
+test rerunning_finished_results_recompiles_shared_prefixes =
+    := ~id = "p0"
+    two_thread id |> rerun_pair |> _assert_eq (!+, "ok")

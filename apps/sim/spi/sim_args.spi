@@ -1,0 +1,480 @@
+///- --package . --timeout 600000
+///> rust -d sha2
+///> gleam
+test sim_args static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< events
+:< inbox
+:< scheduler
+
+:| executor_kind =
+    | FakeExecutor
+    | LeakingExecutor
+    | CellsExecutor
+
+:== corpus_options =
+    { spi : list string; spi_file : string; cells : i32; breaking : i32; churn : i32; personas : string; frames : bool }
+
+:== schedule_options =
+    { seed : i32; users : i32; edits : i32; schedules : i32; duplicates_permille : i32; replay : string; save : string }
+
+:== runner_options =
+    {executor : executor_kind; max_concurrency : i32; eviction : eviction; pace_ms : i32; memo : bool;
+     daemon_memory : bool}
+
+:== run_options = { corpus : corpus_options; schedule : schedule_options; runner : runner_options }
+
+:| parsed_run =
+    | RunParsed : run_options
+    | RunRejected : string
+
+:= default_corpus () : corpus_options =
+    { spi = Nil; spi_file = ""; cells = -1i32; breaking = 0i32; churn = 0i32; personas = ""; frames = !- }
+
+:= default_schedule () : schedule_options =
+    { seed = 1i32; users = 8i32; edits = 3i32; schedules = 2i32; duplicates_permille = 100i32; replay = ""; save = "" }
+
+:= default_runner () : runner_options =
+    { executor = FakeExecutor; max_concurrency = 4i32; eviction = NoEviction; pace_ms = 0i32; memo = !-
+      daemon_memory = !- }
+
+:= default_run () : run_options =
+    { corpus = default_corpus (); schedule = default_schedule (); runner = default_runner () }
+
+:= padded_permille (fraction : string) : string = cut 0i32 3i32 (fraction ++# "000")
+
+:= whole_permille (whole : string) : option i32 =
+    ?= count_of_text whole ?|
+    | Some w => Some (w * 1000i32)
+    | None => None
+
+:= fraction_permille (whole : string) (fraction : string) : option i32 =
+    ?= count_of_text (? whole = "" ?> "0" |: whole), count_of_text (padded_permille fraction) ?|
+    | Some w, Some f ?& sm'.length fraction <= 3i32 => Some (w * 1000i32 + f)
+    | _ => None
+
+:= permille_of (text : string) : option i32 =
+    ?= pieces "." text ?|
+    | whole :: Nil => whole_permille whole
+    | whole :: fraction :: Nil => fraction_permille whole fraction
+    | _ => None
+
+:= executor_of (name : string) : option executor_kind =
+    ? name = "fake" ?> Some FakeExecutor
+    |? name = "fake-leak" ?> Some LeakingExecutor
+    |? name = "cells" ?> Some CellsExecutor
+    |: None
+
+:= first_some \* t. (a : option t) (b : option t) : option t = ?= a ?| Some _ => a | None => b
+
+:= with_corpus (f : corpus_options -> corpus_options) (o : run_options) : run_options = { o ?| corpus = f o.corpus }
+
+:= with_schedule (f : schedule_options -> schedule_options) (o : run_options) : run_options =
+    { o ?| schedule = f o.schedule }
+
+:= with_runner (f : runner_options -> runner_options) (o : run_options) : run_options = { o ?| runner = f o.runner }
+
+:= counted_flag (name : string) (value : string) (set : i32 -> run_options) : parsed_run =
+    ?= count_of_text value ?|
+    | Some n => RunParsed (set n)
+    | None => RunRejected ("--" ++# name ++# " takes a whole number, got '" ++# value ++# "'")
+
+:| corpus_flag =
+    | CorpusCells
+    | CorpusBreaking
+    | CorpusChurn
+
+:= corpus_flag_of (name : string) : option corpus_flag =
+    ? name = "cells" ?> Some CorpusCells |? name = "breaking" ?> Some CorpusBreaking
+    |? name = "churn" ?> Some CorpusChurn |: None
+
+:= corpus_set (f : corpus_flag) (n : i32) (c : corpus_options) : corpus_options =
+    ?= f ?|
+    | CorpusCells => { c ?| cells = n }
+    | CorpusBreaking => { c ?| breaking = n }
+    | CorpusChurn => { c ?| churn = n }
+
+:= corpus_count (o : run_options) (name : string) (value : string) : option parsed_run =
+    corpus_flag_of name |> optionm.map \ f => counted_flag name value \ n => o |> with_corpus (corpus_set f n)
+
+:= spi_list (value : string) : list string = pieces "," value |> spread (pieces "+")
+
+:= corpus_spi_set (name : string) (value : string) (c : corpus_options) : option corpus_options =
+    ? name = "spi" ?> Some { c ?| spi = spi_list value } |: None
+
+:= corpus_path_set (name : string) (value : string) (c : corpus_options) : option corpus_options =
+    ? name = "spi-file" ?> Some { c ?| spi_file = value } |? name = "personas" ?> Some { c ?| personas = value } |: None
+
+:= corpus_text_set (name : string) (value : string) (c : corpus_options) : option corpus_options =
+    first_some (corpus_spi_set name value c) (corpus_path_set name value c)
+
+:= corpus_text (o : run_options) (name : string) (value : string) : option parsed_run =
+    corpus_text_set name value o.corpus |> optionm.map \ c => RunParsed { o ?| corpus = c }
+
+:= corpus_value (o : run_options) (name : string) (value : string) : option parsed_run =
+    first_some (corpus_text o name value) (corpus_count o name value)
+
+:| schedule_flag =
+    | ScheduleSeed
+    | ScheduleUsers
+    | ScheduleEdits
+    | ScheduleRounds
+
+:= schedule_flag_of (name : string) : option schedule_flag =
+    ? name = "seed" ?> Some ScheduleSeed |? name = "users" ?> Some ScheduleUsers
+    |? name = "edits" ?> Some ScheduleEdits |? name = "schedules" ?> Some ScheduleRounds |: None
+
+:= schedule_set (f : schedule_flag) (n : i32) (s : schedule_options) : schedule_options =
+    ?= f ?|
+    | ScheduleSeed => { s ?| seed = n }
+    | ScheduleUsers => { s ?| users = n }
+    | ScheduleEdits => { s ?| edits = n }
+    | ScheduleRounds => { s ?| schedules = n }
+
+:= schedule_count (o : run_options) (name : string) (value : string) : option parsed_run =
+    schedule_flag_of name |> optionm.map \ f => counted_flag name value \ n => o |> with_schedule (schedule_set f n)
+
+:= duplicates_rejected (value : string) : string = "--duplicates takes a decimal like 0.1, got '" ++# value ++# "'"
+
+:= duplicates_value (o : run_options) (value : string) : parsed_run =
+    ?= permille_of value ?|
+    | Some p => RunParsed (o |> with_schedule \ s => { s ?| duplicates_permille = p })
+    | None => RunRejected (duplicates_rejected value)
+
+:= schedule_text_set (name : string) (value : string) (s : schedule_options) : option schedule_options =
+    ? name = "replay" ?> Some { s ?| replay = value } |? name = "save" ?> Some { s ?| save = value } |: None
+
+:= schedule_text_parsed (o : run_options) (name : string) (value : string) : option parsed_run =
+    schedule_text_set name value o.schedule |> optionm.map \ s => RunParsed { o ?| schedule = s }
+
+:= schedule_text (o : run_options) (name : string) (value : string) : option parsed_run =
+    ? name = "duplicates" ?> Some (duplicates_value o value) |: schedule_text_parsed o name value
+
+:= schedule_value (o : run_options) (name : string) (value : string) : option parsed_run =
+    first_some (schedule_count o name value) (schedule_text o name value)
+
+:| runner_flag =
+    | RunnerConcurrency
+    | RunnerPace
+    | RunnerGrace
+
+:= runner_flag_of (name : string) : option runner_flag =
+    ? name = "max-concurrency" ?> Some RunnerConcurrency |? name = "pace-ms" ?> Some RunnerPace
+    |? name = "evict-grace" ?> Some RunnerGrace |: None
+
+:= runner_set (f : runner_flag) (n : i32) (r : runner_options) : runner_options =
+    ?= f ?|
+    | RunnerConcurrency => { r ?| max_concurrency = n }
+    | RunnerPace => { r ?| pace_ms = n }
+    | RunnerGrace => { r ?| eviction = EvictAfter n }
+
+:= runner_count (o : run_options) (name : string) (value : string) : option parsed_run =
+    runner_flag_of name |> optionm.map \ f => counted_flag name value \ n => o |> with_runner (runner_set f n)
+
+:= executor_rejected (value : string) : string = "--executor is fake, fake-leak or cells, got '" ++# value ++# "'"
+
+:= executor_value (o : run_options) (value : string) : parsed_run =
+    ?= executor_of value ?|
+    | Some e => RunParsed (o |> with_runner \ r => { r ?| executor = e })
+    | None => RunRejected (executor_rejected value)
+
+:= runner_value (o : run_options) (name : string) (value : string) : option parsed_run =
+    first_some (runner_count o name value) (? name = "executor" ?> Some (executor_value o value) |: None)
+
+:= evicting_runner (r : runner_options) : runner_options =
+    { r ?| eviction = ?= r.eviction ?| EvictAfter n => EvictAfter n | _ => EvictNow }
+
+:= runner_switch (name : string) (r : runner_options) : option runner_options =
+    ? name = "memo" ?> Some { r ?| memo = !+ }
+    |? name = "daemon-memory" ?> Some { r ?| daemon_memory = !+ }
+    |? name = "evict" ?> Some (evicting_runner r)
+    |: None
+
+:= runner_switched (o : run_options) (name : string) : option run_options =
+    runner_switch name o.runner |> optionm.map \ r => { o ?| runner = r }
+
+:= switch_value (o : run_options) (name : string) : option run_options =
+    ? name = "frames" ?> Some (o |> with_corpus \ c => { c ?| frames = !+ }) |: runner_switched o name
+
+:= any_value (o : run_options) (name : string) (value : string) : option parsed_run =
+    first_some (corpus_value o name value) (first_some (schedule_value o name value) (runner_value o name value))
+
+:= run_option_valued (o : run_options) (name : string) (value : string) : parsed_run =
+    ?= any_value o name value ?| Some r => r | None => RunRejected ("unknown option --" ++# name)
+
+:= flag_name (arg : string) : string = ? sm'.starts_with "--" arg ?> rest_from 2i32 arg |: ""
+
+:== flag_rules o = {switched : o -> string -> option o; valued : o -> string -> string -> result o string}
+
+:= needs_value (arg : string) : string = "--" ++# flag_name arg ++# " needs a value"
+
+:~ ^ flags_parsed \* o. (rules : flag_rules o) (o : o) (args : list string) : result o string =
+    ?= args ?|
+    | Nil => Ok o
+    | arg :: rest ?& flag_name arg = "" => Error ("unexpected argument '" ++# arg ++# "'")
+    | arg :: rest => arg_parsed rules o arg rest
+
+:& :~ arg_parsed \* o. (rules : flag_rules o) (o : o) (arg : string) (rest : list string) : result o string =
+    ?= rules.switched o (flag_name arg) ?|
+    | Some next => flags_parsed rules next rest
+    | None => valued_then rules o arg rest
+
+:& :~ valued_then \* o. (rules : flag_rules o) (o : o) (arg : string) (rest : list string) : result o string =
+    ?= rest ?|
+    | value :: more => continued rules (rules.valued o (flag_name arg) value) more
+    | Nil => Error (needs_value arg)
+
+:& :~ continued \* o. (rules : flag_rules o) (r : result o string) (more : list string) : result o string =
+    ?= r ?|
+    | Ok next => flags_parsed rules next more
+    | Error why => Error why
+
+:= run_valued (o : run_options) (name : string) (value : string) : result run_options string =
+    ?= run_option_valued o name value ?|
+    | RunParsed next => Ok next
+    | RunRejected why => Error why
+
+:= run_rules () : flag_rules run_options = {switched = switch_value; valued = run_valued}
+
+:= missing_spi (o : run_options) : bool = (listm.length o.corpus.spi : i32) = 0i32 && o.corpus.spi_file = ""
+
+:= run_args (o : run_options) (args : list string) : parsed_run =
+    ?= flags_parsed (run_rules ()) o args ?|
+    | Ok o ?& missing_spi o => RunRejected "missing --spi or --spi-file"
+    | Ok o => RunParsed o
+    | Error why => RunRejected why
+
+:== events_options =
+    {spi : string; cells : i32; seed : i32; users : i32; edits : i32; personas : string; duplicates_permille : i32;
+     frames : bool; out : string; expected : string}
+
+:= default_events () : events_options =
+    {spi = ""; cells = -1i32; seed = 1i32; users = 3i32; edits = 1i32; personas = "";
+     duplicates_permille = 200i32; frames = !-; out = ""; expected = ""}
+
+:= counted (name : string) (value : string) (set : i32 -> events_options) : result events_options string =
+    ?= count_of_text value ?|
+    | Some n => Ok (set n)
+    | None => Error ("--" ++# name ++# " takes a whole number, got '" ++# value ++# "'")
+
+:| events_flag =
+    | EventsCells
+    | EventsSeed
+    | EventsUsers
+    | EventsEdits
+
+:= events_flag_of (name : string) : option events_flag =
+    ? name = "cells" ?> Some EventsCells |? name = "seed" ?> Some EventsSeed
+    |? name = "users" ?> Some EventsUsers |? name = "edits" ?> Some EventsEdits |: None
+
+:= events_set (f : events_flag) (n : i32) (o : events_options) : events_options =
+    ?= f ?|
+    | EventsCells => {o ?| cells = n}
+    | EventsSeed => {o ?| seed = n}
+    | EventsUsers => {o ?| users = n}
+    | EventsEdits => {o ?| edits = n}
+
+:= events_counted (o : events_options) (name : string) (value : string) : result events_options string =
+    ?= events_flag_of name ?|
+    | Some f => counted name value (\ n => events_set f n o)
+    | None => Error ("unknown option --" ++# name)
+
+:= events_duplicates (o : events_options) (value : string) : result events_options string =
+    ?= permille_of value ?|
+    | Some p => Ok {o ?| duplicates_permille = p}
+    | None => Error (duplicates_rejected value)
+
+:= events_source_set (name : string) (value : string) (o : events_options) : option events_options =
+    ? name = "spi" ?> Some {o ?| spi = value} |? name = "personas" ?> Some {o ?| personas = value} |: None
+
+:= events_file_set (name : string) (value : string) (o : events_options) : option events_options =
+    ? name = "out" ?> Some {o ?| out = value} |? name = "expected" ?> Some {o ?| expected = value} |: None
+
+:= events_text_set (name : string) (value : string) (o : events_options) : option events_options =
+    first_some (events_source_set name value o) (events_file_set name value o)
+
+:= events_valued (o : events_options) (name : string) (value : string) : result events_options string =
+    ? name = "duplicates" ?> events_duplicates o value
+    |: ?= events_text_set name value o ?| Some next => Ok next | None => events_counted o name value
+
+:= events_switched (o : events_options) (name : string) : option events_options =
+    ? name = "frames" ?> Some {o ?| frames = !+} |: None
+
+:= events_missing (o : events_options) : string =
+    ? o.spi = "" ?> "missing --spi" |? o.out = "" ?> "missing --out" |? o.expected = "" ?> "missing --expected" |: ""
+
+:== world_options =
+    {spi : string; out : string; expected : string; cells : i32; seed : i32; edits : i32; personas : string;
+     id_base : i32; user_id : string; username : string; lost : i32; lost_cells : i32; base_time : string}
+
+:= blank_world () : world_options =
+    {spi = ""; out = ""; expected = ""; cells = -1i32; seed = 1i32; edits = 0i32; personas = ""; id_base = 0i32
+     user_id = ""; username = ""; lost = 0i32; lost_cells = 0i32; base_time = ""}
+
+:= default_world () : world_options =
+    := w = blank_world ()
+    {w ?| id_base = 3000000i32; user_id = "500"; username = "spiralposts"; base_time = "2026-10-18T08:00:00Z"}
+
+:= world_run_number (o : world_options) (name : string) (n : i32) : option world_options =
+    ? name = "cells" ?> Some {o ?| cells = n} |? name = "seed" ?> Some {o ?| seed = n}
+    |? name = "edits" ?> Some {o ?| edits = n} |: None
+
+:= world_loss_number (o : world_options) (name : string) (n : i32) : option world_options =
+    ? name = "id-base" ?> Some {o ?| id_base = n} |? name = "lost" ?> Some {o ?| lost = n}
+    |? name = "lost-cells" ?> Some {o ?| lost_cells = n} |: None
+
+:= world_number (o : world_options) (name : string) (n : i32) : option world_options =
+    first_some (world_run_number o name n) (world_loss_number o name n)
+
+:= world_numbered (o : world_options) (name : string) (n : i32) : result world_options string =
+    ?= world_number o name n ?|
+    | Some next => Ok next
+    | None => Error ("unknown option --" ++# name)
+
+:= world_counted (o : world_options) (name : string) (value : string) : result world_options string =
+    ?= count_of_text value ?|
+    | Some n => world_numbered o name n
+    | None => Error ("--" ++# name ++# " takes a whole number, got '" ++# value ++# "'")
+
+:= world_user (name : string) (value : string) (o : world_options) : option world_options =
+    ? name = "user-id" ?> Some {o ?| user_id = value} |? name = "username" ?> Some {o ?| username = value} |: None
+
+:= world_identity (name : string) (value : string) (o : world_options) : option world_options =
+    first_some (world_user name value o) (? name = "base-time" ?> Some {o ?| base_time = value} |: None)
+
+:= world_files (name : string) (value : string) (o : world_options) : option world_options =
+    ? name = "out" ?> Some {o ?| out = value} |? name = "expected" ?> Some {o ?| expected = value} |: None
+
+:= world_sources (name : string) (value : string) (o : world_options) : option world_options =
+    ? name = "spi" ?> Some {o ?| spi = value} |? name = "personas" ?> Some {o ?| personas = value} |: None
+
+:= world_paths (name : string) (value : string) (o : world_options) : option world_options =
+    first_some (world_sources name value o) (world_files name value o)
+
+:= world_valued (o : world_options) (name : string) (value : string) : result world_options string =
+    ?= first_some (world_paths name value o) (world_identity name value o) ?|
+    | Some next => Ok next
+    | None => world_counted o name value
+
+:= world_missing (o : world_options) : string =
+    ? o.spi = "" ?> "missing --spi" |? o.out = "" ?> "missing --out" |? o.expected = "" ?> "missing --expected" |: ""
+
+:= world_rules () : flag_rules world_options = {switched = \ _ _ => None; valued = world_valued}
+
+:= world_args (args : list string) : result world_options string =
+    ?= flags_parsed (world_rules ()) (default_world ()) args ?|
+    | Ok o ?& world_missing o <> "" => Error (world_missing o)
+    | parsed => parsed
+
+:== frames_options = {file : string; out : string}
+
+:= frames_valued (o : frames_options) (name : string) (value : string) : result frames_options string =
+    ? name = "file" ?> Ok {o ?| file = value}
+    |? name = "out" ?> Ok {o ?| out = value}
+    |: Error ("unknown option --" ++# name)
+
+:= frames_missing (o : frames_options) : string =
+    ? o.file = "" ?> "missing --file" |? o.out = "" ?> "missing --out" |: ""
+
+:= frames_rules () : flag_rules frames_options = {switched = \ _ _ => None; valued = frames_valued}
+
+:= frames_args (args : list string) : result frames_options string =
+    ?= flags_parsed (frames_rules ()) {file = ""; out = ""} args ?|
+    | Ok o ?& frames_missing o <> "" => Error (frames_missing o)
+    | parsed => parsed
+
+:= events_args (args : list string) : result events_options string =
+    ?= flags_parsed {switched = events_switched; valued = events_valued} (default_events ()) args ?|
+    | Ok o ?& events_missing o <> "" => Error (events_missing o)
+    | parsed => parsed
+
+:= eviction_text (e : eviction) : string =
+    ?= e ?|
+    | NoEviction => "none"
+    | EvictNow => "now"
+    | EvictAfter n => "after " ++# sm'.obj_to_string n
+
+:= schedule_summary (s : schedule_options) : string =
+    " seed=" ++# sm'.obj_to_string s.seed ++# " schedules=" ++# sm'.obj_to_string s.schedules
+    ++# " dup=" ++# sm'.obj_to_string s.duplicates_permille
+
+:= run_options_text (o : run_options) : string =
+    delimited "+" o.corpus.spi ++# schedule_summary o.schedule
+    ++# " evict=" ++# eviction_text o.runner.eviction ++# " frames=" ++# (? o.corpus.frames ?> "yes" |: "no")
+
+:= run_text (r : parsed_run) : string =
+    ?= r ?|
+    | RunRejected why => "rejected: " ++# why
+    | RunParsed o => run_options_text o
+
+:= run_flags (spi : string) : list string =
+    [ "--spi"; spi; "--seed"; "7"; "--duplicates"; "0.25"; "--evict-grace"; "3"; "--evict"; "--frames" ]
+
+test run_options_follow_xsim_run =
+    := ~spi = "a.spi,b.spi+c.spi"
+    run_args (default_run ()) (run_flags spi) |> run_text
+    |> _assert_eq "a.spi+b.spi+c.spi seed=7 schedules=2 dup=250 evict=after 3 frames=yes"
+
+:= run_of (args : list string) : string = run_args (default_run ()) args |> run_text
+
+:= bad_values (spi : string) : string * string =
+    run_of [ "--seed"; "x"; "--spi"; spi ], run_of [ "--spi"; spi; "--executor"; "gpu" ]
+
+:= bad_shapes (spi : string) : string * string = run_of [], run_of [ "--spi"; spi; "--duplicates"; "0.1234" ]
+
+:= bad_value_texts () : string * string =
+    "rejected: --seed takes a whole number, got 'x'", "rejected: --executor is fake, fake-leak or cells, got 'gpu'"
+
+:= bad_shape_texts () : string * string =
+    "rejected: missing --spi or --spi-file", "rejected: --duplicates takes a decimal like 0.1, got '0.1234'"
+
+test bad_run_options_are_named =
+    := ~spi = "a.spi"
+    (bad_values spi, bad_shapes spi) |> _assert_eq (bad_value_texts (), bad_shape_texts ())
+
+:= events_head (o : events_options) : string =
+    o.spi ++# " seed=" ++# sm'.obj_to_string o.seed ++# " users=" ++# sm'.obj_to_string o.users
+    ++# " dup=" ++# sm'.obj_to_string o.duplicates_permille
+
+:= events_options_text (o : events_options) : string =
+    events_head o ++# " frames=" ++# (? o.frames ?> "yes" |: "no") ++# " out=" ++# o.out ++# " expected=" ++# o.expected
+
+:= events_text (r : result events_options string) : string =
+    ?= r ?|
+    | Error why => "rejected: " ++# why
+    | Ok o => events_options_text o
+
+:= events_of (args : list string) : string = events_args args |> events_text
+
+:= events_cases (spi : string) : string * string * string =
+    events_of ["--spi"; spi; "--out"; "s.jsonl"; "--expected"; "f.json"; "--frames"],
+    events_of ["--spi"; spi; "--out"; "s.jsonl"],
+    events_of ["--spi"; spi; "--users"; "two"]
+
+:= events_expected () : string * string * string =
+    "a.spi seed=1 users=3 dup=200 frames=yes out=s.jsonl expected=f.json", "rejected: missing --expected",
+    "rejected: --users takes a whole number, got 'two'"
+
+test events_options_follow_xsim_events =
+    := ~spi = "a.spi"
+    events_cases spi |> _assert_eq (events_expected ())
+
+:= world_options_text (o : world_options) : string =
+    o.spi ++# " id=" ++# sm'.obj_to_string o.id_base ++# " lost=" ++# sm'.obj_to_string o.lost
+    ++# " user=" ++# o.username
+
+:= world_text (r : result world_options string) : string =
+    ?= r ?|
+    | Error why => "rejected: " ++# why
+    | Ok o => world_options_text o
+
+:= world_cases (spi : string) : string * string =
+    world_args ["--spi"; spi; "--out"; "w.json"; "--expected"; "p.txt"; "--lost"; "2"] |> world_text,
+    world_args ["--spi"; spi; "--out"; "w.json"; "--expected"; "p.txt"; "--frames"] |> world_text
+
+test world_options_follow_xsim_world =
+    := ~spi = "a.spi"
+    world_cases spi |> _assert_eq ("a.spi id=3000000 lost=2 user=spiralposts", "rejected: --frames needs a value")

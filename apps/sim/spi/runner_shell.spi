@@ -1,0 +1,249 @@
+///- --package . --timeout 600000
+///> gleam
+test runner_shell static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< events
+:< inbox
+:< scheduler
+:< runner_guard
+:< executors
+:< invariants
+:< runner_checks
+
+:| shell_message =
+    | Deliver : delivery
+    | Finished : visible_entry
+    | Guarded : string * handle
+    | Settle : erlang_process.subject scheduler
+
+:== shell_inbox = erlang_process.subject shell_message
+
+:== shell_state =
+    {sched : scheduler; me : shell_inbox; exec : executor; guards : dictm.dict string handle;
+     early_cancels : dictm.set string}
+
+:== shell_next = otp_actor.next shell_state shell_message
+
+:== started_task = {key : string; sources : list string}
+
+:= executor_timeout_ms () : i32 = 5000i32
+
+:= finished_report (me : shell_inbox) : reporter = \ (e : visible_entry) => erlang_process.send me (Finished e)
+
+:= guard_handed (me : shell_inbox) (key : string) : handle -> () =
+    \ (own : handle) => erlang_process.send me (Guarded (key, own))
+
+:= task_work (me : shell_inbox) (exec : executor) (t : started_task) : () -> () =
+    \ () => erlang_process.send me (Finished {key = t.key; result = exec t.sources})
+
+:= guarded_start (me : shell_inbox) (exec : executor) (t : started_task) : () =
+    := task = {key = t.key; timeout_ms = executor_timeout_ms (); work = task_work me exec t}
+    guarded (finished_report me) (guard_handed me t.key) task |> ignore
+
+:= guard_cancelled (st : shell_state) (key : string) (own : handle) : shell_state =
+    erlang_process.send own ()
+    {st ?| guards = dictm.remove key st.guards}
+
+:= cancelled (st : shell_state) (key : string) : shell_state =
+    ?= dictm.find key st.guards ?|
+    | Some own => guard_cancelled st key own
+    | None => {st ?| early_cancels = dictm.set_add key st.early_cancels}
+
+:= cancelled_early (st : shell_state) (key : string) (own : handle) : shell_state =
+    erlang_process.send own ()
+    {st ?| early_cancels = dictm.set_drop key st.early_cancels}
+
+:= adopted (st : shell_state) (key : string) (own : handle) : shell_state =
+    ? dictm.set_has key st.early_cancels ?> cancelled_early st key own
+    |: {st ?| guards = dictm.insert key own st.guards}
+
+:= released (st : shell_state) (key : string) : shell_state = {st ?| guards = dictm.remove key st.guards}
+
+:= commanded (st : shell_state) (c : task_command) : shell_state =
+    ?= c ?|
+    | StartTask t =>
+        guarded_start st.me st.exec t
+        st
+    | CancelTask key => cancelled st key
+
+:= dispatched (st : shell_state) (s : scheduler) : shell_state =
+    := cmds, s = commands_taken s
+    := plain = {st ?| sched = s}
+    cmds |> listm.fold commanded plain
+
+:= settled (st : shell_state) (reply : erlang_process.subject scheduler) : shell_state =
+    erlang_process.send reply (st.sched |> expired !+ |> settled_view)
+    st
+
+:= busy (st : shell_state) : bool = dictm.size st.sched.task_work.running > 0i32
+
+:= settle_or_wait (st : shell_state) (reply : erlang_process.subject scheduler) : shell_state =
+    ? busy st ?>
+        erlang_process.send_after st.me 5i32 (Settle reply) |> ignore
+        st
+    |: settled st reply
+
+:= finished_in (st : shell_state) (f : visible_entry) : shell_state =
+    dispatched (released st f.key) (finished_task f.key f.result st.sched |> drained)
+
+:= delivered_in (st : shell_state) (d : delivery) : shell_state = dispatched st (delivered_to d st.sched)
+
+:= next_state (st : shell_state) (m : shell_message) : shell_state =
+    ?= m ?|
+    | Deliver d => delivered_in st d
+    | Finished f => finished_in st f
+    | Guarded (key, own) => adopted st key own
+    | Settle reply => settle_or_wait st reply
+
+:= handled (st : shell_state) (m : shell_message) : shell_next = otp_actor.continue (next_state st m)
+
+:= fresh_state (f : fault_set) (exec : executor) (me : shell_inbox) : shell_state =
+    {sched = new_scheduler f; me; exec; guards = dictm.empty (); early_cancels = dictm.set_empty ()}
+
+:= shell_started (f : fault_set) (exec : executor) : option shell_inbox =
+    otp_actor.new_with_self 10000i32 (fresh_state f exec)
+    |> otp_actor.on_message handled
+    |> otp_actor.start
+    |> otp_actor.started_data
+
+:= shell_settled (inbox : shell_inbox) (l : list delivery) : scheduler =
+    l |> listm.fold (\ _ d => otp_actor.send inbox (Deliver d)) ()
+    otp_actor.call inbox 30000i32 Settle
+
+:= paused (ms : i32) : () =
+    (erlang_process.new_subject () : handle) |> \ idle => erlang_process.receive_within idle ms |> ignore
+
+:= delivered_then_paused (inbox : shell_inbox) (pace_ms : i32) (d : delivery) : () =
+    otp_actor.send inbox (Deliver d)
+    paused pace_ms
+
+:= paced_settled (inbox : shell_inbox) (pace_ms : i32) (l : list delivery) : scheduler =
+    l |> listm.fold (\ _ d => delivered_then_paused inbox pace_ms d) ()
+    otp_actor.call inbox 30000i32 Settle
+
+:= two_posts () : list delivery =
+    [
+        post_at 0i32 "p0" None "inl a = 1"
+        like_at 1i32 "p0" "u"
+        post_at 2i32 "p1" (Some "p0") "inl b = 2"
+        like_at 3i32 "p1" "v"
+    ]
+
+:= settled_sizes (inbox : shell_inbox) (l : list delivery) : i32 * i32 =
+    dictm.size (shell_settled inbox l).visible_map, dictm.size (sync_run (plain_faults ()) l).visible_map
+
+test the_otp_shell_settles_like_sync_run =
+    := ~l = two_posts ()
+    ?= shell_started (plain_faults ()) (fake_executor ()) ?|
+    | Some inbox => settled_sizes inbox l |> _assert_eq (2i32, 2i32)
+    | None => failwith "runner shell did not start"
+
+:= one_at_a_time () : fault_set =
+    := f = plain_faults ()
+    {f ?| limit = 1i32}
+
+:= equivalence_of (s : scheduler) : string = runner_checks s fake_baseline |> verdict_where equivalence_rule
+
+:= leaky_in_shell (leak : erlang_process.subject leak_message) (l : list delivery) : string =
+    ?= shell_started (one_at_a_time ()) (leaking_executor leak) ?|
+    | Some inbox => equivalence_of (shell_settled inbox l)
+    | None => "shell did not start"
+
+:= leaky_run (l : list delivery) : string =
+    ?= leak_started () ?|
+    | Some leak => leaky_in_shell leak l
+    | None => "leak cell did not start"
+
+test a_leaking_executor_breaks_sequential_equivalence =
+    := ~l = two_posts ()
+    leaky_run l |> sm'.starts_with "FAIL" |> _assert_eq !+
+
+:= slow_executor () : executor =
+    \ sources =>
+        paused 50i32
+        {status = Done; out = fake_out sources}
+
+:= cancel_shape (s : scheduler) : i32 * i32 = s.run_counts.cancels, dictm.size s.visible_map
+
+:= shell_cancels (l : list delivery) : i32 * i32 =
+    ?= shell_started (plain_faults ()) (slow_executor ()) ?|
+    | Some inbox => shell_settled inbox l |> cancel_shape
+    | None => failwith "runner shell did not start"
+
+test a_withdrawn_demand_cancels_the_running_task_like_deferred_run =
+    := ~l = [post_at 0i32 "p0" None "x"; like_at 1i32 "p0" "u"; unlike_at 2i32 "p0" "u"]
+    (shell_cancels l, deferred_run (plain_faults ()) l |> cancel_shape) |> _assert_eq ((1i32, 0i32), (1i32, 0i32))
+
+:= probed_executor (probe : handle) : executor =
+    \ sources =>
+        paused 50i32
+        erlang_process.send probe ()
+        {status = Done; out = fake_out sources}
+
+:= signalled_in (ms : i32) (own : handle) : bool =
+    ?= erlang_process.receive_within own ms |> erlang_process.receipt_value ?|
+    | Some _ => !+
+    | None => !-
+
+:= probe_after (inbox : shell_inbox) (probe : handle) (l : list delivery) : bool =
+    shell_settled inbox l |> ignore
+    signalled_in 300i32 probe
+
+:= probe_reached (l : list delivery) : bool =
+    := probe : handle = erlang_process.new_subject ()
+    ?= shell_started (plain_faults ()) (probed_executor probe) ?|
+    | Some inbox => probe_after inbox probe l
+    | None => failwith "runner shell did not start"
+
+test a_cancelled_worker_is_killed_before_it_finishes =
+    := ~l = [post_at 0i32 "p0" None "x"; like_at 1i32 "p0" "u"]
+    (probe_reached (listm.append l [unlike_at 2i32 "p0" "u"]), probe_reached l) |> _assert_eq (!-, !+)
+
+:= test_state () : shell_state = fresh_state (plain_faults ()) (fake_executor ()) (erlang_process.new_subject ())
+
+:= guard_shape (own : handle) (st : shell_state) : bool * i32 * i32 =
+    signalled_in 100i32 own, dictm.size st.guards, dictm.set_size st.early_cancels
+
+test a_cancel_before_its_guard_reaches_the_guard_on_adoption =
+    := ~key = "k"
+    := own : handle = erlang_process.new_subject ()
+    adopted (cancelled (test_state ()) key) key own |> guard_shape own |> _assert_eq (!+, 0i32, 0i32)
+
+test a_cancel_after_adoption_signals_the_guard =
+    := ~key = "k"
+    := own : handle = erlang_process.new_subject ()
+    cancelled (adopted (test_state ()) key own) key |> guard_shape own |> _assert_eq (!+, 0i32, 0i32)
+
+:= evicting_now () : fault_set =
+    := plain = plain_faults ()
+    {plain ?| eviction = EvictNow}
+
+:= fickle_churn () : list delivery =
+    [
+        post_at 0i32 "p0" None "inl a = 1"; like_at 1i32 "p0" "f"; unlike_at 2i32 "p0" "f"; like_at 3i32 "p0" "f"
+        post_at 4i32 "p1" (Some "p0") "inl b = 2"; like_at 5i32 "p1" "g"; like_at 5i32 "p1" "g"
+    ]
+
+:= every_finding_held (findings : list finding) : bool =
+    findings |> listm.fold (\ ok (f : finding) => ok && (?= f.verdict ?| Held => !+ | Broken _ => !-)) !+
+
+:= paced_vs_plain (paced : shell_inbox) (plain : shell_inbox) (l : list delivery) : bool * string =
+    := p = paced_settled paced 2i32 l
+    every_finding_held (runner_checks p fake_baseline), runs_commute p (shell_settled plain l) |> verdict_text
+
+:= against_plain_shell (paced : shell_inbox) (l : list delivery) : bool * string =
+    ?= shell_started (plain_faults ()) (fake_executor ()) ?|
+    | Some plain => paced_vs_plain paced plain l
+    | None => failwith "unpaced runner shell did not start"
+
+:= paced_run_holds (l : list delivery) : bool * string =
+    ?= shell_started (evicting_now ()) (fake_executor ()) ?|
+    | Some paced => against_plain_shell paced l
+    | None => failwith "paced runner shell did not start"
+
+test a_paced_run_waits_between_deliveries_and_ends_where_the_unpaced_run_ends =
+    := ~l = fickle_churn ()
+    paced_run_holds l |> _assert_eq (!+, "ok")

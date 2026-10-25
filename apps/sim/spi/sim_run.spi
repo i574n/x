@@ -1,0 +1,84 @@
+///- --package .
+///> rust -d sha2 unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test sim_run static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< events
+:< personas
+:< splitter
+:< scenario
+:< schedule
+:< inbox
+:< scheduler
+:< invariants
+:< runner_checks
+:< sim_report
+:< sim_args
+
+:= with_schedule_cast (o : run_options) (c : casting) : casting =
+    { c ?| users = o.schedule.users; edits = o.schedule.edits }
+
+:= with_corpus_cast (o : run_options) (c : casting) : casting =
+    { c ?| breaking = o.corpus.breaking; churn = o.corpus.churn; personas = parsed_personas o.corpus.personas }
+
+:= casting_for (o : run_options) : casting = plain_casting o.schedule.seed |> with_schedule_cast o |> with_corpus_cast o
+
+:= faults_for (o : run_options) : fault_set =
+    { cancel = !+; rerun = !-; eviction = o.runner.eviction; naive = !-; limit = o.runner.max_concurrency }
+
+:= flow_for (o : run_options) (s : scenario) : flow =
+    ? o.corpus.frames ?> exploded (post_limit ()) s.all_events |: s.all_events
+
+:== schedule_outcome = { line : string; sched : scheduler; found : list finding }
+
+:= shape_for (o : run_options) (round : i32) (posts : i32) (events : i32) (deliveries : i32) : run_shape =
+    { seed = o.schedule.seed; schedule = round; posts; events; deliveries; ms = 0i32; beam_mb = 0i32 }
+
+:= deliveries_for (o : run_options) (f : flow) (round : i32) : list delivery =
+    deliveries f round { permille = o.schedule.duplicates_permille; window = 6i32 }
+
+:= outcome_of (shape : run_shape) (sched : scheduler) : schedule_outcome =
+    := found = runner_checks sched fake_baseline
+    { line = summary_line shape sched found; sched; found }
+
+:= size \* t. (l : list t) : i32 = listm.length l
+
+:= schedule_run_of (o : run_options) (s : scenario) (f : flow) (round : i32) : schedule_outcome =
+    := l = deliveries_for o f round
+    outcome_of (shape_for o round (size s.posts) (size f) (size l)) (sync_run (faults_for o) l)
+
+:~ ^ outcomes_from
+    (o : run_options) (s : scenario) (f : flow) (k : i32) (acc : list schedule_outcome)
+    : list schedule_outcome
+    =
+    ? k > o.schedule.schedules ?> listm.rev acc
+    |: outcomes_from o s f (k + 1i32) (schedule_run_of o s f k :: acc)
+
+:= closing_line (outcomes : list schedule_outcome) : string =
+    := scheds = each (\ (r : schedule_outcome) => r.sched) outcomes
+    verdict_line scheds (each (\ (r : schedule_outcome) => r.found) outcomes)
+
+:= with_closing (outcomes : list schedule_outcome) : list string =
+    listm.append (each (\ (r : schedule_outcome) => r.line) outcomes) [ closing_line outcomes ]
+
+:~ simulated (o : run_options) (threads : list (list string)) : list string =
+    := s = from_corpus (casting_for o) threads
+    outcomes_from o s (flow_for o s) 1i32 Nil |> with_closing
+
+:= small_corpus () : list (list string) = [ [ "inl a = 1i32"; "inl b = a + 1i32"; "inl c = b * 2i32" ] ]
+
+:= small_options () : run_options =
+    := d = default_run ()
+    := plan = d.schedule
+    { d ?| schedule = { plan ?| schedules = 2i32; users = 3i32 } }
+
+:= run_summary (lines : list string) : i32 * bool * bool =
+    := commuted = has ((=) "XSIM commute=ok result=pass") lines
+    (listm.length lines : i32), has (sm'.starts_with "XSIM seed=1 schedule=2 ") lines, commuted
+
+test a_fake_run_prints_one_line_per_schedule_and_a_verdict =
+    := ~corpus = small_corpus ()
+    simulated (small_options ()) corpus |> run_summary |> _assert_eq (3i32, !+, !+)

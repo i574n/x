@@ -1,0 +1,21 @@
+edition: 3
+packageDir: ../../../../spiral/lib
+packages:
+    |core-
+    spiral-
+    ../../client-
+modules:
+    inbox
+    scheduler
+    runner_checks
+    scenario_checks
+    tree_memory
+    sim_report
+    sim_args
+    sim_run
+    executors
+    cells_executor
+    runner_guard
+    runner_shell
+    memory_watch
+    xsim_shell_entry

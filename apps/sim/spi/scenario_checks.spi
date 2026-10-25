@@ -1,0 +1,280 @@
+///- --package . --timeout 600000
+///> rust -d sha2 unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test scenario_checks static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< events
+:< inbox
+:< scheduler
+:< invariants
+:< runner_checks
+:< personas
+:< scenario
+:< schedule
+
+:= elixir_head () : list string =
+    [ "inl square x = x * x"; "inl cube x = x * square x"; "///- --test\n\nsquare 3 |> _assert_eq 9" ]
+
+:= elixir_tail () : list string =
+    [ "inl quad x = square (square x)"; "///- --test\n\ncube 2 |> _assert_eq 8"
+      "///- --test\n\nquad 2 |> _assert_eq 16" ]
+
+:= elixir_cells () : list string = listm.append (elixir_head ()) (elixir_tail ())
+
+:= cast (seed : i32) (users : i32) (edits : i32) : casting =
+    := c = plain_casting seed
+    { c ?| users = users; edits = edits }
+
+:= all_held (s : scheduler) : bool =
+    runner_checks s fake_baseline |> has (\ (f : finding) => verdict_text f.verdict <> "ok") |> not
+
+:= scheduled_run (f : fault_set) (events : flow) (seed : i32) (permille : i32) (window : i32) : scheduler =
+    sync_run f (deliveries events seed { permille; window })
+
+:= schedule_holds (events : flow) (schedule : i32) : bool =
+    := s = scheduled_run (plain_faults ()) events schedule 300i32 6i32
+    all_held s && dictm.size s.visible_map > 0i32
+
+:~ ^ schedules_hold (events : flow) (schedule : i32) (last : i32) : bool =
+    ? schedule > last ?> !+ |: schedule_holds events schedule && schedules_hold events (schedule + 1i32) last
+
+test a_correct_runner_keeps_every_invariant_on_shuffled_duplicated_deliveries =
+    := ~cells = elixir_cells ()
+    schedules_hold (from_cells (cast 3i32 5i32 3i32) "" cells).all_events 1i32 6i32 |> _assert_eq !+
+
+:= orders_commute (events : flow) : string =
+    := first = scheduled_run (plain_faults ()) events 1i32 100i32 6i32
+    runs_commute first (scheduled_run (plain_faults ()) events 9i32 500i32 12i32) |> verdict_text
+
+test different_delivery_orders_of_the_same_events_reach_the_same_visible_results =
+    := ~cells = elixir_cells ()
+    (from_cells (cast 5i32 4i32 2i32) "" cells).all_events |> orders_commute |> _assert_eq "ok"
+
+:= chain_head (a : string) : list delivery =
+    [ post_at 0i32 a None "inl a = 1"; post_at 1i32 "b" (Some a) "inl b = a + 1"
+      post_at 2i32 "c" (Some "b") "inl c = b + 1" ]
+
+:= liked_chain (a : string) : list delivery =
+    listm.append (chain_head a) [ like_at 3i32 "c" "u1"; like_at 4i32 "b" "u2" ]
+
+:= root_edit_shape (before : scheduler) (after : scheduler) : bool * bool * bool =
+    all_held after, visible_out after "b" <> visible_out before "b", visible_out after "c" <> visible_out before "c"
+
+:= root_edited (a : string) : scheduler =
+    sync_run (plain_faults ()) (listm.append (liked_chain a) [ edited_at 5i32 a "inl a = 2" ])
+
+test editing_a_root_rekeys_its_subtree_and_visible_results_follow =
+    := ~a = "a"
+    root_edit_shape (sync_run (plain_faults ()) (liked_chain a)) (root_edited a) |> _assert_eq (!+, !+, !+)
+
+test an_edited_root_flows_into_its_subtree_sources =
+    := ~a = "a"
+    sources (root_edited a).in_box "c" |> _assert_eq [ "inl a = 2"; "inl b = a + 1"; "inl c = b + 1" ]
+
+:= root_edits (events : flow) : list string =
+    events |> spread \ e => ?= e ?| Revision (Edited r) ?& r.post_id = "p0" => [ r.source ] | _ => Nil
+
+:= last_of (l : list string) : string = l |> listm.fold (\ _ x => x) ""
+
+:= churn_events (cells : list string) : flow =
+    := c = cast 11i32 4i32 0i32
+    (from_cells { c ?| churn = 12i32 } "" cells).all_events
+
+:= churned_run (events : flow) : scheduler =
+    := limited = plain_faults ()
+    scheduled_run { limited ?| limit = 2i32 } events 1i32 200i32 6i32
+
+:= newest_root (s : scheduler) : string = ?= sources s.in_box "p0" ?| x :: _ => x | Nil => ""
+
+:= churn_shape (cells : list string) : i32 * bool * bool =
+    := events = churn_events cells
+    := s = churned_run events
+    (listm.length (root_edits events) : i32), all_held s, newest_root s = last_of (root_edits events)
+
+test heavy_churn_on_the_root_rekeys_everything_and_keeps_every_invariant =
+    := ~cells = elixir_cells ()
+    churn_shape cells |> _assert_eq (12i32, !+, !+)
+
+:= long_cell () : string = sm'.replicate 40i32 "inl long_name_1 = 1\n"
+
+:= framed_run (s : scenario) : scheduler =
+    scheduled_run (plain_faults ()) (exploded 120i32 s.all_events) 1i32 300i32 20i32
+
+:= plain_run (s : scenario) : scheduler = scheduled_run (plain_faults ()) s.all_events 1i32 100i32 6i32
+
+:= framed_shape (s : scenario) : i32 * bool * string =
+    := framed = framed_run s
+    framed.in_box.tallies.framed, all_held framed, runs_commute framed (plain_run s) |> verdict_text
+
+test framed_posts_out_of_order_and_duplicated_keep_every_invariant =
+    := ~cells = listm.append (elixir_cells ()) [ long_cell () ]
+    := s = from_cells (cast 7i32 3i32 2i32) "" cells
+    framed_shape s |> _assert_eq ((listm.length s.posts : i32), !+, "ok")
+
+:= test_edits (events : flow) : list string =
+    events |> spread \ e => ?= e ?| Revision (Edited r) ?& sm'.contains "--test" r.source => [ r.source ] | _ => Nil
+
+:= broken_assert (source : string) : bool =
+    has (\ n => sm'.ends_with ("_assert_eq " ++# n) (sm'.trim source)) [ "10"; "17"; "9"; "5" ]
+
+:= distinct_count (ids : list string) : i32 =
+    ids |> listm.fold (\ d id => dictm.set_add id d) (dictm.set_empty ()) |> dictm.set_size
+
+:= authors_interleaved (ids : list string) : bool = has (sm'.starts_with "f0") ids && has (sm'.starts_with "f1") ids
+
+:= breaks_assert (events : flow) : bool =
+    := breaking = test_edits events
+    (listm.length breaking : i32) > 0i32 && not (has (\ b => not (broken_assert b)) breaking)
+
+:= notebooks_scenario (cells : list string) : scenario =
+    := other = [ "inl twice x = x + x"; "///- --test\n\ntwice 4 |> _assert_eq 8" ]
+    := c = cast 2i32 3i32 1i32
+    from_corpus { c ?| breaking = 2i32 } [ cells; other ]
+
+:= notebook_runs_hold (s : scenario) : bool = all_held (scheduled_run (plain_faults ()) s.all_events 1i32 200i32 6i32)
+
+:= post_ids_of (s : scenario) : list string = s.posts |> each \ (r : rooted) => r.post_id
+
+:= notebooks_shape (s : scenario) : bool * bool * bool * bool =
+    := ids = post_ids_of s
+    := distinct = (listm.length ids : i32) = distinct_count ids
+    distinct, authors_interleaved ids, breaks_assert s.all_events, notebook_runs_hold s
+
+test several_notebooks_become_interleaved_author_threads_with_breaking_edits =
+    := ~cells = elixir_cells ()
+    notebooks_scenario cells |> notebooks_shape |> _assert_eq (!+, !+, !+, !+)
+
+:= honest (broken : dictm.set string) : list string -> task_result =
+    \ sources => ? dictm.set_has (last_of sources) broken ?> { status = Erred; out = "failed" } |: fake_result sources
+
+:== source_map = dictm.dict string string
+
+:= originals_of (s : scenario) : source_map =
+    s.posts |> listm.fold (\ d (r : rooted) => dictm.insert r.post_id r.source d) (dictm.empty ())
+
+:= is_original (originals : source_map) (id : string) (source : string) : bool =
+    ?= dictm.find id originals ?|
+    | Some o => o = source
+    | None => !-
+
+:= rules_hold_for (broken : dictm.set string) (run : scheduler) : bool =
+    runner_checks run (honest broken) |> has (\ (f : finding) => verdict_text f.verdict <> "ok") |> not
+
+:= reverted_in (originals : source_map) (run : scheduler) : bool =
+    run.in_box.graph.posts |> dictm.fold (\ ok id p => ok && is_original originals id (latest_source p)) !+
+
+:= run_holds (broken : dictm.set string) (originals : source_map) (run : scheduler) : bool =
+    rules_hold_for broken run && verdict_text (breaking_failed run broken) = "ok" && reverted_in originals run
+
+:= persona_run (broken : dictm.set string) (events : flow) (schedule : i32) : scheduler =
+    := limited = plain_faults ()
+    := pace = { permille = 300i32; window = 10i32 }
+    sync_run_with (honest broken) { limited ?| limit = 2i32 } (deliveries events schedule pace)
+
+:~ ^ persona_runs (broken : dictm.set string) (events : flow) (schedule : i32) (acc : list scheduler) : list scheduler =
+    ? schedule > 4i32 ?> listm.rev acc
+    |: persona_runs broken events (schedule + 1i32) (persona_run broken events schedule :: acc)
+
+:~ ^ neighbours_commute (l : list scheduler) : bool =
+    ?= l ?|
+    | a :: b :: rest => verdict_text (runs_commute a b) = "ok" && neighbours_commute (b :: rest)
+    | _ => !+
+
+:= fickle_unlike (e : event) : bool = ?= e ?| Reaction (Unliked r) => sm'.starts_with "fickle" r.user | _ => !-
+
+:= persona_scenario (cells : list string) : scenario =
+    := c = cast 17i32 2i32 0i32
+    from_cells { c ?| personas = parsed_personas "lurker=2,fickle=3,editor=2,breaker=2" } "" cells
+
+:= broken_set (s : scenario) : dictm.set string =
+    s.broken |> listm.fold (\ d b => dictm.set_add b d) (dictm.set_empty ())
+
+:= restores_original (originals : source_map) (events : flow) : bool =
+    events |> has \ e => ?= e ?| Revision (Edited r) => is_original originals r.post_id r.source | _ => !-
+
+:= personas_hold (broken : dictm.set string) (originals : source_map) (runs : list scheduler) : bool * bool =
+    not (has (\ run => not (run_holds broken originals run)) runs), neighbours_commute runs
+
+:= persona_signals (s : scenario) : bool * bool * bool =
+    := restores = restores_original (originals_of s) s.all_events
+    has fickle_unlike s.all_events, restores, dictm.set_size (broken_set s) > 0i32
+
+:= persona_runs_hold (s : scenario) : bool * bool =
+    := broken = broken_set s
+    persona_runs broken s.all_events 1i32 Nil |> personas_hold broken (originals_of s)
+
+test personas_toggle_demand_revert_rewrites_and_fix_breaks_without_breaking_an_invariant =
+    := ~cells = elixir_cells ()
+    := s = persona_scenario cells
+    persona_signals s |> _assert_eq (!+, !+, !+)
+    persona_runs_hold s |> _assert_eq (!+, !+)
+
+:= breaker_scenario (unbreakable : string) : scenario =
+    := c = cast 3i32 2i32 0i32
+    := cells = [ "inl value () = 1i32"; unbreakable ]
+    from_cells { c ?| breaking = 2i32; personas = parsed_personas "breaker=3" } "" cells
+
+:= edited_sources (events : flow) : list string =
+    events |> spread \ e => ?= e ?| Revision (Edited r) => [ r.source ] | _ => Nil
+
+:= breaker_shape (unbreakable : string) (s : scenario) : bool * i32 * bool =
+    := edited = edited_sources s.all_events
+    break_source unbreakable = unbreakable, (listm.length s.broken : i32), has (\ x => x <> unbreakable) edited
+
+:= empty_thread_shape () : i32 * i32 =
+    := e = plain_casting 1i32
+    := empty = from_cells { e ?| personas = parsed_personas "lurker=1,fickle=2,editor=1,breaker=1" } "" Nil
+    (listm.length empty.all_events : i32), (listm.length empty.broken : i32)
+
+test breakers_only_pick_tests_a_break_changes =
+    := ~unbreakable = "///- --test\n\nvalue () |> _assert_eq pair.1"
+    breaker_scenario unbreakable |> breaker_shape unbreakable |> _assert_eq (!+, 0i32, !-)
+
+test personas_survive_an_empty_thread =
+    := ~seed = 1i32
+    empty_thread_shape () |> _assert_eq (0i32, 0i32)
+
+:= fickle_deliveries (cells : list string) : list delivery =
+    := c = cast 29i32 2i32 2i32
+    := s = from_cells { c ?| personas = parsed_personas "fickle=2" } "" cells
+    deliveries s.all_events 1i32 { permille = 100i32; window = 6i32 }
+
+:= paced_shape (l : list delivery) : bool * string =
+    := evicting = plain_faults ()
+    := paced = sync_run { evicting ?| eviction = EvictNow } l
+    all_held paced, runs_commute paced (deferred_run (plain_faults ()) l) |> verdict_text
+
+test a_paced_run_ends_where_the_unpaced_run_ends =
+    := ~cells = elixir_cells ()
+    fickle_deliveries cells |> paced_shape |> _assert_eq (!+, "ok")
+
+:= edit_count (events : flow) : i32 =
+    events |> listm.fold (\ n e => ?= e ?| Revision (Edited _) => n + 1i32 | _ => n) 0i32
+
+:= second_edit_frames (events : flow) : bool =
+    events |> has \ e => ?= e ?| Revision (FrameEdited r) => r.part.k = 2i32 | _ => !-
+
+:= framing_scenario (cells : list string) : scenario =
+    := c = cast 11i32 3i32 3i32
+    from_cells { c ?| breaking = 1i32 } "" cells
+
+:= framed_edits_run (s : scenario) : scheduler =
+    scheduled_run (plain_faults ()) (exploded 20i32 s.all_events) 1i32 300i32 12i32
+
+:= frame_edit_shape (s : scenario) : bool * bool * bool =
+    := edits = edit_count s.all_events
+    := framed_count = (framed_edits_run s).in_box.tallies.framed_edits
+    edits > 0i32, second_edit_frames (exploded 20i32 s.all_events), framed_count = edits
+
+:= framed_ends (s : scenario) : bool * string =
+    := framed = framed_edits_run s
+    all_held framed, runs_commute framed (plain_run s) |> verdict_text
+
+test edits_travel_as_frames_and_end_where_the_unframed_run_ends =
+    := ~cells = elixir_cells ()
+    := s = framing_scenario cells
+    frame_edit_shape s |> _assert_eq (!+, !+, !+)
+    framed_ends s |> _assert_eq (!+, "ok")
