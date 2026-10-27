@@ -18,7 +18,7 @@ test users static =
 
 := found_lookup (doc : json) : lookup_reply =
     ?= users_of_doc doc ?|
-    | users_reply {found unknown} => 0i32, account_lines found, sm'.concat_list "," unknown, ""
+    | users_reply { found unknown } => 0i32, account_lines found, sm'.concat_list "," unknown, ""
 
 :~ named (base : string) (bearer : string) (hs : string) : lookup_reply =
     ?= get_raw (app_api base bearer) (read_path (Users (Named (pieces "," hs)))) ?|
@@ -27,14 +27,15 @@ test users static =
 
 := grown (wanted : i32) (acc : accounts) (doc : json) : accounts * string =
     ?= page_of_doc doc ?|
-    | page_reply {page next_token} =>
+    | page_reply { page next_token } =>
         := acc = listm.append acc page
         acc, (? listm.length acc >= wanted ?> "" |: next_token)
 
 := page_path (id : user_id) (n : i32) (cursor : string) (acc : accounts) =
-    read_path (FollowedBy {follower = id; size = page_size (n - listm.length acc); pagination_token = cursor})
+    read_path (FollowedBy { follower = id; size = page_size (n - listm.length acc); pagination_token = cursor })
 
-:= page_of (a : app) (id : user_id) (n : i32) (cursor : string) (acc : accounts) : got fetched = get_raw a (page_path id n cursor acc)
+:= page_of (a : app) (id : user_id) (n : i32) (cursor : string) (acc : accounts) : got fetched =
+    get_raw a (page_path id n cursor acc)
 
 :~ ^ pages (a : app) (id : user_id) (n : i32) (cursor : string) (acc : accounts) : got accounts =
     page_of a id n cursor acc |> then_ok \ (doc, _) =>
@@ -49,7 +50,9 @@ test users static =
 := following_read_limit () : i32 = 200i32
 
 := too_wide () : string =
-    "--max-following all would read more than " ++# sm'.obj_to_string (following_read_limit ()) ++# " timelines; pass a number to confirm"
+    "--max-following all would read more than "
+    ++# sm'.obj_to_string (following_read_limit ())
+    ++# " timelines; pass a number to confirm"
 
 := capped_listing (r : got accounts) : listed =
     ?= r ?|
@@ -65,13 +68,20 @@ test users static =
 := listed_items (key : string) (body : string) : list string = parse_json body |> field key |> collect json_text
 
 := merged_users (bodies : list string) : string =
-    object [member "data" (items (bodies |> spread (listed_items "data"))); member "errors" (items (bodies |> spread (listed_items "errors")))]
+    object [
+        member "data" (items (bodies |> spread (listed_items "data")))
+        member "errors" (items (bodies |> spread (listed_items "errors")))
+    ]
 
 := ids_chunks (ids : string) : list (list user_id) = listm'.chunks_ (lookup_limit ()) (pieces "," ids |> each user_id)
 
 test user_ids_chunk_to_the_lookup_limit =
     := ~n = 250i32
-    listm.init n (\ i => sm'.obj_to_string i) |> delimited "," |> ids_chunks |> each (\ c => (listm.length c : i32)) |> _assert_eq [100i32; 100i32; 50i32]
+    listm.init n (\ i => sm'.obj_to_string i)
+    |> delimited ","
+    |> ids_chunks
+    |> each (\ c => listm.length c : i32)
+    |> _assert_eq [ 100i32; 100i32; 50i32 ]
 
 := users_listed (r : got (list (json * string))) : listed =
     ?= r ?|
@@ -82,10 +92,14 @@ test user_ids_chunk_to_the_lookup_limit =
     := a = app_api base bearer
     users_listed (ids_chunks ids |> each (\ c => get_raw a (read_path (Users (Ids c)))) |> resultm.collect_list)
 
-:= account_doc (id : string) (username : string) : string = object [member "id" (quoted_text id); member "username" (quoted_text username)]
+:= account_doc (id : string) (username : string) : string =
+    object [ member "id" (quoted_text id); member "username" (quoted_text username) ]
 
 := two_accounts () : string =
-    object [member "data" (items [account_doc "1" "a"; account_doc "2" "b"]); member "meta" (object [member "next_token" (quoted_text "n2")])]
+    object [
+        member "data" (items [ account_doc "1" "a"; account_doc "2" "b" ])
+        member "meta" (object [ member "next_token" (quoted_text "n2") ])
+    ]
 
 := grown_text (wanted : i32) : string =
     := l, more = grown wanted Nil (parse_json (two_accounts ()))
@@ -99,11 +113,13 @@ test following_pages_stop_once_enough_accounts_are_found =
 :== asked = string * string * string
 
 := lookup_exports () : () =
-    !!!!Export("xc_users_named", ((\ (base, bearer, hs) => named base bearer hs) : asked -> lookup_reply))
-    !!!!Export("xc_users_by_ids", ((\ (base, bearer, ids) => by_ids base bearer ids) : asked -> listed))
+    export "xc_users_named" ((\ (base, bearer, hs) => named base bearer hs) : asked -> lookup_reply)
+    export "xc_users_by_ids" ((\ (base, bearer, ids) => by_ids base bearer ids) : asked -> listed)
 
 ///> _
 := main () : i32 =
-    !!!!Export("xc_users_followed", ((\ (base, bearer, id, cap) => followed base bearer id cap) : string * string * string * i32 -> listed))
+    export
+        "xc_users_followed"
+        ((\ (base, bearer, id, cap) => followed base bearer id cap) : string * string * string * i32 -> listed)
     lookup_exports ()
     0i32

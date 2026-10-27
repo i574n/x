@@ -6,110 +6,171 @@ test write static =
 :< sm'_operators
 :< prelude
 :< protocol
-:< oauth1
 :< wire
-:< transport
 
-:~ send_write \* r. (a : api user_context) (q : writes r) : got r =
-    ?= a ?|
-    | api e => raw_reply e (write_verb q) (write_path q) |> map_ok \ (doc, _) => decode_write q doc
+:== write_args = string * string * string * string * string * string * string * string * i32 * string * string
 
-:= user_side (base : string) (token : string) (o : oauth1) (nonce : string) (stamp : string) : api user_context =
-    ? token <> "" ?> user_api base token |: signed_api base o nonce stamp
+:== created_out = i32 * string * string * string
 
-:= posted (r : got created_reply) : i32 * string =
-    ?= r ?|
-    | Ok (created_reply {id}) => 0i32, "posted " ++# post_text id
-    | Error f => 4i32, describe_failure f
+:== deleted_out = i32 * bool * string
 
-:= removed (id : string) (r : got deleted_reply) : i32 * string =
-    ?= r ?|
-    | Ok (deleted_reply {deleted}) => ? deleted ?> 0i32, "deleted " ++# id |: 4i32, "not deleted " ++# id
-    | Error f => 4i32, describe_failure f
+:== session_out = i32 * string * string * string
 
-:~ write (a : api user_context) (kind : i32) (payload : string) : i32 * string =
-    ? kind = 1i32 ?> send_write a (CreatePost payload) |> posted
-    |: send_write a (DeletePost (post_id payload)) |> removed payload
+:== account = { name : string; token : string; repo : string }
 
-:== write_args = string * string * string * string * string * string * string * string * i32 * string
+:== side = i32 -> string
+
+:= base_of_args (x : write_args) : string =
+    := base, _, _, _, _, _, _, _, _, _, _ = x
+    base
 
 := nonce_at (nonce : string) (k : i32) : string = ? k = 0i32 ?> nonce |: nonce ++# sm'.obj_to_string k
 
-:= side_of (x : write_args) (k : i32) : api user_context =
-    := base, token, ck, cs, t, ts, nonce, stamp, _, _ = x
-    user_side base token {consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts} (nonce_at nonce k) stamp
+:= keys_json (x : write_args) : json =
+    := _, _, ck, cs, t, ts, _, _, _, _, _ = x
+    $'serde_json::json\!({"ck": &*!ck, "cs": &*!cs, "t": &*!t, "ts": &*!ts})'
+
+:= seconds_at (stamp : string) (k : i32) : string = sm'.obj_to_string (convert.convert_i32 stamp + k)
+
+:= clock_json (x : write_args) (k : i32) : json =
+    := _, _, _, _, _, _, nonce, stamp, _, _, _ = x
+    := nonce_k, seconds = nonce_at nonce k, seconds_at stamp k
+    $'serde_json::json\!({"nonce": &*!nonce_k, "stamp": &*!stamp, "seconds": &*!seconds})'
+
+:= account_json (x : write_args) (a : account) : json =
+    := base, name, token, repo = base_of_args x, a.name, a.token, a.repo
+    $'serde_json::json\!({"base": &*!base, "name": &*!name, "token": &*!token, "repo": &*!repo})'
+
+:= site_json (x : write_args) (a : account) (k : i32) : string =
+    := who, keys, clock = account_json x a, keys_json x, clock_json x k
+    $'Rc::<str>::from(serde_json::json\!({"who": !who, "keys": !keys, "clock": !clock}).to_string())'
+
+:= named_account (x : write_args) : account =
+    := _, token, _, _, _, _, _, _, _, _, name = x
+    { name; token; repo = "" }
+
+:= side_of (x : write_args) (a : account) : side = site_json x a
+
+:= own_side (x : write_args) : side = side_of x (named_account x)
+
+:= fresh_ask (text : string) : string =
+    $'Rc::<str>::from(serde_json::json\!({"kind": "fresh", "text": &*!text}).to_string())'
+
+:= removal_ask (id : string) : string =
+    $'Rc::<str>::from(serde_json::json\!({"kind": "removal", "text": &*!id}).to_string())'
+
+:= ref_ask (r : created_reply) : json =
+    := id, cid = ref_uri r, ref_cid r
+    $'serde_json::json\!({"id": &*!id, "cid": &*!cid})'
+
+:= answer_ask (text : string) (root : created_reply) (parent : created_reply) : string =
+    := r, p = ref_ask root, ref_ask parent
+    $'Rc::<str>::from(serde_json::json\!({"kind": "answer", "text": &*!text, "root": !r, "parent": !p}).to_string())'
+
+:= remote_create (site : string) (ask : string) : created_out = $'xc_requests::xc_create(&*!site, &*!ask)'
+
+:= remote_delete (site : string) (ask : string) : deleted_out = $'xc_requests::xc_delete(&*!site, &*!ask)'
+
+:= remote_session (base : string) (id : string) (pw : string) : session_out =
+    $'xc_requests::xc_session(&*!base, &*!id, &*!pw)'
+
+:= created_of_out (r : created_out) : result created_reply string =
+    := code, id, cid, failure = r
+    ? code = 0i32 ?> Ok (created_reply { id = post_id id; text = ""; cid }) |: Error failure
+
+:= id_of (r : created_reply) : string =
+    ?= r ?|
+    | created_reply { id } => post_text id
+
+:= posted (r : result created_reply string) : i32 * string =
+    ?= r ?|
+    | Ok c => 0i32, "posted " ++# id_of c
+    | Error f => 4i32, f
+
+:= removed (id : string) (r : deleted_out) : i32 * string =
+    := code, deleted, failure = r
+    ? code <> 0i32 ?> 4i32, failure |? deleted ?> 0i32, "deleted " ++# id |: 4i32, "not deleted " ++# id
+
+:~ write (s : side) (kind : i32) (payload : string) : i32 * string =
+    ? kind = 1i32 ?> remote_create (s 0i32) (fresh_ask payload) |> created_of_out |> posted
+    |: remote_delete (s 0i32) (removal_ask payload) |> removed payload
 
 :| chain =
     | Unstarted
     | After : created_reply
 
-:= next_post (last : chain) (text : string) : writes created_reply =
+:= threaded_ask (first : chain) (text : string) (parent : created_reply) : string =
+    ?= first ?|
+    | After root => answer_ask text root parent
+    | Unstarted => answer_ask text parent parent
+
+:= next_ask (first : chain) (last : chain) (text : string) : string =
     ?= last ?|
-    | Unstarted => CreatePost text
-    | After parent => ReplyPost (text, parent)
+    | Unstarted => fresh_ask text
+    | After parent => threaded_ask first text parent
 
+:== posting = { first : chain; last : chain; lines : list string; ids : list string; resumed : bool }
 
-:== side = i32 -> api user_context
-
-:== posting = {last : chain; lines : list string; ids : list string; resumed : bool}
+:= first_or (p : posting) (r : created_reply) : chain =
+    ?= p.first ?|
+    | Unstarted => After r
+    | _ => p.first
 
 := continue_hint (p : posting) : string =
     ?= listm.rev p.ids ?|
     | _ ?& p.resumed => "; continue with the same --resume command"
     | root :: _ => "; continue with: xc post-thread --resume " ++# root ++# " FILE"
-    | Nil => ""
+    | [] => ""
 
-:= stopped (p : posting) (f : failure) : i32 * string =
+:= stopped (p : posting) (f : string) : i32 * string =
     := before = ? listm.length p.ids = 0i32 ?> "" |: "; posted before it: " ++# sm'.concat_list " " (listm.rev p.ids)
-    4i32, describe_failure f ++# before ++# continue_hint p
-
-:= id_of (r : created_reply) : string =
-    ?= r ?|
-    | created_reply {id} => post_text id
+    4i32, f ++# before ++# continue_hint p
 
 := advanced (p : posting) (r : created_reply) (text : string) : posting =
     := id = id_of r
-    {p ?| last = After r; lines = "posted " ++# id ++# " " ++# first_line text :: p.lines; ids = id :: p.ids}
+    := line = "posted " ++# id ++# " " ++# first_line text
+    { p ?| first = first_or p r; last = After r; lines = line :: p.lines; ids = id :: p.ids }
 
-:= sent (s : side) (p : posting) (text : string) : got created_reply =
-    send_write (s (listm.length p.ids + 1i32)) (next_post p.last text)
+:= sent (s : side) (p : posting) (text : string) : result created_reply string =
+    remote_create (s (listm.length p.ids + 1i32)) (next_ask p.first p.last text) |> created_of_out
 
 := all_posted (p : posting) : i32 * string = 0i32, sm'.concat_list "\n" (listm.rev p.lines)
 
 :~ ^ chained (s : side) (l : list string) (p : posting) : i32 * string =
     ?= l ?|
-    | Nil => all_posted p
+    | [] => all_posted p
     | text :: rest =>
         ?= sent s p text ?|
         | Ok r => chained s rest (advanced p r text)
         | Error f => stopped p f
 
-:= removal_line (id : string) (r : got deleted_reply) : result string string =
-    ?= r ?|
-    | Ok (deleted_reply {deleted}) => ? deleted ?> Ok ("deleted " ++# id) |: Error ("not deleted " ++# id)
-    | Error f => Error (describe_failure f)
+:= removal_line (id : string) (r : deleted_out) : result string string =
+    := code, deleted, failure = r
+    ? code <> 0i32 ?> Error failure |? deleted ?> Ok ("deleted " ++# id) |: Error ("not deleted " ++# id)
 
-:== removal = {lines : list string; failed : bool}
+:== removal = { lines : list string; failed : bool }
 
 := with_line (acc : removal) (line : result string string) : removal =
     ?= line ?|
-    | Ok text => {acc ?| lines = text :: acc.lines}
-    | Error message => {lines = message :: acc.lines; failed = !+}
+    | Ok text => { acc ?| lines = text :: acc.lines }
+    | Error message => { lines = message :: acc.lines; failed = !+ }
 
 := removed_one (s : side) (acc : removal) (id : string) : removal =
-    removal_line id (send_write (s (listm.length acc.lines + 1i32)) (DeletePost (post_id id))) |> with_line acc
+    remote_delete (s (listm.length acc.lines + 1i32)) (removal_ask id) |> removal_line id |> with_line acc
 
 := removal_reply (r : removal) : i32 * string = (? r.failed ?> 4i32 |: 0i32), sm'.concat_list "\n" (listm.rev r.lines)
 
-:~ removed_all (s : side) (ids : list string) : i32 * string = listm.fold (removed_one s) {lines = Nil; failed = !-} ids |> removal_reply
+:~ removed_all (s : side) (ids : list string) : i32 * string =
+    listm.fold (removed_one s) { lines = []; failed = !- } ids |> removal_reply
 
-:= first_posting () : posting = {last = Unstarted; lines = Nil; ids = Nil; resumed = !-}
+:= first_posting () : posting = { first = Unstarted; last = Unstarted; lines = []; ids = []; resumed = !- }
 
-:= resumed_line (posted : i32) (total : i32) : string = "resumed after post " ++# sm'.obj_to_string posted ++# " of " ++# sm'.obj_to_string total
+:= resumed_line (posted : i32) (total : i32) : string =
+    "resumed after post " ++# sm'.obj_to_string posted ++# " of " ++# sm'.obj_to_string total
 
 := resumed_posting (last : string) (posted : i32) (total : i32) : posting =
-    := parent = created_reply {id = post_id last; text = ""}
-    {last = After parent; lines = [resumed_line posted total]; ids = Nil; resumed = !+}
+    := parent = created_reply { id = post_id last; text = ""; cid = "" }
+    { first = After parent; last = After parent; lines = [ resumed_line posted total ]; ids = []; resumed = !+ }
 
 := resume_plan_of (payload : string) : i32 * i32 * string = $'xc_resume::xc_resume_plan(&*!payload)'
 
@@ -126,19 +187,42 @@ test write static =
 := last_id_in (found : json) : string = found |> collect (at_key "id") |> last_found
 
 := resume_of (x : write_args) (payload : string) : i32 * string =
-    resume_written (side_of x) (parse_json payload |> field "found" |> last_id_in) payload
+    resume_written (own_side x) (parse_json payload |> field "found" |> last_id_in) payload
+
+:= env_text (name : string) : string = env.get_environment_variable name |> sm'.trim
+
+:= texts_of (payload : string) : list string = parse_json payload |> collect (at_key "text")
+
+:= session_account (r : session_out) : result account string =
+    := code, token, repo, failure = r
+    ? code = 0i32 ?> Ok { name = "bluesky"; token; repo } |: Error failure
+
+:= bluesky_session (x : write_args) : result account string =
+    := id, pw = env_text "BLUESKY_IDENTIFIER", env_text "BLUESKY_APP_PASSWORD"
+    remote_session (base_of_args x) id pw |> session_account
+
+:= bluesky_thread (x : write_args) (payload : string) : i32 * string =
+    ?= bluesky_session x ?|
+    | Ok a => chained (side_of x a) (texts_of payload) (first_posting ())
+    | Error f => 4i32, f
+
+:= is_bluesky (x : write_args) : bool =
+    := _, _, _, _, _, _, _, _, _, _, name = x
+    name = "bluesky"
 
 := thread_written (x : write_args) (kind : i32) (payload : string) : i32 * string =
-    ? kind = 9i32 ?> removed_all (side_of x) (pieces "\n" payload)
-    |: chained (side_of x) (parse_json payload |> collect (at_key "text")) (first_posting ())
+    ? kind = 9i32 ?> removed_all (own_side x) (pieces "\n" payload)
+    |? is_bluesky x ?> bluesky_thread x payload
+    |: chained (own_side x) (texts_of payload) (first_posting ())
 
 := written (x : write_args) : i32 * string =
-    := _, _, _, _, _, _, _, _, kind, payload = x
+    := _, _, _, _, _, _, _, _, kind, payload, _ = x
     ? kind = 10i32 ?> resume_of x payload
     |? kind >= 7i32 ?> thread_written x kind payload
-    |: write (side_of x 0i32) kind payload
+    |: write (own_side x) kind payload
 
-:= removal_of (l : list (result string string)) : i32 * string = l |> listm.fold with_line {lines = Nil; failed = !-} |> removal_reply
+:= removal_of (l : list (result string string)) : i32 * string =
+    l |> listm.fold with_line { lines = []; failed = !- } |> removal_reply
 
 := removal_text (r : i32 * string) : string =
     := code, text = r
@@ -146,29 +230,41 @@ test write static =
 
 test a_failed_delete_still_reports_every_post =
     := ~gone = "deleted 1"
-    [Ok gone; Error "not deleted 2"; Ok "deleted 3"] |> removal_of |> removal_text |> _assert_eq "4|deleted 1\nnot deleted 2\ndeleted 3"
+    [ Ok gone; Error "not deleted 2"; Ok "deleted 3" ]
+    |> removal_of
+    |> removal_text
+    |> _assert_eq "4|deleted 1\nnot deleted 2\ndeleted 3"
+
+:= ref_named (n : string) : created_reply = created_reply { id = post_id n; text = ""; cid = "c" ++# n }
+
+///> rust -d serde_json
+test a_thread_reply_asks_with_root_and_parent =
+    := ask = next_ask (After (ref_named "1")) (After (ref_named "2")) "hi" |> parse_json
+    (ask |> field "root" |> at_key "cid", ask |> field "parent" |> at_key "id") |> _assert_eq ("c1", "2")
 
 test post_lines_name_only_the_header =
     := ~text = "c1 1/2\ninl a = 1"
     first_line text |> _assert_eq "c1 1/2"
     first_line "c2 1/1" |> _assert_eq "c2 1/1"
 
-:= rate_limited () : failure = Reported (answered 429i32 "/2/tweets" "Too Many Requests")
+:= rate_limited () : string = describe_failure (Reported (answered 429i32 "/2/tweets" "Too Many Requests"))
 
 := stop_text (p : posting) : string = stopped p (rate_limited ()) |> \ (_, text) => text
 
 test a_stopped_thread_names_its_resume_command =
     := ~root = "1"
     := p = first_posting ()
-    stop_text {p ?| ids = ["2"; root]} |> sm'.ends_with "; continue with: xc post-thread --resume 1 FILE" |> _assert_eq !+
+    stop_text { p ?| ids = [ "2"; root ] }
+    |> sm'.ends_with "; continue with: xc post-thread --resume 1 FILE"
+    |> _assert_eq !+
 
 test a_stopped_resume_says_to_repeat_it =
     := ~id = "2"
     := p = first_posting ()
-    := r = stop_text {p ?| ids = [id]; resumed = !+}
+    := r = stop_text { p ?| ids = [ id ]; resumed = !+ }
     (sm'.ends_with "same --resume command" r, sm'.contains "continue" (stop_text p)) |> _assert_eq (!+, !-)
 
 ///> _
 := main () : i32 =
-    !!!!Export("xc_write", ((\ x => written x) : write_args -> i32 * string))
+    export "xc_write" ((\ x => written x) : write_args -> i32 * string)
     0i32

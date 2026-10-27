@@ -319,8 +319,8 @@ test an_older_unlike_does_not_undo_a_newer_like =
     := ~id = "p0"
     := w = run [ post_at 0i32 id None "x"; like_at 5i32 id "u"; unlike_at 3i32 id "u" ]
     (?= wanted_key w id ?|
-     | Some _ => !+
-     | None => !-) |> _assert_eq !+
+        | Some _ => !+
+        | None => !-) |> _assert_eq !+
 
 := child_key (w : inbox) : string = dictm.present "c" w.graph.keys
 

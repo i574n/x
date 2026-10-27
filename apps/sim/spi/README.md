@@ -4,6 +4,14 @@ The simulator in Spiral: the port of `lib/xsim`, one module per piece, over the 
 
 | Module | What it holds |
 | --- | --- |
+| `exsss.spi` | Erlang's `rand` exsss generator (splitmix64 seeding, xorshift116**, `uniform_s`) on `u64`, so Rust, Gleam and the BEAM simulator draw the same numbers from the same seed |
+| `events.spi` | the simulator's event stream (xsim-events v1): an `event` union over content, revisions and reactions, its compact JSON encoder, and a decoder that reads a stream back byte for byte or says why it cannot |
+| `final_state.spi` | the state every replay of a scenario must reach: live cells with their latest distinct revision, likes as distinct users per post, laid out as the simulator's JSON |
+| `personas.spi` | the simulator's personas (lurker, fickle, editor, breaker) as a union, their seeded actions, and `break_source` (the last number of a test cell bumped) |
+| `scenario.spi` | a file's cells to a seeded scenario: posts chained to their parents, likes, unlikes, edits, breaking edits, persona actions and churn woven in |
+| `schedule.spi` | posts and edits exploded into `CELL k/n` frames, deliveries jittered and duplicated by a seeded schedule, and the whole stream as xsim-events v1 |
+| `world.spi` | a scenario materialized as the X world the client e2e reads: framed posts with edit versions, replies, likes and timestamps from a base time, posts or whole cells lost on purpose, and the program a thread reader must rebuild |
+| `invariants.spi` | the simulator's checks over a runner snapshot as a `rule` union with `Held` or `Broken` ids: sequential equivalence, no stale results, one compile per prefix, withdrawn demand hidden, unwanted results freed, and schedules that commute; run folders and thread numbers masked before comparing |
 | `inbox.spi` | the runner's inbox over an event stream: frames rebuilt into posts in any order, duplicates counted once, a child waiting for its parent, an edit re-keying its subtree, an older unlike never undoing a newer like |
 | `scheduler.spi` | the runner core: demand from likes, one task per source prefix, withdrawn demand cancelled, eviction and recompute, crashes as visible results; `sync_run` settles a delivery list |
 | `runner_checks.spi` | `invariants`' rules over a run against a baseline executor, commuting runs, and saved streams that replay to the same visible results |
@@ -18,3 +26,5 @@ The simulator in Spiral: the port of `lib/xsim`, one module per piece, over the 
 | `runner_shell.spi` | the OTP runner shell (lib `otp_actor`): deliveries in, guarded tasks, cancellation and pacing; it settles like `sync_run` |
 | `memory_watch.spi` | an actor that samples a process tree on a timer and answers peak calls |
 | `xsim_shell_entry.spi` | `xsim-shell --replay STREAM [--max-concurrency N]`: a stream settled through the shell |
+
+`simframes/simframes.spi` is the one entry that is not a crate (it is still a Cells notebook, with a Gleam test of how threads and cells are separated): it exports the splitter (`split_cell`, `file_cells`, `thread_posts`), the scenario's event stream and final state (`scenario_stream`, `scenario_final`) and the e2e worlds (`world_files`) to Gleam for the simulator. The simulator's Elixir side is now glue around that build: `Xsim.Frames` adapts the splitter, `Xsim.Scenario` draws scenarios and schedules deliveries through Spiral (the xsim-events stream is the interface), `Xsim.Invariants` hands the runner's state to Spiral's checks, and only the runner, the world it supervises and the executors stay Elixir. `apps/sim/test/spiral_test.exs` requires the Gleam build to write the simulator's event, final-state and world fixtures byte for byte.

@@ -22,12 +22,12 @@ test runner_shell static =
 :== shell_inbox = erlang_process.subject shell_message
 
 :== shell_state =
-    {sched : scheduler; me : shell_inbox; exec : executor; guards : dictm.dict string handle;
-     early_cancels : dictm.set string}
+    { sched : scheduler; me : shell_inbox; exec : executor; guards : dictm.dict string handle;
+        early_cancels : dictm.set string }
 
 :== shell_next = otp_actor.next shell_state shell_message
 
-:== started_task = {key : string; sources : list string}
+:== started_task = { key : string; sources : list string }
 
 := executor_timeout_ms () : i32 = 5000i32
 
@@ -37,30 +37,30 @@ test runner_shell static =
     \ (own : handle) => erlang_process.send me (Guarded (key, own))
 
 := task_work (me : shell_inbox) (exec : executor) (t : started_task) : () -> () =
-    \ () => erlang_process.send me (Finished {key = t.key; result = exec t.sources})
+    \ () => erlang_process.send me (Finished { key = t.key; result = exec t.sources })
 
 := guarded_start (me : shell_inbox) (exec : executor) (t : started_task) : () =
-    := task = {key = t.key; timeout_ms = executor_timeout_ms (); work = task_work me exec t}
+    := task = { key = t.key; timeout_ms = executor_timeout_ms (); work = task_work me exec t }
     guarded (finished_report me) (guard_handed me t.key) task |> ignore
 
 := guard_cancelled (st : shell_state) (key : string) (own : handle) : shell_state =
     erlang_process.send own ()
-    {st ?| guards = dictm.remove key st.guards}
+    { st ?| guards = dictm.remove key st.guards }
 
 := cancelled (st : shell_state) (key : string) : shell_state =
     ?= dictm.find key st.guards ?|
     | Some own => guard_cancelled st key own
-    | None => {st ?| early_cancels = dictm.set_add key st.early_cancels}
+    | None => { st ?| early_cancels = dictm.set_add key st.early_cancels }
 
 := cancelled_early (st : shell_state) (key : string) (own : handle) : shell_state =
     erlang_process.send own ()
-    {st ?| early_cancels = dictm.set_drop key st.early_cancels}
+    { st ?| early_cancels = dictm.set_drop key st.early_cancels }
 
 := adopted (st : shell_state) (key : string) (own : handle) : shell_state =
     ? dictm.set_has key st.early_cancels ?> cancelled_early st key own
-    |: {st ?| guards = dictm.insert key own st.guards}
+    |: { st ?| guards = dictm.insert key own st.guards }
 
-:= released (st : shell_state) (key : string) : shell_state = {st ?| guards = dictm.remove key st.guards}
+:= released (st : shell_state) (key : string) : shell_state = { st ?| guards = dictm.remove key st.guards }
 
 := commanded (st : shell_state) (c : task_command) : shell_state =
     ?= c ?|
@@ -71,7 +71,7 @@ test runner_shell static =
 
 := dispatched (st : shell_state) (s : scheduler) : shell_state =
     := cmds, s = commands_taken s
-    := plain = {st ?| sched = s}
+    := plain = { st ?| sched = s }
     cmds |> listm.fold commanded plain
 
 := settled (st : shell_state) (reply : erlang_process.subject scheduler) : shell_state =
@@ -101,7 +101,7 @@ test runner_shell static =
 := handled (st : shell_state) (m : shell_message) : shell_next = otp_actor.continue (next_state st m)
 
 := fresh_state (f : fault_set) (exec : executor) (me : shell_inbox) : shell_state =
-    {sched = new_scheduler f; me; exec; guards = dictm.empty (); early_cancels = dictm.set_empty ()}
+    { sched = new_scheduler f; me; exec; guards = dictm.empty (); early_cancels = dictm.set_empty () }
 
 := shell_started (f : fault_set) (exec : executor) : option shell_inbox =
     otp_actor.new_with_self 10000i32 (fresh_state f exec)
@@ -143,7 +143,7 @@ test the_otp_shell_settles_like_sync_run =
 
 := one_at_a_time () : fault_set =
     := f = plain_faults ()
-    {f ?| limit = 1i32}
+    { f ?| limit = 1i32 }
 
 := equivalence_of (s : scheduler) : string = runner_checks s fake_baseline |> verdict_where equivalence_rule
 
@@ -164,7 +164,7 @@ test a_leaking_executor_breaks_sequential_equivalence =
 := slow_executor () : executor =
     \ sources =>
         paused 50i32
-        {status = Done; out = fake_out sources}
+        { status = Done; out = fake_out sources }
 
 := cancel_shape (s : scheduler) : i32 * i32 = s.run_counts.cancels, dictm.size s.visible_map
 
@@ -173,15 +173,17 @@ test a_leaking_executor_breaks_sequential_equivalence =
     | Some inbox => shell_settled inbox l |> cancel_shape
     | None => failwith "runner shell did not start"
 
+:= withdrawn_demand () : list delivery = [ post_at 0i32 "p0" None "x"; like_at 1i32 "p0" "u"; unlike_at 2i32 "p0" "u" ]
+
 test a_withdrawn_demand_cancels_the_running_task_like_deferred_run =
-    := ~l = [post_at 0i32 "p0" None "x"; like_at 1i32 "p0" "u"; unlike_at 2i32 "p0" "u"]
+    := ~l = withdrawn_demand ()
     (shell_cancels l, deferred_run (plain_faults ()) l |> cancel_shape) |> _assert_eq ((1i32, 0i32), (1i32, 0i32))
 
 := probed_executor (probe : handle) : executor =
     \ sources =>
         paused 50i32
         erlang_process.send probe ()
-        {status = Done; out = fake_out sources}
+        { status = Done; out = fake_out sources }
 
 := signalled_in (ms : i32) (own : handle) : bool =
     ?= erlang_process.receive_within own ms |> erlang_process.receipt_value ?|
@@ -199,8 +201,8 @@ test a_withdrawn_demand_cancels_the_running_task_like_deferred_run =
     | None => failwith "runner shell did not start"
 
 test a_cancelled_worker_is_killed_before_it_finishes =
-    := ~l = [post_at 0i32 "p0" None "x"; like_at 1i32 "p0" "u"]
-    (probe_reached (listm.append l [unlike_at 2i32 "p0" "u"]), probe_reached l) |> _assert_eq (!-, !+)
+    := ~l = [ post_at 0i32 "p0" None "x"; like_at 1i32 "p0" "u" ]
+    (probe_reached (listm.append l [ unlike_at 2i32 "p0" "u" ]), probe_reached l) |> _assert_eq (!-, !+)
 
 := test_state () : shell_state = fresh_state (plain_faults ()) (fake_executor ()) (erlang_process.new_subject ())
 
@@ -219,7 +221,7 @@ test a_cancel_after_adoption_signals_the_guard =
 
 := evicting_now () : fault_set =
     := plain = plain_faults ()
-    {plain ?| eviction = EvictNow}
+    { plain ?| eviction = EvictNow }
 
 := fickle_churn () : list delivery =
     [

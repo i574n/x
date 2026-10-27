@@ -26,6 +26,18 @@ test protocol static =
 
 :== post_ids = list post_id
 
+:== bluesky_writer = { repo : string; at : string }
+
+:| platform =
+    | OnX
+    | OnMastodon
+    | OnBluesky : bluesky_writer
+
+:= unwritten () : bluesky_writer = { repo = ""; at = "" }
+
+:= platform_named (name : string) : platform =
+    ? name = "mastodon" ?> OnMastodon |? name = "bluesky" ?> OnBluesky (unwritten ()) |: OnX
+
 := optional_post (s : string) : option post_id = ? s = "" ?> None |: Some (post_id s)
 
 := optional_text (p : option post_id) : string =
@@ -33,7 +45,7 @@ test protocol static =
     | Some q => post_text q
     | None => ""
 
-:== frame_header = {cell : cell_id; part : i32; part_count : i32}
+:== frame_header = { cell : cell_id; part : i32; part_count : i32 }
 
 :| header_rejection =
     | NotTwoWords
@@ -41,8 +53,8 @@ test protocol static =
     | PartOutOfRange
 
 :| thread_flaw =
-    | MissingFrames : {cell : cell_id; missing : list i32; part_count : i32}
-    | ReplyGap : {cell : cell_id; parent : post_id}
+    | MissingFrames : { cell : cell_id; missing : list i32; part_count : i32 }
+    | ReplyGap : { cell : cell_id; parent : post_id }
 
 := cell_label (cell : i32) : cell_id = cell_id ("c" ++# sm'.obj_to_string cell)
 
@@ -52,7 +64,7 @@ test protocol static =
 :== header_reading = result frame_header header_rejection
 
 := header_in (cell : cell_id) (part : i32) (part_count : i32) : header_reading =
-    ? part >= 1i32 && part <= part_count ?> Ok {cell part part_count} |: Error PartOutOfRange
+    ? part >= 1i32 && part <= part_count ?> Ok { cell part part_count } |: Error PartOutOfRange
 
 := rest_after (at : i32) (text : string) : string = cut (at + 1i32) (sm'.length text - at - 1i32) text
 
@@ -75,7 +87,9 @@ test protocol static =
 :~ parsed (line : string) : header_reading =
     := space = sm'.index_of " " line
     := fraction = second_word space line
-    ? space <= 0i32 || sm'.index_of " " fraction >= 0i32 ?> Error NotTwoWords |: fraction_of (cell_id (cut 0i32 space line)) fraction
+    ? space <= 0i32 || sm'.index_of " " fraction >= 0i32
+    ?> Error NotTwoWords
+    |: fraction_of (cell_id (cut 0i32 space line)) fraction
 
 := listed (l : list i32) : string = l |> each sm'.obj_to_string |> delimited ", "
 
@@ -83,12 +97,16 @@ test protocol static =
     "cell " ++# cell_text cell ++# " is missing frame " ++# listed missing ++# " of " ++# sm'.obj_to_string part_count
 
 := gap_note (cell : cell_id) (parent : post_id) : string =
-    "cell " ++# cell_text cell ++# " replies to " ++# post_text parent ++# ", which is not in the thread: posts before it are missing"
+    "cell "
+    ++# cell_text cell
+    ++# " replies to "
+    ++# post_text parent
+    ++# ", which is not in the thread: posts before it are missing"
 
 := note_of (flaw : thread_flaw) : string =
     ?= flaw ?|
-    | MissingFrames {cell missing part_count} => missing_note cell missing part_count
-    | ReplyGap {cell parent} => gap_note cell parent
+    | MissingFrames { cell missing part_count } => missing_note cell missing part_count
+    | ReplyGap { cell parent } => gap_note cell parent
 
 := exit_code (flaws : list thread_flaw) : i32 =
     ?= flaws ?|
@@ -104,7 +122,7 @@ test protocol static =
 
 test headers_round_trip =
     := ~cell = cell_label 12i32
-    := h = {cell part = 3i32; part_count = 10i32}
+    := h = { cell part = 3i32; part_count = 10i32 }
     rendered h |> _assert_eq "c12 3/10"
     parsed (rendered h) |> read_back |> _assert_eq "c12310"
 
@@ -142,14 +160,15 @@ test the_second_word_is_a_fraction =
 
 test a_missing_frame_names_its_cell =
     := ~cell = cell_id "c3"
-    note_of (MissingFrames {cell missing = [2i32; 4]; part_count = 5i32}) |> _assert_eq "cell c3 is missing frame 2, 4 of 5"
+    note_of (MissingFrames { cell missing = [ 2i32; 4 ]; part_count = 5i32 })
+    |> _assert_eq "cell c3 is missing frame 2, 4 of 5"
     exit_code Nil |> _assert_eq 0i32
 
 test a_reply_gap_names_the_parent =
     := ~cell = cell_id "p2"
-    := gap = ReplyGap {cell parent = post_id "1900"}
+    := gap = ReplyGap { cell parent = post_id "1900" }
     note_of gap |> _assert_eq "cell p2 replies to 1900, which is not in the thread: posts before it are missing"
-    exit_code [gap] |> _assert_eq 4i32
+    exit_code [ gap ] |> _assert_eq 4i32
 
 test words_beyond_ascii_are_no_header =
     := ~line = "c’est parti"

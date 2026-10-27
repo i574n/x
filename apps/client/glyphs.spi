@@ -15,23 +15,12 @@ test glyphs static =
 
 := graphemes (s : string) : list string = unicode.graphemes s
 
-:= rust_weight (s : string) : i32 =
-    $'(&*!s).chars().map(|c| match c as u32 { 0..=4351 | 8192..=8205 | 8208..=8223 | 8242..=8247 => 1, _ => 2 }).sum::<i32>()'
+:= light (c : i32) : bool =
+    c <= 4351i32 || (c >= 8192i32 && c <= 8205i32) || (c >= 8208i32 && c <= 8223i32) || (c >= 8242i32 && c <= 8247i32)
 
-:= gleam_light () : () =
-    global "fn x_light(n: Int) -> Bool { n <= 4351 || n >= 8192 && n <= 8205 || n >= 8208 && n <= 8223 || n >= 8242 && n <= 8247 }"
+:= code_point_weight (c : i32) : i32 = ? light c ?> 1i32 |: 2i32
 
-:= gleam_weight (s : string) : i32 =
-    gleam_light ()
-    global "import gleam/list"
-    global "import gleam/string"
-    $'string.to_utf_codepoints(!s) |> list.fold(0, fn(sum, c) { sum + case x_light(string.utf_codepoint_to_int(c)) { True -> 1 False -> 2 } })'
-
-:= plain_weight (s : string) : i32 =
-    backend_switch {
-        Gleam = \ () => gleam_weight s
-        Rust = \ () => rust_weight s
-    }
+:= plain_weight (s : string) : i32 = unicode.code_points s |> listm.fold (\ sum c => sum + code_point_weight c) 0i32
 
 := first_code_point (s : string) : i32 = unicode.first_code_point s
 
@@ -42,7 +31,13 @@ test glyphs static =
 := pictograph_led (first : i32) : bool = first >= 126976i32
 
 := symbol_led (first : i32) : bool =
-    (first >= 8192i32 && first <= 11263i32) || first = 169i32 || first = 174i32 || first = 12336i32 || first = 12349i32 || first = 12951i32 || first = 12953i32
+    (first >= 8192i32 && first <= 11263i32)
+    || first = 169i32
+    || first = 174i32
+    || first = 12336i32
+    || first = 12349i32
+    || first = 12951i32
+    || first = 12953i32
 
 := keycap_led (first : i32) : bool = first = 35i32 || first = 42i32 || (first >= 48i32 && first <= 57i32)
 
@@ -66,63 +61,18 @@ test glyphs static =
 
 := label_char (g : string) : bool = one_of (ascii_letters () ++# "0123456789_-") g
 
-:= rust_blank (s : string) : bool = $'(&*!s).trim().is_empty()'
+:= blank (s : string) : bool = unicode.code_points s |> has (\ c => not (unicode.is_white_space c)) |> not
 
-:= gleam_white () : () =
-    global "fn x_white(n: Int) -> Bool { n >= 9 && n <= 13 || n == 32 || n == 133 || n == 160 || n == 5760 || n >= 8192 && n <= 8202 }"
-
-:= gleam_spaced () : () =
-    gleam_white ()
-    global "fn x_spaced(n: Int) -> Bool { x_white(n) || n == 8232 || n == 8233 || n == 8239 || n == 8287 || n == 12288 }"
-
-:= gleam_blank (s : string) : bool =
-    gleam_spaced ()
-    global "import gleam/list"
-    global "import gleam/string"
-    $'string.to_utf_codepoints(!s) |> list.all(fn(c) { x_spaced(string.utf_codepoint_to_int(c)) })'
-
-:= blank (s : string) : bool =
-    backend_switch {
-        Gleam = \ () => gleam_blank s
-        Rust = \ () => rust_blank s
-    }
-
-:! gleam_pieces = $'List(String)'
-
-:= gleam_binary_split () : () =
-    global "type XSplitScope { Global }"
-    global """
-        @ external(erlang, "binary", "split")
-        fn x_binary_split(s: String, sep: String, options: List(XSplitScope)) -> List(String)
-        """
-
-:= gleam_split (sep : string) (s : string) : gleam_pieces =
-    gleam_binary_split ()
-    $'x_binary_split(!s, !sep, [Global])'
-
-:= gleam_done (l : gleam_pieces) : bool = $'case !l { [] -> True _ -> False }'
-
-:= gleam_head (l : gleam_pieces) : string = $'case !l { [h, ..] -> h [] -> "" }'
-
-:= gleam_tail (l : gleam_pieces) : gleam_pieces = $'case !l { [_, ..t] -> t [] -> [] }'
-
-:~ ^ listed_pieces (l : gleam_pieces) (acc : list string) : list string =
-    ? gleam_done l ?> listm.rev acc |: listed_pieces (gleam_tail l) (gleam_head l :: acc)
-
-:= split_all (sep : string) (s : string) : list string =
-    backend_switch {
-        Gleam = \ () => listed_pieces (gleam_split sep s) Nil
-        Rust = \ () => split_on sep s
-    }
+:= split_all (sep : string) (s : string) : list string = sm'.split_list sep s
 
 := all_pieces (sep : string) (s : string) : list string = ? s = "" ?> Nil |: split_all sep s
 
-:~ ^ without_blank_tail (l : list string) : list string =
+:~ ^ blank_tail_length (l : list string) (n : i32) : i32 =
     ?= l ?|
-    | g :: rest ?& blank g => without_blank_tail rest
-    | _ => l
+    | g :: rest ?& blank g => blank_tail_length rest (n + sm'.length g)
+    | _ => n
 
-:= trimmed_end (s : string) : string = graphemes s |> listm.rev |> without_blank_tail |> listm.rev |> sm'.concat_list ""
+:= trimmed_end (s : string) : string = cut 0i32 (sm'.length s - blank_tail_length (graphemes s |> listm.rev) 0i32) s
 
 := thumb () : string = char_of 128077i32 ++# char_of 127997i32
 
@@ -147,7 +97,13 @@ test weights_follow_x =
     plain_weight (char_of 8212i32 ++# zero_width_space ()) |> _assert_eq 2i32
 
 := family () : string =
-    char_of 128104i32 ++# char_of 8205i32 ++# char_of 128105i32 ++# char_of 8205i32 ++# char_of 128103i32 ++# char_of 8205i32 ++# char_of 128102i32
+    char_of 128104i32
+    ++# char_of 8205i32
+    ++# char_of 128105i32
+    ++# char_of 8205i32
+    ++# char_of 128103i32
+    ++# char_of 8205i32
+    ++# char_of 128102i32
 
 := japan () : string = char_of 127471i32 ++# char_of 127477i32
 
@@ -159,13 +115,13 @@ test weights_follow_x =
 
 test emoji_entities_weigh_two =
     := ~g = thumb ()
-    (glyph_weight g, glyph_weight (family ()), glyph_weight (red_heart ()), glyph_weight (keycap_one ()), glyph_weight (japan ()))
-        |> _assert_eq (2i32, 2i32, 2i32, 2i32, 2i32)
+    [ g; family (); red_heart (); keycap_one (); japan () ] |> listm.map glyph_weight
+    |> _assert_eq [ 2i32; 2i32; 2i32; 2i32; 2i32 ]
 
 test other_clusters_keep_code_point_weights =
     := ~g = accented ()
-    (glyph_weight g, glyph_weight (letter_vs16 ()), glyph_weight (char_of 26085i32), glyph_weight (char_of 169i32), glyph_weight "a")
-        |> _assert_eq (2i32, 3i32, 2i32, 1i32, 1i32)
+    [ g; letter_vs16 (); char_of 26085i32; char_of 169i32; "a" ] |> listm.map glyph_weight
+    |> _assert_eq [ 2i32; 3i32; 2i32; 1i32; 1i32 ]
 
 test blanks_and_tails =
     := ~s = "x \t\n"

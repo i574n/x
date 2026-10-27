@@ -7,15 +7,15 @@ test exsss static =
 :< sm'_operators
 :< prelude
 
-:= xor64 (a : u64) (b : u64) : u64 = !!!!BitwiseXor(a, b)
+:= xor64 (a : u64) (b : u64) : u64 = a ^^^ b
 
-:= and64 (a : u64) (b : u64) : u64 = !!!!BitwiseAnd(a, b)
+:= and64 (a : u64) (b : u64) : u64 = a &&& b
 
-:= or64 (a : u64) (b : u64) : u64 = !!!!BitwiseOr(a, b)
+:= or64 (a : u64) (b : u64) : u64 = a ||| b
 
-:= shl64 (a : u64) (n : i32) : u64 = !!!!ShiftLeft(a, n)
+:= shl64 (a : u64) (n : i32) : u64 = a <<< n
 
-:= shr64 (a : u64) (n : i32) : u64 = !!!!ShiftRight(a, n)
+:= shr64 (a : u64) (n : i32) : u64 = a >>> n
 
 := low_bits (bits : i32) : u64 = shl64 1u64 bits - 1u64
 
@@ -34,13 +34,13 @@ test exsss static =
     := z = and64 z0 (word_mask ())
     ? z = 0u64 ?> word_from x |: z, x
 
-:== exsss = {head : u64; tail : u64}
+:== exsss = { head : u64; tail : u64 }
 
 :~ seeded (a1 : u64) (a2 : u64) (a3 : u64) : exsss =
     := _, x0 = word_from a1
     := head, x1 = word_from (xor64 a2 x0)
     := tail, _ = word_from (xor64 a3 x1)
-    {head tail}
+    { head tail }
 
 := scrambled (s : u64) : u64 =
     := a = s + shifted_in s 2i32
@@ -53,7 +53,7 @@ test exsss static =
 
 :~ stepped (st : exsss) : u64 * exsss =
     := s0 = and64 st.tail (word_mask ())
-    scrambled s0, {head = s0; tail = xorshifted s0 st.head}
+    scrambled s0, { head = s0; tail = xorshifted s0 st.head }
 
 := two_58 () : u64 = shl64 1u64 58i32
 
@@ -65,10 +65,11 @@ test exsss static =
     |: uniform range next
 
 := rolled (range : i32) (st : exsss) : i32 * exsss =
-    := v, next = uniform (!!!!Conv(`u64, range)) st
-    !!!!Conv(`i32, v), next
+    := v, next = uniform (conv range : u64) st
+    (conv v : i32), next
 
-:= seeded_i32 (a1 : i32) (a2 : i32) (a3 : i32) : exsss = seeded (!!!!Conv(`u64, a1)) (!!!!Conv(`u64, a2)) (!!!!Conv(`u64, a3))
+:= seeded_i32 (a1 : i32) (a2 : i32) (a3 : i32) : exsss =
+    seeded (conv a1 : u64) (conv a2 : u64) (conv a3 : u64)
 
 :~ ^ rolls (range : i32) (n : i32) (st : exsss) (acc : list i32) : list i32 * exsss =
     ? n <= 0i32 ?> listm.rev acc, st

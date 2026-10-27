@@ -736,6 +736,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "xc_chunks"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "unicode-normalization",
+ "unicode-segmentation",
+ "xc_weights",
+]
+
+[[package]]
 name = "xc_digest"
 version = "0.0.1"
 dependencies = [
@@ -759,6 +769,9 @@ dependencies = [
  "unicode-normalization",
  "unicode-segmentation",
  "xc_cells",
+ "xc_chunks",
+ "xc_posted",
+ "xc_weights",
 ]
 
 [[package]]
@@ -785,6 +798,14 @@ dependencies = [
  "jiff",
  "sha1",
  "ureq",
+]
+
+[[package]]
+name = "xc_posted"
+version = "0.0.1"
+dependencies = [
+ "unicode-normalization",
+ "unicode-segmentation",
 ]
 
 [[package]]
@@ -854,6 +875,15 @@ version = "0.0.1"
 dependencies = [
  "xc_net",
  "xc_select",
+]
+
+[[package]]
+name = "xc_weights"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "unicode-normalization",
+ "unicode-segmentation",
 ]
 
 [[package]]

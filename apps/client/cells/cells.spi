@@ -17,5 +17,5 @@ test cells_travel_as_a_json_array =
 
 ///> _
 := main () : i32 =
-    !!!!Export("xc_file_cells", ((\ t => cells_json t) : string -> string))
+    export "xc_file_cells" ((\ t => cells_json t) : string -> string)
     0i32

@@ -50,14 +50,15 @@ test wire static =
 :| authorizer c =
     | BearerToken :: \* c. string -> authorizer c
     | Signed :: oauth1 * string * string -> authorizer user_context
+    | Anonymous :: \* c. authorizer c
 
-:== endpoint c = {base : string; auth : authorizer c}
+:== endpoint c = { base : string; auth : authorizer c }
 
 :! api c = endpoint c
 
 :== app = api app_context
 
-:== halted_cursor = {resource : string; halt : cursor_halt}
+:== halted_cursor = { resource : string; halt : cursor_halt }
 
 :| failure =
     | Reported : string
@@ -68,17 +69,25 @@ test wire static =
 
 :== usernames = list string
 
-:== query = {max_results : i32; filters : filters; depth : i32; hints : bool}
+:== query = { max_results : i32; filters : filters; depth : i32; hints : bool }
 
-:! users_reply = {found : accounts; unknown : list string}
+:! users_reply = { found : accounts; unknown : list string }
 
-:! page_reply = {page : accounts; next_token : string}
+:! page_reply = { page : accounts; next_token : string }
 
-:! posts_reply = {pool : pool; primary : list post; skipped : string}
+:! posts_reply = { pool : pool; primary : list post; skipped : string }
 
-:! created_reply = {id : post_id; text : string}
+:! created_reply = { id : post_id; text : string; cid : string }
 
-:! deleted_reply = {deleted : bool}
+:= ref_uri (r : created_reply) : string =
+    ?= r ?|
+    | created_reply { id } => post_text id
+
+:= ref_cid (r : created_reply) : string =
+    ?= r ?|
+    | created_reply { cid } => cid
+
+:! deleted_reply = { deleted : bool }
 
 :! conversation_id = string
 
@@ -86,13 +95,13 @@ test wire static =
     ?= c ?|
     | conversation_id s => s
 
-:! root_reply = {conversation_id : conversation_id; author_id : user_id; created_at : string; missing : string}
+:! root_reply = { conversation_id : conversation_id; author_id : user_id; created_at : string; missing : string }
 
-:== thread_search = {conversation_id : conversation_id; author_id : user_id; start_time : string}
+:== thread_search = { conversation_id : conversation_id; author_id : user_id; start_time : string }
 
-:! thread_page = {framed : list framed; next_token : string}
+:! thread_page = { framed : list framed; next_token : string }
 
-:== following_page = {follower : user_id; size : i32; pagination_token : string}
+:== following_page = { follower : user_id; size : i32; pagination_token : string }
 
 :| threads r =
     | ThreadRoot :: post_id -> threads root_reply
@@ -111,6 +120,7 @@ test wire static =
 :| writes r =
     | CreatePost :: string -> writes created_reply
     | ReplyPost :: string * created_reply -> writes created_reply
+    | ThreadReply :: string * created_reply * created_reply -> writes created_reply
     | DeletePost :: post_id -> writes deleted_reply
 
 :| verb =
@@ -126,14 +136,19 @@ test wire static =
     ?= a ?|
     | BearerToken _ => "bearer"
     | Signed _ => "signed"
-:= endpoint_of \* c. (base_url : string) (token : string) : endpoint c = {base = trimmed_base base_url; auth = BearerToken token}
+    | Anonymous => "none"
+
+:= endpoint_of \* c. (base_url : string) (token : string) : endpoint c =
+    { base = trimmed_base base_url; auth = BearerToken token }
 
 := app_api (base_url : string) (token : string) : api app_context = api (endpoint_of base_url token)
 
 := user_api (base_url : string) (token : string) : api user_context = api (endpoint_of base_url token)
 
+:= anonymous_api (base_url : string) : api app_context = api { base = trimmed_base base_url; auth = Anonymous }
+
 := signed_api (base_url : string) (o : oauth1) (nonce : string) (stamp : string) : api user_context =
-    api {base = trimmed_base base_url; auth = Signed (o, nonce, stamp)}
+    api { base = trimmed_base base_url; auth = Signed (o, nonce, stamp) }
 
 := base_of \* c. (a : api c) : string =
     ?= a ?|
@@ -144,8 +159,8 @@ test wire static =
     ? p.pagination_token = "" ?> first |: first ++# "&pagination_token=" ++# p.pagination_token
 
 := expansions_of (q : query) : list string =
-    listm.append (? q.depth > 0 ?> ["referenced_posts"; "referenced_posts.author_id"] |: Nil)
-        (? q.hints ?> ["attachments.media_keys"] |: Nil)
+    listm.append (? q.depth > 0 ?> [ "referenced_posts"; "referenced_posts.author_id" ] |: Nil)
+        (? q.hints ?> [ "attachments.media_keys" ] |: Nil)
 
 := expansion_params (q : query) : string =
     := media = ? q.hints ?> "&media.fields=type,alt_text" |: ""
@@ -184,10 +199,16 @@ test wire static =
     | Named hs => joined "/2/users/by?usernames=" hs
     | Ids l => joined "/2/users?ids=" (l |> each user_text)
 
-:= root_path (id : post_id) : string = "/2/tweets/" ++# post_text id ++# "?post.fields=conversation_id,author_id,created_at"
+:= root_path (id : post_id) : string =
+    "/2/tweets/" ++# post_text id ++# "?post.fields=conversation_id,author_id,created_at"
 
 := search_head (s : thread_search) : string =
-    "/2/tweets/search/all?query=conversation_id%3A" ++# conversation_text s.conversation_id ++# "%20from%3A" ++# user_text s.author_id ++# "&start_time=" ++# s.start_time
+    "/2/tweets/search/all?query=conversation_id%3A"
+    ++# conversation_text s.conversation_id
+    ++# "%20from%3A"
+    ++# user_text s.author_id
+    ++# "&start_time="
+    ++# s.start_time
 
 := page_path (s : thread_search) (token : string) : string =
     := first = search_head s ++# "&max_results=100&post.fields=conversation_id,entities,referenced_posts"
@@ -205,16 +226,28 @@ test wire static =
     | PostsOf (a, qy) => posts_path a.id qy
     | PostsById (l, qy) => lookup_path l qy
 
-:= write_path \* r. (q : writes r) : string =
-    ?= q ?|
-    | CreatePost _ | ReplyPost _ => "/2/tweets"
-    | DeletePost id => "/2/tweets/" ++# post_text id
+:| outgoing =
+    | Fresh : string
+    | Answer : string * created_reply * created_reply
+    | Removal : post_id
 
-:= write_verb \* r. (q : writes r) : verb =
+:= outgoing_of \* r. (q : writes r) : outgoing =
     ?= q ?|
-    | CreatePost text => Write (text_body text)
-    | ReplyPost (text, created_reply {id}) => Write (reply_body text (post_text id))
-    | DeletePost _ => Remove
+    | CreatePost t => Fresh t
+    | ReplyPost (t, p) => Answer (t, p, p)
+    | ThreadReply (t, root, p) => Answer (t, root, p)
+    | DeletePost id => Removal id
+
+:= write_path (o : outgoing) : string =
+    ?= o ?|
+    | Removal id => "/2/tweets/" ++# post_text id
+    | _ => "/2/tweets"
+
+:= write_verb (o : outgoing) : verb =
+    ?= o ?|
+    | Fresh text => Write (text_body text)
+    | Answer (t, _, p) => Write (reply_body t (ref_uri p))
+    | Removal _ => Remove
 
 := method_of (v : verb) : string =
     ?= v ?|
@@ -236,12 +269,12 @@ test wire static =
 
 := at_key (key : string) (v : json) : string = v |> field key |> text_of
 
-:= account_of (v : json) : account = {id = user_id (at_key "id" v); username = at_key "username" v}
+:= account_of (v : json) : account = { id = user_id (at_key "id" v); username = at_key "username" v }
 
 := reference_of (v : json) : list reference = reference_as (at_key "type" v) (post_id (at_key "id" v))
 
 := url_entity_of (v : json) : url_entity =
-    {url = at_key "url" v; expanded_url = at_key "expanded_url" v; title = at_key "title" v}
+    { url = at_key "url" v; expanded_url = at_key "expanded_url" v; title = at_key "title" v }
 
 := urls_in (v : json) : list url_entity = v |> field "entities" |> field "urls" |> collect url_entity_of
 
@@ -252,17 +285,21 @@ test wire static =
 := public_metrics_in (v : json) : public_metrics =
     := m = v |> field "public_metrics"
     := n (key : string) : i32 = m |> field key |> number_of
-    {reply_count = n "reply_count"; repost_count = n "repost_count"; like_count = n "like_count"}
+    { reply_count = n "reply_count"; repost_count = n "repost_count"; like_count = n "like_count" }
 
 := post_texts (v : json) : post_id * user_id * string * string =
     post_id (at_key "id" v), user_id (at_key "author_id" v), at_key "created_at" v, unescaped (at_key "text" v)
 
+:= post_extras (v : json) : public_metrics * list reference * list url_entity * list string =
+    public_metrics_in v, refs_in v, urls_in v, keys_in v
+
 :~ post_by (author : string) (v : json) : post =
     := id, author_id, created_at, text = post_texts v
-    heap {id author_id author_username = author; created_at text public_metrics = public_metrics_in v;
-     refs = refs_in v; urls = urls_in v; media_keys = keys_in v}
+    := public_metrics, refs, urls, media_keys = post_extras v
+    heap { id author_id author_username = author; created_at text public_metrics refs urls media_keys }
 
-:= medium_of (v : json) : medium = {media_key = at_key "media_key" v; kind = at_key "type" v; alt_text = at_key "alt_text" v}
+:= medium_of (v : json) : medium =
+    { media_key = at_key "media_key" v; kind = at_key "type" v; alt_text = at_key "alt_text" v }
 
 := accounts_in (doc : json) : accounts = doc |> field "data" |> collect account_of
 
@@ -278,17 +315,22 @@ test wire static =
     := detail = at_key "detail" e
     ? detail <> "" ?> detail |: at_key "title" e
 
+:= included_posts (inc : json) : list post = inc |> field "posts" |> collect (post_by "")
+
 := included_pool (primary : list post) (inc : json) : pool =
-    := extra = inc |> field "posts" |> collect (post_by "")
-    {posts = listm.append primary extra; media = inc |> field "media" |> collect medium_of; users = inc |> field "users" |> named_accounts}
+    {
+        posts = listm.append primary (included_posts inc)
+        media = inc |> field "media" |> collect medium_of
+        users = inc |> field "users" |> named_accounts
+    }
 
 :~ posts_of_doc (author : string) (doc : json) : posts_reply =
     := primary = doc |> field "data" |> collect (post_by author)
-    posts_reply {pool = included_pool primary (doc |> field "includes"); primary; skipped = first_error doc}
+    posts_reply { pool = included_pool primary (doc |> field "includes"); primary; skipped = first_error doc }
 
-:= users_of_doc (doc : json) : users_reply = users_reply {found = accounts_in doc; unknown = unknown_in doc}
+:= users_of_doc (doc : json) : users_reply = users_reply { found = accounts_in doc; unknown = unknown_in doc }
 
-:= page_of_doc (doc : json) : page_reply = page_reply {page = accounts_in doc; next_token = next_token_in doc}
+:= page_of_doc (doc : json) : page_reply = page_reply { page = accounts_in doc; next_token = next_token_in doc }
 
 :~ ^ first_reply_from (i : i32) (refs : json) : string =
     ? i >= count_of refs ?> ""
@@ -297,17 +339,31 @@ test wire static =
 
 := replied_to_in (v : json) : string = v |> field "referenced_posts" |> first_reply_from 0i32
 
-:= framed_of (v : json) : framed =
-    {id = post_id (at_key "id" v); text = unescaped (at_key "text" v); history = v |> field "edit_history_post_ids" |> texts |> each post_id; urls = urls_in v; parent = optional_post (replied_to_in v)}
+:= edit_history_in (v : json) : list post_id = v |> field "edit_history_post_ids" |> texts |> each post_id
 
-:= root_of (doc : json) : root_reply =
-    := d = doc |> field "data"
-    root_reply {conversation_id = conversation_id (at_key "conversation_id" d); author_id = user_id (at_key "author_id" d); created_at = at_key "created_at" d; missing = first_error doc}
+:= framed_of (v : json) : framed =
+    {
+        id = post_id (at_key "id" v)
+        text = unescaped (at_key "text" v)
+        history = edit_history_in v
+        urls = urls_in v
+        parent = optional_post (replied_to_in v)
+    }
+
+:= root_fields (d : json) (missing : string) : root_reply =
+    root_reply {
+        conversation_id = conversation_id (at_key "conversation_id" d)
+        author_id = user_id (at_key "author_id" d)
+        created_at = at_key "created_at" d
+        missing
+    }
+
+:= root_of (doc : json) : root_reply = root_fields (doc |> field "data") (first_error doc)
 
 := decode_thread \* r. (q : threads r) (doc : json) : r =
     ?= q ?|
     | ThreadRoot _ => root_of doc
-    | ThreadPage _ => thread_page {framed = doc |> field "data" |> collect framed_of; next_token = next_token_in doc}
+    | ThreadPage _ => thread_page { framed = doc |> field "data" |> collect framed_of; next_token = next_token_in doc }
 
 := decode_read \* r. (q : reads r) (doc : json) : r =
     ?= q ?|
@@ -316,13 +372,114 @@ test wire static =
     | PostsOf (a, _) => posts_of_doc a.username doc
     | PostsById _ => posts_of_doc "" doc
 
-:= created_of (d : json) : created_reply = created_reply {id = post_id (at_key "id" d); text = at_key "text" d}
+:= created_of (d : json) : created_reply =
+    created_reply { id = post_id (at_key "id" d); text = at_key "text" d; cid = "" }
 
-:= decode_write \* r. (q : writes r) (doc : json) : r =
-    := d = doc |> field "data"
+:= status_body (text : string) : string = $'Rc::<str>::from(serde_json::json\!({"status": &*!text}).to_string())'
+
+:= status_reply_body (text : string) (to : string) : string =
+    $'Rc::<str>::from(serde_json::json\!({"status": &*!text, "in_reply_to_id": &*!to}).to_string())'
+
+:= status_path (o : outgoing) : string =
+    ?= o ?|
+    | Removal id => "/api/v1/statuses/" ++# post_text id
+    | _ => "/api/v1/statuses"
+
+:= status_verb (o : outgoing) : verb =
+    ?= o ?|
+    | Fresh t => Write (status_body t)
+    | Answer (t, _, p) => Write (status_reply_body t (ref_uri p))
+    | Removal _ => Remove
+
+:= status_created (doc : json) : created_reply =
+    created_reply { id = post_id (at_key "id" doc); text = at_key "content" doc; cid = "" }
+
+:= record_type_key () : string = "$" ++# "type"
+
+:= post_collection () : string = "app.bsky.feed.post"
+
+:= ref_value (r : created_reply) : json =
+    := uri, cid = ref_uri r, ref_cid r
+    $'serde_json::json\!({"uri": &*!uri, "cid": &*!cid})'
+
+:= post_record (w : bluesky_writer) (text : string) : json =
+    := key, kind, at = record_type_key (), post_collection (), w.at
+    $'serde_json::json\!({(&*!key): &*!kind, "text": &*!text, "createdAt": &*!at})'
+
+:= replying (record : json) (root : created_reply) (parent : created_reply) : json =
+    := up, back = ref_value root, ref_value parent
+    $'{ let mut r = !record.clone(); r["reply"] = serde_json::json\!({"root": !up, "parent": !back}); r }'
+
+:= record_of (w : bluesky_writer) (record : json) : string =
+    := repo, kind = w.repo, post_collection ()
+    $'Rc::<str>::from(serde_json::json\!({"repo": &*!repo, "collection": &*!kind, "record": !record}).to_string())'
+
+:= post_write (w : bluesky_writer) (text : string) : verb = Write (record_of w (post_record w text))
+
+:= reply_write (w : bluesky_writer) (text : string) (root : created_reply) (parent : created_reply) : verb =
+    Write (record_of w (replying (post_record w text) root parent))
+
+:= rkey_of (uri : string) : string = rest_from (sm'.last_index_of "/" uri + 1i32) uri
+
+:= delete_body (repo : string) (kind : string) (key : string) : string =
+    $'Rc::<str>::from(serde_json::json\!({"repo": &*!repo, "collection": &*!kind, "rkey": &*!key}).to_string())'
+
+:= delete_write (w : bluesky_writer) (uri : string) : verb =
+    Write (delete_body w.repo (post_collection ()) (rkey_of uri))
+
+:= record_path (o : outgoing) : string =
+    ?= o ?|
+    | Removal _ => "/xrpc/com.atproto.repo.deleteRecord"
+    | _ => "/xrpc/com.atproto.repo.createRecord"
+
+:= record_verb (w : bluesky_writer) (o : outgoing) : verb =
+    ?= o ?|
+    | Fresh t => post_write w t
+    | Answer (t, root, p) => reply_write w t root p
+    | Removal id => delete_write w (post_text id)
+
+:= record_created (doc : json) : created_reply =
+    created_reply { id = post_id (at_key "uri" doc); text = ""; cid = at_key "cid" doc }
+
+:~ outgoing_path (p : platform) (o : outgoing) : string =
+    ?= p ?|
+    | OnX => write_path o
+    | OnMastodon => status_path o
+    | OnBluesky _ => record_path o
+
+:~ outgoing_verb (p : platform) (o : outgoing) : verb =
+    ?= p ?|
+    | OnX => write_verb o
+    | OnMastodon => status_verb o
+    | OnBluesky w => record_verb w o
+
+:= path_on \* r. (p : platform) (q : writes r) : string = outgoing_path p (outgoing_of q)
+
+:= verb_on \* r. (p : platform) (q : writes r) : verb = outgoing_verb p (outgoing_of q)
+
+:~ created_on (p : platform) (doc : json) : created_reply =
+    ?= p ?|
+    | OnX => created_of (doc |> field "data")
+    | OnMastodon => status_created doc
+    | OnBluesky _ => record_created doc
+
+:~ deleted_on (p : platform) (doc : json) : bool =
+    ?= p ?|
+    | OnX => doc |> field "data" |> field "deleted" |> flag_of_json
+    | OnMastodon => at_key "id" doc <> ""
+    | OnBluesky _ => !+
+
+:= decoded_on \* r. (p : platform) (q : writes r) (doc : json) : r =
     ?= q ?|
-    | CreatePost _ | ReplyPost _ => created_of d
-    | DeletePost _ => deleted_reply {deleted = d |> field "deleted" |> flag_of_json}
+    | CreatePost _ | ReplyPost _ | ThreadReply _ => created_on p doc
+    | DeletePost _ => deleted_reply { deleted = deleted_on p doc }
+
+:== session = { token : string; account : string }
+
+:= session_body (identifier : string) (password : string) : string =
+    $'Rc::<str>::from(serde_json::json\!({"identifier": &*!identifier, "password": &*!password}).to_string())'
+
+:= session_of (doc : json) : session = { token = at_key "accessJwt" doc; account = at_key "did" doc }
 
 := clipped (n : i32) (text : string) : string =
     ? sm'.length text <= n ?> text |: sm'.slice 0i32 (n - 1i32) text ++# "..."
@@ -346,16 +503,16 @@ test wire static =
 := refs_of (l : list post) : post_ids = l |> spread (\ (p : post) => p.refs |> each (\ (r : reference) => r.id))
 
 := distinct (l : list string) : list string =
-    listm.fold (\ acc x => ? has ((=) x) acc ?> acc |: listm.append acc [x]) Nil l
+    listm.fold (\ acc x => ? has ((=) x) acc ?> acc |: listm.append acc [ x ]) Nil l
 
 := distinct_posts (l : post_ids) : post_ids =
-    listm.fold (\ acc x => ? has (same_post x) acc ?> acc |: listm.append acc [x]) Nil l
+    listm.fold (\ acc x => ? has (same_post x) acc ?> acc |: listm.append acc [ x ]) Nil l
 
 := without_ids (ids : post_ids) (l : list post) : list post =
     l |> keep (\ (p : post) => not (has (same_post p.id) ids))
 
 := absorb (old : pool) (fresh : pool) : pool =
-    merge_pools fresh {old ?| posts = without_ids (ids_of fresh.posts) old.posts}
+    merge_pools fresh { old ?| posts = without_ids (ids_of fresh.posts) old.posts }
 
 := wanted_of (c : following_cap) : i32 =
     ?= c ?|
@@ -404,9 +561,9 @@ test wire static =
     | Reported text => text
     | _ => other_failure f
 
-:= plain_query () : query = {max_results = 5i32; filters = no_filters (); depth = 0i32; hints = !-}
+:= plain_query () : query = { max_results = 5i32; filters = no_filters (); depth = 0i32; hints = !- }
 
-:= erin () : account = {id = user_id "7"; username = "erin"}
+:= erin () : account = { id = user_id "7"; username = "erin" }
 
 := fields_query () : string = "&post.fields=created_at,author_id,public_metrics,entities,attachments"
 
@@ -418,46 +575,48 @@ test wire static =
 ///> zig
 test users_lookup_path =
     := ~h = "alice"
-    read_path (Users (Named [h; "bob"])) |> _assert_eq "/2/users/by?usernames=alice,bob"
+    read_path (Users (Named [ h; "bob" ])) |> _assert_eq "/2/users/by?usernames=alice,bob"
 
 ///> zig
 test following_path_carries_the_token =
     := ~pagination_token = "t1"
-    read_path (FollowedBy {follower = user_id "42"; size = 2i32; pagination_token})
+    read_path (FollowedBy { follower = user_id "42"; size = 2i32; pagination_token })
     |> _assert_eq "/2/users/42/following?max_results=2&pagination_token=t1"
 
 ///> zig
 test first_following_page_has_no_token =
     := ~size = 1000i32
-    read_path (FollowedBy {follower = user_id "42"; size; pagination_token = ""}) |> _assert_eq "/2/users/42/following?max_results=1000"
+    read_path (FollowedBy { follower = user_id "42"; size; pagination_token = "" })
+    |> _assert_eq "/2/users/42/following?max_results=1000"
 
 ///> zig
 test plain_posts_path_asks_for_no_expansions =
     := ~n = 5i32
     := q = plain_query ()
-    read_path (PostsOf (erin (), {q ?| max_results = n})) |> _assert_eq (plain_posts ())
+    read_path (PostsOf (erin (), { q ?| max_results = n })) |> _assert_eq (plain_posts ())
 
 ///> zig
 test posts_below_the_api_floor_ask_for_five =
     := ~n = 1i32
     := q = plain_query ()
-    read_path (PostsOf (erin (), {q ?| max_results = n})) |> _assert_eq (plain_posts ())
+    read_path (PostsOf (erin (), { q ?| max_results = n })) |> _assert_eq (plain_posts ())
 
 := filtered (f : filters) : string =
     := q = plain_query ()
-    read_path (PostsOf (erin (), {q ?| filters = f}))
+    read_path (PostsOf (erin (), { q ?| filters = f }))
 
 ///> zig
 test start_time_is_sent =
     := ~start_time = "2026-10-15T00:00:00Z"
     := f = no_filters ()
-    filtered {f ?| start_time} |> _assert_eq (plain_posts () ++# "&start_time=" ++# start_time)
+    filtered { f ?| start_time } |> _assert_eq (plain_posts () ++# "&start_time=" ++# start_time)
 
 := archive_page (start_time : string) : string =
     "/2/tweets/search/all?query=conversation_id%3A7%20from%3A5&start_time=" ++# start_time
     ++# "&max_results=100&post.fields=conversation_id,entities,referenced_posts"
 
-:= root_search (start_time : string) : thread_search = {conversation_id = conversation_id "7"; author_id = user_id "5"; start_time}
+:= root_search (start_time : string) : thread_search =
+    { conversation_id = conversation_id "7"; author_id = user_id "5"; start_time }
 
 ///> zig
 test thread_pages_search_the_archive_from_the_root =
@@ -469,20 +628,20 @@ test thread_pages_search_the_archive_from_the_root =
 test originals_exclude_replies_and_reposts =
     := ~on = !+
     := f = no_filters ()
-    filtered {f ?| no_replies = on; no_reposts = on} |> _assert_eq (plain_posts () ++# "&exclude=replies,retweets")
+    filtered { f ?| no_replies = on; no_reposts = on } |> _assert_eq (plain_posts () ++# "&exclude=replies,retweets")
 
 ///> zig
 test depth_and_hints_add_expansions =
     := ~depth = 1i32
     := q = plain_query ()
-    read_path (PostsById ([post_id "1"; post_id "2"], {q ?| depth; hints = !+}))
+    read_path (PostsById ([ post_id "1"; post_id "2" ], { q ?| depth; hints = !+ }))
     |> _assert_eq ("/2/tweets?ids=1,2" ++# fields_query () ++# expansions_query ())
 
 ///> zig
 test writes_use_their_verbs_and_paths =
     := ~id = post_id "9"
-    write_path (DeletePost id) |> _assert_eq "/2/tweets/9"
-    ?= write_verb (DeletePost id) ?|
+    write_path (Removal id) |> _assert_eq "/2/tweets/9"
+    ?= write_verb (Removal id) ?|
     | Remove => ()
     | _ => _assert_eq "Remove" "other"
 
@@ -498,13 +657,13 @@ test page_size_never_exceeds_the_api_maximum =
 
 ///> zig
 test a_users_lookup_is_not_a_posts_read fails "Expected: reads posts_reply" =
-    := q : reads posts_reply = Users (Named ["alice"])
+    := q : reads posts_reply = Users (Named [ "alice" ])
     read_path q |> ignore
 
 ///> zig
 test a_deletion_does_not_reply_with_a_created_post fails "Expected: writes created_reply" =
     := q : writes created_reply = DeletePost (post_id "9")
-    write_path q |> ignore
+    path_on OnX q |> ignore
 
 ///> zig
 test the_app_token_cannot_write fails "Expected: api user_context" =
@@ -519,64 +678,153 @@ test the_app_token_cannot_write fails "Expected: api user_context" =
 
 := items (l : list string) : string = "[" ++# sm'.concat_list "," l ++# "]"
 
-:= metrics_json () : string = object [member "reply_count" "2"; member "repost_count" "1"; member "like_count" "14"]
+:= metrics_json () : string = object [ member "reply_count" "2"; member "repost_count" "1"; member "like_count" "14" ]
 
-:= quote_json () : string = items [object [member "type" (quoted_text "quoted"); member "id" (quoted_text "2")]]
+:= quote_json () : string = items [ object [ member "type" (quoted_text "quoted"); member "id" (quoted_text "2") ] ]
 
 := post_json () : string =
-    := named = [member "id" (quoted_text "1"); member "author_id" (quoted_text "7"); member "text" (quoted_text "hi")]
-    object (listm.append named [member "public_metrics" (metrics_json ()); member "referenced_posts" (quote_json ())])
+    := named = [ member "id" (quoted_text "1"); member "author_id" (quoted_text "7"); member "text" (quoted_text "hi") ]
+    object (listm.append named [ member "public_metrics" (metrics_json ()); member "referenced_posts" (quote_json ()) ])
 
-:= posts_doc () : json = parse_json (object [member "data" (items [post_json ()])])
+:= posts_doc () : json = parse_json (object [ member "data" (items [ post_json () ]) ])
 
 := post_summary (p : post) : string =
     := refs = refs_text p.refs
-    post_text p.id ++# " " ++# p.author_username ++# " " ++# sm'.obj_to_string p.public_metrics.like_count ++# " " ++# refs
+    post_text p.id
+    ++# " "
+    ++# p.author_username
+    ++# " "
+    ++# sm'.obj_to_string p.public_metrics.like_count
+    ++# " "
+    ++# refs
 
 ///> rust -d serde_json
 test posts_decode_ids_counts_and_references =
     ?= posts_of_doc "erin" (posts_doc ()) ?|
-    | posts_reply {primary} => primary |> each post_summary |> sm'.concat_list "|" |> _assert_eq "1 erin 14 quoted:2"
+    | posts_reply { primary } => primary |> each post_summary |> sm'.concat_list "|" |> _assert_eq "1 erin 14 quoted:2"
 
-:= account_names (l : accounts) : string = l |> each (\ (a : account) => user_text a.id ++# ":" ++# a.username) |> sm'.concat_list ","
+:= account_names (l : accounts) : string =
+    l |> each (\ (a : account) => user_text a.id ++# ":" ++# a.username) |> sm'.concat_list ","
+
+:= ghost_error () : string = object [ member "value" (quoted_text "ghost") ]
 
 := users_doc () : json =
-    := bob = object [member "id" (quoted_text "9"); member "username" (quoted_text "bob")]
-    parse_json (object [member "data" (items [bob]); member "errors" (items [object [member "value" (quoted_text "ghost")]])])
+    := bob = object [ member "id" (quoted_text "9"); member "username" (quoted_text "bob") ]
+    parse_json (
+        object [
+            member "data" (items [ bob ])
+            member "errors" (items [ ghost_error () ])
+        ]
+    )
 
 ///> rust -d serde_json
 test users_lookup_names_found_and_unknown =
     ?= users_of_doc (users_doc ()) ?|
-    | users_reply {found unknown} => account_names found ++# " " ++# sm'.concat_list "," unknown |> _assert_eq "9:bob ghost"
+    | users_reply { found unknown } =>
+        account_names found ++# " " ++# sm'.concat_list "," unknown |> _assert_eq "9:bob ghost"
 
-:= next_page_doc () : json = parse_json (object [member "data" (items []); member "meta" (object [member "next_token" (quoted_text "n2")])])
+:= next_page_doc () : json =
+    parse_json (object [ member "data" (items []); member "meta" (object [ member "next_token" (quoted_text "n2") ]) ])
 
 ///> rust -d serde_json
 test a_page_carries_its_next_token =
     ?= page_of_doc (next_page_doc ()) ?|
-    | page_reply {next_token} => next_token |> _assert_eq "n2"
+    | page_reply { next_token } => next_token |> _assert_eq "n2"
 
 ///> rust -d serde_json
 test errors_prefer_their_detail =
-    := problem = object [member "title" (quoted_text "T"); member "detail" (quoted_text "D")]
-    parse_json (object [member "errors" (items [problem])]) |> first_error |> _assert_eq "D"
+    := problem = object [ member "title" (quoted_text "T"); member "detail" (quoted_text "D") ]
+    parse_json (object [ member "errors" (items [ problem ]) ]) |> first_error |> _assert_eq "D"
 
 ///> rust -d serde_json
 test text_comes_back_unescaped =
     := ~escaped = "a |&gt; b &amp;&amp; c &lt;d&gt; &amp;lt;"
     unescaped escaped |> _assert_eq "a |> b && c <d> &lt;"
 
+///> zig
+test mastodon_writes_use_statuses =
+    := ~id = post_id "9"
+    (path_on OnMastodon (DeletePost id), path_on OnMastodon (CreatePost "hi"), path_on OnX (DeletePost id))
+    |> _assert_eq ("/api/v1/statuses/9", "/api/v1/statuses", "/2/tweets/9")
+
+///> rust -d serde_json
+test mastodon_replies_name_their_parent =
+    verb_on OnMastodon (ReplyPost ("hi", created_reply { id = post_id "7"; text = "c1 1/2"; cid = "" }))
+    |> body_of_verb
+    |> _assert_eq "{\"in_reply_to_id\":\"7\",\"status\":\"hi\"}"
+
+:= reply_text (r : created_reply) : string =
+    ?= r ?|
+    | created_reply { text } => text
+
+:= id_and_text (r : created_reply) : string * string = ref_uri r, reply_text r
+
+///> rust -d serde_json
+test a_status_reads_back_as_a_post =
+    := ~doc = "{\"id\":\"11\",\"content\":\"hi\"}"
+    decoded_on OnMastodon (CreatePost "hi") (parse_json doc) |> id_and_text |> _assert_eq ("11", "hi")
+
+:= sample_ref (n : string) : created_reply =
+    created_reply { id = post_id ("at://did:plc:e2e/app.bsky.feed.post/" ++# n); text = ""; cid = "c" ++# n }
+
+:= sample_writer () : bluesky_writer = { repo = "did:plc:e2e"; at = "2026-10-01T00:00:00Z" }
+
+:= reply_of (body : string) : json = parse_json body |> field "record" |> field "reply"
+
+:= sample_reply (root : created_reply) : json =
+    verb_on (OnBluesky (sample_writer ())) (ThreadReply ("hi", root, sample_ref "2")) |> body_of_verb |> reply_of
+
+:= sample_record (text : string) : json =
+    verb_on (OnBluesky (sample_writer ())) (CreatePost text) |> body_of_verb |> parse_json |> field "record"
+
+///> rust -d serde_json
+test a_bluesky_reply_names_root_and_parent =
+    := ~n = "1"
+    := r = sample_reply (sample_ref n)
+    (r |> field "root" |> at_key "cid", r |> field "parent" |> at_key "cid") |> _assert_eq ("c1", "c2")
+
+///> zig
+test a_bluesky_delete_names_the_record_key =
+    := ~uri = "at://did:plc:e2e/app.bsky.feed.post/42"
+    (rkey_of uri, record_path (Removal (post_id uri)))
+    |> _assert_eq ("42", "/xrpc/com.atproto.repo.deleteRecord")
+
+///> rust -d serde_json
+test a_bluesky_post_is_typed_as_a_feed_post =
+    := ~text = "hi"
+    := record = sample_record text
+    (record |> at_key (record_type_key ()), record |> at_key "text") |> _assert_eq ("app.bsky.feed.post", "hi")
+
+///> rust -d serde_json
+test a_session_names_its_token_and_account =
+    := ~doc = "{\"accessJwt\":\"t1\",\"did\":\"did:plc:e2e\"}"
+    := s = session_of (parse_json doc)
+    (s.token, s.account) |> _assert_eq ("t1", "did:plc:e2e")
+
+///> rust -d serde_json
+test a_session_request_names_the_account =
+    := ~who = "e2e.bsky.social"
+    session_body who "pw" |> _assert_eq "{\"identifier\":\"e2e.bsky.social\",\"password\":\"pw\"}"
+
+///> zig
+test an_anonymous_endpoint_sends_no_credentials =
+    := ~base = "http://127.0.0.1:9/"
+    ?= anonymous_api base ?|
+    | api { auth } => header_kind auth |> _assert_eq "none"
+
 ///> rust -d serde_json
 test replies_name_their_parent =
-    write_verb (ReplyPost ("hi", created_reply {id = post_id "7"; text = "c1 1/2"})) |> body_of_verb |> _assert_eq "{\"reply\":{\"in_reply_to_tweet_id\":\"7\"},\"text\":\"hi\"}"
+    verb_on OnX (ReplyPost ("hi", created_reply { id = post_id "7"; text = "c1 1/2"; cid = "" }))
+    |> body_of_verb
+    |> _assert_eq "{\"reply\":{\"in_reply_to_tweet_id\":\"7\"},\"text\":\"hi\"}"
 
-:= blank_keys () : oauth1 = {consumer_key = ""; consumer_secret = ""; token = ""; token_secret = ""}
+:= blank_keys () : oauth1 = { consumer_key = ""; consumer_secret = ""; token = ""; token_secret = "" }
 
 ///> rust -d serde_json
 test only_a_user_context_is_signed =
     := ~nonce = "n"
     ?= signed_api "https://api.x.com" (blank_keys ()) nonce "1" ?|
-    | api {auth} => header_kind auth |> _assert_eq "signed"
+    | api { auth } => header_kind auth |> _assert_eq "signed"
 
 ///> rust -d serde_json
 test an_app_token_cannot_be_signed fails "Unification failure" =

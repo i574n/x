@@ -40,16 +40,16 @@ test scheduler static =
 :== counts = dictm.dict string i32
 
 :== run_counts =
-    {starts : counts; cancelled : counts; evicted : counts; cancels : i32; rescues : i32; recomputes : i32;
-     peak_inflight : i32; peak_results : i32}
+    { starts : counts; cancelled : counts; evicted : counts; cancels : i32; rescues : i32; recomputes : i32;
+        peak_inflight : i32; peak_results : i32 }
 
 :== scheduler =
-    {in_box : inbox; task_work : task_work; owner_map : owner_map; life_cycle : life_cycle; run_counts : run_counts;
-     visible_map : dictm.dict string visible_entry; faults : fault_set; out_commands : list task_command}
+    { in_box : inbox; task_work : task_work; owner_map : owner_map; life_cycle : life_cycle; run_counts : run_counts;
+        visible_map : dictm.dict string visible_entry; faults : fault_set; out_commands : list task_command }
 
 := no_counts () : run_counts =
     { starts = dictm.empty (); cancelled = dictm.empty (); evicted = dictm.empty (); cancels = 0i32; rescues = 0i32
-      recomputes = 0i32; peak_inflight = 0i32; peak_results = 0i32 }
+        recomputes = 0i32; peak_inflight = 0i32; peak_results = 0i32 }
 
 := no_work () : task_work = { running = dictm.empty (); queue = Nil; results = dictm.empty () }
 
@@ -59,7 +59,7 @@ test scheduler static =
 
 := new_scheduler (f : fault_set) : scheduler =
     { in_box = new_inbox (); task_work = no_work (); owner_map = no_owners (); life_cycle = no_life ()
-      run_counts = no_counts (); visible_map = dictm.empty (); faults = f; out_commands = Nil }
+        run_counts = no_counts (); visible_map = dictm.empty (); faults = f; out_commands = Nil }
 
 := counted_with (bump : run_counts -> run_counts) (s : scheduler) : scheduler =
     { s ?| run_counts = bump s.run_counts }
@@ -195,7 +195,7 @@ test scheduler static =
 
 := peaked (n : i32) (r : i32) (c : run_counts) : run_counts =
     { c ?| peak_inflight = ? n > c.peak_inflight ?> n |: c.peak_inflight
-           peak_results = ? r > c.peak_results ?> r |: c.peak_results }
+        peak_results = ? r > c.peak_results ?> r |: c.peak_results }
 
 := with_peak (s : scheduler) : scheduler =
     s |> counted_with (peaked (dictm.size s.task_work.running) (dictm.size s.task_work.results))

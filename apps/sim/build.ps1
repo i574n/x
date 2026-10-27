@@ -28,8 +28,8 @@ $env:ERL_CRASH_DUMP = Join-Path $crashDumps "erl_crash-xsim-$(Get-Date -Format y
 $client = Join-Path $XRoot 'apps/client'
 $frames = Join-Path $PSScriptRoot 'frames'
 . (Join-Path $SpiralRoot 'lib/spiral/lib.ps1')
-if (!(BuildSpiral (Join-Path $client 'simframes/simframes.spi') (Join-Path $frames 'src/xsim_frames.gleam') 'x/apps/sim/frames' -Backend Gleam)) { throw "GLEAM-FAILED x/apps/sim/frames / compile" }
-{ pwsh -NoProfile -File (Join-Path $XRoot 'scripts/gleam-modules.ps1') -Source (Join-Path $frames 'src/xsim_frames.gleam') -Entry (Join-Path $client 'simframes/simframes.spi') } | Invoke-Block
+if (!(BuildSpiral (Join-Path $PSScriptRoot 'spi/simframes/simframes.spi') (Join-Path $frames 'src/xsim_frames.gleam') 'x/apps/sim/frames' -Backend Gleam)) { throw "GLEAM-FAILED x/apps/sim/frames / compile" }
+{ pwsh -NoProfile -File (Join-Path $XRoot 'scripts/gleam-modules.ps1') -Source (Join-Path $frames 'src/xsim_frames.gleam') -Entry (Join-Path $PSScriptRoot 'spi/simframes/simframes.spi') } | Invoke-Block
 { gleam build --target erlang } | Invoke-Block -Location $frames
 
 { mix deps.get } | Invoke-Block
@@ -151,6 +151,15 @@ if (!$fast) {
 
 if (!$fast) {
     Invoke-SpiralTests $spi @(
+        "exsss",
+        "events",
+        "final_state",
+        "personas",
+        "scenario",
+        "schedule",
+        "world",
+        "invariants",
+        "simframes/simframes",
         "inbox",
         "scheduler",
         "runner_checks",

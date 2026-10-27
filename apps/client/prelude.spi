@@ -33,7 +33,7 @@ test prelude static =
 
 :~ ^ split_on (sep : string) (s : string) : list string =
     := i : i32 = sm'.index_of sep s
-    ? i < 0i32 ?> [s]
+    ? i < 0i32 ?> [ s ]
     |: cut 0i32 i s :: split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s)
 
 := pieces (sep : string) (s : string) : list string = ? s = "" ?> Nil |: split_on sep s
@@ -63,14 +63,15 @@ test prelude static =
         := d = digit_at i text
         ? d < 0 || n > 100000000 ?> None |: digits text (i + 1) (n * 10 + d)
 
-:= without_digits (text : string) : string = listm.init 10i32 id |> listm.fold (\ t d => sm'.replace (sm'.obj_to_string d) "" t) text
+:= without_digits (text : string) : string =
+    listm.init 10i32 id |> listm.fold (\ t d => sm'.replace (sm'.obj_to_string d) "" t) text
 
 :~ count_of_text (text : string) : option i32 =
     ? text = "" || without_digits text <> "" ?> None |: digits text 0 0
 ///> zig
 test take_first_stops_at_the_limit =
     := ~n = 2i32
-    [1i32; 2; 3] |> take_first n |> listm.length |> _assert_eq 2i32
+    [ 1i32; 2; 3 ] |> take_first n |> listm.length |> _assert_eq 2i32
 
 ///> zig
 test then_ok_stops_at_the_first_error =
@@ -80,6 +81,6 @@ test then_ok_stops_at_the_first_error =
 ///> zig
 test keep_and_first_where_agree =
     := ~n = 2i32
-    := l = [1i32; 2; 3; 4]
+    := l = [ 1i32; 2; 3; 4 ]
     keep (\ x => x > n) l |> listm.length |> _assert_eq 2i32
     first_where (\ x => x > n) l |> _assert_eq (Some 3i32)

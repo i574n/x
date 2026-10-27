@@ -11,9 +11,9 @@ test runner_guard static =
     | CancelWork
     | WorkDown : erlang_process.down
 
-:== guarded_task = {key : string; timeout_ms : i32; work : () -> ()}
+:== guarded_task = { key : string; timeout_ms : i32; work : () -> () }
 
-:= crash_of (key : string) (out : string) : visible_entry = {key; result = {status = Crashed; out}}
+:= crash_of (key : string) (out : string) : visible_entry = { key; result = { status = Crashed; out } }
 
 :== reporter = visible_entry -> ()
 
@@ -69,7 +69,7 @@ test runner_guard static =
 test a_crashing_worker_is_reported_as_crashed =
     := ~key = "k1"
     := inbox = new_inbox ()
-    guarded (reports_to inbox) ignored_handle {key; timeout_ms = 10000i32; work = \ () => failwith "boom"} |> ignore
+    guarded (reports_to inbox) ignored_handle { key; timeout_ms = 10000i32; work = \ () => failwith "boom" } |> ignore
     first_report_out inbox |> _assert_eq (Some "crashed")
 
 := stalled () : () = (erlang_process.new_subject () : handle) |> erlang_process.receive_forever
@@ -77,5 +77,5 @@ test a_crashing_worker_is_reported_as_crashed =
 test a_slow_worker_is_reported_as_timed_out =
     := ~key = "k2"
     := inbox = new_inbox ()
-    guarded (reports_to inbox) ignored_handle {key; timeout_ms = 50i32; work = stalled} |> ignore
+    guarded (reports_to inbox) ignored_handle { key; timeout_ms = 50i32; work = stalled } |> ignore
     first_report_out inbox |> _assert_eq (Some "timeout")

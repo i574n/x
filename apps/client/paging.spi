@@ -7,11 +7,11 @@ test paging static =
 :< sm'_operators
 :< prelude
 
-:== page = {next_token : string; body : string}
+:== page = { next_token : string; body : string }
 
 :== pager e = string -> result page e
 
-:== cursor_stop = {token : string; pages : i32}
+:== cursor_stop = { token : string; pages : i32 }
 
 :| cursor_halt =
     | CursorRepeated : cursor_stop
@@ -19,24 +19,24 @@ test paging static =
 
 := page_budget () : i32 = 500i32
 
-:== walk = {seen : list string; pages : i32; bodies : list string}
+:== walk = { seen : list string; pages : i32; bodies : list string }
 
-:= start_walk () : walk = {seen = Nil; pages = 0i32; bodies = Nil}
+:= start_walk () : walk = { seen = Nil; pages = 0i32; bodies = Nil }
 
 := walk_step (w : walk) (p : page) : walk =
-    {seen = p.next_token :: w.seen; pages = w.pages + 1i32; bodies = p.body :: w.bodies}
+    { seen = p.next_token :: w.seen; pages = w.pages + 1i32; bodies = p.body :: w.bodies }
 
 := repeats (w : walk) (p : page) : bool = has (\ t => t = p.next_token) w.seen
 
 := halt_at (w : walk) (p : page) : option cursor_halt =
-    ? repeats w p ?> Some (CursorRepeated {token = p.next_token; pages = w.pages + 1i32}) |: None
+    ? repeats w p ?> Some (CursorRepeated { token = p.next_token; pages = w.pages + 1i32 }) |: None
 
 := walk_bodies (w : walk) (p : page) : list string = listm.rev (walk_step w p).bodies
 
-:== walker e = {halted : cursor_halt -> e; budget : i32; fetch : pager e}
+:== walker e = { halted : cursor_halt -> e; budget : i32; fetch : pager e }
 
 :~ ^ walked_from \* e. (k : walker e) (token : string) (w : walk) : result (list string) e =
-    ? w.pages >= k.budget ?> Error (k.halted (CursorBudget {token pages = w.pages}))
+    ? w.pages >= k.budget ?> Error (k.halted (CursorBudget { token pages = w.pages }))
     |: k.fetch token |> then_ok (next_of k w)
 
 :& :~ next_of \* e. (k : walker e) (w : walk) (p : page) : result (list string) e =
@@ -48,14 +48,14 @@ test paging static =
     | None => walked_from k p.next_token (walk_step w p)
 
 := all_pages \* e. (halted : cursor_halt -> e) (fetch : pager e) : result (list string) e =
-    walked_from {halted budget = page_budget (); fetch} "" (start_walk ())
+    walked_from { halted budget = page_budget (); fetch } "" (start_walk ())
 
 := whole_second (created_at : string) : string =
     ? sm'.length created_at < 19i32 ?> created_at |: cut 0i32 19i32 created_at ++# "Z"
 
 := two_pages (token : string) : result page string =
-    ? token = "" ?> Ok {next_token = "t2"; body = "a"}
-    |? token = "t2" ?> Ok {next_token = ""; body = "b"}
+    ? token = "" ?> Ok { next_token = "t2"; body = "a" }
+    |? token = "t2" ?> Ok { next_token = ""; body = "b" }
     |: Error token
 
 := walked (r : result (list string) string) : string =
@@ -69,25 +69,25 @@ test paging static =
     | CursorBudget s => "budget at " ++# sm'.obj_to_string s.pages
 
 := walk_with (budget : i32) (fetch : pager string) (first : string) : result (list string) string =
-    walked_from {halted = halt_text; budget = budget; fetch = fetch} first (start_walk ())
+    walked_from { halted = halt_text; budget = budget; fetch = fetch } first (start_walk ())
 
 test pages_follow_next_tokens =
     := ~first = ""
     walk_with 500i32 two_pages first |> walked |> _assert_eq "a,b"
 
-:= broken (token : string) : result page string = ? token = "" ?> Ok {next_token = "bad"; body = "a"} |: Error token
+:= broken (token : string) : result page string = ? token = "" ?> Ok { next_token = "bad"; body = "a" } |: Error token
 
 test a_failed_page_stops_the_walk =
     := ~first = ""
     walk_with 500i32 broken first |> walked |> _assert_eq "stopped at bad"
 
-:= looping (token : string) : result page string = Ok {next_token = "t1"; body = token}
+:= looping (token : string) : result page string = Ok { next_token = "t1"; body = token }
 
 test a_repeated_cursor_stops_the_walk =
     := ~first = ""
     walk_with 500i32 looping first |> walked |> _assert_eq "stopped at repeated t1 after 2"
 
-:= endless (token : string) : result page string = Ok {next_token = token ++# "x"; body = "b"}
+:= endless (token : string) : result page string = Ok { next_token = token ++# "x"; body = "b" }
 
 test the_page_budget_stops_an_endless_cursor =
     := ~first = ""

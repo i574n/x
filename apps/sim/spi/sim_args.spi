@@ -22,8 +22,8 @@ test sim_args static =
     { seed : i32; users : i32; edits : i32; schedules : i32; duplicates_permille : i32; replay : string; save : string }
 
 :== runner_options =
-    {executor : executor_kind; max_concurrency : i32; eviction : eviction; pace_ms : i32; memo : bool;
-     daemon_memory : bool}
+    { executor : executor_kind; max_concurrency : i32; eviction : eviction; pace_ms : i32; memo : bool;
+        daemon_memory : bool }
 
 :== run_options = { corpus : corpus_options; schedule : schedule_options; runner : runner_options }
 
@@ -39,7 +39,7 @@ test sim_args static =
 
 := default_runner () : runner_options =
     { executor = FakeExecutor; max_concurrency = 4i32; eviction = NoEviction; pace_ms = 0i32; memo = !-
-      daemon_memory = !- }
+        daemon_memory = !- }
 
 := default_run () : run_options =
     { corpus = default_corpus (); schedule = default_schedule (); runner = default_runner () }
@@ -207,7 +207,7 @@ test sim_args static =
 
 := flag_name (arg : string) : string = ? sm'.starts_with "--" arg ?> rest_from 2i32 arg |: ""
 
-:== flag_rules o = {switched : o -> string -> option o; valued : o -> string -> string -> result o string}
+:== flag_rules o = { switched : o -> string -> option o; valued : o -> string -> string -> result o string }
 
 := needs_value (arg : string) : string = "--" ++# flag_name arg ++# " needs a value"
 
@@ -237,7 +237,7 @@ test sim_args static =
     | RunParsed next => Ok next
     | RunRejected why => Error why
 
-:= run_rules () : flag_rules run_options = {switched = switch_value; valued = run_valued}
+:= run_rules () : flag_rules run_options = { switched = switch_value; valued = run_valued }
 
 := missing_spi (o : run_options) : bool = (listm.length o.corpus.spi : i32) = 0i32 && o.corpus.spi_file = ""
 
@@ -248,12 +248,12 @@ test sim_args static =
     | Error why => RunRejected why
 
 :== events_options =
-    {spi : string; cells : i32; seed : i32; users : i32; edits : i32; personas : string; duplicates_permille : i32;
-     frames : bool; out : string; expected : string}
+    { spi : string; cells : i32; seed : i32; users : i32; edits : i32; personas : string; duplicates_permille : i32;
+        frames : bool; out : string; expected : string }
 
 := default_events () : events_options =
-    {spi = ""; cells = -1i32; seed = 1i32; users = 3i32; edits = 1i32; personas = "";
-     duplicates_permille = 200i32; frames = !-; out = ""; expected = ""}
+    { spi = ""; cells = -1i32; seed = 1i32; users = 3i32; edits = 1i32; personas = "";
+        duplicates_permille = 200i32; frames = !-; out = ""; expected = "" }
 
 := counted (name : string) (value : string) (set : i32 -> events_options) : result events_options string =
     ?= count_of_text value ?|
@@ -272,10 +272,10 @@ test sim_args static =
 
 := events_set (f : events_flag) (n : i32) (o : events_options) : events_options =
     ?= f ?|
-    | EventsCells => {o ?| cells = n}
-    | EventsSeed => {o ?| seed = n}
-    | EventsUsers => {o ?| users = n}
-    | EventsEdits => {o ?| edits = n}
+    | EventsCells => { o ?| cells = n }
+    | EventsSeed => { o ?| seed = n }
+    | EventsUsers => { o ?| users = n }
+    | EventsEdits => { o ?| edits = n }
 
 := events_counted (o : events_options) (name : string) (value : string) : result events_options string =
     ?= events_flag_of name ?|
@@ -284,14 +284,14 @@ test sim_args static =
 
 := events_duplicates (o : events_options) (value : string) : result events_options string =
     ?= permille_of value ?|
-    | Some p => Ok {o ?| duplicates_permille = p}
+    | Some p => Ok { o ?| duplicates_permille = p }
     | None => Error (duplicates_rejected value)
 
 := events_source_set (name : string) (value : string) (o : events_options) : option events_options =
-    ? name = "spi" ?> Some {o ?| spi = value} |? name = "personas" ?> Some {o ?| personas = value} |: None
+    ? name = "spi" ?> Some { o ?| spi = value } |? name = "personas" ?> Some { o ?| personas = value } |: None
 
 := events_file_set (name : string) (value : string) (o : events_options) : option events_options =
-    ? name = "out" ?> Some {o ?| out = value} |? name = "expected" ?> Some {o ?| expected = value} |: None
+    ? name = "out" ?> Some { o ?| out = value } |? name = "expected" ?> Some { o ?| expected = value } |: None
 
 := events_text_set (name : string) (value : string) (o : events_options) : option events_options =
     first_some (events_source_set name value o) (events_file_set name value o)
@@ -301,30 +301,30 @@ test sim_args static =
     |: ?= events_text_set name value o ?| Some next => Ok next | None => events_counted o name value
 
 := events_switched (o : events_options) (name : string) : option events_options =
-    ? name = "frames" ?> Some {o ?| frames = !+} |: None
+    ? name = "frames" ?> Some { o ?| frames = !+ } |: None
 
 := events_missing (o : events_options) : string =
     ? o.spi = "" ?> "missing --spi" |? o.out = "" ?> "missing --out" |? o.expected = "" ?> "missing --expected" |: ""
 
 :== world_options =
-    {spi : string; out : string; expected : string; cells : i32; seed : i32; edits : i32; personas : string;
-     id_base : i32; user_id : string; username : string; lost : i32; lost_cells : i32; base_time : string}
+    { spi : string; out : string; expected : string; cells : i32; seed : i32; edits : i32; personas : string;
+        id_base : i32; user_id : string; username : string; lost : i32; lost_cells : i32; base_time : string }
 
 := blank_world () : world_options =
-    {spi = ""; out = ""; expected = ""; cells = -1i32; seed = 1i32; edits = 0i32; personas = ""; id_base = 0i32
-     user_id = ""; username = ""; lost = 0i32; lost_cells = 0i32; base_time = ""}
+    { spi = ""; out = ""; expected = ""; cells = -1i32; seed = 1i32; edits = 0i32; personas = ""; id_base = 0i32
+        user_id = ""; username = ""; lost = 0i32; lost_cells = 0i32; base_time = "" }
 
 := default_world () : world_options =
     := w = blank_world ()
-    {w ?| id_base = 3000000i32; user_id = "500"; username = "spiralposts"; base_time = "2026-10-18T08:00:00Z"}
+    { w ?| id_base = 3000000i32; user_id = "500"; username = "spiralposts"; base_time = "2026-10-18T08:00:00Z" }
 
 := world_run_number (o : world_options) (name : string) (n : i32) : option world_options =
-    ? name = "cells" ?> Some {o ?| cells = n} |? name = "seed" ?> Some {o ?| seed = n}
-    |? name = "edits" ?> Some {o ?| edits = n} |: None
+    ? name = "cells" ?> Some { o ?| cells = n } |? name = "seed" ?> Some { o ?| seed = n }
+    |? name = "edits" ?> Some { o ?| edits = n } |: None
 
 := world_loss_number (o : world_options) (name : string) (n : i32) : option world_options =
-    ? name = "id-base" ?> Some {o ?| id_base = n} |? name = "lost" ?> Some {o ?| lost = n}
-    |? name = "lost-cells" ?> Some {o ?| lost_cells = n} |: None
+    ? name = "id-base" ?> Some { o ?| id_base = n } |? name = "lost" ?> Some { o ?| lost = n }
+    |? name = "lost-cells" ?> Some { o ?| lost_cells = n } |: None
 
 := world_number (o : world_options) (name : string) (n : i32) : option world_options =
     first_some (world_run_number o name n) (world_loss_number o name n)
@@ -340,16 +340,16 @@ test sim_args static =
     | None => Error ("--" ++# name ++# " takes a whole number, got '" ++# value ++# "'")
 
 := world_user (name : string) (value : string) (o : world_options) : option world_options =
-    ? name = "user-id" ?> Some {o ?| user_id = value} |? name = "username" ?> Some {o ?| username = value} |: None
+    ? name = "user-id" ?> Some { o ?| user_id = value } |? name = "username" ?> Some { o ?| username = value } |: None
 
 := world_identity (name : string) (value : string) (o : world_options) : option world_options =
-    first_some (world_user name value o) (? name = "base-time" ?> Some {o ?| base_time = value} |: None)
+    first_some (world_user name value o) (? name = "base-time" ?> Some { o ?| base_time = value } |: None)
 
 := world_files (name : string) (value : string) (o : world_options) : option world_options =
-    ? name = "out" ?> Some {o ?| out = value} |? name = "expected" ?> Some {o ?| expected = value} |: None
+    ? name = "out" ?> Some { o ?| out = value } |? name = "expected" ?> Some { o ?| expected = value } |: None
 
 := world_sources (name : string) (value : string) (o : world_options) : option world_options =
-    ? name = "spi" ?> Some {o ?| spi = value} |? name = "personas" ?> Some {o ?| personas = value} |: None
+    ? name = "spi" ?> Some { o ?| spi = value } |? name = "personas" ?> Some { o ?| personas = value } |: None
 
 := world_paths (name : string) (value : string) (o : world_options) : option world_options =
     first_some (world_sources name value o) (world_files name value o)
@@ -362,32 +362,32 @@ test sim_args static =
 := world_missing (o : world_options) : string =
     ? o.spi = "" ?> "missing --spi" |? o.out = "" ?> "missing --out" |? o.expected = "" ?> "missing --expected" |: ""
 
-:= world_rules () : flag_rules world_options = {switched = \ _ _ => None; valued = world_valued}
+:= world_rules () : flag_rules world_options = { switched = \ _ _ => None; valued = world_valued }
 
 := world_args (args : list string) : result world_options string =
     ?= flags_parsed (world_rules ()) (default_world ()) args ?|
     | Ok o ?& world_missing o <> "" => Error (world_missing o)
     | parsed => parsed
 
-:== frames_options = {file : string; out : string}
+:== frames_options = { file : string; out : string }
 
 := frames_valued (o : frames_options) (name : string) (value : string) : result frames_options string =
-    ? name = "file" ?> Ok {o ?| file = value}
-    |? name = "out" ?> Ok {o ?| out = value}
+    ? name = "file" ?> Ok { o ?| file = value }
+    |? name = "out" ?> Ok { o ?| out = value }
     |: Error ("unknown option --" ++# name)
 
 := frames_missing (o : frames_options) : string =
     ? o.file = "" ?> "missing --file" |? o.out = "" ?> "missing --out" |: ""
 
-:= frames_rules () : flag_rules frames_options = {switched = \ _ _ => None; valued = frames_valued}
+:= frames_rules () : flag_rules frames_options = { switched = \ _ _ => None; valued = frames_valued }
 
 := frames_args (args : list string) : result frames_options string =
-    ?= flags_parsed (frames_rules ()) {file = ""; out = ""} args ?|
+    ?= flags_parsed (frames_rules ()) { file = ""; out = "" } args ?|
     | Ok o ?& frames_missing o <> "" => Error (frames_missing o)
     | parsed => parsed
 
 := events_args (args : list string) : result events_options string =
-    ?= flags_parsed {switched = events_switched; valued = events_valued} (default_events ()) args ?|
+    ?= flags_parsed { switched = events_switched; valued = events_valued } (default_events ()) args ?|
     | Ok o ?& events_missing o <> "" => Error (events_missing o)
     | parsed => parsed
 
@@ -450,9 +450,9 @@ test bad_run_options_are_named =
 := events_of (args : list string) : string = events_args args |> events_text
 
 := events_cases (spi : string) : string * string * string =
-    events_of ["--spi"; spi; "--out"; "s.jsonl"; "--expected"; "f.json"; "--frames"],
-    events_of ["--spi"; spi; "--out"; "s.jsonl"],
-    events_of ["--spi"; spi; "--users"; "two"]
+    events_of [ "--spi"; spi; "--out"; "s.jsonl"; "--expected"; "f.json"; "--frames" ],
+    events_of [ "--spi"; spi; "--out"; "s.jsonl" ],
+    events_of [ "--spi"; spi; "--users"; "two" ]
 
 := events_expected () : string * string * string =
     "a.spi seed=1 users=3 dup=200 frames=yes out=s.jsonl expected=f.json", "rejected: missing --expected",
@@ -472,8 +472,8 @@ test events_options_follow_xsim_events =
     | Ok o => world_options_text o
 
 := world_cases (spi : string) : string * string =
-    world_args ["--spi"; spi; "--out"; "w.json"; "--expected"; "p.txt"; "--lost"; "2"] |> world_text,
-    world_args ["--spi"; spi; "--out"; "w.json"; "--expected"; "p.txt"; "--frames"] |> world_text
+    world_args [ "--spi"; spi; "--out"; "w.json"; "--expected"; "p.txt"; "--lost"; "2" ] |> world_text,
+    world_args [ "--spi"; spi; "--out"; "w.json"; "--expected"; "p.txt"; "--frames" ] |> world_text
 
 test world_options_follow_xsim_world =
     := ~spi = "a.spi"

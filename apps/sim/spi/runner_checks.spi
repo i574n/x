@@ -44,7 +44,7 @@ test runner_checks static =
 
 := base_snapshot (s : scheduler) : snapshot =
     { visible = visible_of s; wanted = demands_of s; starts = Nil; cancelled = Nil
-      evicted = Nil; results = Nil; evicting = !- }
+        evicted = Nil; results = Nil; evicting = !- }
 
 := counted_snapshot (c : run_counts) (b : snapshot) : snapshot =
     { b ?| starts = tallies_of c.starts; cancelled = tallies_of c.cancelled; evicted = tallies_of c.evicted }

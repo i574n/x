@@ -68,10 +68,16 @@ test net static =
     ? method = "DELETE" ?> delete_builder url auth |> patient |> call_reply
     |: get_builder url auth |> patient |> call_reply
 
-:= posted (url : string) (auth : string) (body : string) : http_reply =
-    send_reply (post_builder url auth |> patient_bodied) body
+:= open_post_builder (url : string) : bodied = $'ureq::post(&*!url).header("Content-Type", "application/json")'
 
-:= request_counter () : () = global "static XC_REQUESTS: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);"
+:= post_builder_for (url : string) (auth : string) : bodied =
+    ? auth = "" ?> open_post_builder url |: post_builder url auth
+
+:= posted (url : string) (auth : string) (body : string) : http_reply =
+    send_reply (post_builder_for url auth |> patient_bodied) body
+
+:= request_counter () : () =
+    global "static XC_REQUESTS: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);"
 
 := request_counted () : () =
     request_counter ()
@@ -91,7 +97,8 @@ test net static =
 
 := basic_auth (user : string) (password : string) : string =
     := pair = user ++# ":" ++# password
-    "Basic " ++# $'Rc::<str>::from(base64::Engine::encode(&base64::engine::general_purpose::STANDARD, (!pair).as_bytes()))'
+    "Basic " ++# $'Rc::<str>::from(base64::Engine::encode(&base64::engine::general_purpose::STANDARD, \
+        (!pair).as_bytes()))'
 
 :== form_post = string * string * string * string
 
@@ -111,7 +118,7 @@ test net static =
 
 :~ signed_header (x : signing) : string =
     := ck, cs, t, ts, method, url, nonce, stamp = x
-    oauth_header {consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts} method url nonce stamp
+    oauth_header { consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts } method url nonce stamp
 
 :! instant = $'Option<jiff::Timestamp>'
 
@@ -137,26 +144,45 @@ test net static =
     := t = instant_of stamp
     ? instant_found t ?> instant_value t |> zoned_in (system_zone ()) |> minute_text |: stamp
 
+:! civil_day = $'Option<jiff::civil::Date>'
+
+:! jiff_day = $'jiff::civil::Date'
+
 :! day_start = $'Option<jiff::Zoned>'
 
-:= local_day_start (day : string) : day_start =
-    $'!day.parse::<jiff::civil::Date>().ok().and_then(|d| d.to_zoned(jiff::tz::TimeZone::system()).ok())'
+:= day_of (day : string) : civil_day = $'!day.parse::<jiff::civil::Date>().ok()'
+
+:= day_found (d : civil_day) : bool = $'!d.is_some()'
+
+:= day_value (d : civil_day) : jiff_day = $'!d.unwrap()'
+
+:= day_zoned (z : jiff_zone) (d : jiff_day) : day_start = $'!d.to_zoned(!z).ok()'
+
+:= start_found (s : day_start) : bool = $'!s.is_some()'
+
+:= start_value (s : day_start) : jiff_zoned = $'!s.clone().unwrap()'
+
+:= utc_text (z : jiff_zoned) : string = $'Rc::<str>::from(!z.timestamp().strftime("%Y-%m-%dT%H:%M:%SZ").to_string())'
+
+:= midnight_of (d : jiff_day) : string =
+    := s = day_zoned (system_zone ()) d
+    ? start_found s ?> start_value s |> utc_text |: ""
 
 := local_midnight (day : string) : string =
-    := z = local_day_start day
-    $'!z.map_or(Rc::<str>::from(""), |x| Rc::<str>::from(x.timestamp().strftime("%Y-%m-%dT%H:%M:%SZ").to_string()))'
+    := d = day_of day
+    ? day_found d ?> day_value d |> midnight_of |: ""
 
 := local_exports () : () =
-    !!!!Export("xc_local_minute", ((\ s => local_minute s) : string -> string))
-    !!!!Export("xc_local_midnight", ((\ d => local_midnight d) : string -> string))
+    export "xc_local_minute" ((\ s => local_minute s) : string -> string)
+    export "xc_local_midnight" ((\ d => local_midnight d) : string -> string)
 
-:= count_exports () : () = !!!!Export("xc_requests", ((\ () => requests_made ()) : () -> i32))
+:= count_exports () : () = export "xc_requests" ((\ () => requests_made ()) : () -> i32)
 
-:= form_exports () : () = !!!!Export("xc_post_form", ((\ x => form_exchange x) : form_post -> i32 * string))
+:= form_exports () : () = export "xc_post_form" ((\ x => form_exchange x) : form_post -> i32 * string)
 
 := clock_exports () : () =
-    !!!!Export("xc_fresh_nonce", ((\ () => fresh_nonce ()) : () -> string))
-    !!!!Export("xc_unix_seconds", ((\ () => unix_seconds ()) : () -> string))
+    export "xc_fresh_nonce" ((\ () => fresh_nonce ()) : () -> string)
+    export "xc_unix_seconds" ((\ () => unix_seconds ()) : () -> string)
 
 test basic_auth_encodes_the_pair =
     := ~user = "id"
@@ -168,8 +194,8 @@ test unreadable_times_pass_through =
     local_midnight "2026-13-40" |> _assert_eq ""
 
 := wire_exports () : () =
-    !!!!Export("xc_send", ((\ x => sent_of x) : sent -> i32 * string))
-    !!!!Export("xc_oauth1_header", ((\ x => signed_header x) : signing -> string))
+    export "xc_send" ((\ x => sent_of x) : sent -> i32 * string)
+    export "xc_oauth1_header" ((\ x => signed_header x) : signing -> string)
 
 ///> _
 := main () : i32 =

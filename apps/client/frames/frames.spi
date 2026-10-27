@@ -7,24 +7,37 @@ test frames static =
 :< prelude
 :< splitter
 :< wire
+:< protocol
 
 := cells_text (text : string) : string = $'xc_cells::xc_file_cells(&*!text)'
 
 := cells_of (text : string) : list string = cells_text text |> parse_json |> collect text_of
 
-:= post_json (t : string) : string =
-    := w = x_weight t
+:= posted_remotely (name : string) (cell : string) : string = $'xc_posted::xc_posted_text(&*!name, &*!cell)'
+
+:= chunks_text (name : string) (i : i32) (posted : string) : string =
+    $'xc_chunks::xc_cell_chunks(&*!name, !i, &*!posted)'
+
+:= remote_chunks (name : string) (i : i32) (cell : string) : list string =
+    chunks_text name i (posted_remotely name cell) |> parse_json |> collect text_of
+
+:= remote_weight (name : string) (t : string) : i32 = $'xc_weights::xc_weight(&*!name, &*!t)'
+
+:= post_json (weigh : string -> i32) (t : string) : string =
+    := w = weigh t
     $'Rc::<str>::from(serde_json::json\!({"text": &*!t, "weight": !w}).to_string())'
 
-:~ framed_of_cells (cells : list string) : string = "[" ++# (thread_of 1i32 cells Nil |> each post_json |> sm'.concat_list ",") ++# "]"
+:~ framed_by (chunked : chunker) (weigh : string -> i32) (cells : list string) : string =
+    "[" ++# (thread_by chunked 1i32 cells [] |> each (post_json weigh) |> sm'.concat_list ",") ++# "]"
 
-:= framed_json (text : string) : string = framed_of_cells (cells_of text)
+:= framed_json (name : string) (text : string) : string =
+    framed_by (remote_chunks name) (remote_weight name) (cells_of text)
 
 test each_post_carries_its_weight =
     := ~text = "a"
-    framed_of_cells [text] |> _assert_eq "[{\"text\":\"c1 1/1\\na\",\"weight\":8}]"
+    framed_by (local_chunks OnX) (weight_on OnX) [ text ] |> _assert_eq "[{\"text\":\"c1 1/1\\na\",\"weight\":8}]"
 
 ///> _
 := main () : i32 =
-    !!!!Export("xc_frames", ((\ t => framed_json t) : string -> string))
+    export "xc_frames" ((\ (name, t) => framed_json name t) : string * string -> string)
     0i32

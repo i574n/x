@@ -16,19 +16,23 @@ New-Item -ItemType File $requestLog | Out-Null
 
 function Read-Requests { @(Get-Content $requestLog | Where-Object { $_ } | ForEach-Object { $_ | ConvertFrom-Json }) }
 
-function Invoke-Step([string] $Script, [string] $Token, [string] $UserToken = $world.user_token) {
+function Invoke-Step([string] $Script, [string] $Token, [string] $UserToken = $world.user_token, [hashtable] $Extra = @{}) {
     $info = [System.Diagnostics.ProcessStartInfo]::new("pwsh")
     foreach ($a in "-NoProfile", "-NonInteractive", "-OutputFormat", "Text", "-EncodedCommand") { $info.ArgumentList.Add($a) }
-    $body = "`$ProgressPreference = 'SilentlyContinue'`nSet-Alias xc '$exePath'`n$Script`nexit `$LASTEXITCODE"
+    $utf8 = "[Console]::OutputEncoding = [Text.UTF8Encoding]::new(`$false); `$OutputEncoding = [Console]::OutputEncoding"
+    $body = "`$ProgressPreference = 'SilentlyContinue'`n$utf8`nSet-Alias xc '$exePath'`n$Script`nexit `$LASTEXITCODE"
     $info.ArgumentList.Add([Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($body)))
     $info.RedirectStandardOutput = $true
     $info.RedirectStandardError = $true
+    $info.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
+    $info.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
     $info.UseShellExecute = $false
     $info.WorkingDirectory = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
     $info.Environment["X_BEARER_TOKEN"] = $Token
     $info.Environment["X_OAUTH2_ACCESS_TOKEN"] = $UserToken
     $info.Environment["TZ"] = "America/Cuiaba"
     $info.Environment["X_API_BASE_URL"] = "http://127.0.0.1:$port"
+    foreach ($k in $Extra.Keys) { $info.Environment[$k] = $Extra[$k] }
     $before = (Read-Requests).Count
     $process = [System.Diagnostics.Process]::Start($info)
     $out = $process.StandardOutput.ReadToEndAsync()
@@ -127,6 +131,66 @@ try {
     Check ($gone.Exit -eq 0 -and $deletes.Count -eq $sent.Count) "xc delete-thread deleted $($deletes.Count) of $($sent.Count) posts (exit $($gone.Exit))"
     Check ((Invoke-Step "xc thread $($ids[0])" $world.token).Exit -eq 4) "the thread still reads after xc delete-thread"
     Write-Output "x e2e / delete-thread / $($deletes.Count) deleted / exit $($gone.Exit)"
+
+    $mastodonPort, $mastodonLog = (Join-Path $WorkDir "mastodon.port"), (Join-Path $WorkDir "mastodon.jsonl")
+    Remove-Item $mastodonPort, $mastodonLog -ErrorAction Ignore
+    $social = Start-Process $python -ArgumentList "-I", (Join-Path $PSScriptRoot "social_stub.py"), "mastodon", $mastodonPort, $mastodonLog -PassThru -NoNewWindow
+    try {
+        $deadline = (Get-Date).AddSeconds(60)
+        while (!(Test-Path $mastodonPort) -or !(Get-Content $mastodonPort -ErrorAction Ignore)) {
+            if ($social.HasExited -or (Get-Date) -gt $deadline) { throw "the Mastodon stub did not write its port" }
+            Start-Sleep -Milliseconds 100
+        }
+        $mastodon = "http://127.0.0.1:$((Get-Content $mastodonPort -Raw).Trim())"
+        $site = @{ XC_SITE = "mastodon"; MASTODON_BASE_URL = $mastodon; MASTODON_ACCESS_TOKEN = "mastodon-e2e-token" }
+        $tooted = Invoke-Step "xc post-thread oauth1.spi" $world.token -Extra $site
+        $outputs.Add($tooted.Text)
+        $statuses = @(Get-Content $mastodonLog | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.path -eq "/api/v1/statuses" })
+        $bodies = @($statuses | ForEach-Object { $_.body | ConvertFrom-Json })
+        $accepted200 = @($statuses | Where-Object status -eq 200).Count
+        Check ($tooted.Exit -eq 0 -and $statuses.Count -gt 0 -and $accepted200 -eq $statuses.Count) "xc post-thread to Mastodon: exit $($tooted.Exit), $accepted200 of $($statuses.Count) statuses accepted"
+        Check ($statuses.Count -le $sent.Count) "Mastodon's 500 split used $($statuses.Count) posts, more than X's 280 split ($($sent.Count))"
+        Check (@($bodies | Where-Object { $_.status.Contains([string][char]0x200B) }).Count -eq 0) "a Mastodon status carries a zero-width space"
+        Check ($tooted.Requests.Count -eq 0) "xc post-thread to Mastodon also sent $($tooted.Requests.Count) request(s) to the X stub"
+        $tootIds = @($tooted.Raw -split "`n" | Where-Object { $_ -match '^posted (\d+) ' } | ForEach-Object { ($_ -split ' ')[1] })
+        for ($i = 1; $i -lt $bodies.Count; $i++) {
+            Check ($bodies[$i].in_reply_to_id -eq $tootIds[$i - 1]) "status $($i + 1) replies to '$($bodies[$i].in_reply_to_id)', expected '$($tootIds[$i - 1])'"
+        }
+        Write-Output "x e2e / mastodon post-thread / $($statuses.Count) statuses / exit $($tooted.Exit)"
+    } finally {
+        if (!$social.HasExited) { Stop-Process -Id $social.Id -Force }
+    }
+
+    $blueskyPort, $blueskyLog = (Join-Path $WorkDir "bluesky.port"), (Join-Path $WorkDir "bluesky.jsonl")
+    Remove-Item $blueskyPort, $blueskyLog -ErrorAction Ignore
+    $sky = Start-Process $python -ArgumentList "-I", (Join-Path $PSScriptRoot "social_stub.py"), "bluesky", $blueskyPort, $blueskyLog -PassThru -NoNewWindow
+    try {
+        $deadline = (Get-Date).AddSeconds(60)
+        while (!(Test-Path $blueskyPort) -or !(Get-Content $blueskyPort -ErrorAction Ignore)) {
+            if ($sky.HasExited -or (Get-Date) -gt $deadline) { throw "the Bluesky stub did not write its port" }
+            Start-Sleep -Milliseconds 100
+        }
+        $pds = "http://127.0.0.1:$((Get-Content $blueskyPort -Raw).Trim())"
+        $site = @{ XC_SITE = "bluesky"; BLUESKY_BASE_URL = $pds; BLUESKY_IDENTIFIER = "e2e.bsky.social"; BLUESKY_APP_PASSWORD = "e2e-app-password" }
+        $skeeted = Invoke-Step "xc post-thread oauth1.spi" $world.token -Extra $site
+        $outputs.Add($skeeted.Text)
+        $rows = @(Get-Content $blueskyLog | ForEach-Object { $_ | ConvertFrom-Json })
+        $sessions = @($rows | Where-Object { $_.path -eq "/xrpc/com.atproto.server.createSession" })
+        $records = @($rows | Where-Object { $_.path -eq "/xrpc/com.atproto.repo.createRecord" })
+        $bodies = @($records | ForEach-Object { ($_.body | ConvertFrom-Json).record })
+        $ok = @($records | Where-Object status -eq 200).Count
+        Check ($skeeted.Exit -eq 0 -and $sessions.Count -eq 1 -and $records.Count -gt 0 -and $ok -eq $records.Count) "xc post-thread to Bluesky: exit $($skeeted.Exit), $($sessions.Count) session(s), $ok of $($records.Count) records accepted"
+        Check ($records.Count -le $sent.Count) "Bluesky's 300 split used $($records.Count) posts, more than X's 280 split ($($sent.Count))"
+        Check (@($bodies | Where-Object { $_.text.Contains([string][char]0x200B) }).Count -eq 0) "a Bluesky record carries a zero-width space"
+        Check ($skeeted.Requests.Count -eq 0) "xc post-thread to Bluesky also sent $($skeeted.Requests.Count) request(s) to the X stub"
+        $uris = @($skeeted.Raw -split "`n" | Where-Object { $_ -match '^posted (\S+) ' } | ForEach-Object { ($_ -split ' ')[1] })
+        for ($i = 1; $i -lt $bodies.Count; $i++) {
+            Check ($bodies[$i].reply.parent.uri -eq $uris[$i - 1] -and $bodies[$i].reply.root.uri -eq $uris[0]) "record $($i + 1) does not reply to its parent and the thread root"
+        }
+        Write-Output "x e2e / bluesky post-thread / $($records.Count) records / exit $($skeeted.Exit)"
+    } finally {
+        if (!$sky.HasExited) { Stop-Process -Id $sky.Id -Force }
+    }
 
     Check ((Step-Of $results 'X_BEARER_TOKEN = \$null').Requests.Count -eq 0) "a run without X_BEARER_TOKEN sent requests"
     $all = Queries-Of (Step-Of $results 'following carol --max-following all')

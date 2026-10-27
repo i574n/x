@@ -20,6 +20,15 @@ test xc static =
 
 := base_url () : string = env_or "X_API_BASE_URL" "https://api.x.com"
 
+:= platform_name () : string = env_or "XC_SITE" "x"
+
+:= site_known () : bool = platform_name () = "x" || platform_name () = "mastodon" || platform_name () = "bluesky"
+
+:= write_base () : string =
+    ? platform_name () = "mastodon" ?> env_of "MASTODON_BASE_URL"
+    |? platform_name () = "bluesky" ?> env_or "BLUESKY_BASE_URL" "https://bsky.social"
+    |: base_url ()
+
 :== parsed =
     i32 * string * bool * string * i32 * i32 * i32 * i32 * string * string * bool * bool * i32 * bool * bool
 
@@ -31,31 +40,31 @@ test xc static =
 
 := unix_seconds () : string = $'xc_net::xc_unix_seconds()'
 
-:== site = {base : string; bearer : string}
+:== site = { base : string; bearer : string }
 
 := users_named (s : site) (hs : string) : i32 * string * string * string =
-    := {base bearer} = s
+    := { base bearer } = s
     $'xc_users::xc_users_named(&*!base, &*!bearer, &*!hs)'
 
 := users_followed (s : site) (id : string) (cap : i32) : i32 * string * string =
-    := {base bearer} = s
+    := { base bearer } = s
     $'xc_users::xc_users_followed(&*!base, &*!bearer, &*!id, !cap)'
 
 := users_by_ids (s : site) (ids : string) : i32 * string * string =
-    := {base bearer} = s
+    := { base bearer } = s
     $'xc_users::xc_users_by_ids(&*!base, &*!bearer, &*!ids)'
 
-:== window = {max_results : i32; since : string; until : string; nr : bool; np : bool; depth : i32; hints : bool}
+:== window = { max_results : i32; since : string; until : string; nr : bool; np : bool; depth : i32; hints : bool }
 
 := window_of (p : parsed) : window =
     := _, _, _, _, max_results, _, _, _, since, until, nr, np, depth, hints, _ = p
-    {max_results since until nr np depth hints}
+    { max_results since until nr np depth hints }
 
 :== fetch_reply = string * string * string * string * string * string
 
 := fetch (s : site) (lines : string) (w : window) : fetch_reply =
-    := {base bearer} = s
-    := {max_results since until nr np depth hints} = w
+    := { base bearer } = s
+    := { max_results since until nr np depth hints } = w
     $'xc_fetch::xc_fetch(&*!base, &*!bearer, &*!lines, !max_results, &*!since, &*!until, !nr, !np, !depth, !hints)'
 
 := fetch_notes (r : fetch_reply) : string =
@@ -65,22 +74,29 @@ test xc static =
 :== refs_reply = string * string * string
 
 := refs (s : site) (r : fetch_reply) (w : window) : refs_reply =
-    := {base bearer} = s
+    := { base bearer } = s
     := _, _, _, ids, authors, named = r
-    := {depth hints} = w
+    := { depth hints } = w
     $'xc_refs::xc_refs(&*!base, &*!bearer, &*!ids, &*!authors, &*!named, !depth, !hints)'
 
-:== keys = {consumer_key : string; consumer_secret : string; access_token : string; access_token_secret : string; oauth2_access_token : string}
+:== keys =
+    {
+        consumer_key : string
+        consumer_secret : string
+        access_token : string
+        access_token_secret : string
+        oauth2_access_token : string
+    }
 
-:== order = {base : string; nonce : string; stamp : string; kind : i32; payload : string}
+:== order = { base : string; nonce : string; stamp : string; kind : i32; payload : string; site : string }
 
 := key_parts (k : keys) : string * string * string * string * string =
     k.consumer_key, k.consumer_secret, k.access_token, k.access_token_secret, k.oauth2_access_token
 
 := remote_write (k : keys) (o : order) : i32 * string =
     := ck, cs, t, ts, token = key_parts k
-    := {base nonce stamp kind payload} = o
-    $'xc_write::xc_write(&*!base, &*!token, &*!ck, &*!cs, &*!t, &*!ts, &*!nonce, &*!stamp, !kind, &*!payload)'
+    := { base nonce stamp kind payload site } = o
+    $'xc_write::xc_write(&*!base, &*!token, &*!ck, &*!cs, &*!t, &*!ts, &*!nonce, &*!stamp, !kind, &*!payload, &*!site)'
 
 := digest (bundle : string) : string = $'xc_digest::xc_digest(&*!bundle)'
 
@@ -94,15 +110,16 @@ test xc static =
     := _, _, _, _, _, limit, per_author, _, _, _, _, _, depth, hints, json = p
     ? json ?> json_view text limit per_author depth |: text_view text limit per_author depth hints
 
-:== plan = {lines : string; notes : string; failure : string}
+:== plan = { lines : string; notes : string; failure : string }
 
-:= failed_plan (failure : string) : plan = {lines = ""; notes = ""; failure}
+:= failed_plan (failure : string) : plan = { lines = ""; notes = ""; failure }
 
 := no_account (hs : string) : string = "no X account @" ++# sm'.replace "," ", @" hs
 
 := unknown_notes (unknown : string) : string = pieces "," unknown |> each no_account |> sm'.concat_list "\n"
 
-:= found_plan (found : string) (unknown : string) : plan = {lines = found; notes = unknown_notes unknown; failure = ""}
+:= found_plan (found : string) (unknown : string) : plan =
+    { lines = found; notes = unknown_notes unknown; failure = "" }
 
 :~ account_plan (s : site) (hs : string) : plan =
     := code, found, unknown, failure = users_named s hs
@@ -120,7 +137,7 @@ test xc static =
 := with_followed (w : account) (found : string) (r : i32 * string * string) : plan =
     := code, followed, failure = r
     ? code <> 0i32 ?> failed_plan failure
-    |: {lines = lines_with found followed; notes = home_note w.username followed; failure = ""}
+    |: { lines = lines_with found followed; notes = home_note w.username followed; failure = "" }
 
 := followed_plan (s : site) (found : string) (cap : i32) : plan =
     := w = account_of_line found
@@ -187,7 +204,9 @@ test xc static =
     $'xc_api::xc_posts_read(&*!bundle)'
 
 := timeline_cost (docs : string) (shown : i32) : () =
-    cost_noted (", " ++# sm'.obj_to_string (posts_read_in docs) ++# " posts read, " ++# sm'.obj_to_string shown ++# " shown")
+    cost_noted (
+        ", " ++# sm'.obj_to_string (posts_read_in docs) ++# " posts read, " ++# sm'.obj_to_string shown ++# " shown"
+    )
 
 := costed_view (docs : string) (p : parsed) : string * i32 =
     := text, shown = viewed docs p
@@ -211,15 +230,19 @@ test xc static =
     ? following ?> home_plan s hs cap |: account_plan s hs
 
 :~ run_timeline (p : parsed) : i32 =
-    := s = {base = base_url (); bearer = env_of "X_BEARER_TOKEN"}
+    := s = { base = base_url (); bearer = env_of "X_BEARER_TOKEN" }
     ? s.bearer = "" ?> missing_bearer ()
     |:
         := pl = site_plan s p
         ? pl.failure <> "" ?> failed pl.failure |: shown_timeline s pl p
 
+:= credentials_hint () : () =
+    write_error
+        "    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_OAUTH2_ACCESS_TOKEN (OAuth 2.0, 2 hours)"
+
 := no_user () : i32 =
     write_error "xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_ACCESS_TOKEN and"
-    write_error "    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_OAUTH2_ACCESS_TOKEN (OAuth 2.0, 2 hours)"
+    credentials_hint ()
     3i32
 
 :~ reported (r : i32 * string) : i32 =
@@ -228,23 +251,39 @@ test xc static =
     code
 
 := oauth1_keys () : string * string * string * string =
-    env_of "X_CONSUMER_KEY", env_of "X_CONSUMER_SECRET", env_of "X_OAUTH1_ACCESS_TOKEN", env_of "X_OAUTH1_ACCESS_TOKEN_SECRET"
+    env_of "X_CONSUMER_KEY",
+    env_of "X_CONSUMER_SECRET",
+    env_of "X_OAUTH1_ACCESS_TOKEN",
+    env_of "X_OAUTH1_ACCESS_TOKEN_SECRET"
 
 := user_keys () : keys =
     := consumer_key, consumer_secret, access_token, access_token_secret = oauth1_keys ()
-    {consumer_key consumer_secret access_token access_token_secret oauth2_access_token = ""}
+    { consumer_key consumer_secret access_token access_token_secret oauth2_access_token = "" }
 
-:= signed (k : keys) : bool = k.consumer_key <> "" && k.consumer_secret <> "" && k.access_token <> "" && k.access_token_secret <> ""
+:= signed (k : keys) : bool =
+    k.consumer_key <> "" && k.consumer_secret <> "" && k.access_token <> "" && k.access_token_secret <> ""
 
-:= with_oauth2_token (k : keys) : keys = ? signed k ?> k |: {k ?| oauth2_access_token = env_of "X_OAUTH2_ACCESS_TOKEN"}
+:= oauth2_token_name () : string = ? platform_name () = "mastodon" ?> "MASTODON_ACCESS_TOKEN" |: "X_OAUTH2_ACCESS_TOKEN"
+
+:= with_oauth2_token (k : keys) : keys =
+    ? signed k && platform_name () <> "mastodon" ?> k |: { k ?| oauth2_access_token = env_of (oauth2_token_name ()) }
 
 := order_of (kind : i32) (payload : string) : order =
     := nonce = env_or "XC_OAUTH1_NONCE" (fresh_nonce ())
-    {nonce kind payload base = base_url (); stamp = env_or "XC_OAUTH1_TIMESTAMP" (unix_seconds ())}
+    := base, site = write_base (), platform_name ()
+    { nonce kind payload base site stamp = env_or "XC_OAUTH1_TIMESTAMP" (unix_seconds ()) }
+
+:= unknown_site () : i32 =
+    write_error ("xc: XC_SITE must be x, mastodon or bluesky, got " ++# platform_name ())
+    2i32
+
+:= unusable (k : keys) : bool =
+    ? platform_name () = "bluesky" ?> env_of "BLUESKY_APP_PASSWORD" = "" |: not (signed k) && k.oauth2_access_token = ""
 
 :~ run_write (kind : i32) (payload : string) : i32 =
     := k = user_keys () |> with_oauth2_token
-    ? not (signed k) && k.oauth2_access_token = "" ?> no_user ()
+    ? not (site_known ()) ?> unknown_site ()
+    |? unusable k ?> no_user ()
     |: remote_write k (order_of kind payload) |> reported
 
 := refresh (path : string) : i32 * string =
@@ -271,7 +310,7 @@ test xc static =
     0i32
 
 := thread_pages (s : site) (id : string) : i32 * string * string =
-    := {base bearer} = s
+    := { base bearer } = s
     $'xc_thread::xc_thread_pages(&*!base, &*!bearer, &*!id)'
 
 := assembled (bundle : string) : i32 * string * string = $'xc_assemble::xc_assemble(&xc_locate::xc_locate(&*!bundle))'
@@ -288,16 +327,20 @@ test xc static =
     code
 
 :~ run_thread (id : string) : i32 =
-    := s = {base = base_url (); bearer = env_of "X_BEARER_TOKEN"}
+    := s = { base = base_url (); bearer = env_of "X_BEARER_TOKEN" }
     ? s.bearer = "" ?> missing_bearer () |: thread s id |> printed_thread
 
 := file_text (path : string) : string = file_system.read_all_text path
 
 := is_file (path : string) : bool = file_system.file_exists path
 
-:= framed (text : string) : string = $'xc_frames::xc_frames(&*!text)'
+:= framed (text : string) : string =
+    := name = platform_name ()
+    $'xc_frames::xc_frames(&*!name, &*!text)'
 
-:= preview (text : string) : string = $'xc_preview::xc_preview(&*!text)'
+:= preview (text : string) : string =
+    := site = platform_name ()
+    $'xc_preview::xc_preview(&*!site, &*!text)'
 
 :~ run_post_thread (dry : bool) (path : string) : i32 =
     ? not (is_file path) ?> failed ("no such file " ++# path)
@@ -306,8 +349,15 @@ test xc static =
         0i32
     |: run_write 7i32 (framed (file_text path))
 
+:= previewed_into (worst : i32) (path : string) : i32 =
+    write_line ("=== " ++# path)
+    := code = run_post_thread !+ path
+    ? code > worst ?> code |: worst
+
+:= run_preview_threads (payload : string) : i32 = split_on "\n" payload |> listm.fold previewed_into 0i32
+
 := thread_ids (s : site) (id : string) : i32 * string * string =
-    := {base bearer} = s
+    := { base bearer } = s
     $'xc_thread::xc_thread_ids(&*!base, &*!bearer, &*!id)'
 
 := deleted_from (r : i32 * string * string) : i32 =
@@ -315,14 +365,15 @@ test xc static =
     ? code <> 0i32 ?> failed failure |: run_write 9i32 ids
 
 :~ run_delete_thread (id : string) : i32 =
-    := s = {base = base_url (); bearer = env_of "X_BEARER_TOKEN"}
+    := s = { base = base_url (); bearer = env_of "X_BEARER_TOKEN" }
     ? s.bearer = "" ?> missing_bearer () |: thread_ids s id |> deleted_from
 
 := thread_chain (s : site) (id : string) : i32 * string * string =
-    := {base bearer} = s
+    := { base bearer } = s
     $'xc_chain::xc_chain(&*!base, &*!bearer, &*!id)'
 
-:= resume_payload (planned : string) (found : string) : string = "{\"planned\":" ++# planned ++# ",\"found\":" ++# found ++# "}"
+:= resume_payload (planned : string) (found : string) : string =
+    "{\"planned\":" ++# planned ++# ",\"found\":" ++# found ++# "}"
 
 := resumed_from (path : string) (r : i32 * string * string) : i32 =
     := code, found, failure = r
@@ -339,13 +390,17 @@ test xc static =
 
 :~ run_resume_thread (payload : string) : i32 =
     := root, path = resume_args payload
-    resume_checked {base = base_url (); bearer = env_of "X_BEARER_TOKEN"} root path
+    resume_checked { base = base_url (); bearer = env_of "X_BEARER_TOKEN" } root path
+
+:= run_thread_more (kind : i32) (payload : string) : i32 =
+    ? kind = 10i32 ?> run_resume_thread payload
+    |? kind = 11i32 ?> run_preview_threads payload
+    |: run_post_thread (kind = 8i32) payload
 
 := run_thread_kind (kind : i32) (payload : string) : i32 =
     ? kind = 6i32 ?> run_thread payload
     |? kind = 9i32 ?> run_delete_thread payload
-    |? kind = 10i32 ?> run_resume_thread payload
-    |: run_post_thread (kind = 8i32) payload
+    |: run_thread_more kind payload
 
 := run_user (kind : i32) (payload : string) : i32 =
     ? kind = 5i32 ?> run_refresh payload |? kind >= 6i32 ?> run_thread_kind kind payload |: run_write kind payload

@@ -33,7 +33,7 @@ test counts_and_usernames_have_empty_answers =
 
 ///> _
 := main () : i32 =
-    !!!!Export("xc_count", ((\ t => count_or_none t) : string -> i32))
-    !!!!Export("xc_date", ((\ t => date_or_empty t) : string -> string))
-    !!!!Export("xc_username", ((\ t => username_or_empty t) : string -> string))
+    export "xc_count" ((\ t => count_or_none t) : string -> i32)
+    export "xc_date" ((\ t => date_or_empty t) : string -> string)
+    export "xc_username" ((\ t => username_or_empty t) : string -> string)
     0i32

@@ -18,26 +18,27 @@ test args static =
 
 := fields_for (l : list string) : command_fields = parse_args l |> fields_of
 
-:= originals_since (day : string) : command_fields = fields_for ["timeline"; "--start-time"; day; "--originals"; "alice"]
+:= originals_since (day : string) : command_fields =
+    fields_for [ "timeline"; "--start-time"; day; "--originals"; "alice" ]
 
 test a_timeline_fills_the_window_fields =
     := ~day = "2026-10-15"
     := f = originals_since day
     f.kind |> _assert_eq 0i32
-    f.usernames ++# " " ++# f.since |> _assert_eq "alice 2026-10-15T00:00:00Z"
+    f.selection.usernames ++# " " ++# f.window.since |> _assert_eq "alice 2026-10-15T00:00:00Z"
 
 test originals_drop_replies_and_reposts =
     := ~day = "2026-10-15"
     := f = originals_since day
-    (f.no_replies && f.no_reposts) |> _assert_eq !+
+    (f.window.no_replies && f.window.no_reposts) |> _assert_eq !+
 
 test other_commands_carry_their_payload =
     := ~path = "a.spi"
-    := f = fields_for ["post-thread"; "--dry-run"; path]
+    := f = fields_for [ "post-thread"; "--dry-run"; path ]
     sm'.obj_to_string f.kind ++# " " ++# f.payload |> _assert_eq "8 a.spi"
 
 ///> _
 := main () : i32 =
-    !!!!Export("xc_parse_os_args", ((\ () => parsed_fields ()) : () -> command_fields))
-    !!!!Export("xc_usage", ((\ () => usage ()) : () -> string))
+    export "xc_parse_os_args" ((\ () => parsed_fields ()) : () -> command_fields)
+    export "xc_usage" ((\ () => usage ()) : () -> string)
     0i32

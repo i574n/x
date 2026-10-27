@@ -16,8 +16,8 @@ test memory_watch static =
     | FreshLine : () -> string
 
 :== watch_state =
-    {reading : memory_reading; consumed : i32; source : sample_source; every_ms : i32;
-     me : erlang_process.subject watch_message}
+    { reading : memory_reading; consumed : i32; source : sample_source; every_ms : i32;
+        me : erlang_process.subject watch_message }
 
 := complete_lines (fresh : string) : string =
     sm'.substring 0i32 (sm'.last_index_of "\n" fresh + 1i32) fresh
@@ -27,13 +27,13 @@ test memory_watch static =
 := grown (st : watch_state) (text : string) : watch_state =
     := base = fresh_base st text
     := complete = complete_lines (sm'.substring base (sm'.length text - base) text)
-    {st ?| reading = read_samples st.reading complete; consumed = base + sm'.length complete}
+    { st ?| reading = read_samples st.reading complete; consumed = base + sm'.length complete }
 
 := ticked (st : watch_state) : watch_state =
     erlang_process.send_after st.me st.every_ms Tick |> ignore
     ?= st.source ?|
     | GrowingText read => grown st (read ())
-    | FreshLine read => {st ?| reading = read_samples st.reading (read ())}
+    | FreshLine read => { st ?| reading = read_samples st.reading (read ()) }
 
 := watched (st : watch_state) (m : watch_message) : otp_actor.next watch_state watch_message =
     ?= m ?|
@@ -43,7 +43,7 @@ test memory_watch static =
         otp_actor.continue st
 
 := watch_initial (every_ms : i32) (source : sample_source) (me : erlang_process.subject watch_message) : watch_state =
-    {reading = no_reading (); consumed = 0i32; source; every_ms; me}
+    { reading = no_reading (); consumed = 0i32; source; every_ms; me }
 
 := watch_started (every_ms : i32) (source : sample_source) : option (erlang_process.subject watch_message) =
     otp_actor.new_with_self 10000i32 (watch_initial every_ms source)
@@ -52,7 +52,7 @@ test memory_watch static =
     |> otp_actor.started_data
 
 := sample_line (script : string) (root : i32) : string =
-    ?= process.try_capture_combined_list "pwsh" ["-NoProfile"; "-File"; script; "-Root"; sm'.obj_to_string root] ?|
+    ?= process.try_capture_combined_list "pwsh" [ "-NoProfile"; "-File"; script; "-Root"; sm'.obj_to_string root ] ?|
     | Some line => line
     | None => ""
 

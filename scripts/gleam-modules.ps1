@@ -7,8 +7,8 @@ $ErrorActionPreference = 'Stop'
 $Source = (Resolve-Path $Source).Path
 $srcDir = Split-Path $Source
 $module = [IO.Path]::GetFileNameWithoutExtension($Source)
-$exports = @(Select-String -LiteralPath $Entry -Pattern '!!!!Export\("(\w+)"' -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
-if (!$exports) { throw "gleam-modules / $Entry exports nothing (no !!!!Export), so there is no public surface to keep in $module" }
+$exports = @([regex]::Matches([IO.File]::ReadAllText($Entry), '(?:!!!!Export\(|(?<![\w''])export)\s*"(\w+)"') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+if (!$exports) { throw "gleam-modules / $Entry exports nothing (no export), so there is no public surface to keep in $module" }
 
 $lines = [IO.File]::ReadAllLines($Source)
 $items = [Collections.Generic.List[object]]::new()

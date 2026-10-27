@@ -11,18 +11,18 @@ test xsim_shell_entry static =
 :< executors
 :< runner_shell
 
-:== shell_run = {stream_path : string; limit : i32}
+:== shell_run = { stream_path : string; limit : i32 }
 
 := shell_usage () : string = "usage: xsim-shell --replay STREAM [--max-concurrency N]"
 
 := capped_run (path : string) (n : string) : result shell_run string =
     ?= count_of_text n ?|
-    | Some limit => Ok {stream_path = path; limit}
+    | Some limit => Ok { stream_path = path; limit }
     | None => Error ("--max-concurrency takes a whole number, got '" ++# n ++# "'")
 
 := replay_rest (path : string) (rest : list string) : result shell_run string =
     ?= rest ?|
-    | Nil => Ok {stream_path = path; limit = 4i32}
+    | Nil => Ok { stream_path = path; limit = 4i32 }
     | cap :: n :: Nil ?& cap = "--max-concurrency" => capped_run path n
     | _ => Error (shell_usage ())
 
@@ -33,7 +33,7 @@ test xsim_shell_entry static =
 
 := limited_faults (limit : i32) : fault_set =
     := f = plain_faults ()
-    {f ?| limit = limit}
+    { f ?| limit = limit }
 
 := settled_in_shell (limit : i32) (deliveries : list delivery) : result scheduler string =
     ?= shell_started (limited_faults limit) (fake_executor ()) ?|
@@ -89,7 +89,7 @@ test a_replayed_stream_settles_in_the_shell =
 
 test shell_arguments_are_checked =
     := ~path = "s.jsonl"
-    (limit_of (shell_run_of ["--replay"; path; "--max-concurrency"; "2"]), refusal_of (shell_run_of ["--replay"]))
+    (limit_of (shell_run_of [ "--replay"; path; "--max-concurrency"; "2" ]), refusal_of (shell_run_of [ "--replay" ]))
     |> _assert_eq (2i32, shell_usage ())
 
 := shell_arguments () : list string =

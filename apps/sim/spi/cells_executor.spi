@@ -11,67 +11,68 @@ test cells_executor static =
 :== term = erlang_term.term
 
 := at (key : string) (map : term) (fallback : term) : term =
-    erlang_term.apply "maps" "get" [erlang_term.atom key; map; fallback]
+    erlang_term.apply "maps" "get" [ erlang_term.atom key; map; fallback ]
 
 := keyed (pairs : list (string * term)) : term =
-    := tuples = pairs |> each (\ (k, v) => erlang_term.tuple [erlang_term.atom k; v])
-    erlang_term.apply "maps" "from_list" [erlang_term.list_term tuples]
+    := tuples = pairs |> each (\ (k, v) => erlang_term.tuple [ erlang_term.atom k; v ])
+    erlang_term.apply "maps" "from_list" [ erlang_term.list_term tuples ]
 
-:= spiral_cell (source : string) : term = keyed [("kind", erlang_term.atom "spiral"); ("source", erlang_term.of source)]
+:= spiral_cell (source : string) : term =
+    keyed [ ("kind", erlang_term.atom "spiral"); ("source", erlang_term.of source) ]
 
-:= cells_doc (sources : list string) : term = keyed [("cells", sources |> each spiral_cell |> erlang_term.list_term)]
+:= cells_doc (sources : list string) : term = keyed [ ("cells", sources |> each spiral_cell |> erlang_term.list_term) ]
 
 := run_opts (root : string) : term =
-    := pair = \ (k : string) => erlang_term.tuple [erlang_term.atom k; erlang_term.of root]
-    erlang_term.list_term [pair "root"; pair "spiral_lib"]
+    := pair = \ (k : string) => erlang_term.tuple [ erlang_term.atom k; erlang_term.of root ]
+    erlang_term.list_term [ pair "root"; pair "spiral_lib" ]
 
 := evaluated (sources : list string) (root : string) : term =
-    erlang_term.apply "Elixir.Spiral.Cells.Notebook" "evaluate" [cells_doc sources; run_opts root]
+    erlang_term.apply "Elixir.Spiral.Cells.Notebook" "evaluate" [ cells_doc sources; run_opts root ]
 
 := indexed (result : term) (field : string) (index : i32) : term =
     := table = at field result (erlang_term.apply "maps" "new" [])
-    erlang_term.apply "maps" "get" [erlang_term.of index; table; erlang_term.atom "nil"]
+    erlang_term.apply "maps" "get" [ erlang_term.of index; table; erlang_term.atom "nil" ]
 
 := last_of (result : term) (index : i32) : term =
     := status = at "status" result (erlang_term.atom "nil")
-    erlang_term.tuple [status; indexed result "verdicts" index; indexed result "outputs" index]
+    erlang_term.tuple [ status; indexed result "verdicts" index; indexed result "outputs" index ]
 
 := ran_result (result : term) (index : i32) : task_result =
     := ok = erlang_term.equal (at "status" result (erlang_term.atom "nil")) (erlang_term.atom "ok")
-    {status = ? ok ?> Done |: Erred; out = erlang_term.inspect (last_of result index)}
+    { status = ? ok ?> Done |: Erred; out = erlang_term.inspect (last_of result index) }
 
-:= is_map (t : term) : bool = erlang_term.apply "erlang" "is_map" [t] |> erlang_term.cast
+:= is_map (t : term) : bool = erlang_term.apply "erlang" "is_map" [ t ] |> erlang_term.cast
 
 := cells_ran (sources : list string) (root : string) : task_result =
     := result = evaluated sources root
     ? is_map result ?> ran_result result (listm.length sources - 1i32)
-    |: {status = Erred; out = "unexpected " ++# erlang_term.inspect result}
+    |: { status = Erred; out = "unexpected " ++# erlang_term.inspect result }
 
 := cells_executor (root : string) : executor = \ sources => cells_ran sources root
 
-:= ebins (lib : string) : term = erlang_term.apply "filelib" "wildcard" [erlang_term.charlist (lib ++# "/*/ebin")]
+:= ebins (lib : string) : term = erlang_term.apply "filelib" "wildcard" [ erlang_term.charlist (lib ++# "/*/ebin") ]
 
 := vm_paths_added (build_lib : string) (elixir_lib : string) : () =
-    := paths = erlang_term.apply "lists" "append" [ebins build_lib; ebins elixir_lib]
-    erlang_term.apply "code" "add_paths" [paths] |> ignore
+    := paths = erlang_term.apply "lists" "append" [ ebins build_lib; ebins elixir_lib ]
+    erlang_term.apply "code" "add_paths" [ paths ] |> ignore
 
 := started_ok (started : term) : bool =
-    erlang_term.equal (erlang_term.apply "erlang" "element" [erlang_term.of 1i32; started]) (erlang_term.atom "ok")
+    erlang_term.equal (erlang_term.apply "erlang" "element" [ erlang_term.of 1i32; started ]) (erlang_term.atom "ok")
 
 := cells_vm_started (build_lib : string) (elixir_lib : string) : bool =
     vm_paths_added build_lib elixir_lib
-    erlang_term.apply "application" "ensure_all_started" [erlang_term.atom "spiral_cells"] |> started_ok
+    erlang_term.apply "application" "ensure_all_started" [ erlang_term.atom "spiral_cells" ] |> started_ok
 
 := cell_count (doc : term) : i32 =
     := cells = at "cells" doc (erlang_term.list_term Nil)
-    erlang_term.apply "erlang" "length" [cells] |> erlang_term.cast
+    erlang_term.apply "erlang" "length" [ cells ] |> erlang_term.cast
 
 := last_source (doc : term) : string =
     := cells = at "cells" doc (erlang_term.list_term Nil)
-    := last = erlang_term.apply "lists" "last" [cells]
+    := last = erlang_term.apply "lists" "last" [ cells ]
     at "source" last (erlang_term.of "") |> erlang_term.cast
 
 test the_cells_document_holds_one_spiral_cell_per_source =
-    := ~sources = ["inl a = 1"; "a |> _assert_eq 1"]
+    := ~sources = [ "inl a = 1"; "a |> _assert_eq 1" ]
     := doc = cells_doc sources
     (cell_count doc, last_source doc) |> _assert_eq (2i32, "a |> _assert_eq 1")

@@ -5,6 +5,14 @@ packages:
     spiral-
     ../../client-
 modules:
+    exsss
+    events
+    final_state
+    personas
+    scenario
+    schedule
+    world
+    invariants
     inbox
     scheduler
     runner_checks
@@ -19,3 +27,5 @@ modules:
     runner_shell
     memory_watch
     xsim_shell_entry
+    simframes/
+        simframes

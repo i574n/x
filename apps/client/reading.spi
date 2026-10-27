@@ -10,41 +10,43 @@ test reading static =
 :< glyphs
 :< protocol
 :< splitter
+:< defuse
 
-:== frame_fields = {cell : cell_id; k : i32; n : i32; body : string; original : post_id; parent : option post_id}
+:== frame_fields = { cell : cell_id; k : i32; n : i32; body : string; original : post_id; parent : option post_id }
 
 :== frame = heap frame_fields
 
-:== frame_text = {header : frame_header; body : string}
+:== frame_text = { header : frame_header; body : string }
 
 := header_end (i : i32) (text : string) : i32 = ? i < 0i32 ?> sm'.length text |: i
 
 := head_of (i : i32) (text : string) : string = cut 0i32 (header_end i text) text
 
-:= restored_body (i : i32) (text : string) : string = ? i < 0i32 ?> "" |: after i text |> sm'.replace (defused_dot ()) "."
+:= restored_body (i : i32) (text : string) : string =
+    ? i < 0i32 ?> "" |: after i text |> restored_text
 
 :~ frame_text_of (text : string) : option frame_text =
     := i : i32 = sm'.index_of "\n" text
     ?= parsed (head_of i text) ?|
-    | Ok header => Some {header body = restored_body i text}
+    | Ok header => Some { header body = restored_body i text }
     | Error _ => None
 
 := frame_in (t : frame_text) (original : post_id) (parent : option post_id) : frame =
-    heap {cell = t.header.cell; k = t.header.part; n = t.header.part_count; body = t.body; original; parent}
+    heap { cell = t.header.cell; k = t.header.part; n = t.header.part_count; body = t.body; original; parent }
 
-:== cell_frames = {cell : cell_id; n : i32; first : post_id; frames : list frame}
+:== cell_frames = { cell : cell_id; n : i32; first : post_id; frames : list frame }
 
 := merged (c : cell_frames) (f : frame) : cell_frames =
     := first = ? later_id c.first f.original ?> f.original |: c.first
-    {c ?| n = ? f.n > c.n ?> f.n |: c.n; first; frames = f :: c.frames}
+    { c ?| n = ? f.n > c.n ?> f.n |: c.n; first; frames = f :: c.frames }
 
-:= opened (f : frame) : cell_frames = {cell = f.cell; n = f.n; first = f.original; frames = [f]}
+:= opened (f : frame) : cell_frames = { cell = f.cell; n = f.n; first = f.original; frames = [ f ] }
 
 :~ ^ grouped (l : list cell_frames) (f : frame) : list cell_frames =
     ?= l ?|
     | c :: rest ?& same_cell c.cell f.cell => merged c f :: rest
     | c :: rest => c :: grouped rest f
-    | Nil => [opened f]
+    | Nil => [ opened f ]
 
 :~ ^ placed (c : cell_frames) (l : list cell_frames) : list cell_frames =
     ?= l ?|
@@ -67,22 +69,22 @@ test reading static =
 := reading_of (c : cell_frames) : cell_reading =
     ?= missing_ks c ?|
     | Nil => Whole (source_of c)
-    | missing => Holed (MissingFrames {cell = c.cell; missing; part_count = c.n})
+    | missing => Holed (MissingFrames { cell = c.cell; missing; part_count = c.n })
 
-:== program = {sources : list string; flaws : list thread_flaw}
+:== program = { sources : list string; flaws : list thread_flaw }
 
 := with_cell (p : program) (c : cell_frames) : program =
     ?= reading_of c ?|
-    | Whole source => {p ?| sources = listm.append p.sources [source]}
-    | Holed flaw => {p ?| flaws = listm.append p.flaws [flaw]}
+    | Whole source => { p ?| sources = listm.append p.sources [ source ] }
+    | Holed flaw => { p ?| flaws = listm.append p.flaws [ flaw ] }
 
 := unknown_parent (known : post_ids) (f : frame) : list post_id =
     ?= f.parent ?|
-    | Some p ?& not (has (same_post p) known) => [p]
+    | Some p ?& not (has (same_post p) known) => [ p ]
     | _ => Nil
 
 := gap_flaws (known : post_ids) (c : cell_frames) : list thread_flaw =
-    frame_at c 1i32 |> spread (unknown_parent known) |> each (\ parent => ReplyGap {cell = c.cell; parent})
+    frame_at c 1i32 |> spread (unknown_parent known) |> each (\ parent => ReplyGap { cell = c.cell; parent })
 
 := gaps (known : post_ids) (cells : list cell_frames) : list thread_flaw =
     ?= cells ?|
@@ -94,12 +96,12 @@ test reading static =
 
 :~ assembled (frames : list frame) (known : post_ids) : program =
     := cells = ordered frames
-    := p = cells |> listm.fold with_cell {sources = Nil; flaws = Nil}
-    {p ?| flaws = listm.append p.flaws (gaps known cells)}
+    := p = cells |> listm.fold with_cell { sources = Nil; flaws = Nil }
+    { p ?| flaws = listm.append p.flaws (gaps known cells) }
 
 := frames_in (text : string) (original : post_id) (parent : option post_id) : list frame =
     ?= frame_text_of text ?|
-    | Some t => [frame_in t original parent]
+    | Some t => [ frame_in t original parent ]
     | None => Nil
 
 := numbered_post (k : i32) : post_id = post_id (sm'.obj_to_string k)
@@ -107,14 +109,15 @@ test reading static =
 :~ ^ chained (k : i32) (parent : option post_id) (l : list string) (acc : list frame) : list frame =
     ?= l ?|
     | Nil => acc
-    | t :: rest => chained (k + 1i32) (Some (numbered_post k)) rest (listm.append (frames_in t (numbered_post k) parent) acc)
+    | t :: rest =>
+        chained (k + 1i32) (Some (numbered_post k)) rest (listm.append (frames_in t (numbered_post k) parent) acc)
 
 := ids_to (n : i32) : post_ids = listm.init n (\ i => numbered_post (i + 1i32))
 
 := read_thread (posts : list string) : program = assembled (chained 1i32 None posts Nil) (ids_to (listm.length posts))
 
 := mixed_cells () : string =
-    "go x.io now\n\n" ++# repeated 150i32 "日本" "" ++# "\n\n" ++# repeated 120i32 "ab " ""
+    "go x.com now\n\n" ++# repeated 150i32 "日本" "" ++# "\n\n" ++# repeated 120i32 "ab " ""
 
 test posted_cells_rebuild_exactly =
     := ~text = mixed_cells ()
@@ -133,7 +136,8 @@ test posted_frames_keep_no_trailing_space =
     has ends_in_space posts |> _assert_eq !-
     has carries_defused_dot posts |> _assert_eq !+
 
-:= without_post (k : i32) (l : list string) : list string = listm.init (listm.length l) id |> keep (\ i => i <> k) |> each (\ i => field_at i l)
+:= without_post (k : i32) (l : list string) : list string =
+    listm.init (listm.length l) id |> keep (\ i => i <> k) |> each \ i => field_at i l
 
 := notes_of (p : program) : string = p.flaws |> each note_of |> delimited "|"
 

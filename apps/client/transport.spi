@@ -21,6 +21,7 @@ test transport static =
     ?= a ?|
     | BearerToken t => "Bearer " ++# t
     | Signed (o, nonce, stamp) => net_header o method url nonce stamp
+    | Anonymous => ""
 
 :== fetched = json * string
 
@@ -37,7 +38,11 @@ test transport static =
     := status, body = net_send m url (header_for e.auth m url) (body_of_verb v)
     kept resource status body
 
-:= bearer_of \* c. (a : authorizer c) : string = ?= a ?| BearerToken t => "Bearer " ++# t | Signed _ => ""
+:= bearer_of \* c. (a : authorizer c) : string =
+    ?= a ?|
+    | BearerToken t => "Bearer " ++# t
+    | Signed _ => ""
+    | Anonymous => ""
 
 :~ app_reply (e : endpoint app_context) (resource : string) : got fetched =
     := url = e.base ++# resource
@@ -55,14 +60,17 @@ test transport static =
 
 := account_of_line (line : string) : account =
     := i : i32 = sm'.index_of ":" line
-    {id = user_id (sm'.substring 0i32 i line); username = sm'.substring (i + 1i32) (sm'.length line - i - 1i32) line}
+    { id = user_id (sm'.substring 0i32 i line); username = sm'.substring (i + 1i32) (sm'.length line - i - 1i32) line }
 
 := accounts_of_lines (s : string) : accounts = pieces "\n" s |> each account_of_line
 
 ///> zig
 test account_lines_round_trip =
     := ~h = "bob"
-    [{id = user_id "1"; username = "alice"}; {id = user_id "22"; username = h}] |> account_lines |> accounts_of_lines |> account_lines
+    [ { id = user_id "1"; username = "alice" }; { id = user_id "22"; username = h } ]
+    |> account_lines
+    |> accounts_of_lines
+    |> account_lines
     |> _assert_eq "1:alice\n22:bob"
 
 ///> zig

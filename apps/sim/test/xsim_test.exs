@@ -117,7 +117,7 @@ defmodule XsimTest do
   test "dots that could start an X link are defused with a zero-width space and restored on reading" do
     source = "l |> listm.map f; go x.io; 1.5; a..b"
     [{1, 1, body}] = Xsim.Frames.split("p1", source)
-    assert body == "l |> listm​.map f; go x​.io; 1.5; a..b"
+    assert body == "l |> listm​.map f; go x.io; 1.5; a..b"
     assert Xsim.XCompat.x_weight(body) == Xsim.Frames.weight(body)
     assert Xsim.Frames.rebuild([{1, 1, body}]) == source
   end

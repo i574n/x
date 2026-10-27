@@ -9,7 +9,7 @@ test executors static =
 
 :== executor = list string -> task_result
 
-:= fake_executor () : executor = \ sources => {status = Done; out = fake_out sources}
+:= fake_executor () : executor = \ sources => { status = Done; out = fake_out sources }
 
 :| leak_message =
     | Swap : string * erlang_process.subject string
@@ -26,7 +26,7 @@ test executors static =
 := leaking_executor (leak : erlang_process.subject leak_message) : executor =
     \ sources =>
         := digest = fake_out sources
-        {status = Done; out = digest ++# otp_actor.call leak 10000i32 (\ reply => Swap (digest, reply))}
+        { status = Done; out = digest ++# otp_actor.call leak 10000i32 (\ reply => Swap (digest, reply)) }
 
 := two_leaking_runs (leak : erlang_process.subject leak_message) (sources : list string) : string * string =
     := run = leaking_executor leak
@@ -35,7 +35,7 @@ test executors static =
     first.out, second.out
 
 test a_leaking_executor_carries_the_previous_digest =
-    := ~a = ["inl a = 1"]
+    := ~a = [ "inl a = 1" ]
     ?= leak_started () ?|
     | Some leak => two_leaking_runs leak a |> _assert_eq (fake_out a, fake_out a ++# fake_out a)
     | None => failwith "leak cell did not start"

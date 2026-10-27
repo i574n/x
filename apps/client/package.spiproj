@@ -5,18 +5,12 @@ packages:
     spiral-
 modules:
     prelude
-    exsss
     paging
     glyphs
+    tlds
+    defuse
     protocol
     splitter
-    events
-    final_state
-    personas
-    scenario
-    schedule
-    world
-    invariants
     posts
     reading
     cli
@@ -42,6 +36,8 @@ modules:
         refs
     resume/
         resume
+    requests/
+        requests
     write/
         write
     digest/
@@ -60,12 +56,18 @@ modules:
         chain
     cells/
         cells
+    domains/
+        domains
+    posted/
+        posted
+    weights/
+        weights
+    chunks/
+        chunks
     frames/
         frames
     preview/
         preview
-    simframes/
-        simframes
     locate/
         locate
     assemble/

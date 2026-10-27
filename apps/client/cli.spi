@@ -13,16 +13,17 @@ test cli static =
     | AtMost : i32
     | AllFollowing
 
-:== filters = {start_time : string; end_time : string; no_replies : bool; no_reposts : bool}
+:== filters = { start_time : string; end_time : string; no_replies : bool; no_reposts : bool }
 
 :== request =
-    {source : source; per_account : i32; limit : i32; per_author : i32; cap : following_cap;
-     filters : filters; depth : i32; hints : bool; json : bool}
+    { source : source; per_account : i32; limit : i32; per_author : i32; cap : following_cap;
+        filters : filters; depth : i32; hints : bool; json : bool }
 
 :| thread_op =
     | ReadThread : string
     | PostThread : string
     | PreviewThread : string
+    | PreviewThreads : list string
     | DeleteThread : string
     | ResumeThread : string * string
 
@@ -36,8 +37,8 @@ test cli static =
     | Rejected : string
 
 :== draft =
-    {usernames : list string; following : option string; per_account : i32; limit : i32; per_author : i32;
-     cap : following_cap; filters : filters; depth : i32; hints : bool; json : bool}
+    { usernames : list string; following : option string; per_account : i32; limit : i32; per_author : i32;
+        cap : following_cap; filters : filters; depth : i32; hints : bool; json : bool }
 
 :== step = result draft string
 
@@ -78,7 +79,11 @@ test cli static =
     "       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"
     ++# "       xc post-thread --resume ROOT_ID FILE   finish a half-posted thread of FILE after its last post\n"
 
-:= usage_thread_deletes () : string = "       xc delete-thread ID   delete your posts of that thread (user credentials)\n"
+:= usage_thread_previews () : string =
+    "       xc post-thread --dry-run FILE...   preview each FILE's thread after a '=== FILE' line\n"
+
+:= usage_thread_deletes () : string =
+    "       xc delete-thread ID   delete your posts of that thread (user credentials)\n"
 
 := usage_environment () : string =
     "env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"
@@ -102,7 +107,9 @@ test cli static =
 := usage_following () : string =
     "       --max-following N accounts followed by USERNAME to include, or all (default 20)"
 
-:= usage_commands () : string = usage_synopsis () ++# usage_writes () ++# usage_reads () ++# usage_thread_writes () ++# usage_thread_deletes ()
+:= usage_commands () : string =
+    usage_synopsis () ++# usage_writes () ++# usage_reads () ++# usage_thread_writes () ++# usage_thread_previews ()
+    ++# usage_thread_deletes ()
 
 := usage () : string =
     := filters, views = usage_counts () ++# usage_filters (), usage_views () ++# usage_output ()
@@ -174,9 +181,9 @@ test cli static =
     | Depth => 0i32, 3i32
     | _ => 1i32, 100000i32
 
-:== checks = {count : string -> option i32; instant : string -> option string; username : string -> option string}
+:== checks = { count : string -> option i32; instant : string -> option string; username : string -> option string }
 
-:= pure_checks () : checks = {count = count_of_text; instant = date_of_text; username = username_of_text}
+:= pure_checks () : checks = { count = count_of_text; instant = date_of_text; username = username_of_text }
 
 := out_of_range (name : string) (low : i32) (high : i32) (text : string) : string =
     := range = sm'.obj_to_string low ++# " to " ++# sm'.obj_to_string high
@@ -184,11 +191,11 @@ test cli static =
 
 := with_count (f : flag) (d : draft) (n : i32) : draft =
     ?= f ?|
-    | PerAccount => {d ?| per_account = n}
-    | Limit => {d ?| limit = n}
-    | PerAuthor => {d ?| per_author = n}
-    | Depth => {d ?| depth = n}
-    | _ => {d ?| cap = AtMost n}
+    | PerAccount => { d ?| per_account = n }
+    | Limit => { d ?| limit = n }
+    | PerAuthor => { d ?| per_author = n }
+    | Depth => { d ?| depth = n }
+    | _ => { d ?| cap = AtMost n }
 
 :~ bounded (c : checks) (f : flag) (name : string) (text : string) (d : draft) : step =
     := low, high = range_of f
@@ -202,24 +209,24 @@ test cli static =
     ?= c.username value, d.following ?|
     | None, _ => Error (not_a_username value)
     | Some _, Some _ => Error "--following given twice"
-    | Some h, None => Ok {d ?| following = Some h}
+    | Some h, None => Ok { d ?| following = Some h }
 
-:= with_filters (d : draft) (f : filters) : draft = {d ?| filters = f}
+:= with_filters (d : draft) (f : filters) : draft = { d ?| filters = f }
 
 := date_expected (name : string) (value : string) : string =
     name ++# " expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '" ++# value ++# "'"
 
 := dated (g : flag) (at : string) (f : filters) : filters =
     ?= g ?|
-    | StartTime => {f ?| start_time = at}
-    | _ => {f ?| end_time = at}
+    | StartTime => { f ?| start_time = at }
+    | _ => { f ?| end_time = at }
 
 :~ with_date (c : checks) (g : flag) (name : string) (value : string) (d : draft) : step =
     ?= c.instant value ?|
     | None => Error (date_expected name value)
     | Some at => Ok (with_filters d (dated g at d.filters))
 
-:= uncapped (d : draft) : step = Ok {d ?| cap = AllFollowing}
+:= uncapped (d : draft) : step = Ok { d ?| cap = AllFollowing }
 
 :~ apply_flag (c : checks) (f : flag) (n : string) (v : string) (d : draft) : step =
     ?= f ?|
@@ -230,14 +237,14 @@ test cli static =
 
 := switched (s : switch) (f : filters) : filters =
     ?= s ?|
-    | NoReplies => {f ?| no_replies = !+}
-    | NoReposts => {f ?| no_reposts = !+}
-    | _ => {f ?| no_replies = !+; no_reposts = !+}
+    | NoReplies => { f ?| no_replies = !+ }
+    | NoReposts => { f ?| no_reposts = !+ }
+    | _ => { f ?| no_replies = !+; no_reposts = !+ }
 
 :~ apply_switch (s : switch) (d : draft) : step =
     ?= s ?|
-    | Hints => Ok {d ?| hints = !+}
-    | Json => Ok {d ?| json = !+}
+    | Hints => Ok { d ?| hints = !+ }
+    | Json => Ok { d ?| json = !+ }
     | _ => Ok (with_filters d (switched s d.filters))
 
 := unknown_option (arg : string) : string = "unknown option " ++# arg
@@ -245,12 +252,12 @@ test cli static =
 :~ with_username (c : checks) (arg : string) (d : draft) : step =
     ?= c.username arg ?|
     | _ ?& sm'.starts_with "-" arg => Error (unknown_option arg)
-    | Some h => Ok {d ?| usernames = h :: d.usernames}
+    | Some h => Ok { d ?| usernames = h :: d.usernames }
     | None => Error (not_a_username arg)
 
 := request_of (d : draft) (s : source) : command =
-    := {per_account limit per_author cap filters depth hints json} = d
-    ShowTimeline {source = s; per_account limit per_author cap filters depth hints json}
+    := { per_account limit per_author cap filters depth hints json } = d
+    ShowTimeline { source = s; per_account limit per_author cap filters depth hints json }
 
 := following_alone () : string = "--following takes one account and no other usernames"
 
@@ -294,11 +301,11 @@ test cli static =
         | Ok d, more => parse_from c d more
         | Error why, _ => Rejected why
 
-:= no_filters () : filters = {start_time = ""; end_time = ""; no_replies = !-; no_reposts = !-}
+:= no_filters () : filters = { start_time = ""; end_time = ""; no_replies = !-; no_reposts = !- }
 
 := initial_draft () : draft =
-    {usernames = Nil; following = None; per_account = 5i32; limit = 20i32; per_author = 0i32;
-     cap = AtMost 20i32; filters = no_filters (); depth = 0i32; hints = !-; json = !-}
+    { usernames = Nil; following = None; per_account = 5i32; limit = 20i32; per_author = 0i32;
+        cap = AtMost 20i32; filters = no_filters (); depth = 0i32; hints = !-; json = !- }
 
 := unknown_command (arg : string) : string = "unknown command " ++# arg ++# "; try: xc timeline"
 
@@ -309,9 +316,14 @@ test cli static =
     | value :: Nil ?& value <> "" => make value
     | _ => Rejected (name ++# " takes exactly one argument")
 
+:= previews (paths : list string) : command =
+    ?= paths ?|
+    | path :: Nil => OnThread (PreviewThread path)
+    | _ => OnThread (PreviewThreads paths)
+
 := dry_or_post (rest : args) : command =
     ?= rest ?|
-    | flag :: path :: Nil ?& flag = "--dry-run" => OnThread (PreviewThread path)
+    | flag :: path :: more ?& flag = "--dry-run" => previews (path :: more)
     | _ => one_value "post-thread" rest (PostThread >> OnThread)
 
 := thread_post_command (rest : args) : command =
@@ -360,7 +372,8 @@ test cli static =
     | FollowingOf h => "following-of " ++# h
 
 := dates_text (f : filters) : string =
-    (? f.start_time = "" ?> "" |: " start_time=" ++# f.start_time) ++# (? f.end_time = "" ?> "" |: " end_time=" ++# f.end_time)
+    (? f.start_time = "" ?> "" |: " start_time=" ++# f.start_time)
+    ++# (? f.end_time = "" ?> "" |: " end_time=" ++# f.end_time)
 
 := flags_text (f : filters) : string =
     dates_text f ++# (? f.no_replies ?> " no-replies" |: "") ++# (? f.no_reposts ?> " no-reposts" |: "")
@@ -376,11 +389,16 @@ test cli static =
     := hints = (? r.hints ?> " hints" |: "") ++# (? r.json ?> " json" |: "")
     source_text r.source ++# counts_text r ++# views_text r ++# flags_text r.filters ++# hints
 
+:= thread_batch_text (t : thread_op) : string =
+    ?= t ?|
+    | PreviewThreads paths => "post-thread --dry-run " ++# delimited " " paths
+    | _ => ""
+
 := thread_edit_text (t : thread_op) : string =
     ?= t ?|
     | DeleteThread id => "delete-thread " ++# id
     | ResumeThread (root, path) => "post-thread --resume " ++# root ++# " " ++# path
-    | _ => ""
+    | _ => thread_batch_text t
 
 := thread_op_text (t : thread_op) : string =
     ?= t ?|
@@ -413,109 +431,117 @@ test cli static =
 ///> zig
 test accounts_strip_the_at_sign =
     := ~h = "@" ++# "alice"
-    parsed ["timeline"; h; "bob"] |> _assert_eq "accounts alice,bob per=5 limit=20 author=0 depth=0 cap=20"
+    parsed [ "timeline"; h; "bob" ] |> _assert_eq "accounts alice,bob per=5 limit=20 author=0 depth=0 cap=20"
 
 ///> zig
 test following_with_every_option =
     := ~all = "all"
-    parsed ["timeline"; "--following"; "carol"; "--max-following"; all; "--per-account"; "10"]
+    parsed [ "timeline"; "--following"; "carol"; "--max-following"; all; "--per-account"; "10" ]
     |> _assert_eq "following-of carol per=10 limit=20 author=0 depth=0 cap=all"
 
 ///> zig
 test filters_are_collected =
     := ~day = "2026-10-15"
-    parsed ["timeline"; "--start-time"; day; "--originals"; "a"]
-    |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 start_time=2026-10-15T00:00:00Z no-replies no-reposts"
+    parsed [ "timeline"; "--start-time"; day; "--originals"; "a" ]
+    |> _assert_eq
+        "accounts a per=5 limit=20 author=0 depth=0 cap=20 start_time=2026-10-15T00:00:00Z no-replies no-reposts"
 
 ///> zig
 test views_are_collected =
     := ~depth = "2"
-    parsed ["timeline"; "--depth"; depth; "--hints"; "--per-author"; "1"; "a"]
+    parsed [ "timeline"; "--depth"; depth; "--hints"; "--per-author"; "1"; "a" ]
     |> _assert_eq "accounts a per=5 limit=20 author=1 depth=2 cap=20 hints"
 
 ///> zig
 test dates_must_be_well_formed =
     := ~day = "2026-10-5"
-    parsed ["timeline"; "--end-time"; day; "a"]
+    parsed [ "timeline"; "--end-time"; day; "a" ]
     |> _assert_eq "rejected: --end-time expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '2026-10-5'"
 
 ///> zig
 test depth_is_capped_at_three =
     := ~n = "4"
-    parsed ["timeline"; "--depth"; n; "a"] |> _assert_eq "rejected: --depth expects a number from 0 to 3, got '4'"
+    parsed [ "timeline"; "--depth"; n; "a" ] |> _assert_eq "rejected: --depth expects a number from 0 to 3, got '4'"
 
 ///> zig
 test per_account_rejects_zero =
     := ~n = "0"
-    parsed ["timeline"; "--per-account"; n; "alice"]
+    parsed [ "timeline"; "--per-account"; n; "alice" ]
     |> _assert_eq "rejected: --per-account expects a number from 1 to 100, got '0'"
 
 ///> zig
 test per_account_takes_one =
     := ~n = "1"
-    parsed ["timeline"; "--per-account"; n; "alice"] |> _assert_eq "accounts alice per=1 limit=20 author=0 depth=0 cap=20"
+    parsed [ "timeline"; "--per-account"; n; "alice" ]
+    |> _assert_eq "accounts alice per=1 limit=20 author=0 depth=0 cap=20"
 
 ///> zig
 test following_excludes_other_usernames =
     := ~h = "alice"
-    parsed ["timeline"; "--following"; "carol"; h]
+    parsed [ "timeline"; "--following"; "carol"; h ]
     |> _assert_eq "rejected: --following takes one account and no other usernames"
 
 ///> zig
 test usernames_are_validated =
     := ~h = "al-ice"
-    parsed ["timeline"; h] |> _assert_eq "rejected: not an X username: 'al-ice'"
+    parsed [ "timeline"; h ] |> _assert_eq "rejected: not an X username: 'al-ice'"
 
 ///> zig
 test a_flag_needs_a_value =
     := ~flag = "--limit"
-    parsed ["timeline"; flag] |> _assert_eq "rejected: --limit needs a value"
+    parsed [ "timeline"; flag ] |> _assert_eq "rejected: --limit needs a value"
 
 ///> zig
 test unknown_options_are_rejected =
     := ~flag = "--verbose"
-    parsed ["timeline"; flag] |> _assert_eq "rejected: unknown option --verbose"
+    parsed [ "timeline"; flag ] |> _assert_eq "rejected: unknown option --verbose"
 
 ///> zig
 test unknown_commands_are_rejected =
     := ~sub = "home"
-    parsed [sub; "carol"] |> _assert_eq "rejected: unknown command home; try: xc timeline"
+    parsed [ sub; "carol" ] |> _assert_eq "rejected: unknown command home; try: xc timeline"
 
 ///> zig
 test post_and_delete_take_one_argument =
     := ~text = "hello from x"
-    parsed ["post"; text] |> _assert_eq "post hello from x"
-    parsed ["delete"; "1"; "2"] |> _assert_eq "rejected: delete takes exactly one argument"
+    parsed [ "post"; text ] |> _assert_eq "post hello from x"
+    parsed [ "delete"; "1"; "2" ] |> _assert_eq "rejected: delete takes exactly one argument"
 
 ///> zig
 test help_wins_anywhere =
     := ~h = "-h"
-    parsed ["timeline"; "alice"; h] |> _assert_eq "help"
+    parsed [ "timeline"; "alice"; h ] |> _assert_eq "help"
 
 ///> zig
 test json_and_refresh_are_parsed =
     := ~path = "x-api.env"
-    parsed ["timeline"; "--json"; "a"] |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 json"
-    parsed ["refresh"; path] |> _assert_eq "refresh x-api.env"
+    parsed [ "timeline"; "--json"; "a" ] |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 json"
+    parsed [ "refresh"; path ] |> _assert_eq "refresh x-api.env"
 
 ///> zig
 test post_thread_takes_a_file_and_an_optional_dry_run =
     := ~path = "prelude.spi"
-    parsed ["post-thread"; path] |> _assert_eq "post-thread prelude.spi"
-    parsed ["post-thread"; "--dry-run"; path] |> _assert_eq "post-thread --dry-run prelude.spi"
+    parsed [ "post-thread"; path ] |> _assert_eq "post-thread prelude.spi"
+    parsed [ "post-thread"; "--dry-run"; path ] |> _assert_eq "post-thread --dry-run prelude.spi"
+
+///> zig
+test post_thread_dry_run_takes_several_files =
+    := ~path = "prelude.spi"
+    parsed [ "post-thread"; "--dry-run"; path; "glyphs.spi" ]
+    |> _assert_eq "post-thread --dry-run prelude.spi glyphs.spi"
 
 ///> zig
 test post_thread_resumes_from_a_root =
     := ~path = "prelude.spi"
-    parsed ["post-thread"; "--resume"; "9003"; path] |> _assert_eq "post-thread --resume 9003 prelude.spi"
+    parsed [ "post-thread"; "--resume"; "9003"; path ] |> _assert_eq "post-thread --resume 9003 prelude.spi"
 
 ///> zig
 test delete_thread_takes_one_id =
     := ~id = "9003"
-    parsed ["delete-thread"; id] |> _assert_eq "delete-thread 9003"
-    parsed ["delete-thread"; id; "9004"] |> _assert_eq "rejected: delete-thread takes exactly one argument"
+    parsed [ "delete-thread"; id ] |> _assert_eq "delete-thread 9003"
+    parsed [ "delete-thread"; id; "9004" ] |> _assert_eq "rejected: delete-thread takes exactly one argument"
 
 ///> zig
 test post_thread_needs_a_file =
     := ~sub = "post-thread"
-    parsed [sub] |> _assert_eq "rejected: post-thread takes exactly one argument"
+    parsed [ sub ] |> _assert_eq "rejected: post-thread takes exactly one argument"

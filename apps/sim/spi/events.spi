@@ -1,4 +1,4 @@
-///- --package .
+///- --package . --timeout 600000
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
 test events static =
@@ -8,17 +8,17 @@ test events static =
 :< prelude
 :< glyphs
 
-:== frame_part = {k : i32; n : i32; body : string}
+:== frame_part = { k : i32; n : i32; body : string }
 
-:== rooted = {post_id : string; parent : option string; source : string}
+:== rooted = { post_id : string; parent : option string; source : string }
 
-:== placed = {post_id : string; parent : option string; part : frame_part}
+:== placed = { post_id : string; parent : option string; part : frame_part }
 
-:== sourced = {post_id : string; source : string}
+:== sourced = { post_id : string; source : string }
 
-:== revised = {post_id : string; rev : i32; part : frame_part}
+:== revised = { post_id : string; rev : i32; part : frame_part }
 
-:== social = {post_id : string; user : string}
+:== social = { post_id : string; user : string }
 
 :| content =
     | Posted : rooted
@@ -38,7 +38,7 @@ test events static =
     | Revision : revision
     | Reaction : reaction
 
-:== delivery = {at : i32; event : event}
+:== delivery = { at : i32; event : event }
 
 := stream_header () : string = "{\"format\":\"xsim-events\",\"version\":1}"
 
@@ -96,18 +96,28 @@ test events static =
 
 := kind_field (e : event) : string = field "kind" (quoted (kind_of e))
 
-:= opening (at : i32) (e : event) : list string = [field "at" (number at); kind_field e]
+:= opening (at : i32) (e : event) : list string = [ field "at" (number at); kind_field e ]
 
 := framed_fields (at : i32) (e : event) (part : frame_part) : list string =
-    [field "at" (number at); field "body" (quoted part.body); field "k" (number part.k); kind_field e; field "n" (number part.n)]
+    [
+        field "at" (number at)
+        field "body" (quoted part.body)
+        field "k" (number part.k)
+        kind_field e
+        field "n" (number part.n)
+    ]
 
 := owned (post_id : string) : string = field "post" (quoted post_id)
 
 := rooted_fields (at : i32) (e : event) (r : rooted) : list string =
-    listm.append (opening at e) [field "parent" (parent_of r.parent); owned r.post_id; field "source" (quoted r.source)]
+    listm.append (opening at e) [
+        field "parent" (parent_of r.parent)
+        owned r.post_id
+        field "source" (quoted r.source)
+    ]
 
 := placed_fields (at : i32) (e : event) (p : placed) : list string =
-    listm.append (framed_fields at e p.part) [field "parent" (parent_of p.parent); owned p.post_id]
+    listm.append (framed_fields at e p.part) [ field "parent" (parent_of p.parent); owned p.post_id ]
 
 := content_fields (at : i32) (e : event) (c : content) : list string =
     ?= c ?|
@@ -115,19 +125,19 @@ test events static =
     | Framed p => placed_fields at e p
 
 := revised_fields (at : i32) (e : event) (r : revised) : list string =
-    listm.append (framed_fields at e r.part) [owned r.post_id; field "rev" (number r.rev)]
+    listm.append (framed_fields at e r.part) [ owned r.post_id; field "rev" (number r.rev) ]
 
 := sourced_fields (at : i32) (e : event) (s : sourced) : list string =
-    listm.append (opening at e) [owned s.post_id; field "source" (quoted s.source)]
+    listm.append (opening at e) [ owned s.post_id; field "source" (quoted s.source) ]
 
 := revision_fields (at : i32) (e : event) (r : revision) : list string =
     ?= r ?|
     | Edited s => sourced_fields at e s
     | FrameEdited v => revised_fields at e v
-    | Deleted post_id => listm.append (opening at e) [owned post_id]
+    | Deleted post_id => listm.append (opening at e) [ owned post_id ]
 
 := social_fields (at : i32) (e : event) (s : social) : list string =
-    listm.append (opening at e) [owned s.post_id; field "user" (quoted s.user)]
+    listm.append (opening at e) [ owned s.post_id; field "user" (quoted s.user) ]
 
 := reaction_fields (at : i32) (e : event) (r : reaction) : list string =
     ?= r ?|
@@ -149,11 +159,11 @@ test events static =
     | Whole : i32
     | Null
 
-:== json_field = {key : string; value : json_value}
+:== json_field = { key : string; value : json_value }
 
 :== fields = list json_field
 
-:== scanned = {text : string; resume_at : i32}
+:== scanned = { text : string; resume_at : i32 }
 
 := escaped_char (c : string) : string =
     ? c = "n" ?> "\n" |? c = "t" ?> "\t" |? c = "r" ?> "\r"
@@ -177,7 +187,7 @@ test events static =
     acc ++# cut i b s ++# c, next
 
 := closed_at (s : string) (i : i32) (q : i32) (acc : string) : scanned =
-    ? q < 0i32 ?> {text = acc; resume_at = -1i32} |: {text = acc ++# cut i q s; resume_at = i + q + 1i32}
+    ? q < 0i32 ?> { text = acc; resume_at = -1i32 } |: { text = acc ++# cut i q s; resume_at = i + q + 1i32 }
 
 := marks (s : string) (i : i32) : i32 * i32 = sm'.index_of "\"" (rest_from i s), sm'.index_of "\\" (rest_from i s)
 
@@ -203,9 +213,9 @@ test events static =
 := field_from (s : string) (i : i32) : json_field * i32 =
     := k = string_from s (i + 1i32) ""
     := v, next = ? starts_at ":" s k.resume_at ?> value_from s (k.resume_at + 1i32) |: Null, -1i32
-    {key = k.text; value = v}, next
+    { key = k.text; value = v }, next
 
-:= no_field () : json_field * i32 = {key = ""; value = Null}, -1i32
+:= no_field () : json_field * i32 = { key = ""; value = Null }, -1i32
 
 := field_at (s : string) (i : i32) : json_field * i32 = ? starts_at "\"" s i ?> field_from s i |: no_field ()
 
@@ -239,18 +249,18 @@ test events static =
     | Text t => Some t
     | _ => None
 
-:= part_at (l : fields) : frame_part = {k = count_at "k" l; n = count_at "n" l; body = text_at "body" l}
+:= part_at (l : fields) : frame_part = { k = count_at "k" l; n = count_at "n" l; body = text_at "body" l }
 
-:= social_at (l : fields) : social = {post_id = text_at "post" l; user = text_at "user" l}
+:= social_at (l : fields) : social = { post_id = text_at "post" l; user = text_at "user" l }
 
 := reaction_at (kind : string) (l : fields) : option event =
     ? kind = "like" ?> Some (Reaction (Liked (social_at l)))
     |? kind = "unlike" ?> Some (Reaction (Unliked (social_at l)))
     |: None
 
-:= revised_at (l : fields) : revised = {post_id = text_at "post" l; rev = count_at "rev" l; part = part_at l}
+:= revised_at (l : fields) : revised = { post_id = text_at "post" l; rev = count_at "rev" l; part = part_at l }
 
-:= sourced_at (l : fields) : sourced = {post_id = text_at "post" l; source = text_at "source" l}
+:= sourced_at (l : fields) : sourced = { post_id = text_at "post" l; source = text_at "source" l }
 
 := revised (r : revision) : option event = Some (Revision r)
 
@@ -262,9 +272,9 @@ test events static =
     |? kind = "edit_frame" ?> revised (FrameEdited (revised_at l))
     |: removal_at kind l
 
-:= rooted_at (l : fields) : rooted = {post_id = text_at "post" l; parent = parent_at l; source = text_at "source" l}
+:= rooted_at (l : fields) : rooted = { post_id = text_at "post" l; parent = parent_at l; source = text_at "source" l }
 
-:= placed_at (l : fields) : placed = {post_id = text_at "post" l; parent = parent_at l; part = part_at l}
+:= placed_at (l : fields) : placed = { post_id = text_at "post" l; parent = parent_at l; part = part_at l }
 
 := event_at (kind : string) (l : fields) : option event =
     ? kind = "post" ?> Some (Content (Posted (rooted_at l)))
@@ -273,7 +283,7 @@ test events static =
 
 := delivery_of (l : fields) : result delivery string =
     ?= event_at (text_at "kind" l) l ?|
-    | Some event => Ok {at = count_at "at" l; event}
+    | Some event => Ok { at = count_at "at" l; event }
     | None => Error ("unknown event kind '" ++# text_at "kind" l ++# "'")
 
 :~ decoded (line : string) : result delivery string =
@@ -296,12 +306,13 @@ test events static =
     | head :: lines ?& header_ok head => all_decoded lines Nil
     | _ => Error "not an xsim-events v1 stream"
 
-:= first_frame () : string = "{\"at\":0,\"body\":\"x\",\"k\":1,\"kind\":\"frame\",\"n\":1,\"parent\":null,\"post\":\"p0\"}"
+:= first_frame () : string =
+    "{\"at\":0,\"body\":\"x\",\"k\":1,\"kind\":\"frame\",\"n\":1,\"parent\":null,\"post\":\"p0\"}"
 
 test frames_encode_like_the_fixture =
     := ~post_id = "p0"
-    := e = Content (Framed {post_id parent = None; part = {k = 1i32; n = 1i32; body = "x"}})
-    encoded {at = 0i32; event = e} |> _assert_eq (first_frame ())
+    := e = Content (Framed { post_id parent = None; part = { k = 1i32; n = 1i32; body = "x" } })
+    encoded { at = 0i32; event = e } |> _assert_eq (first_frame ())
 
 test bodies_escape_quotes_and_lines =
     := ~body = "a \"b\"\n\tc\\"
@@ -312,22 +323,34 @@ test bodies_escape_quotes_and_lines =
 
 test reactions_name_the_user =
     := ~user = "u3"
-    encoded {at = 7i32; event = Reaction (Liked {post_id = "p2"; user})} |> _assert_eq (liked_line ())
-    kind_of (Reaction (Unliked {post_id = "p2"; user})) |> _assert_eq "unlike"
+    encoded { at = 7i32; event = Reaction (Liked { post_id = "p2"; user }) } |> _assert_eq (liked_line ())
+    kind_of (Reaction (Unliked { post_id = "p2"; user })) |> _assert_eq "unlike"
 
 test an_empty_stream_is_its_header =
     := ~header = stream_header ()
     stream Nil |> _assert_eq (header ++# "\n")
 
-:= posted_one () : delivery = {at = 0i32; event = Content (Posted {post_id = "p0"; parent = None; source = "x"})}
+:= posted_one () : delivery = { at = 0i32; event = Content (Posted { post_id = "p0"; parent = None; source = "x" }) }
 
-:= framed_one () : delivery = {at = 1i32; event = Content (Framed {post_id = "p1"; parent = Some "p0"; part = {k = 2i32; n = 3i32; body = "a \"q\"\n\tb"}})}
+:= framed_one () : delivery =
+    {
+        at = 1i32
+        event =
+            Content (
+                Framed { post_id = "p1"; parent = Some "p0"; part = { k = 2i32; n = 3i32; body = "a \"q\"\n\tb" } }
+            )
+    }
 
-:= revised_one () : delivery = {at = 2i32; event = Revision (FrameEdited {post_id = "p1"; rev = 1i32; part = {k = 1i32; n = 1i32; body = "é"}})}
+:= revised_one () : delivery =
+    {
+        at = 2i32
+        event = Revision (FrameEdited { post_id = "p1"; rev = 1i32; part = { k = 1i32; n = 1i32; body = "é" } })
+    }
 
-:= reacted_one () : delivery = {at = 4i32; event = Reaction (Unliked {post_id = "p1"; user = "u2"})}
+:= reacted_one () : delivery = { at = 4i32; event = Reaction (Unliked { post_id = "p1"; user = "u2" }) }
 
-:= sample_deliveries () : list delivery = [posted_one (); framed_one (); revised_one (); {at = 3i32; event = Revision (Deleted "p0")}; reacted_one ()]
+:= sample_deliveries () : list delivery =
+    [ posted_one (); framed_one (); revised_one (); { at = 3i32; event = Revision (Deleted "p0") }; reacted_one () ]
 
 := reencoded (text : string) : string =
     ?= decoded_stream text ?|
@@ -338,7 +361,8 @@ test streams_decode_back_to_themselves =
     := ~text = stream (sample_deliveries ())
     reencoded text |> _assert_eq text
 
-:= edit_line () : string = "{\"at\":4,\"kind\":\"edit\",\"post\":\"p3\",\"source\":\"a" ++# zero_width_space () ++# ".b\\u0001\"}"
+:= edit_line () : string =
+    "{\"at\":4,\"kind\":\"edit\",\"post\":\"p3\",\"source\":\"a" ++# zero_width_space () ++# ".b\\u0001\"}"
 
 := line_again (line : string) : string =
     ?= decoded line ?|

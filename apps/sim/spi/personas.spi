@@ -44,13 +44,15 @@ test personas static =
 
 := test_cell (source : string) : bool = sm'.contains "///- --test" source
 
-:= ends_blank (s : string) : bool = has (\ b => sm'.ends_with b s) [" "; "\t"; "\n"; "\r"; char_of 11i32; char_of 12i32]
+:= ends_blank (s : string) : bool =
+    has (\ b => sm'.ends_with b s) [ " "; "\t"; "\n"; "\r"; char_of 11i32; char_of 12i32 ]
 
 := ends_digit (s : string) : bool = has (\ d => sm'.ends_with (sm'.obj_to_string d) s) (listm.init 10i32 id)
 
 :~ ^ blank_start (s : string) (i : i32) : i32 = ? i > 0i32 && ends_blank (cut 0i32 i s) ?> blank_start s (i - 1i32) |: i
 
-:~ ^ digits_start (s : string) (i : i32) : i32 = ? i > 0i32 && ends_digit (cut 0i32 i s) ?> digits_start s (i - 1i32) |: i
+:~ ^ digits_start (s : string) (i : i32) : i32 =
+    ? i > 0i32 && ends_digit (cut 0i32 i s) ?> digits_start s (i - 1i32) |: i
 
 :~ ^ unpadded (d : string) : string = ? sm'.length d > 1i32 && sm'.starts_with "0" d ?> unpadded (rest_from 1i32 d) |: d
 
@@ -86,24 +88,24 @@ test personas static =
     | x :: rest => ? i <= 0i32 ?> Some x |: picked (i - 1i32) rest
     | Nil => None
 
-:= liked_by (user : string) (r : rooted) : event = Reaction (Liked {post_id = r.post_id; user})
+:= liked_by (user : string) (r : rooted) : event = Reaction (Liked { post_id = r.post_id; user })
 
-:= unliked_by (user : string) (r : rooted) : event = Reaction (Unliked {post_id = r.post_id; user})
+:= unliked_by (user : string) (r : rooted) : event = Reaction (Unliked { post_id = r.post_id; user })
 
-:= edited_to (source : string) (r : rooted) : event = Revision (Edited {post_id = r.post_id; source})
+:= edited_to (source : string) (r : rooted) : event = Revision (Edited { post_id = r.post_id; source })
 
-:== acted = {act_events : list event; broken : list string; rng : exsss}
+:== acted = { act_events : list event; broken : list string; rng : exsss }
 
-:= quiet_act (st : exsss) : acted = {act_events = Nil; broken = Nil; rng = st}
+:= quiet_act (st : exsss) : acted = { act_events = Nil; broken = Nil; rng = st }
 
 := lurked (user : string) (acc : list event * exsss) (r : rooted) : list event * exsss =
     := l, st = acc
     := roll, st = rolled 2i32 st
-    (? roll = 1i32 ?> listm.append l [liked_by user r] |: l), st
+    (? roll = 1i32 ?> listm.append l [ liked_by user r ] |: l), st
 
 := lurker_act (user : string) (posts : list rooted) (st : exsss) : acted =
     := act_events, rng = posts |> listm.fold (lurked user) (Nil, st)
-    {act_events broken = Nil; rng}
+    { act_events broken = Nil; rng }
 
 := toggled (user : string) (r : rooted) (k : i32) : event = ? k % 2i32 = 0i32 ?> liked_by user r |: unliked_by user r
 
@@ -113,7 +115,7 @@ test personas static =
 
 := toggle_drawn (user : string) (posts : list rooted) (st : exsss) : acted =
     ?= drawn_from posts st ?|
-    | Some r, rng => {act_events = listm.init 5i32 (toggled user r); broken = Nil; rng}
+    | Some r, rng => { act_events = listm.init 5i32 (toggled user r); broken = Nil; rng }
     | None, _ => quiet_act st
 
 := fickle_act (user : string) (posts : list rooted) (st : exsss) : acted =
@@ -123,11 +125,11 @@ test personas static =
 
 := rewritten (user : string) (r : rooted) : list event =
     := rewrites = listm.init 3i32 (\ k => edited_to (r.source ++# sm'.replicate (k + 1i32) " " ++# "\n") r)
-    liked_by user r :: listm.append rewrites [edited_to r.source r]
+    liked_by user r :: listm.append rewrites [ edited_to r.source r ]
 
 := rewrite_drawn (user : string) (pool : list rooted) (st : exsss) : acted =
     ?= drawn_from pool st ?|
-    | Some r, rng => {act_events = rewritten user r; broken = Nil; rng}
+    | Some r, rng => { act_events = rewritten user r; broken = Nil; rng }
     | None, _ => quiet_act st
 
 := editor_act (user : string) (posts : list rooted) (st : exsss) : acted =
@@ -135,11 +137,12 @@ test personas static =
     | Nil => quiet_act st
     | pool => rewrite_drawn user pool st
 
-:= broken_by (user : string) (r : rooted) : list event = [liked_by user r; edited_to (break_source r.source) r; edited_to r.source r]
+:= broken_by (user : string) (r : rooted) : list event =
+    [ liked_by user r; edited_to (break_source r.source) r; edited_to r.source r ]
 
 := break_drawn (user : string) (pool : list rooted) (st : exsss) : acted =
     ?= drawn_from pool st ?|
-    | Some r, rng => {act_events = broken_by user r; broken = [break_source r.source]; rng}
+    | Some r, rng => { act_events = broken_by user r; broken = [ break_source r.source ]; rng }
     | None, _ => quiet_act st
 
 := breaker_act (user : string) (posts : list rooted) (st : exsss) : acted =
@@ -166,17 +169,20 @@ test personas static =
     | Nil => acc
     | live => round_robin (live |> each rest_of) (listm.append acc (live |> spread (take_first 1i32)))
 
-:== cast = {streams : list (list event); broken : list string; rng : exsss; n : i32}
+:== cast = { streams : list (list event); broken : list string; rng : exsss; n : i32 }
 
 := user_of (p : persona) (n : i32) : string = persona_name p ++# sm'.obj_to_string n
 
 := acted_in (posts : list rooted) (c : cast) (p : persona) : cast =
     := a = act p (user_of p c.n) posts c.rng
-    {streams = listm.append c.streams [a.act_events]; broken = listm.append c.broken a.broken; rng = a.rng; n = c.n + 1i32}
+    { streams = listm.append c.streams [ a.act_events ]; broken = listm.append c.broken a.broken; rng = a.rng;
+        n = c.n + 1i32 }
+
+:= fresh_cast (st : exsss) : cast = { streams = Nil; broken = Nil; rng = st; n = 1i32 }
 
 :~ persona_events (posts : list rooted) (personas : list persona) (st : exsss) : acted =
-    := c = personas |> listm.fold (acted_in posts) {streams = Nil; broken = Nil; rng = st; n = 1i32}
-    {act_events = round_robin c.streams Nil; broken = c.broken; rng = c.rng}
+    := c = personas |> listm.fold (acted_in posts) (fresh_cast st)
+    { act_events = round_robin c.streams Nil; broken = c.broken; rng = c.rng }
 
 test numbers_at_the_end_are_broken =
     := ~s = "///- --test\n1 + 1 |> _assert_eq 2  \n"

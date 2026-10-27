@@ -43,15 +43,19 @@ test chain static =
 
 := chain_of (posts : list framed) : chain_reading =
     ?= keep (outside posts) posts ?|
-    | root :: Nil => chain_from posts root [root]
+    | root :: Nil => chain_from posts root [ root ]
     | first :: second :: _ => second_root posts first second
     | Nil => ChainMissing
 
-:= chain_json (l : list framed) : string =
-    items (l |> each \ (f : framed) => object [member "id" (quoted_text (post_text f.id)); member "text" (json_string f.text)])
+:= framed_json (f : framed) : string =
+    object [ member "id" (quoted_text (post_text f.id)); member "text" (json_string f.text) ]
+
+:= chain_json (l : list framed) : string = items (l |> each framed_json)
 
 := roots_refusal (id : string) : string =
-    "post " ++# id ++# " replies to a post outside the thread's chain (an edited or deleted post?); --resume needs one unbroken chain"
+    "post "
+    ++# id
+    ++# " replies to a post outside the thread's chain (an edited or deleted post?); --resume needs one unbroken chain"
 
 := chain_refusal (c : chain_reading) : string =
     ?= c ?|
@@ -66,7 +70,8 @@ test chain static =
     | ChainRead l => 0i32, chain_json l, ""
     | refused => 4i32, "", chain_refusal refused
 
-:= post_of (id : string) (parent : string) (text : string) : framed = {id = post_id id; text; history = [post_id id]; urls = Nil; parent = optional_post parent}
+:= post_of (id : string) (parent : string) (text : string) : framed =
+    { id = post_id id; text; history = [ post_id id ]; urls = Nil; parent = optional_post parent }
 
 := ids_listed (l : list framed) : string = l |> each (\ (f : framed) => post_text f.id) |> delimited ","
 
@@ -77,7 +82,7 @@ test chain static =
     | ChainRoots id => "second root " ++# id
     | ChainMissing => "none"
 
-:= three_posts () : list framed = [post_of "3" "2" "c1 3/3"; post_of "1" "" "c1 1/3"; post_of "2" "1" "c1 2/3"]
+:= three_posts () : list framed = [ post_of "3" "2" "c1 3/3"; post_of "1" "" "c1 1/3"; post_of "2" "1" "c1 2/3" ]
 
 test a_thread_chain_runs_from_its_root_to_the_last_reply =
     := ~posts = three_posts ()
@@ -85,7 +90,7 @@ test a_thread_chain_runs_from_its_root_to_the_last_reply =
 
 test a_chain_keeps_multiline_quoted_texts =
     := ~text = "c1 1/1\nsay \"hi\""
-    [post_of "1" "" text] |> chain_json |> parse_json |> collect (at_key "text") |> _assert_eq [text]
+    [ post_of "1" "" text ] |> chain_json |> parse_json |> collect (at_key "text") |> _assert_eq [ text ]
 
 test a_branch_or_a_second_root_refuses =
     := ~posts = three_posts ()
@@ -94,7 +99,8 @@ test a_branch_or_a_second_root_refuses =
 
 :== ask = string * string * string
 
-:= thread_pages (base : string) (bearer : string) (id : string) : pages_reply = $'xc_thread::xc_thread_pages(&*!base, &*!bearer, &*!id)'
+:= thread_pages (base : string) (bearer : string) (id : string) : pages_reply = $'xc_thread::xc_thread_pages(&*!base, \
+    &*!bearer, &*!id)'
 
 := chains (x : ask) : pages_reply =
     x |> \ (base, bearer, id) =>
@@ -103,5 +109,5 @@ test a_branch_or_a_second_root_refuses =
 
 ///> _
 := main () : i32 =
-    !!!!Export("xc_chain", ((\ x => chains x) : ask -> pages_reply))
+    export "xc_chain" ((\ x => chains x) : ask -> pages_reply)
     0i32

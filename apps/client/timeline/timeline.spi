@@ -15,5 +15,5 @@ test timeline static =
 
 ///> _
 := main () : i32 =
-    !!!!Export("xc_timeline_fields", ((\ () => timeline_fields ()) : () -> command_fields))
+    export "xc_timeline_fields" ((\ () => timeline_fields ()) : () -> command_fields)
     0i32

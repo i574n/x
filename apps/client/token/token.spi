@@ -47,13 +47,14 @@ test token static =
 
 := temp_of (path : string) : string = path ++# ".tmp"
 
-:= file_replaced (path : string) (text : string) : bool = synced_write (temp_of path) text && renamed (temp_of path) path
+:= file_replaced (path : string) (text : string) : bool =
+    synced_write (temp_of path) text && renamed (temp_of path) path
 
-:== tokens = {access_token : string; refresh_token : string; expires_in : string}
+:== tokens = { access_token : string; refresh_token : string; expires_in : string }
 
 := tokens_of (doc : json) : tokens =
     := expires_in = sm'.obj_to_string (doc |> field "expires_in" |> number_of)
-    {access_token = at_key "access_token" doc; refresh_token = at_key "refresh_token" doc; expires_in}
+    { access_token = at_key "access_token" doc; refresh_token = at_key "refresh_token" doc; expires_in }
 
 := token_form (client_id : string) (refresh_token : string) : string =
     "grant_type=refresh_token&refresh_token=" ++# percent refresh_token ++# "&client_id=" ++# percent client_id
@@ -81,20 +82,28 @@ test token static =
 := line_end (lines : list string) : string = ? has (sm'.ends_with "\r") lines ?> "\r" |: ""
 
 := with_key (key : string) (value : string) (lines : list string) : list string =
-    ? has_key key lines ?> lines |> each (key_line key value) |: listm.append lines [key ++# "=" ++# value ++# line_end lines]
+    ? has_key key lines
+    ?> lines |> each (key_line key value)
+    |: listm.append lines [ key ++# "=" ++# value ++# line_end lines ]
 
 := trailing (lines : list string) : list string =
     ?= listm.rev lines ?|
     | "" :: rest => listm.rev rest
     | _ => lines
 
+:= with_tokens (t : tokens) (lines : list string) : list string =
+    lines |> with_key "X_OAUTH2_ACCESS_TOKEN" t.access_token |> with_key "X_OAUTH2_REFRESH_TOKEN" t.refresh_token
+
 :~ rewritten (text : string) (t : tokens) : string =
-    := lines = split_on "\n" text |> trailing
-    := lines = lines |> with_key "X_OAUTH2_ACCESS_TOKEN" t.access_token |> with_key "X_OAUTH2_REFRESH_TOKEN" t.refresh_token
+    := lines = split_on "\n" text |> trailing |> with_tokens t
     sm'.concat_list "\n" lines ++# "\n"
 
 := renewed (path : string) (t : tokens) : string =
-    "renewed X_OAUTH2_ACCESS_TOKEN and X_OAUTH2_REFRESH_TOKEN in " ++# path ++# "; the access token expires in " ++# t.expires_in ++# " s"
+    "renewed X_OAUTH2_ACCESS_TOKEN and X_OAUTH2_REFRESH_TOKEN in "
+    ++# path
+    ++# "; the access token expires in "
+    ++# t.expires_in
+    ++# " s"
 
 := no_tokens () : string = "the token reply had no access_token or refresh_token"
 
@@ -125,7 +134,7 @@ test token static =
     := status, body = reply
     ? accepted status ?> saved path text (tokens_of (parse_json body)) |: failed_reply status body
 
-:== client = {base : string; client_id : string; client_secret : string}
+:== client = { base : string; client_id : string; client_secret : string }
 
 := exchanged (c : client) (refresh_token : string) (path : string) (text : string) : i32 * string =
     := form = token_form c.client_id refresh_token
@@ -136,16 +145,17 @@ test token static =
 :~ refreshed (x : refresh_args) : i32 * string =
     := base, client_id, client_secret, refresh_token, path = x
     := file = read_text path
-    ? text_read file ?> exchanged {base client_id client_secret} refresh_token path (text_of_file file)
+    ? text_read file ?> exchanged { base client_id client_secret } refresh_token path (text_of_file file)
     |: unread path
 
-:= renewed_tokens () : tokens = {access_token = "new"; refresh_token = "r2"; expires_in = "7200"}
+:= renewed_tokens () : tokens = { access_token = "new"; refresh_token = "r2"; expires_in = "7200" }
 
 test renewal_replaces_and_appends_keys =
     := ~text = "X_BEARER_TOKEN=kept\r\nX_OAUTH2_ACCESS_TOKEN=old\r\n"
-    rewritten text (renewed_tokens ()) |> _assert_eq "X_BEARER_TOKEN=kept\r\nX_OAUTH2_ACCESS_TOKEN=new\r\nX_OAUTH2_REFRESH_TOKEN=r2\n"
+    rewritten text (renewed_tokens ())
+    |> _assert_eq "X_BEARER_TOKEN=kept\r\nX_OAUTH2_ACCESS_TOKEN=new\r\nX_OAUTH2_REFRESH_TOKEN=r2\n"
 
 ///> _
 := main () : i32 =
-    !!!!Export("xc_refresh", ((\ x => refreshed x) : refresh_args -> i32 * string))
+    export "xc_refresh" ((\ x => refreshed x) : refresh_args -> i32 * string)
     0i32

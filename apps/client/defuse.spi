@@ -1,0 +1,175 @@
+///- --package .
+///> rust
+///> gleam
+test defuse static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< tlds
+
+:== tld_check = string -> bool
+
+:~ ascii_of (g : string) : i32 = ? g = "" ?> 0i32 |? sm'.length g = 1i32 ?> first_code_point g |: 256i32
+
+:= in_range (low : i32) (high : i32) (c : i32) : bool = c >= low && c <= high
+
+:~ ascii_letter (g : string) : bool =
+    := c = ascii_of g
+    in_range 65i32 90i32 c || in_range 97i32 122i32 c
+
+:~ label_glyph (g : string) : bool = ascii_letter g || in_range 48i32 57i32 (ascii_of g) || g = "_" || g = "-"
+
+:~ run_glyph (g : string) : bool = label_glyph g || g = "."
+
+:~ blocks_domain (prev : string) : bool = prev = "@" || prev = "/" || ascii_of prev > 127i32
+
+:~ ^ run_of (l : list string) (acc : list string) : list string * list string =
+    ?= l ?|
+    | g :: rest ?& run_glyph g => run_of rest (g :: acc)
+    | _ => listm.rev acc, l
+
+:~ ^ label_before (l : list string) (acc : list string) : string =
+    ?= l ?|
+    | g :: rest ?& label_glyph g => label_before rest (g :: acc)
+    | _ => sm'.concat_list "" acc
+
+:~ ^ letters_after (l : list string) (acc : list string) : string * bool =
+    ?= l ?|
+    | g :: rest ?& ascii_letter g => letters_after rest (g :: acc)
+    | g :: _ => sm'.concat_list "" (listm.rev acc), g = "."
+    | [] => sm'.concat_list "" (listm.rev acc), !+
+
+:~ tld_ok (known : tld_check) (label : string) (tld : string) : bool =
+    := n = sm'.length tld
+    n >= 2i32 && n <= 63i32 && known tld && (n <> 2i32 || sm'.length label > 2i32)
+
+:~ linked_dot (known : tld_check) (before : list string) (after : list string) : bool =
+    := tld, ends = letters_after after []
+    := label = label_before before []
+    ends && (tld_ok known label tld || (label = "t" && tld = "co"))
+
+:~ after_label (before : list string) : bool =
+    ?= before ?|
+    | g :: _ => label_glyph g
+    | [] => !-
+
+:~ defusable (known : tld_check) (before : list string) (g : string) (rest : list string) : bool =
+    g = "." && after_label before && linked_dot known before rest
+
+:= spaced_before (defused : bool) (acc : list string) : list string = ? defused ?> zero_width_space () :: acc |: acc
+
+:~ ^ defused_run (known : tld_check) (b : list string) (l : list string) (acc : list string) : list string =
+    ?= l ?|
+    | g :: r => defused_run known (g :: b) r (g :: spaced_before (defusable known b g r) acc)
+    | [] => listm.rev acc
+
+:~ last_or (fallback : string) (l : list string) : string = listm.fold (\ _ g => g) fallback l
+
+:~ run_text (known : tld_check) (prev : string) (run : list string) : list string =
+    ? blocks_domain prev ?> run |: defused_run known [] run []
+
+:== piece = string * list string
+
+:~ run_piece (p : string) (l : list string) : string * list string * piece =
+    := run, r = run_of l []
+    last_or p run, r, (p, run)
+
+:~ ^ pieces_from (p : string) (l : list string) (acc : list piece) : list piece =
+    ?= l ?|
+    | g :: _ ?& run_glyph g => run_piece p l |> \ (z, r, x) => pieces_from z r (x :: acc)
+    | g :: r => pieces_from g r ((p, [ g ]) :: acc)
+    | [] => listm.rev acc
+
+:~ defused_dots_by (known : tld_check) (s : string) : string =
+    pieces_from "" (graphemes s) [] |> spread (\ (p, run) => run_text known p run) |> sm'.concat_list ""
+
+:= defused_dots (s : string) : string = defused_dots_by is_tld s
+
+:= zw (s : string) : string = sm'.replace "|" (zero_width_space ()) s
+
+test only_dots_before_a_known_tld_are_defused =
+    := ~s = "listm.map.foo head.zzz x.io a.b.post"
+    defused_dots s |> _assert_eq (zw "listm|.map|.foo head.zzz x.io a.b|.post")
+
+test blocked_runs_and_numbers_stay_plain =
+    := ~at = "@"
+    defused_dots (at ++# "x.map /y.map 1.5 t.co") |> _assert_eq (at ++# zw "x.map /y.map 1.5 t|.co")
+
+:~ word_glyph (g : string) : bool = label_glyph g && g <> "-"
+
+:~ wide_letter (g : string) : bool = ascii_letter g || ascii_of g > 127i32
+
+:~ ^ word_length (l : list string) (n : i32) : i32 * list string =
+    ?= l ?|
+    | g :: rest ?& word_glyph g => word_length rest (n + 1i32)
+    | _ => n, l
+
+:~ first_is (ok : string -> bool) (l : list string) : bool =
+    ?= l ?|
+    | g :: _ => ok g
+    | [] => !-
+
+:~ mention_quiet (prev : string) : bool = not (word_glyph prev || wide_letter prev || sm'.contains prev "!#$%&*@")
+
+:~ mention_after (prev : string) (rest : list string) : bool =
+    := n, tail = word_length rest 0i32
+    mention_quiet prev && n >= 1i32 && n <= 15i32 && not (first_is (\ g => word_glyph g || g = "@") tail)
+
+:~ ^ tag_has_letter (l : list string) : bool =
+    ?= l ?|
+    | g :: rest ?& word_glyph g || wide_letter g => wide_letter g || tag_has_letter rest
+    | _ => !-
+
+:~ hashtag_after (prev : string) (rest : list string) : bool =
+    not (word_glyph prev || wide_letter prev || prev = "&" || prev = "#") && tag_has_letter rest
+
+:~ ^ letters_length (l : list string) (n : i32) : i32 * list string =
+    ?= l ?|
+    | g :: rest ?& ascii_letter g => letters_length rest (n + 1i32)
+    | _ => n, l
+
+:~ suffix_ok (l : list string) : list string =
+    ?= l ?|
+    | g :: rest ?& g = "." || g = "_" =>
+        := n, tail = letters_length rest 0i32
+        ? n >= 1i32 && n <= 2i32 ?> tail |: l
+    | _ => l
+
+:~ cash_quiet (prev : string) : bool = not (word_glyph prev || wide_letter prev || prev = "$")
+
+:~ cashtag_after (prev : string) (rest : list string) : bool =
+    := n, tail = letters_length rest 0i32
+    cash_quiet prev && n >= 1i32 && n <= 6i32 && not (first_is (\ g => word_glyph g || wide_letter g) (suffix_ok tail))
+
+:~ tags (p : string) (g : string) (r : list string) : bool =
+    (g = "@" && mention_after p r) || (g = "#" && hashtag_after p r) || (g = "$" && cashtag_after p r)
+
+:~ ^ entities_from (p : string) (l : list string) (acc : list string) : list string =
+    ?= l ?|
+    | g :: r ?& tags p g r => entities_from g r (zero_width_space () :: g :: acc)
+    | g :: r => entities_from g r (g :: acc)
+    | [] => listm.rev acc
+
+:~ defused_entities (s : string) : string = entities_from "" (graphemes s) [] |> sm'.concat_list ""
+
+test entity_sigils_get_a_zero_width_space =
+    := ~at, hash, cash = "@", "#", "$"
+    defused_entities (at ++# "bob " ++# hash ++# "tag " ++# cash ++# "ABC")
+    |> _assert_eq (at ++# zw "|bob " ++# hash ++# zw "|tag " ++# cash ++# zw "|ABC")
+
+:= sigil_restored (sigil : string) (s : string) : string = sm'.replace (sigil ++# zero_width_space ()) sigil s
+
+:~ restored_text (s : string) : string =
+    sm'.replace (defused_dot ()) "." s |> sigil_restored "@" |> sigil_restored "#" |> sigil_restored "$"
+
+test restoring_undoes_both_defusings =
+    := ~at, hash = "@", "#"
+    := s = "see listm.map " ++# at ++# "bob " ++# hash ++# "tag"
+    s |> defused_dots |> defused_entities |> restored_text |> _assert_eq s
+
+test emails_numbers_and_long_names_stay_plain =
+    := ~at, hash, cash = "@", "#", "$"
+    defused_entities ("a" ++# at ++# "b.co " ++# hash ++# "123 " ++# cash ++# "ABCDEFG")
+    |> _assert_eq ("a" ++# at ++# "b.co " ++# hash ++# "123 " ++# cash ++# "ABCDEFG")

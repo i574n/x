@@ -1,4 +1,4 @@
-///- --package ..
+///- --package .. --timeout 600000
 ///> gleam
 test simframes static =
     :< testing
@@ -15,38 +15,40 @@ test simframes static =
 :< personas
 
 := split_export () : () =
-    !!!!Export("split_cell", ((\ (label, limit, source) => split_cell (cell_id label) limit source) : string * i32 * string -> list string))
+    export
+        "split_cell"
+        ((\ (label, limit, source) => split_cell (cell_id label) limit source) : string * i32 * string -> list string)
 
 := splitter_exports () : () =
     split_export ()
-    !!!!Export("file_cells", ((\ text => file_cells text) : string -> list string))
-    !!!!Export("thread_posts", ((\ text => posts_of text) : string -> list string))
+    export "file_cells" ((\ text => file_cells text) : string -> list string)
+    export "thread_posts" ((\ text => posts_of text) : string -> list string)
 
 :== staged_cells = string * i32 * i32 * i32 * string * i32 * bool
 
 := staged_stream (x : staged_cells) : string =
     := cells, seed, users, edits, personas, permille, framed = x
-    scenario_stream {seed users edits personas permille framed} (split_all (char_of 0i32) cells)
+    scenario_stream { seed users edits personas permille framed } (split_all (char_of 0i32) cells)
 
 := staged_final (x : staged_cells) : string =
     := cells, seed, users, edits, personas, permille, framed = x
-    scenario_final {seed users edits personas permille framed} (split_all (char_of 0i32) cells)
+    scenario_final { seed users edits personas permille framed } (split_all (char_of 0i32) cells)
 
 := stream_export () : () =
-    !!!!Export("scenario_stream", ((\ x => staged_stream x) : staged_cells -> string))
-    !!!!Export("scenario_final", ((\ x => staged_final x) : staged_cells -> string))
+    export "scenario_stream" ((\ x => staged_stream x) : staged_cells -> string)
+    export "scenario_final" ((\ x => staged_final x) : staged_cells -> string)
 
 :== world_cells = string * i32 * i32 * string * i32 * i32 * i32 * string * string * string
 
 := ask_of (x : world_cells) : world_ask =
     := _, seed, edits, personas, id_base, lost, lost_cells, base_time, user_id, username = x
-    {seed edits personas id_base losses = {lost lost_cells}; base_time account = {user_id username}}
+    { seed edits personas id_base losses = { lost lost_cells }; base_time account = { user_id username } }
 
 := staged_world (x : world_cells) : string * string =
     := cells, _, _, _, _, _, _, _, _, _ = x
     world_files (ask_of x) (split_all (char_of 0i32) cells)
 
-:= world_export () : () = !!!!Export("world_files", ((\ x => staged_world x) : world_cells -> string * string))
+:= world_export () : () = export "world_files" ((\ x => staged_world x) : world_cells -> string * string)
 
 :== run_cells = string * i32 * i32 * i32 * i32 * i32 * string * bool * i32 * i32
 
@@ -59,18 +61,18 @@ test threads_of_splits_threads_then_cells =
 := run_cast (x : run_cells) : casting =
     := _, seed, users, edits, breaking, churn, personas, _, _, _ = x
     := c = plain_casting seed
-    {c ?| users = users; edits = edits; breaking = breaking; churn = churn; personas = parsed_personas personas}
+    { c ?| users = users; edits = edits; breaking = breaking; churn = churn; personas = parsed_personas personas }
 
 := run_ask_of (x : run_cells) : run_ask =
     := _, _, _, _, _, _, _, framed, schedule, permille = x
-    {cast = run_cast x; framed; schedule; permille}
+    { cast = run_cast x; framed; schedule; permille }
 
 := staged_run (x : run_cells) : string * i32 * i32 * string =
     := threads, _, _, _, _, _, _, _, _, _ = x
     := text, posts, events, broken = corpus_run (run_ask_of x) (threads_of threads)
     text, posts, events, delimited (char_of 0i32) broken
 
-:= run_export () : () = !!!!Export("corpus_run", ((\ x => staged_run x) : run_cells -> string * i32 * i32 * string))
+:= run_export () : () = export "corpus_run" ((\ x => staged_run x) : run_cells -> string * i32 * i32 * string)
 
 := joined_broken (r : string * list string) : string * string =
     := text, broken = r
@@ -88,25 +90,25 @@ test threads_of_splits_threads_then_cells =
 
 := paced (x : pacing_cells) : string =
     := text, seed, permille, window = x
-    rescheduled text seed {permille window}
+    rescheduled text seed { permille window }
 
 := raw_exports () : () =
-    !!!!Export("corpus_raw", ((\ x => corpus_raw x) : run_cells -> string * string))
-    !!!!Export("cells_raw", ((\ x => cells_raw x) : run_cells -> string * string))
+    export "corpus_raw" ((\ x => corpus_raw x) : run_cells -> string * string)
+    export "cells_raw" ((\ x => cells_raw x) : run_cells -> string * string)
 
 := facade_exports () : () =
     raw_exports ()
-    !!!!Export("rescheduled", ((\ x => paced x) : pacing_cells -> string))
-    !!!!Export("break_source", ((\ s => break_source s) : string -> string))
+    export "rescheduled" ((\ x => paced x) : pacing_cells -> string)
+    export "break_source" ((\ s => break_source s) : string -> string)
 
 := check_exports () : () =
-    !!!!Export("checked_text", ((\ t => checked_text t) : string -> string))
-    !!!!Export("commute_text", ((\ (a, b) => commute_text a b) : string * string -> string))
+    export "checked_text" ((\ t => checked_text t) : string -> string)
+    export "commute_text" ((\ (a, b) => commute_text a b) : string * string -> string)
 
 := invariant_exports () : () =
     check_exports ()
-    !!!!Export("breaking_text", ((\ t => breaking_text t) : string -> string))
-    !!!!Export("masked_text", ((\ t => masked_text t) : string -> string))
+    export "breaking_text" ((\ t => breaking_text t) : string -> string)
+    export "masked_text" ((\ t => masked_text t) : string -> string)
 
 ///> _
 := main () : i32 =
