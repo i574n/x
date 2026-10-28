@@ -257,7 +257,7 @@ xc: 3 API requests, 5 posts read, 1 shown
 
 ### Programs posted as threads
 
-A program can travel as a thread: each cell is split into posts of at most 280 weighted characters, each post starting with a `CELL k/n` line (the cell's name and the post's place in it, such as `p2 1/6`), and each post replies to the one before it. `xc thread ID` reads the author's posts of that conversation (`conversation_id:` and `from:` in one full-archive search from the root post's `created_at`, paged, so a thread of any age is found: `search/recent` only sees 7 days and `search/all` defaults to 30), keeps the latest version of every edited post (the last id in `edit_history_post_ids`), expands `t.co` links back from the entities, undoes the API's HTML escaping (`&amp;`, `&lt;`, `&gt;`), removes the zero-width spaces `xc post-thread` puts before dots and prints the cells in posting order. This thread was posted by the simulator (`apps/sim`, `mix xsim.world`) from the first cells of `prelude.spi`:
+A program can travel as a thread: each cell is split into posts of at most 280 weighted characters, each post starting with a `CELL k/n` line (the cell's name and the post's place in it, such as `p2 1/6`), and each post replies to the one before it. `xc thread ID` reads the author's posts of that conversation (`conversation_id:` and `from:` in one full-archive search from the root post's `created_at`, paged, so a thread of any age is found: `search/recent` only sees 7 days and `search/all` defaults to 30), keeps the latest version of every edited post (the last id in `edit_history_post_ids`), expands `t.co` links back from the entities, undoes the API's HTML escaping (`&amp;`, `&lt;`, `&gt;`), removes the zero-width spaces `xc post-thread` puts before link dots and after sigils and prints the cells in posting order. This thread was posted by the simulator (`apps/sim`, `mix xsim.world`) from the first cells of `prelude.spi`:
 
 ```powershell
 xc thread 3000001
@@ -271,26 +271,14 @@ xc: 2 API requests
 :< sm'_operators
 := each \* a b. (f : a -> b) (l : list a) : list b = listm.foldBack (\ x acc => f x :: acc) l Nil
 := keep \* t. (ok : t -> bool) (l : list t) : list t = listm'.filter ok l
-:= spread \* a b. (f : a -> list b) (l : list a) : list b =
-    listm.foldBack (\ x acc => listm.append (f x) acc) l Nil
+:= spread \* a b. (f : a -> list b) (l : list a) : list b = listm'.collect f l
 := first_where \* t. (ok : t -> bool) (l : list t) : option t = listm'.try_find_ ok l
 := has \* t. (ok : t -> bool) (l : list t) : bool = listm'.exists' ok l
-:= take_first \* t. (n : i32) (l : list t) : list t =
-    :~ ^ go (n : i32) (l : list t) : list t =
-        ?= l ?|
-        | x :: xs ?& n > 0 => x :: go (n - 1) xs
-        | _ => Nil
-    go n l
-:= then_ok \* a b e. (f : a -> result b e) (r : result a e) : result b e =
-    ?= r ?|
-    | Ok x => f x
-    | Error e => Error e
+:= take_first \* t. (n : i32) (l : list t) : list t = listm'.take_ n l
+:= then_ok \* a b e. (f : a -> result b e) (r : result a e) : result b e = resultm.bind f r
 := map_ok \* a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
 := cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s
-:~ ^ split_on (sep : string) (s : string) : list string =
-    := i : i32 = sm'.index_of sep s
-    ? i < 0i32 ?> [ s ]
-    |: cut 0i32 i s :: split_on sep (cut (i + 1i32) (sm'.length s - i - 1i32) s)
+:= split_on (sep : string) (s : string) : list string = sm'.split_list sep s
 := pieces (sep : string) (s : string) : list string = ? s = "" ?> Nil |: split_on sep s
 :~ delimited (sep : string) (l : list string) : string = sm'.concat_list sep l
 := rest_from (i : i32) (s : string) : string = cut i (sm'.length s - i) s
@@ -435,7 +423,7 @@ xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_
 
 ### Posting a program as a thread
 
-`xc post-thread FILE` is the other half of `xc thread`: it cuts FILE into cells at each blank line that comes before a line starting at column 0, splits each cell into `CELL k/n` posts of at most 280 weighted characters (CJK and emoji weigh 2), cuts between words, never ends a post on whitespace (X trims it), and posts them as one reply chain. X turns anything that looks like a domain into a `t.co` link and keeps no trace of how it was written (`listm.map` and `https://listm.map` come back with the same entities), so a dot between a letter or digit and a letter gets a zero-width space (U+200B, weight 1) before it: X links nothing and `xc thread` removes the spaces. `--dry-run` shows the posts and what creating them costs without sending anything:
+`xc post-thread FILE` is the other half of `xc thread`: it cuts FILE into cells at each blank line that comes before a line starting at column 0, splits each cell into `CELL k/n` posts of at most 280 weighted characters (CJK and emoji weigh 2), cuts between words, never ends a post on whitespace (X trims it), and posts them as one reply chain. X turns anything that looks like a domain into a `t.co` link and keeps no trace of how it was written (`listm.map` and `https://listm.map` come back with the same entities), so a dot that would make a link gets a zero-width space (U+200B, weight 1) before it: one whose last label is a known top-level domain (`postability/tlds.txt`; a two-letter one only after a label longer than two letters, so `x.io` stays plain), not right after `@`, `/` or a non-ASCII glyph, plus `t.co`. `listm.map` is defused (`.map` is a top-level domain), `listm.foldBack` is not. An `@`, `#` or `$` that X would turn into a mention, hashtag or cashtag gets the space after the sigil. X links and tags nothing, and `xc thread` removes the spaces. `--dry-run` shows the posts and what creating them costs without sending anything:
 
 ```powershell
 xc post-thread --dry-run checks/checks.spi
@@ -492,6 +480,19 @@ c9 1/1
     export "xc_username" ((\ t => username_or_empty t) : string -> string)
     0i32
 --- 9 posts, $0.135 to create
+```
+
+On a one-line file, only the domain dot and the mention get the space; `listm.foldBack` and `x.io` stay as written:
+
+```powershell
+xc post-thread --dry-run e2e/links.txt
+```
+
+```text
+--- post 1 of 1, weight 66
+c1 1/1
+go x​.com and ask @​bob; listm.foldBack and x.io stay plain
+--- 1 posts, $0.015 to create
 ```
 
 With user credentials it posts, one line per post with its id:
@@ -605,6 +606,7 @@ xc: post 2 of the thread differs from post 2 of the file (found 'c2 1/1', planne
 - `XC_SITE=mastodon` posts to `MASTODON_BASE_URL` with `MASTODON_ACCESS_TOKEN`. A post holds up to 500 characters (graphemes), and every `http://` or `https://` link counts as at least 23, as Mastodon counts it. Dots are not defused, since Mastodon only links URLs that start with a scheme.
 - `XC_SITE=bluesky` signs in once per thread with `BLUESKY_IDENTIFIER` and `BLUESKY_APP_PASSWORD` (an app password, not your account password) against `BLUESKY_BASE_URL` (default `https://bsky.social`), then posts each part as an `app.bsky.feed.post` record that replies to the previous part and names the thread root. A post holds up to 300 graphemes and 3,000 bytes.
 - `xc post-thread --dry-run` shows the split for the chosen site; only X's split shows a price.
+- `xc delete-thread` and `xc post-thread --resume` find the thread's posts through X's API, so with another `XC_SITE` they exit 2 instead of reading X for posts that live elsewhere; `xc post` and `xc delete` work on every site.
 - Any other `XC_SITE` value exits 2.
 
 The tests post to local stand-ins for both sites (`e2e/social_stub.py`), so they cost nothing and need no account.
@@ -776,7 +778,9 @@ Shared modules, compiled into every crate that opens them:
 | `paging.spi` | a `pager e` (a token to a page or an `e`) walked until the last page; `xc_thread` injects its search requests, the tests a fake |
 | `glyphs.spi` | the only per-backend text primitives (graphemes, NFC, X weights, whitespace, code points, `split_all`, which splits a whole stream in one pass) as Rust/Gleam pairs, so everything above them compiles to both |
 | `protocol.spi` | `cell_id`, a nominal string for the cell name that frames, flaws and the sim world are keyed on; `post_id`, a nominal string for an X post id (`post_text` unwraps it at the wire and JSON edges, `same_post` compares, `optional_post` reads an absent parent as `None`); the `cN k/n` frame header, rendered by the writer and parsed by the reader from one definition (`header_rejection` says why a line is no header), and `thread_flaw` (`MissingFrames`, `ReplyGap`) with its notes and exit code |
-| `splitter.spi` | a file to its cells and each cell to posts of at most 280 weight: link dots defused, cuts between words, the `--dry-run` preview and price |
+| `tlds.spi` | the known top-level domains, in chunks of literals for `is_tld` |
+| `defuse.spi` | links-only defusing: a dot gets a zero-width space only where X would link it, a mention, hashtag or cashtag sigil gets one after it; `restored_text` undoes both |
+| `splitter.spi` | a file to its cells and each cell to posts of at most 280 weight: posted text defused per site (`posted_on`), cuts between words, the `--dry-run` preview and price |
 | `posts.spi` | `user_id`, a nominal string so a user id never mixes with a `post_id`; posts, references, urls and media, framed thread posts and which edit is `latest`; display entries and their one-line form between crates; newest-first merge sort, per-author caps, reference trees and hints |
 | `reading.spi` | the reading side of `splitter`: a posted text back to its header and body (link dots restored), frames grouped into cells in posting order, and each cell `Whole` (its source) or `Holed` (a `thread_flaw`) |
 | `cli.spi` | arguments to a typed command (`ShowTimeline`, `PublishPost`, `RemovePost`) with filters and views; validators arrive as a `checks` record |
@@ -794,14 +798,20 @@ Each entry is one Rust crate, and every generated file stays reviewable: `script
 | `xc_users` | `users/users.spi` | username lookup, followed accounts with paging, lookup by id |
 | `xc_fetch` | `fetch/fetch.spi` | each account's posts, with the ids they reference |
 | `xc_refs` | `refs/refs.spi` | referenced posts, level by level up to `--depth` |
-| `xc_write` | `write/write.spi` | posting and deleting with user credentials, threads as reply chains, a thread's posts deleted in one call |
+| `xc_requests` | `requests/requests.spi` | one write request to X, Mastodon or Bluesky: site and request in as JSON (`xc_create`, `xc_delete`), the Bluesky session (`xc_session`), the reply decoded or the failure as text |
+| `xc_write` | `write/write.spi` | the write modes over `xc_requests`: posting and deleting, threads as reply chains, resuming, a thread's posts deleted in one call |
 | `xc_digest` | `digest/digest.spi` | rebuilds posts from the gathered replies and writes each as a display entry line (author, text, counts, hints, references) |
 | `xc_view` | `view/view.spi` | reads entry lines, selects them and renders the timeline with its reference trees |
 | `xc_jsonl` | `jsonl/jsonl.spi` | the same selection as JSON Lines (`--json`) |
 | `xc_thread` | `thread/thread.spi` | a thread's root post and the author's posts of its conversation, paged from the root's time (`xc thread`), and their latest ids (`xc delete-thread`) |
 | `xc_locate` | `locate/locate.spi` | a thread's pages to located frames: latest edit versions, links expanded, headers parsed, every known post id |
 | `xc_assemble` | `assemble/assemble.spi` | glue: located frames from JSON through `reading`, so missing frames and lost cells are named, never rebuilt |
-| `xc_frames` | `frames/frames.spi` | glue: the splitter's posts as JSON with their weights, and the preview |
+| `xc_posted` | `posted/posted.spi` | a cell's text as the site will post it (for X: link dots defused here, entity sigils through `xc_entities`) |
+| `xc_domains` | `domains/domains.spi` | the top-level domain check, one call per candidate dot |
+| `xc_entities` | `entities/entities.spi` | entity-sigil defusing (a zero-width space after an `@`, `#` or `$` that X would turn into a mention, hashtag or cashtag), so `xc_posted` stays under the line limit |
+| `xc_weights` | `weights/weights.spi` | a posted cell's units and weights as JSON, and the weight of one post |
+| `xc_chunks` | `chunks/chunks.spi` | a posted cell split into posts of at most the site's weight |
+| `xc_frames` | `frames/frames.spi` | glue: the splitter's posts as JSON with their weights (through `xc_posted`, `xc_chunks` and `xc_weights`), and the preview |
 | `xc_token` | `token/token.spi` | OAuth 2.0 token renewal and the in-place env file rewrite (`xc refresh`) |
 | `xc` | `xc/xc.spi` | entry: environment, credentials, the order of calls, exit codes, output |
 

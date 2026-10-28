@@ -14,25 +14,25 @@ test simframes static =
 :< scenario
 :< personas
 
-:= split_export () : () =
-    export
-        "split_cell"
-        ((\ (label, limit, source) => split_cell (cell_id label) limit source) : string * i32 * string -> list string)
+:= joined_chunks (name : string) (limit : i32) (source : string) : string =
+    global "import xsim_split"
+    $'xsim_split.split_cell_joined(!name, !limit, !source)'
 
-:= splitter_exports () : () =
-    split_export ()
-    export "file_cells" ((\ text => file_cells text) : string -> list string)
-    export "thread_posts" ((\ text => posts_of text) : string -> list string)
+:= remote_split (label : string) (limit : i32) (source : string) : list string =
+    := joined = joined_chunks label limit source
+    ? joined = "" ?> [] |: split_all (char_of 0i32) joined
 
 :== staged_cells = string * i32 * i32 * i32 * string * i32 * bool
 
 := staged_stream (x : staged_cells) : string =
     := cells, seed, users, edits, personas, permille, framed = x
-    scenario_stream { seed users edits personas permille framed } (split_all (char_of 0i32) cells)
+    := g = { seed users edits personas permille framed chunking = remote_split }
+    scenario_stream g (split_all (char_of 0i32) cells)
 
 := staged_final (x : staged_cells) : string =
     := cells, seed, users, edits, personas, permille, framed = x
-    scenario_final { seed users edits personas permille framed } (split_all (char_of 0i32) cells)
+    := g = { seed users edits personas permille framed chunking = remote_split }
+    scenario_final g (split_all (char_of 0i32) cells)
 
 := stream_export () : () =
     export "scenario_stream" ((\ x => staged_stream x) : staged_cells -> string)
@@ -40,9 +40,14 @@ test simframes static =
 
 :== world_cells = string * i32 * i32 * string * i32 * i32 * i32 * string * string * string
 
+:= view_of (x : world_cells) : losses * account_view =
+    := _, _, _, _, _, lost, lost_cells, _, user_id, username = x
+    { lost lost_cells }, { user_id username }
+
 := ask_of (x : world_cells) : world_ask =
-    := _, seed, edits, personas, id_base, lost, lost_cells, base_time, user_id, username = x
-    { seed edits personas id_base losses = { lost lost_cells }; base_time account = { user_id username } }
+    := _, seed, edits, personas, id_base, _, _, base_time, _, _ = x
+    := losses, account = view_of x
+    { seed edits personas id_base losses base_time account chunking = remote_split }
 
 := staged_world (x : world_cells) : string * string =
     := cells, _, _, _, _, _, _, _, _, _ = x
@@ -65,7 +70,7 @@ test threads_of_splits_threads_then_cells =
 
 := run_ask_of (x : run_cells) : run_ask =
     := _, _, _, _, _, _, _, framed, schedule, permille = x
-    { cast = run_cast x; framed; schedule; permille }
+    { cast = run_cast x; framed; schedule; permille; chunking = remote_split }
 
 := staged_run (x : run_cells) : string * i32 * i32 * string =
     := threads, _, _, _, _, _, _, _, _, _ = x
@@ -116,6 +121,5 @@ test threads_of_splits_threads_then_cells =
     facade_exports ()
     run_export ()
     world_export ()
-    splitter_exports ()
     stream_export ()
     0i32

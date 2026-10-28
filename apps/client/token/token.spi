@@ -150,10 +150,12 @@ test token static =
 
 := renewed_tokens () : tokens = { access_token = "new"; refresh_token = "r2"; expires_in = "7200" }
 
+:= shown_cr (s : string) : string = sm'.replace "\r" "~" s
+
 test renewal_replaces_and_appends_keys =
     := ~text = "X_BEARER_TOKEN=kept\r\nX_OAUTH2_ACCESS_TOKEN=old\r\n"
-    rewritten text (renewed_tokens ())
-    |> _assert_eq "X_BEARER_TOKEN=kept\r\nX_OAUTH2_ACCESS_TOKEN=new\r\nX_OAUTH2_REFRESH_TOKEN=r2\n"
+    rewritten text (renewed_tokens ()) |> shown_cr
+    |> _assert_eq "X_BEARER_TOKEN=kept~\nX_OAUTH2_ACCESS_TOKEN=new~\nX_OAUTH2_REFRESH_TOKEN=r2~\n"
 
 ///> _
 := main () : i32 =

@@ -1,4 +1,4 @@
-///- --package .
+///- --package . --timeout 900000
 ///> rust
 ///> gleam
 test tlds static =

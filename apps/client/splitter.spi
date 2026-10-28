@@ -1,4 +1,4 @@
-///- --package .
+///- --package . --timeout 900000
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
 test splitter static =
@@ -15,15 +15,16 @@ test splitter static =
 
 :== units = list weighed
 
-:= posted_text (known : string -> bool) (s : string) : string = s |> defused_dots_by known |> defused_entities
+:= posted_text (known : string -> bool) (tagged : string -> string) (s : string) : string =
+    s |> defused_dots_by known |> tagged
 
-:= posted_by (known : string -> bool) (p : platform) (s : string) : string =
+:= posted_by (known : string -> bool) (tagged : string -> string) (p : platform) (s : string) : string =
     ?= p ?|
-    | OnX => posted_text known s
+    | OnX => posted_text known tagged s
     | OnMastodon => s
     | OnBluesky _ => s
 
-:= posted_on (p : platform) (s : string) : string = posted_by is_tld p s
+:= posted_on (p : platform) (s : string) : string = posted_by is_tld defused_entities p s
 
 :~ ^ glued (l : list string) (acc : list string) : list string =
     ?= l ?|
@@ -160,8 +161,12 @@ test splitter static =
 :~ split_cell_on (p : platform) (label : cell_id) (limit : i32) (source : string) : list string =
     split_units { limit; label; weigh = weight_on p } (weighed_on p (nfc source))
 
+:== cell_chunker = string -> i32 -> string -> list string
+
 :~ split_cell (label : cell_id) (limit : i32) (source : string) : list string =
     split_cell_on OnX label limit (posted_on OnX source)
+
+:= split_named (label : string) (limit : i32) (source : string) : list string = split_cell (cell_id label) limit source
 
 := indented (line : string) : bool = sm'.starts_with " " line || sm'.starts_with "\t" line
 
@@ -273,6 +278,10 @@ test long_plain_text_is_not_a_link =
 test dots_that_x_would_link_are_defused =
     := ~cell = "go x.com now"
     cell_posts 1i32 cell |> sm'.concat_list "|" |> _assert_eq ("c1 1/1\ngo x" ++# defused_dot () ++# "com now")
+
+test split_cell_posts_before_splitting =
+    := ~cell = "cell.app"
+    split_cell (cell_id "c1") 280i32 cell |> sm'.concat_list "|" |> _assert_eq ("cell" ++# defused_dot () ++# "app")
 
 test short_labels_before_two_letter_tlds_stay_plain =
     := ~cell = "go x.io now"

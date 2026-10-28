@@ -58,6 +58,8 @@ modules:
         cells
     domains/
         domains
+    entities/
+        entities
     posted/
         posted
     weights/

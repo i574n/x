@@ -13,7 +13,7 @@ defmodule Xsim.Frames do
 
   @defused_dot "\u200B."
 
-  def restored(text), do: String.replace(text, @defused_dot, ".")
+  def restored(text), do: text |> String.replace(@defused_dot, ".") |> String.replace(~r/([@#$])\x{200B}/u, "\\1")
 
   def frame_text(id, {k, n, body}), do: header(id, k, n) <> body
 
@@ -49,5 +49,5 @@ defmodule Xsim.Frames do
     end
   end
 
-  defp spiral(fun, args), do: fun |> Xsim.Spiral.call(args) |> Xsim.Spiral.listed()
+  defp spiral(fun, args), do: :xsim_split |> Xsim.Spiral.call(fun, args) |> Xsim.Spiral.listed()
 end

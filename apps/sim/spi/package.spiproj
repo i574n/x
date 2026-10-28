@@ -27,5 +27,7 @@ modules:
     runner_shell
     memory_watch
     xsim_shell_entry
+    xsim_split/
+        xsim_split
     simframes/
         simframes

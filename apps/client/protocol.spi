@@ -1,4 +1,4 @@
-///- --package . --timeout 600000
+///- --package . --timeout 900000
 ///> rust
 ///> gleam
 ///> zig

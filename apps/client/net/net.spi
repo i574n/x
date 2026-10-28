@@ -97,8 +97,8 @@ test net static =
 
 := basic_auth (user : string) (password : string) : string =
     := pair = user ++# ":" ++# password
-    "Basic " ++# $'Rc::<str>::from(base64::Engine::encode(&base64::engine::general_purpose::STANDARD, \
-        (!pair).as_bytes()))'
+    := encoded = $'Rc::<str>::from(base64::Engine::encode(&base64::prelude::BASE64_STANDARD, (!pair).as_bytes()))'
+    "Basic " ++# encoded
 
 :== form_post = string * string * string * string
 

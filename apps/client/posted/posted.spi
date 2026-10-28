@@ -11,7 +11,10 @@ test posted static =
 
 := known_remotely (tld : string) : bool = $'xc_domains::xc_is_tld(&*!tld)'
 
-:~ posted_named (name : string) (s : string) : string = posted_by known_remotely (platform_named name) s
+:= entities_remotely (s : string) : string = $'xc_entities::xc_defused_entities(&*!s)'
+
+:~ posted_named (name : string) (s : string) : string =
+    posted_by known_remotely entities_remotely (platform_named name) s
 
 test x_defuses_a_dot_it_would_link =
     := ~s = "go x.com"

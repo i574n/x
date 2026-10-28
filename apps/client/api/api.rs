@@ -111,9 +111,9 @@ fn posts_read_0(mut v0: Rc<str>) -> i32 {
     let v3: i32 = ((v2) as i32);
     let v4: i32 = v3.wrapping_sub(1i32);
     let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let mut v6: Rc<UH0> = from_2(v1, v4, v5);
+    let mut v6: Rc<UH0> = from_2(v1.clone(), v4, v5.clone());
     let v7: i32 = 0i32;
-    method1(v6, v7)
+    method1(v6.clone(), v7)
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
@@ -130,7 +130,7 @@ fn single_line_6(mut v0: Rc<str>) -> Rc<str> {
     let v7: Rc<str> = Rc::<str>::from(v5.replace(&*v6, &*v2));
     let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\t"); } LIT.with(|lit| lit.clone()) };
     let v9: Rc<str> = Rc::<str>::from(v7.replace(&*v8, &*v2));
-    v9
+    v9.clone()
 }
 fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
     let v3: bool = v1 >= 200i32;
@@ -152,13 +152,13 @@ fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
                 let v10: Rc<str> = string_slice(&v2.clone(), 0i32 as i64, 299i32 as i64);
                 let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
                 let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
-                v12
+                v12.clone()
             };
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) };
             let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v0));
             let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
             let v18: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v15, v16)), v13));
-            US0::US0_Error(v18)
+            US0::US0_Error(v18.clone())
         } else {
             US0::US0_Ok(v2.clone())
         }
@@ -169,7 +169,7 @@ fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
             let mut v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v0));
             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
             let v27: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v24, v25)), v2));
-            v27
+            v27.clone()
         } else {
             let v28: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v2).unwrap_or_default();
             let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("title"); } LIT.with(|lit| lit.clone()) };
@@ -194,25 +194,25 @@ fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
             let v53: Rc<str> = if v39 {
                 let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
                 let v42: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v31, v40)), v34));
-                v42
+                v42.clone()
             } else {
                 let v43: bool = &*v34 != "";
                 if v43 {
-                    v34
+                    v34.clone()
                 } else {
                     if v35 {
-                        v31
+                        v31.clone()
                     } else {
-                        let v44: Rc<str> = single_line_6(v2);
+                        let v44: Rc<str> = single_line_6(v2.clone());
                         let v45: i32 = (v44.clone().len() as i32);
                         let v46: bool = v45 <= 300i32;
                         if v46 {
                             v44.clone()
                         } else {
-                            let v47: Rc<str> = string_slice(&v44, 0i32 as i64, 299i32 as i64);
+                            let v47: Rc<str> = string_slice(&v44.clone(), 0i32 as i64, 299i32 as i64);
                             let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
                             let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v48));
-                            v49
+                            v49.clone()
                         }
                     }
                 }
@@ -224,9 +224,9 @@ fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
             let v59: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v56, v57)), v0));
             let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
             let v62: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v59, v60)), v53));
-            v62
+            v62.clone()
         };
-        US0::US0_Error(v63)
+        US0::US0_Error(v63.clone())
     }
 }
 fn classified_reply_4(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> (i32, Rc<str>) {

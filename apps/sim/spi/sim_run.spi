@@ -30,7 +30,7 @@ test sim_run static =
     { cancel = !+; rerun = !-; eviction = o.runner.eviction; naive = !-; limit = o.runner.max_concurrency }
 
 := flow_for (o : run_options) (s : scenario) : flow =
-    ? o.corpus.frames ?> exploded (post_limit ()) s.all_events |: s.all_events
+    ? o.corpus.frames ?> exploded split_named (post_limit ()) s.all_events |: s.all_events
 
 :== schedule_outcome = { line : string; sched : scheduler; found : list finding }
 

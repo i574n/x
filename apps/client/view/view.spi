@@ -12,8 +12,8 @@ test view static =
 := shown_lines (d : digest) (o : view_options) (shown : list entry) : string * i32 =
     shown |> spread (entry_lines d.pool o) |> sm'.concat_list "\n", listm.length shown
 
-:= selected_lines (text : string) (limit : i32) (per_author : i32) : string = $'xc_select::xc_select(&*!text, !limit, \
-    !per_author)'
+:= selected_lines (text : string) (limit : i32) (per_author : i32) : string =
+    $'xc_select::xc_select(&*!text, !limit, !per_author)'
 
 :~ rendered (text : string) (limit : i32) (per_author : i32) (depth : i32) (hints : bool) : string * i32 =
     := d = digest_of (selected_lines text limit per_author)

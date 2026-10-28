@@ -399,14 +399,14 @@ pub fn method28(v0: Uh0, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn go_29(v0: Int, v1: Uh3) -> Uh3 {
+pub fn taken_29(v0: Int, v1: Uh3) -> Uh3 {
     case v1  {
         Uh3Cons(v2, v3) -> {
             let v4 = v0 > 0
             case v4 {
                 True -> {
                     let v5 = spiral_wrap_signed(v0 - 1, 32)
-                    let v6 = go_29(v5, v3)
+                    let v6 = taken_29(v5, v3)
                     Uh3Cons(v2, v6)
                 }
                 False -> {
@@ -707,7 +707,7 @@ pub fn checked_text_0(v0: String) -> String {
                     }
                     _ -> {
                         let v25 = 5
-                        let v26 = go_29(v25, v23)
+                        let v26 = taken_29(v25, v23)
                         Us12Broken(v26)
                     }
                 }
@@ -722,7 +722,7 @@ pub fn checked_text_0(v0: String) -> String {
                     }
                     _ -> {
                         let v34 = 5
-                        let v35 = go_29(v34, v32)
+                        let v35 = taken_29(v34, v32)
                         Us12Broken(v35)
                     }
                 }
@@ -737,7 +737,7 @@ pub fn checked_text_0(v0: String) -> String {
                     }
                     _ -> {
                         let v43 = 5
-                        let v44 = go_29(v43, v41)
+                        let v44 = taken_29(v43, v41)
                         Us12Broken(v44)
                     }
                 }
@@ -752,7 +752,7 @@ pub fn checked_text_0(v0: String) -> String {
                     }
                     _ -> {
                         let v52 = 5
-                        let v53 = go_29(v52, v50)
+                        let v53 = taken_29(v52, v50)
                         Us12Broken(v53)
                     }
                 }
@@ -768,7 +768,7 @@ pub fn checked_text_0(v0: String) -> String {
                                 }
                                 _ -> {
                                     let v59 = 5
-                                    let v60 = go_29(v59, v57)
+                                    let v60 = taken_29(v59, v57)
                                     Us12Broken(v60)
                                 }
                             }

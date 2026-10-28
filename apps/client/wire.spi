@@ -8,6 +8,7 @@ test wire static =
 :< posts
 :< cli
 :< oauth1
+:< cursor_walk
 :< paging
 
 :! json = $'serde_json::Value'
@@ -66,6 +67,12 @@ test wire static =
     | CursorHalted : halted_cursor
 
 :== got r = result r failure
+
+:== created_out = i32 * string * string * string
+
+:== deleted_out = i32 * bool * string
+
+:== session_out = i32 * string * string * string
 
 :== usernames = list string
 
@@ -130,7 +137,7 @@ test wire static =
 
 := trimmed_base (base_url : string) : string =
     := n : i32 = sm'.length base_url
-    ? sm'.ends_with "/" base_url ?> sm'.slice 0i32 (n - 2i32) base_url |: base_url
+    ? sm'.ends_with "/" base_url ?> cut 0i32 (n - 1i32) base_url |: base_url
 
 := header_kind \* c. (a : authorizer c) : string =
     ?= a ?|
@@ -406,9 +413,13 @@ test wire static =
     := key, kind, at = record_type_key (), post_collection (), w.at
     $'serde_json::json\!({(&*!key): &*!kind, "text": &*!text, "createdAt": &*!at})'
 
-:= replying (record : json) (root : created_reply) (parent : created_reply) : json =
+:= reply_refs (root : created_reply) (parent : created_reply) : json =
     := up, back = ref_value root, ref_value parent
-    $'{ let mut r = !record.clone(); r["reply"] = serde_json::json\!({"root": !up, "parent": !back}); r }'
+    $'serde_json::json\!({"root": !up, "parent": !back})'
+
+:= reply_record (w : bluesky_writer) (text : string) (refs : json) : json =
+    := key, kind, at = record_type_key (), post_collection (), w.at
+    $'serde_json::json\!({(&*!key): &*!kind, "text": &*!text, "createdAt": &*!at, "reply": !refs})'
 
 := record_of (w : bluesky_writer) (record : json) : string =
     := repo, kind = w.repo, post_collection ()
@@ -417,7 +428,7 @@ test wire static =
 := post_write (w : bluesky_writer) (text : string) : verb = Write (record_of w (post_record w text))
 
 := reply_write (w : bluesky_writer) (text : string) (root : created_reply) (parent : created_reply) : verb =
-    Write (record_of w (replying (post_record w text) root parent))
+    Write (record_of w (reply_record w text (reply_refs root parent)))
 
 := rkey_of (uri : string) : string = rest_from (sm'.last_index_of "/" uri + 1i32) uri
 

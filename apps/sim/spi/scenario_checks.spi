@@ -13,6 +13,7 @@ test scenario_checks static =
 :< runner_checks
 :< personas
 :< scenario
+:< splitter
 :< schedule
 
 := elixir_head () : list string =
@@ -101,7 +102,7 @@ test heavy_churn_on_the_root_rekeys_everything_and_keeps_every_invariant =
 := long_cell () : string = sm'.replicate 40i32 "inl long_name_1 = 1\n"
 
 := framed_run (s : scenario) : scheduler =
-    scheduled_run (plain_faults ()) (exploded 120i32 s.all_events) 1i32 300i32 20i32
+    scheduled_run (plain_faults ()) (exploded split_named 120i32 s.all_events) 1i32 300i32 20i32
 
 := plain_run (s : scenario) : scheduler = scheduled_run (plain_faults ()) s.all_events 1i32 100i32 6i32
 
@@ -262,12 +263,12 @@ test a_paced_run_ends_where_the_unpaced_run_ends =
     from_cells { c ?| breaking = 1i32 } "" cells
 
 := framed_edits_run (s : scenario) : scheduler =
-    scheduled_run (plain_faults ()) (exploded 20i32 s.all_events) 1i32 300i32 12i32
+    scheduled_run (plain_faults ()) (exploded split_named 20i32 s.all_events) 1i32 300i32 12i32
 
 := frame_edit_shape (s : scenario) : bool * bool * bool =
     := edits = edit_count s.all_events
     := framed_count = (framed_edits_run s).in_box.tallies.framed_edits
-    edits > 0i32, second_edit_frames (exploded 20i32 s.all_events), framed_count = edits
+    edits > 0i32, second_edit_frames (exploded split_named 20i32 s.all_events), framed_count = edits
 
 := framed_ends (s : scenario) : bool * string =
     := framed = framed_edits_run s

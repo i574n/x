@@ -1,13 +1,15 @@
 defmodule Xsim.Spiral do
   @gleam_build Path.expand("../../frames/build/dev/erlang", __DIR__)
 
-  def call(fun, args) do
+  def call(fun, args), do: call(:xsim_frames, fun, args)
+
+  def call(module, fun, args) do
     unless :persistent_term.get({__MODULE__, :loaded}, false) do
       for ebin <- Path.wildcard(Path.join(@gleam_build, "*/ebin")), do: Code.prepend_path(ebin)
       :persistent_term.put({__MODULE__, :loaded}, true)
     end
 
-    apply(:xsim_frames, fun, args)
+    apply(module, fun, args)
   end
 
   def listed({_cons, head, tail}), do: [head | listed(tail)]

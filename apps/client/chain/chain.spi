@@ -99,8 +99,8 @@ test a_branch_or_a_second_root_refuses =
 
 :== ask = string * string * string
 
-:= thread_pages (base : string) (bearer : string) (id : string) : pages_reply = $'xc_thread::xc_thread_pages(&*!base, \
-    &*!bearer, &*!id)'
+:= thread_pages (base : string) (bearer : string) (id : string) : pages_reply =
+    $'xc_thread::xc_thread_pages(&*!base, &*!bearer, &*!id)'
 
 := chains (x : ask) : pages_reply =
     x |> \ (base, bearer, id) =>

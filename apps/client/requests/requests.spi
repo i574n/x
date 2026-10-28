@@ -12,12 +12,6 @@ test requests static =
 
 :== target = { on : platform; via : api user_context }
 
-:== created_out = i32 * string * string * string
-
-:== deleted_out = i32 * bool * string
-
-:== session_out = i32 * string * string * string
-
 := user_side (base : string) (token : string) (o : oauth1) (nonce : string) (stamp : string) : api user_context =
     ? token <> "" ?> user_api base token |: signed_api base o nonce stamp
 
@@ -135,6 +129,17 @@ test an_answer_names_root_and_parent =
 test a_bluesky_site_writes_as_its_account =
     := ~site = "{\"who\":{\"name\":\"bluesky\",\"repo\":\"did:e2e\"},\"clock\":{\"seconds\":\"0\"}}"
     platform_in site |> writer_of |> _assert_eq ("did:e2e", "1970-01-01T00:00:00Z")
+
+///> rust -d serde_json
+test a_bluesky_delete_reads_back_deleted =
+    := ~doc = "{}"
+    deleted_out_of (OnBluesky (unwritten ())) (Ok (parse_json doc, "")) |> _assert_eq (0i32, !+, "")
+
+///> rust -d serde_json
+test a_session_gives_a_token_or_why =
+    := ~doc = "{\"accessJwt\":\"t1\",\"did\":\"d1\"}"
+    (session_out_of (Ok (parse_json doc, "")), session_out_of (Error (Reported "no")))
+    |> _assert_eq ((0i32, "t1", "d1", ""), (4i32, "", "", "no"))
 
 := write_exports () : () =
     export "xc_create" ((\ (site, ask) => created site ask) : string * string -> created_out)

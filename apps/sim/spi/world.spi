@@ -9,6 +9,7 @@ test world static =
 :< glyphs
 :< protocol
 :< splitter
+:< defuse
 :< events
 :< final_state
 :< personas
@@ -103,10 +104,11 @@ test world static =
     | s :: _ => s
     | Nil => ""
 
-:= chunks_for (c : live_cell) (source : string) : list string = split_cell c.cell (post_limit ()) source
+:= chunks_for (chunking : cell_chunker) (c : live_cell) (source : string) : list string =
+    chunking (cell_text c.cell) (post_limit ()) source
 
-:= posted_cell (w : world) (c : live_cell) : world =
-    := chunks = chunks_for c (first_revision c)
+:= posted_cell (chunking : cell_chunker) (w : world) (c : live_cell) : world =
+    := chunks = chunks_for chunking c (first_revision c)
     := w, _ = chunks |> listm.fold (posted_part c (listm.length chunks)) (w, 1i32)
     w
 
@@ -138,8 +140,8 @@ test world static =
 := trimmed_to (cell : cell_id) (n : i32) (w : world) : world =
     cell_ks w cell |> keep (\ k => k > n) |> listm.fold (\ w k => dropped cell k w) w
 
-:= revised_with (c : live_cell) (w : world) (source : string) : world =
-    := chunks = chunks_for c source
+:= revised_with (chunking : cell_chunker) (c : live_cell) (w : world) (source : string) : world =
+    := chunks = chunks_for chunking c source
     := n = listm.length chunks
     := w, _ = chunks |> listm.fold (edited_part c n) (trimmed_to c.cell n w, 1i32)
     w
@@ -149,7 +151,8 @@ test world static =
     | _ :: later => later
     | Nil => Nil
 
-:= edited_cell (w : world) (c : live_cell) : world = later_revisions c |> listm.fold (revised_with c) w
+:= edited_cell (chunking : cell_chunker) (w : world) (c : live_cell) : world =
+    later_revisions c |> listm.fold (revised_with chunking c) w
 
 := tail_cells (cells : live) : live =
     ?= cells ?|
@@ -211,11 +214,11 @@ test world static =
 
 :== losses = { lost : i32; lost_cells : i32 }
 
-:= laid_down (cells : live) (id_base : i32) : world =
-    cells |> listm.fold edited_cell (cells |> listm.fold posted_cell (empty_world id_base))
+:= laid_down (chunking : cell_chunker) (cells : live) (id_base : i32) : world =
+    cells |> listm.fold (edited_cell chunking) (cells |> listm.fold (posted_cell chunking) (empty_world id_base))
 
-:~ materialized (cells : live) (id_base : i32) (l : losses) : world =
-    lose_cells (lose (laid_down cells id_base) cells l.lost) cells l.lost_cells
+:~ materialized (chunking : cell_chunker) (cells : live) (id_base : i32) (l : losses) : world =
+    lose_cells (lose (laid_down chunking cells id_base) cells l.lost) cells l.lost_cells
 
 := originals (w : world) : post_ids = w.frames |> each (\ (f : posted_frame) => f.original)
 
@@ -235,7 +238,7 @@ test world static =
 
 := body_text (text : string) : string =
     := i = sm'.index_of "\n" text
-    ? i < 0i32 ?> "" |: rest_from (i + 1i32) text |> sm'.replace (defused_dot ()) "."
+    ? i < 0i32 ?> "" |: rest_from (i + 1i32) text |> restored_text
 
 := last_text (f : posted_frame) : string = f.versions |> listm.fold (\ _ (v : version) => v.text) ""
 
@@ -412,6 +415,7 @@ test world static =
         losses : losses
         base_time : string
         account : account_view
+        chunking : cell_chunker
     }
 
 := world_casting (a : world_ask) : casting =
@@ -425,10 +429,12 @@ test world static =
 := posting_of (a : world_ask) (r : replay) (w : world) : posting_view =
     { posted = w; replay = r; base = moment_of a.base_time }
 
+:= materialized_for (a : world_ask) (alive : live) : world = materialized a.chunking alive a.id_base a.losses
+
 :~ world_files (a : world_ask) (cells : list string) : string * string =
     := r = replay_of a cells
     := alive = live_cells r |> each live_of
-    := w = materialized alive a.id_base a.losses
+    := w = materialized_for a alive
     world_json (posting_of a r w) a.account, expected_json alive w
 
 test stamps_carry_into_the_next_day =
@@ -447,7 +453,7 @@ test stamps_carry_into_the_next_day =
 
 test edits_add_versions_to_their_frames =
     := ~cells = two_cells ()
-    materialized cells 100i32 { lost = 0i32; lost_cells = 0i32 }
+    materialized split_named cells 100i32 { lost = 0i32; lost_cells = 0i32 }
     |> ordered_frames
     |> each frame_summary
     |> delimited ","
@@ -464,7 +470,7 @@ test edits_add_versions_to_their_frames =
     ]
 
 := lost_cell_view (cells : live) : string =
-    := w = materialized cells 100i32 { lost = 0i32; lost_cells = 1i32 }
+    := w = materialized split_named cells 100i32 { lost = 0i32; lost_cells = 1i32 }
     delimited "," (w.gone |> each cell_text)
     ++# "|"
     ++# delimited "," (gaps w |> each cell_text)

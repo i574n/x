@@ -41,8 +41,8 @@ function Invoke-Step([string] $Script, [string] $Token, [string] $UserToken = $w
     $lines = @($err.Result, $out.Result) | ForEach-Object { $_ -split "\r?\n" } | Where-Object { $_ -ne "" }
     [pscustomobject]@{
         Text = ($lines -join "`n")
-        Raw = $out.Result.Replace("`r`n", "`n")
-        Errors = $err.Result
+        Stdout = $out.Result.Replace("`r`n", "`n")
+        Stderr = $err.Result
         Exit = $process.ExitCode
         Requests = @(Read-Requests | Select-Object -Skip $before)
     }
@@ -104,10 +104,10 @@ try {
         $outputs.Add($r.Text)
         $lines = @($expected.program)
         $want = if ($lines.Count) { ($lines -join "`n") + "`n" } else { "" }
-        Check ($r.Raw -ceq $want) "xc thread $($expected.root) did not rebuild the $($sim.Name) program the sim posted ($($r.Raw.Length) vs $($want.Length) chars)"
+        Check ($r.Stdout -ceq $want) "xc thread $($expected.root) did not rebuild the $($sim.Name) program the sim posted ($($r.Stdout.Length) vs $($want.Length) chars)"
         Check ($r.Exit -eq $sim.Exit) "xc thread $($expected.root) exited $($r.Exit), expected $($sim.Exit)"
-        foreach ($cell in @($expected.incomplete)) { Check ($r.Errors -match "cell $cell is missing frame") "xc thread $($expected.root) did not name the incomplete cell $cell" }
-        foreach ($cell in @($expected.gaps)) { Check ($r.Errors -match "cell $cell replies to \d+, which is not in the thread") "xc thread $($expected.root) did not name the gap before cell $cell" }
+        foreach ($cell in @($expected.incomplete)) { Check ($r.Stderr -match "cell $cell is missing frame") "xc thread $($expected.root) did not name the incomplete cell $cell" }
+        foreach ($cell in @($expected.gaps)) { Check ($r.Stderr -match "cell $cell replies to \d+, which is not in the thread") "xc thread $($expected.root) did not name the gap before cell $cell" }
         Write-Output "x e2e / sim / $($sim.Name) / thread $($expected.root) / $($r.Requests.Count) request(s) / exit $($r.Exit)"
     }
 
@@ -115,7 +115,7 @@ try {
     $wrote = Invoke-Step "xc post-thread oauth1.spi" $world.token
     $outputs.Add($wrote.Text)
     $sent = @($wrote.Requests | Where-Object { $_.method -eq 'POST' } | ForEach-Object { $_.body | ConvertFrom-Json })
-    $ids = @($wrote.Raw -split "`n" | Where-Object { $_ -match '^posted (\d+) ' } | ForEach-Object { ($_ -split ' ')[1] })
+    $ids = @($wrote.Stdout -split "`n" | Where-Object { $_ -match '^posted (\d+) ' } | ForEach-Object { ($_ -split ' ')[1] })
     Check ($wrote.Exit -eq 0 -and $sent.Count -eq @($oracle.posts).Count) "xc post-thread sent $($sent.Count) posts, the sim splits oauth1.spi into $(@($oracle.posts).Count) (exit $($wrote.Exit))"
     for ($i = 0; $i -lt [Math]::Min($sent.Count, @($oracle.posts).Count); $i++) {
         Check ($sent[$i].text -ceq @($oracle.posts)[$i]) "post $($i + 1) differs from the sim's split:`n--- sim`n$(@($oracle.posts)[$i])`n--- xc`n$($sent[$i].text)"
@@ -124,8 +124,8 @@ try {
     }
     $back = Invoke-Step "xc thread $($ids[0])" $world.token
     $want = (@($oracle.program) -join "`n") + "`n"
-    Check ($back.Exit -eq 0 -and $back.Raw -ceq $want) "xc thread $($ids[0]) did not read back the posted oauth1.spi ($($back.Raw.Length) vs $($want.Length) chars)`n$($back.Raw)"
-    Write-Output "x e2e / post-thread / $($sent.Count) posts / read back $($back.Raw.Length) chars / exit $($back.Exit)"
+    Check ($back.Exit -eq 0 -and $back.Stdout -ceq $want) "xc thread $($ids[0]) did not read back the posted oauth1.spi ($($back.Stdout.Length) vs $($want.Length) chars)`n$($back.Stdout)"
+    Write-Output "x e2e / post-thread / $($sent.Count) posts / read back $($back.Stdout.Length) chars / exit $($back.Exit)"
     $gone = Invoke-Step "xc delete-thread $($ids[0])" $world.token
     $deletes = @($gone.Requests | Where-Object { $_.method -eq 'DELETE' })
     Check ($gone.Exit -eq 0 -and $deletes.Count -eq $sent.Count) "xc delete-thread deleted $($deletes.Count) of $($sent.Count) posts (exit $($gone.Exit))"
@@ -152,7 +152,7 @@ try {
         Check ($statuses.Count -le $sent.Count) "Mastodon's 500 split used $($statuses.Count) posts, more than X's 280 split ($($sent.Count))"
         Check (@($bodies | Where-Object { $_.status.Contains([string][char]0x200B) }).Count -eq 0) "a Mastodon status carries a zero-width space"
         Check ($tooted.Requests.Count -eq 0) "xc post-thread to Mastodon also sent $($tooted.Requests.Count) request(s) to the X stub"
-        $tootIds = @($tooted.Raw -split "`n" | Where-Object { $_ -match '^posted (\d+) ' } | ForEach-Object { ($_ -split ' ')[1] })
+        $tootIds = @($tooted.Stdout -split "`n" | Where-Object { $_ -match '^posted (\d+) ' } | ForEach-Object { ($_ -split ' ')[1] })
         for ($i = 1; $i -lt $bodies.Count; $i++) {
             Check ($bodies[$i].in_reply_to_id -eq $tootIds[$i - 1]) "status $($i + 1) replies to '$($bodies[$i].in_reply_to_id)', expected '$($tootIds[$i - 1])'"
         }
@@ -183,11 +183,31 @@ try {
         Check ($records.Count -le $sent.Count) "Bluesky's 300 split used $($records.Count) posts, more than X's 280 split ($($sent.Count))"
         Check (@($bodies | Where-Object { $_.text.Contains([string][char]0x200B) }).Count -eq 0) "a Bluesky record carries a zero-width space"
         Check ($skeeted.Requests.Count -eq 0) "xc post-thread to Bluesky also sent $($skeeted.Requests.Count) request(s) to the X stub"
-        $uris = @($skeeted.Raw -split "`n" | Where-Object { $_ -match '^posted (\S+) ' } | ForEach-Object { ($_ -split ' ')[1] })
+        $uris = @($skeeted.Stdout -split "`n" | Where-Object { $_ -match '^posted (\S+) ' } | ForEach-Object { ($_ -split ' ')[1] })
         for ($i = 1; $i -lt $bodies.Count; $i++) {
             Check ($bodies[$i].reply.parent.uri -eq $uris[$i - 1] -and $bodies[$i].reply.root.uri -eq $uris[0]) "record $($i + 1) does not reply to its parent and the thread root"
         }
         Write-Output "x e2e / bluesky post-thread / $($records.Count) records / exit $($skeeted.Exit)"
+        $refused = @{ XC_SITE = "bluesky"; BLUESKY_BASE_URL = $pds; BLUESKY_IDENTIFIER = "e2e.bsky.social"; BLUESKY_APP_PASSWORD = "not-the-app-password" }
+        $denied = Invoke-Step "xc post-thread oauth1.spi" $world.token -Extra $refused
+        $outputs.Add($denied.Text)
+        $created = @(Get-Content $blueskyLog | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.path -eq "/xrpc/com.atproto.repo.createRecord" }).Count
+        Check ($denied.Exit -eq 4 -and $created -eq $records.Count) "a refused Bluesky sign-in: exit $($denied.Exit), $($created - $records.Count) record(s) created"
+        Check ($denied.Text.Contains("Invalid identifier or password") -and !$denied.Text.Contains("not-the-app-password")) "a refused Bluesky sign-in does not say why, or echoes the password"
+        Write-Output "x e2e / bluesky refused sign-in / exit $($denied.Exit)"
+        $single = Invoke-Step "xc post 'one post to the sky'" $world.token -Extra $site
+        $outputs.Add($single.Text)
+        $uri = @($single.Stdout -split "`n" | Where-Object { $_ -match '^posted (\S+)' } | ForEach-Object { ($_ -split ' ')[1] }) | Select-Object -First 1
+        $gone = Invoke-Step "xc delete '$uri'" $world.token -Extra $site
+        $outputs.Add($gone.Text)
+        $removals = @(Get-Content $blueskyLog | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.path -eq "/xrpc/com.atproto.repo.deleteRecord" -and $_.status -eq 200 }).Count
+        Check ($single.Exit -eq 0 -and $uri -and $gone.Exit -eq 0 -and $removals -eq 1) "a single Bluesky post and its delete: exits $($single.Exit)/$($gone.Exit), uri '$uri', $removals deleteRecord(s)"
+        Check ($single.Requests.Count + $gone.Requests.Count -eq 0) "a single Bluesky post or delete also talked to the X stub"
+        Write-Output "x e2e / bluesky post and delete / exits $($single.Exit)/$($gone.Exit)"
+        $mixed = Invoke-Step "xc delete-thread 9003" $world.token -Extra $site
+        $outputs.Add($mixed.Text)
+        Check ($mixed.Exit -eq 2 -and $mixed.Requests.Count -eq 0 -and $mixed.Text.Contains("needs XC_SITE=x")) "xc delete-thread under XC_SITE=bluesky: exit $($mixed.Exit), $($mixed.Requests.Count) X request(s); it must refuse before reading X"
+        Write-Output "x e2e / bluesky delete-thread refused / exit $($mixed.Exit)"
     } finally {
         if (!$sky.HasExited) { Stop-Process -Id $sky.Id -Force }
     }

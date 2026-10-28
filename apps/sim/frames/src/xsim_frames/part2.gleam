@@ -1,6 +1,6 @@
 import gleam/string
 import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Us1, type Uh5, type Us2, type Us4, type Us11, Uh0Cons, Uh0Nil, Uh1Cons, Uh1Nil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Uh5Cons, Uh5Nil, Us10PlainRow, Us10TallyRow, Us11None, Us11Some, Us1Null, Us1Text, Us1Whole, Us2None, Us2Some, Us3None, Us3Some, Us4None, Us4Some, Us5BrokenId, Us5Evicting, Us5Result, Us5Visible, Us5Wanted, Us6None, Us6Some, Us7Cancelled, Us7Evicted, Us7Started, Us8None, Us8Some, Us9None, Us9Some}
-import xsim_frames/part1.{count_of_text_7, digits_end_6, method9, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_on_2, string_from_5}
+import xsim_frames/part1.{count_of_text_7, digits_end_6, method9, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, string_from_5}
 
 pub fn fields_from_4(v0: String, v1: Int, v2: Uh5) -> Us2 {
     let v3 = v1 < 0
@@ -688,7 +688,7 @@ pub fn snapshot_read_1(v0: String) -> #(Uh0, Uh1, Uh2, Uh2, Uh2, Uh3, Bool, Uh4,
             }
             False -> {
                 let v3 = "\n"
-                split_on_2(v3, v0)
+                split_list_2(v3, v0)
             }
         }
     let v6 = Uh0Nil

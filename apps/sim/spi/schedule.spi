@@ -30,34 +30,35 @@ test schedule static =
     := parts, _ = chunks |> listm.fold (numbered_part (listm.length chunks)) (Nil, 1i32)
     parts
 
-:= parts_of (limit : i32) (post_id : string) (source : string) : list frame_part =
-    ?= split_cell (cell_id post_id) limit source ?|
+:= parts_of (chunking : cell_chunker) (limit : i32) (post_id : string) (source : string) : list frame_part =
+    ?= chunking post_id limit source ?|
     | Nil => [ { k = 1i32; n = 1i32; body = "" } ]
     | chunks => numbered_parts chunks
 
-:= framed_post (limit : i32) (r : rooted) : flow =
-    parts_of limit r.post_id r.source
+:= framed_post (chunking : cell_chunker) (limit : i32) (r : rooted) : flow =
+    parts_of chunking limit r.post_id r.source
     |> each \ part => Content (Framed { post_id = r.post_id; parent = r.parent; part })
 
-:= framed_edit (limit : i32) (rev : i32) (s : sourced) : flow =
-    parts_of limit s.post_id s.source |> each (\ part => Revision (FrameEdited { post_id = s.post_id; rev; part }))
+:= framed_edit (chunking : cell_chunker) (limit : i32) (rev : i32) (s : sourced) : flow =
+    parts_of chunking limit s.post_id s.source
+    |> each (\ part => Revision (FrameEdited { post_id = s.post_id; rev; part }))
 
 :== exploding = { out : flow; revs : revisions }
 
 := appended (x : exploding) (l : flow) : exploding = { x ?| out = l |> listm.fold (\ acc e => e :: acc) x.out }
 
-:= revised_in (limit : i32) (x : exploding) (s : sourced) : exploding =
+:= revised_in (chunking : cell_chunker) (limit : i32) (x : exploding) (s : sourced) : exploding =
     := rev = revision_of x.revs s.post_id + 1i32
-    appended { x ?| revs = (s.post_id, rev) :: x.revs } (framed_edit limit rev s)
+    appended { x ?| revs = (s.post_id, rev) :: x.revs } (framed_edit chunking limit rev s)
 
-:= exploded_one (limit : i32) (x : exploding) (e : event) : exploding =
+:= exploded_one (chunking : cell_chunker) (limit : i32) (x : exploding) (e : event) : exploding =
     ?= e ?|
-    | Content (Posted r) => appended x (framed_post limit r)
-    | Revision (Edited s) => revised_in limit x s
+    | Content (Posted r) => appended x (framed_post chunking limit r)
+    | Revision (Edited s) => revised_in chunking limit x s
     | _ => appended x [ e ]
 
-:~ exploded (limit : i32) (l : flow) : flow =
-    listm.rev (l |> listm.fold (exploded_one limit) { out = Nil; revs = Nil }).out
+:~ exploded (chunking : cell_chunker) (limit : i32) (l : flow) : flow =
+    listm.rev (l |> listm.fold (exploded_one chunking limit) { out = Nil; revs = Nil }).out
 
 
 :== keyed = { time : i32; index : i32; event : event }
@@ -102,13 +103,15 @@ test schedule static =
     := s = l |> listm.fold (scheduled p) { keyed = Nil; rng = schedule_seed seed; i = 0i32 }
     sorted_keyed s.keyed |> each (\ (k : keyed) => { at = k.index; event = k.event })
 
-:== staging = { seed : i32; users : i32; edits : i32; personas : string; permille : i32; framed : bool }
+:== staging =
+    { seed : i32; users : i32; edits : i32; personas : string; permille : i32; framed : bool; chunking : cell_chunker }
 
 := casting_of (g : staging) : casting =
     := c = plain_casting g.seed
     { c ?| users = g.users; edits = g.edits; personas = parsed_personas g.personas }
 
-:= staged_flow (g : staging) (s : scenario) : flow = ? g.framed ?> exploded (post_limit ()) s.all_events |: s.all_events
+:= staged_flow (g : staging) (s : scenario) : flow =
+    ? g.framed ?> exploded g.chunking (post_limit ()) s.all_events |: s.all_events
 
 :~ scenario_stream (g : staging) (cells : list string) : string =
     := s = from_cells (casting_of g) "" cells
@@ -118,9 +121,10 @@ test schedule static =
     := s = from_cells (casting_of g) "" cells
     final_replay s.all_events |> final_json
 
-:== run_ask = { cast : casting; framed : bool; schedule : i32; permille : i32 }
+:== run_ask = { cast : casting; framed : bool; schedule : i32; permille : i32; chunking : cell_chunker }
 
-:= run_events (a : run_ask) (s : scenario) : flow = ? a.framed ?> exploded (post_limit ()) s.all_events |: s.all_events
+:= run_events (a : run_ask) (s : scenario) : flow =
+    ? a.framed ?> exploded a.chunking (post_limit ()) s.all_events |: s.all_events
 
 :== run_reply = string * i32 * i32 * list string
 

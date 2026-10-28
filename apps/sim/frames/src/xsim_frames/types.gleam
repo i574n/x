@@ -1,5 +1,3 @@
-pub type XSplitScope { Global }
-
 pub type Uh0 {
     Uh0Nil
     Uh0Cons(String, String, Bool, String, Uh0)
@@ -224,12 +222,7 @@ pub type Uh17 {
 
 pub type Uh18 {
     Uh18Nil
-    Uh18Cons(String, Int, Uh18)
-}
-
-pub type Uh19 {
-    Uh19Nil
-    Uh19Cons(Int, Int, String, Uh19)
+    Uh18Cons(Int, Int, String, Uh18)
 }
 
 pub type Us24 {
@@ -237,14 +230,14 @@ pub type Us24 {
     Us24None
 }
 
-pub type Uh20 {
-    Uh20Nil
-    Uh20Cons(String, Us0, Uh3, Bool, Uh20)
+pub type Uh19 {
+    Uh19Nil
+    Uh19Cons(String, Us0, Uh3, Bool, Uh19)
 }
 
-pub type Uh21 {
-    Uh21Nil
-    Uh21Cons(String, Uh3, Uh21)
+pub type Uh20 {
+    Uh20Nil
+    Uh20Cons(String, Uh3, Uh20)
 }
 
 pub type Us25 {
@@ -252,9 +245,9 @@ pub type Us25 {
     Us25None
 }
 
-pub type Uh22 {
-    Uh22Nil
-    Uh22Cons(String, Us25, Uh3, Uh22)
+pub type Uh21 {
+    Uh21Nil
+    Uh21Cons(String, Us25, Uh3, Uh21)
 }
 
 pub type Us26 {
@@ -262,29 +255,29 @@ pub type Us26 {
     Us26None
 }
 
-pub type Uh24 {
-    Uh24Nil
-    Uh24Cons(String, Int, String, Uh24)
-}
-
 pub type Uh23 {
     Uh23Nil
-    Uh23Cons(String, String, Int, Int, Us26, Uh24, Uh23)
+    Uh23Cons(String, Int, String, Uh23)
+}
+
+pub type Uh22 {
+    Uh22Nil
+    Uh22Cons(String, String, Int, Int, Us26, Uh23, Uh22)
+}
+
+pub type Uh24 {
+    Uh24Nil
+    Uh24Cons(String, Int, Uh24)
 }
 
 pub type Uh25 {
     Uh25Nil
-    Uh25Cons(String, Int, Uh25)
+    Uh25Cons(String, String, Uh25)
 }
 
 pub type Uh26 {
     Uh26Nil
-    Uh26Cons(String, String, Uh26)
-}
-
-pub type Uh27 {
-    Uh27Nil
-    Uh27Cons(String, Uh27)
+    Uh26Cons(String, Uh26)
 }
 
 pub type Us27 {
@@ -293,11 +286,11 @@ pub type Us27 {
 }
 
 pub type Us28 {
-    Us28Some(f0i0 : String, f0i1 : String, f0i2 : Int, f0i3 : Int, f0i4 : Us26, f0i5 : Uh24)
+    Us28Some(f0i0 : String, f0i1 : String, f0i2 : Int, f0i3 : Int, f0i4 : Us26, f0i5 : Uh23)
     Us28None
 }
 
-pub type Uh28 {
-    Uh28Nil
-    Uh28Cons(String, Uh28)
+pub type Uh27 {
+    Uh27Nil
+    Uh27Cons(String, Uh27)
 }

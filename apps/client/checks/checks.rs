@@ -97,7 +97,7 @@ fn count_of_text_0(mut v0: Rc<str>) -> US0 {
     } else {
         let v26: i32 = 0i32;
         let v27: i32 = 0i32;
-        digits_1(v0, v26, v27)
+        digits_1(v0.clone(), v26, v27)
     }
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
@@ -270,28 +270,31 @@ fn closure3() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
         let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("@"); } LIT.with(|lit| lit.clone()) };
         let v2: bool = v0.starts_with(&*v1);
-        let v6: Rc<str> = if v2 {
+        let mut v9: Rc<str> = if v2 {
             let v3: i32 = (v0.clone().len() as i32);
             let v4: i32 = v3.wrapping_sub(1i32);
-            let v5: Rc<str> = string_slice(&v0.clone(), 1i32 as i64, v4 as i64);
-            v5.clone()
+            let v5: usize = ((1i32) as usize);
+            let v6: i32 = 1i32.wrapping_add(v4);
+            let v7: usize = ((v6) as usize);
+            let v8: Rc<str> = Rc::<str>::from(&(v0)[v5..v7]);
+            v8.clone()
         } else {
             v0.clone()
         };
-        let v7: bool = username_chars_5(v6.clone());
-        let mut v10: US1 = if v7 {
-            US1::US1_Some(v6.clone())
+        let mut v10: bool = username_chars_5(v9.clone());
+        let v13: US1 = if v10 {
+            US1::US1_Some(v9.clone())
         } else {
             US1::US1_None
         };
-        match &v10 {
+        match &v13 {
             US1::US1_None => {
-                let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v12.clone()
+                let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                v15.clone()
             }
-            US1::US1_Some(v11) => {
-                let mut v11: Rc<str> = v11.clone();
-                v11.clone()
+            US1::US1_Some(v14) => {
+                let v14: Rc<str> = v14.clone();
+                v14.clone()
             }
         }
     }); } CLOSURE.with(|closure| closure.clone())

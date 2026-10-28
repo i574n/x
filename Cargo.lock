@@ -753,6 +753,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "xc_domains"
+version = "0.0.1"
+
+[[package]]
+name = "xc_entities"
+version = "0.0.1"
+dependencies = [
+ "unicode-normalization",
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "xc_fetch"
 version = "0.0.1"
 dependencies = [
@@ -806,6 +818,8 @@ version = "0.0.1"
 dependencies = [
  "unicode-normalization",
  "unicode-segmentation",
+ "xc_domains",
+ "xc_entities",
 ]
 
 [[package]]
@@ -818,6 +832,15 @@ dependencies = [
 
 [[package]]
 name = "xc_refs"
+version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "xc_api",
+ "xc_net",
+]
+
+[[package]]
+name = "xc_requests"
 version = "0.0.1"
 dependencies = [
  "serde_json",
@@ -893,6 +916,7 @@ dependencies = [
  "serde_json",
  "xc_api",
  "xc_net",
+ "xc_requests",
  "xc_resume",
 ]
 

@@ -397,8 +397,16 @@ test xc static =
     |? kind = 11i32 ?> run_preview_threads payload
     |: run_post_thread (kind = 8i32) payload
 
+:= x_only (site : string) : i32 =
+    write_error ("xc: delete-thread and --resume read threads through X's API, which needs XC_SITE=x, not " ++# site)
+    2i32
+
+:= needs_x_site (kind : i32) (site : string) : bool = (kind = 9i32 || kind = 10i32) && site <> "x"
+
 := run_thread_kind (kind : i32) (payload : string) : i32 =
-    ? kind = 6i32 ?> run_thread payload
+    := site = platform_name ()
+    ? needs_x_site kind site ?> x_only site
+    |? kind = 6i32 ?> run_thread payload
     |? kind = 9i32 ?> run_delete_thread payload
     |: run_thread_more kind payload
 

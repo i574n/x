@@ -14,5 +14,6 @@ path = "posted.rs"
 
 [dependencies]
 xc_domains = { path = "../domains" }
+xc_entities = { path = "../entities" }
 unicode-normalization = "0.1"
 unicode-segmentation = "1.13"

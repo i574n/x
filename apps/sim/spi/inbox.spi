@@ -7,6 +7,7 @@ test inbox static =
 :< sm'_operators
 :< prelude
 :< glyphs
+:< defuse
 :< events
 
 :== post_state = { parent : option string; revisions : dictm.dict i32 string; deleted : bool }
@@ -153,7 +154,7 @@ test inbox static =
 := rebuilt_parts (frame_parts : dictm.dict i32 frame_part) : string =
     listm.init (dictm.size frame_parts) (\ i => (dictm.present (i + 1i32) frame_parts).body)
     |> delimited ""
-    |> sm'.replace (defused_dot ()) "."
+    |> restored_text
 
 := gathering_at (key : string) (at : i32) (w : inbox) : gathering =
     ?= dictm.find key w.intake.frames ?|

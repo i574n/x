@@ -6,7 +6,7 @@ import gleam/option
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type XSplitScope, type Uh3, type Us0, type Uh5, type Us3, Uh3Cons, Uh3Nil, Uh5Cons, Uh5Nil, Us0None, Us0Some, Us3None, Us3Some}
+import xsim_frames/types.{type Uh3, type Us0, type Uh5, type Us3, Uh3Cons, Uh3Nil, Uh5Cons, Uh5Nil, Us0None, Us0Some, Us3None, Us3Some}
 
 @external(erlang, "string", "find")
 pub fn spiral_sm_find_trailing(text: String, search: String, direction: atom.Atom) -> Dynamic
@@ -18,17 +18,10 @@ pub fn spiral_sm_coerce(value: a) -> b
 @ external(erlang, "unicode", "characters_to_binary")
 pub fn unicode_erlang_characters_to_binary(chars: List(Int)) -> String
 
-@ external(erlang, "binary", "split")
-pub fn x_binary_split(s: String, sep: String, options: List(XSplitScope)) -> List(String)
+pub fn spiral_string_length(text: String) -> Int {
+  bit_array.byte_size(bit_array.from_string(text))
+}
 
-@ external(erlang, "unicode", "characters_to_nfc_binary")
-pub fn unicode_erlang_nfc(s: String) -> String
-
-pub fn x_light(n: Int) -> Bool { n <= 4351 || n >= 8192 && n <= 8205 || n >= 8208 && n <= 8223 || n >= 8242 && n <= 8247 }
-
-pub fn x_white(n: Int) -> Bool { n >= 9 && n <= 13 || n == 32 || n == 133 || n == 160 || n == 5760 || n >= 8192 && n <= 8202 }
-
-pub fn x_spaced(n: Int) -> Bool { x_white(n) || n == 8232 || n == 8233 || n == 8239 || n == 8287 || n == 12288 }
 
 pub fn spiral_wrap_signed(value: Int, bits: Int) -> Int {
   let half = int.bitwise_shift_left(1, bits - 1)
@@ -38,11 +31,6 @@ pub fn spiral_wrap_signed(value: Int, bits: Int) -> Int {
 
 pub fn spiral_wrap_unsigned(value: Int, bits: Int) -> Int {
   int.bitwise_and(value, int.bitwise_shift_left(1, bits) - 1)
-}
-
-
-pub fn spiral_string_length(text: String) -> Int {
-  bit_array.byte_size(bit_array.from_string(text))
 }
 
 
@@ -104,7 +92,7 @@ pub fn closure1(capt: Nil) -> fn(String) -> Us0 {
     }
 }
 
-pub fn split_on_2(v0: String, v1: String) -> Uh3 {
+pub fn split_list_2(v0: String, v1: String) -> Uh3 {
     let v2 = v0 == ""
     let v12 =
         case v2 {
@@ -128,24 +116,35 @@ pub fn split_on_2(v0: String, v1: String) -> Uh3 {
                 }
             }
         }
-    let v13 = v12 < 0
-    case v13 {
+    let v13 = spiral_string_length(v0)
+    let v14 = v12 < 0
+    let v16 =
+        case v14 {
+            True -> {
+                True
+            }
+            False -> {
+                let v15 = v13 == 0
+                v15
+            }
+        }
+    case v16 {
         True -> {
-            let v14 = Uh3Nil
-            Uh3Cons(v1, v14)
+            let v17 = Uh3Nil
+            Uh3Cons(v1, v17)
         }
         False -> {
-            let v16 = spiral_wrap_signed(v12 - 1, 32)
-            let v17 = spiral_string_slice(v1, 0, v16)
-            let v18 = spiral_wrap_signed(v12 + 1, 32)
-            let v19 = spiral_string_length(v1)
-            let v20 = spiral_wrap_signed(v19 - v12, 32)
-            let v21 = spiral_wrap_signed(v20 - 1, 32)
-            let v22 = spiral_wrap_signed(v18 + v21, 32)
-            let v23 = spiral_wrap_signed(v22 - 1, 32)
-            let v24 = spiral_string_slice(v1, v18, v23)
-            let v25 = split_on_2(v0, v24)
-            Uh3Cons(v17, v25)
+            let v19 = spiral_wrap_signed(v12 - 1, 32)
+            let v20 = spiral_string_slice(v1, 0, v19)
+            let v21 = spiral_wrap_signed(v12 + v13, 32)
+            let v22 = spiral_string_length(v1)
+            let v23 = spiral_wrap_signed(v22 - v12, 32)
+            let v24 = spiral_wrap_signed(v23 - v13, 32)
+            let v25 = spiral_wrap_signed(v21 + v24, 32)
+            let v26 = spiral_wrap_signed(v25 - 1, 32)
+            let v27 = spiral_string_slice(v1, v21, v26)
+            let v28 = split_list_2(v0, v27)
+            Uh3Cons(v20, v28)
         }
     }
 }

@@ -1,9 +1,9 @@
 import gleam/int
 import gleam/string
-import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Us0, type Us14, type Uh7, type Uh8, type Uh9, type Uh10, type Uh12, type Uh13, type Us20, Global, Uh0Cons, Uh0Nil, Uh10Cons, Uh10Nil, Uh12Cons, Uh12Nil, Uh13Cons, Uh13Nil, Uh3Cons, Uh3Nil, Uh7Cons, Uh7Nil, Uh8Cons, Uh9Cons, Uh9Nil, Us0Some, Us12Broken, Us12Held, Us14Breaker, Us14Editor, Us14Fickle, Us14Lurker, Us15None, Us15Some, Us16Reaction, Us16Revision, Us18Edited, Us19Unliked, Us20None, Us20Some, Us3Some}
-import xsim_frames/part1.{count_of_text_7, spiral_string_index, spiral_string_length, spiral_string_slice, spiral_wrap_signed, spiral_wrap_unsigned, split_on_2, unicode_erlang_characters_to_binary, x_binary_split}
+import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Us0, type Us14, type Uh7, type Uh8, type Uh9, type Uh10, type Uh12, type Uh13, type Us20, Uh0Cons, Uh0Nil, Uh10Cons, Uh10Nil, Uh12Cons, Uh12Nil, Uh13Cons, Uh13Nil, Uh3Cons, Uh3Nil, Uh7Cons, Uh7Nil, Uh8Cons, Uh9Cons, Uh9Nil, Us0Some, Us12Broken, Us12Held, Us14Breaker, Us14Editor, Us14Fickle, Us14Lurker, Us15None, Us15Some, Us16Reaction, Us16Revision, Us18Edited, Us19Unliked, Us20None, Us20Some, Us3Some}
+import xsim_frames/part1.{count_of_text_7, spiral_string_index, spiral_string_length, spiral_string_slice, spiral_wrap_signed, spiral_wrap_unsigned, split_list_2, unicode_erlang_characters_to_binary}
 import xsim_frames/part2.{delimited_19, method17, method18, snapshot_read_1}
-import xsim_frames/part3.{go_29, masked_cells_26, masked_threads_27, method28, method43, method46}
+import xsim_frames/part3.{masked_cells_26, masked_threads_27, method28, method43, method46, taken_29}
 
 pub fn commute_text_42(v0: String, v1: String) -> String {
     let #(v2, _v3, _v4, _v5, _v6, _v7, _v8, _v9, _v10, v11) = snapshot_read_1(v0)
@@ -47,7 +47,7 @@ pub fn commute_text_42(v0: String, v1: String) -> String {
                             }
                             _ -> {
                                 let v45 = 5
-                                let v46 = go_29(v45, v43)
+                                let v46 = taken_29(v45, v43)
                                 Us12Broken(v46)
                             }
                         }
@@ -182,7 +182,7 @@ pub fn breaking_text_47(v0: String) -> String {
                     }
                     _ -> {
                         let v25 = 5
-                        let v26 = go_29(v25, v23)
+                        let v26 = taken_29(v25, v23)
                         Us12Broken(v26)
                     }
                 }
@@ -371,16 +371,16 @@ pub fn method53(v0: Uh3, v1: Uh7) -> Uh7 {
     case v0  {
         Uh3Cons(v2, v3) -> {
             let v4 = method53(v3, v1)
-            let v5 = "="
-            let v6 = spiral_string_length(v2)
-            let v7 = 0
-            let v8 = method54(v2, v6, v7)
-            let v9 = spiral_wrap_signed(v6 - 1, 32)
-            let v10 = spiral_string_slice(v2, v8, v9)
-            let v11 = spiral_string_length(v10)
-            let v12 = method55(v10, v11)
-            let v13 = spiral_string_slice(v10, 0, v12)
-            let v14 = split_on_2(v5, v13)
+            let v5 = spiral_string_length(v2)
+            let v6 = 0
+            let v7 = method54(v2, v5, v6)
+            let v8 = spiral_wrap_signed(v5 - 1, 32)
+            let v9 = spiral_string_slice(v2, v7, v8)
+            let v10 = spiral_string_length(v9)
+            let v11 = method55(v9, v10)
+            let v12 = spiral_string_slice(v9, 0, v11)
+            let v13 = "="
+            let v14 = split_list_2(v13, v12)
             let v50 =
                 case v14  {
                     Uh3Cons(v15, v16) -> {
@@ -466,30 +466,12 @@ pub fn method53(v0: Uh3, v1: Uh7) -> Uh7 {
     }
 }
 
-pub fn listed_pieces_58(v0: List(String), v1: Uh3) -> Uh3 {
-    let v2 = case v0 { [] -> True _ -> False }
-    case v2 {
-        True -> {
-            let v3 = Uh3Nil
-            method18(v1, v3)
-        }
-        False -> {
-            let v5 = case v0 { [_, ..t] -> t [] -> [] }
-            let v6 = case v0 { [h, ..] -> h [] -> "" }
-            let v7 = Uh3Cons(v6, v1)
-            listed_pieces_58(v5, v7)
-        }
-    }
-}
-
-pub fn method59(v0: String, v1: Uh3, v2: Uh8) -> Uh8 {
+pub fn method58(v0: String, v1: Uh3, v2: Uh8) -> Uh8 {
     case v1  {
         Uh3Cons(v3, v4) -> {
-            let v5 = method59(v0, v4, v2)
-            let v6 = x_binary_split(v3, v0, [Global])
-            let v7 = Uh3Nil
-            let v8 = listed_pieces_58(v6, v7)
-            Uh8Cons(v8, v5)
+            let v5 = method58(v0, v4, v2)
+            let v6 = split_list_2(v0, v3)
+            Uh8Cons(v6, v5)
         }
         Uh3Nil -> {
             v2
@@ -497,7 +479,7 @@ pub fn method59(v0: String, v1: Uh3, v2: Uh8) -> Uh8 {
     }
 }
 
-pub fn method63(v0: Int, v1: Int, v2: Int, v3: Int, v4: Int, v5: Uh7, v6: Bool, v7: String, v8: Uh3, v9: Uh9, v10: Us0, v11: Int) -> #(Uh9, Us0, Int) {
+pub fn method62(v0: Int, v1: Int, v2: Int, v3: Int, v4: Int, v5: Uh7, v6: Bool, v7: String, v8: Uh3, v9: Uh9, v10: Us0, v11: Int) -> #(Uh9, Us0, Int) {
     let #(v36, v37, v38) =
         case v8  {
             Uh3Cons(v12, v13) -> {
@@ -524,7 +506,7 @@ pub fn method63(v0: Int, v1: Int, v2: Int, v3: Int, v4: Int, v5: Uh7, v6: Bool, 
                     }
                 let v28 = spiral_wrap_signed(v11 + 1, 32)
                 let v29 = Uh9Cons(v17, v10, v12, v9)
-                method63(v0, v1, v2, v3, v4, v5, v6, v7, v13, v29, v27, v28)
+                method62(v0, v1, v2, v3, v4, v5, v6, v7, v13, v29, v27, v28)
             }
             _ -> {
                 let #(v33, v34, v35) =
@@ -540,11 +522,11 @@ pub fn method63(v0: Int, v1: Int, v2: Int, v3: Int, v4: Int, v5: Uh7, v6: Bool, 
     #(v36, v37, v38)
 }
 
-pub fn method64(v0: Uh9, v1: Uh9) -> Uh9 {
+pub fn method63(v0: Uh9, v1: Uh9) -> Uh9 {
     case v0  {
         Uh9Cons(v2, v3, v4, v5) -> {
             let v6 = Uh9Cons(v2, v3, v4, v1)
-            method64(v5, v6)
+            method63(v5, v6)
         }
         Uh9Nil -> {
             v1
@@ -552,7 +534,7 @@ pub fn method64(v0: Uh9, v1: Uh9) -> Uh9 {
     }
 }
 
-pub fn word_from_66(v0: Int) -> #(Int, Int) {
+pub fn word_from_65(v0: Int) -> #(Int, Int) {
     let v1 = spiral_wrap_unsigned(v0 + 11400714819323198485, 64)
     let v2 = int.bitwise_shift_right(v1, 30)
     let v3 = int.bitwise_exclusive_or(v1, v2)
@@ -566,7 +548,7 @@ pub fn word_from_66(v0: Int) -> #(Int, Int) {
     let v11 = v10 == 0
     case v11 {
         True -> {
-            word_from_66(v1)
+            word_from_65(v1)
         }
         False -> {
             #(v10, v1)
@@ -574,16 +556,16 @@ pub fn word_from_66(v0: Int) -> #(Int, Int) {
     }
 }
 
-pub fn seeded_65(v0: Int, v1: Int, v2: Int) -> #(Int, Int) {
-    let #(_v3, v4) = word_from_66(v0)
+pub fn seeded_64(v0: Int, v1: Int, v2: Int) -> #(Int, Int) {
+    let #(_v3, v4) = word_from_65(v0)
     let v5 = int.bitwise_exclusive_or(v1, v4)
-    let #(v6, v7) = word_from_66(v5)
+    let #(v6, v7) = word_from_65(v5)
     let v8 = int.bitwise_exclusive_or(v2, v7)
-    let #(v9, _v10) = word_from_66(v8)
+    let #(v9, _v10) = word_from_65(v8)
     #(v6, v9)
 }
 
-pub fn stepped_69(v0: Int, v1: Int) -> #(Int, Int, Int) {
+pub fn stepped_68(v0: Int, v1: Int) -> #(Int, Int, Int) {
     let v2 = int.bitwise_and(v1, 288230376151711743)
     let v3 = int.bitwise_and(v2, 72057594037927935)
     let v4 = spiral_wrap_unsigned(int.bitwise_shift_left(v3, 2), 64)
@@ -609,8 +591,8 @@ pub fn stepped_69(v0: Int, v1: Int) -> #(Int, Int, Int) {
     #(v14, v2, v23)
 }
 
-pub fn uniform_68(v0: Int, v1: Int, v2: Int) -> #(Int, Int, Int) {
-    let #(v3, v4, v5) = stepped_69(v1, v2)
+pub fn uniform_67(v0: Int, v1: Int, v2: Int) -> #(Int, Int, Int) {
+    let #(v3, v4, v5) = stepped_68(v1, v2)
     let v6 = v3 % v0
     let v7 = v3 < v0
     case v7 {
@@ -628,14 +610,14 @@ pub fn uniform_68(v0: Int, v1: Int, v2: Int) -> #(Int, Int, Int) {
                     #(v12, v4, v5)
                 }
                 False -> {
-                    uniform_68(v0, v4, v5)
+                    uniform_67(v0, v4, v5)
                 }
             }
         }
     }
 }
 
-pub fn method70(v0: Int, v1: String, v2: Us0, v3: String, v4: Int) -> Uh12 {
+pub fn method69(v0: Int, v1: String, v2: Us0, v3: String, v4: Int) -> Uh12 {
     let v5 = v4 < v0
     case v5 {
         True -> {
@@ -643,11 +625,40 @@ pub fn method70(v0: Int, v1: String, v2: Us0, v3: String, v4: Int) -> Uh12 {
             let v7 = string.inspect(v6)
             let v8 = "u"
             let v9 = v8 <> v7 
-            let v10 = method70(v0, v1, v2, v3, v6)
+            let v10 = method69(v0, v1, v2, v3, v6)
             Uh12Cons(v1, v9, v10)
         }
         False -> {
             Uh12Nil
+        }
+    }
+}
+
+pub fn method70(v0: Uh12, v1: Uh12) -> Uh12 {
+    case v0  {
+        Uh12Cons(v2, v3, v4) -> {
+            let v5 = Uh12Cons(v2, v3, v1)
+            method70(v4, v5)
+        }
+        Uh12Nil -> {
+            v1
+        }
+    }
+}
+
+pub fn method66(v0: Int, v1: Uh9, v2: Uh12, v3: Int, v4: Int) -> #(Uh12, Int, Int) {
+    case v1  {
+        Uh9Cons(v5, v6, v7, v8) -> {
+            let v9 = spiral_wrap_unsigned(v0, 64)
+            let #(v10, v11, v12) = uniform_67(v9, v3, v4)
+            let v13 = spiral_wrap_signed(v10, 32)
+            let v14 = 0
+            let v15 = method69(v13, v5, v6, v7, v14)
+            let v16 = method70(v15, v2)
+            method66(v0, v8, v16, v11, v12)
+        }
+        Uh9Nil -> {
+            #(v2, v3, v4)
         }
     }
 }
@@ -664,39 +675,10 @@ pub fn method71(v0: Uh12, v1: Uh12) -> Uh12 {
     }
 }
 
-pub fn method67(v0: Int, v1: Uh9, v2: Uh12, v3: Int, v4: Int) -> #(Uh12, Int, Int) {
-    case v1  {
-        Uh9Cons(v5, v6, v7, v8) -> {
-            let v9 = spiral_wrap_unsigned(v0, 64)
-            let #(v10, v11, v12) = uniform_68(v9, v3, v4)
-            let v13 = spiral_wrap_signed(v10, 32)
-            let v14 = 0
-            let v15 = method70(v13, v5, v6, v7, v14)
-            let v16 = method71(v15, v2)
-            method67(v0, v8, v16, v11, v12)
-        }
-        Uh9Nil -> {
-            #(v2, v3, v4)
-        }
-    }
-}
-
-pub fn method72(v0: Uh12, v1: Uh12) -> Uh12 {
-    case v0  {
-        Uh12Cons(v2, v3, v4) -> {
-            let v5 = Uh12Cons(v2, v3, v1)
-            method72(v4, v5)
-        }
-        Uh12Nil -> {
-            v1
-        }
-    }
-}
-
-pub fn method74(v0: Uh10, v1: Uh10) -> Uh10 {
+pub fn method73(v0: Uh10, v1: Uh10) -> Uh10 {
     case v0  {
         Uh10Cons(v2, v3) -> {
-            let v4 = method74(v3, v1)
+            let v4 = method73(v3, v1)
             Uh10Cons(v2, v4)
         }
         Uh10Nil -> {
@@ -705,11 +687,11 @@ pub fn method74(v0: Uh10, v1: Uh10) -> Uh10 {
     }
 }
 
-pub fn method73(v0: Uh12, v1: Uh10, v2: Int, v3: Int) -> #(Uh10, Int, Int) {
+pub fn method72(v0: Uh12, v1: Uh10, v2: Int, v3: Int) -> #(Uh10, Int, Int) {
     case v0  {
         Uh12Cons(v4, v5, v6) -> {
             let v7 = 10
-            let #(v8, v9, v10) = uniform_68(v7, v2, v3)
+            let #(v8, v9, v10) = uniform_67(v7, v2, v3)
             let v11 = spiral_wrap_signed(v8, 32)
             let v12 = v11 == 1
             let v18 =
@@ -719,13 +701,13 @@ pub fn method73(v0: Uh12, v1: Uh10, v2: Int, v3: Int) -> #(Uh10, Int, Int) {
                         let v14 = Us16Reaction(v13)
                         let v15 = Uh10Nil
                         let v16 = Uh10Cons(v14, v15)
-                        method74(v1, v16)
+                        method73(v1, v16)
                     }
                     False -> {
                         v1
                     }
                 }
-            method73(v6, v18, v9, v10)
+            method72(v6, v18, v9, v10)
         }
         Uh12Nil -> {
             #(v1, v2, v3)
@@ -733,10 +715,10 @@ pub fn method73(v0: Uh12, v1: Uh10, v2: Int, v3: Int) -> #(Uh10, Int, Int) {
     }
 }
 
-pub fn method75(v0: Uh9, v1: Uh9) -> Uh9 {
+pub fn method74(v0: Uh9, v1: Uh9) -> Uh9 {
     case v0  {
         Uh9Cons(v2, v3, v4, v5) -> {
-            let v6 = method75(v5, v1)
+            let v6 = method74(v5, v1)
             let v7 = "///- --test"
             let v8 = v4 |> string.contains(v7)
             let v9 = v8 == False
@@ -755,12 +737,12 @@ pub fn method75(v0: Uh9, v1: Uh9) -> Uh9 {
     }
 }
 
-pub fn method76(v0: Int, v1: Int) -> Uh13 {
+pub fn method75(v0: Int, v1: Int) -> Uh13 {
     let v2 = v1 < v0
     case v2 {
         True -> {
             let v3 = spiral_wrap_signed(v1 + 1, 32)
-            let v4 = method76(v0, v3)
+            let v4 = method75(v0, v3)
             Uh13Cons(v1, v4)
         }
         False -> {
@@ -769,11 +751,11 @@ pub fn method76(v0: Int, v1: Int) -> Uh13 {
     }
 }
 
-pub fn method78(v0: Uh9, v1: Int) -> Int {
+pub fn method77(v0: Uh9, v1: Int) -> Int {
     case v0  {
         Uh9Cons(v2, v3, v4, v5) -> {
             let v6 = spiral_wrap_signed(v1 + 1, 32)
-            method78(v5, v6)
+            method77(v5, v6)
         }
         Uh9Nil -> {
             v1
@@ -781,7 +763,7 @@ pub fn method78(v0: Uh9, v1: Int) -> Int {
     }
 }
 
-pub fn picked_79(v0: Int, v1: Uh9) -> Us20 {
+pub fn picked_78(v0: Int, v1: Uh9) -> Us20 {
     case v1  {
         Uh9Cons(v2, v3, v4, v5) -> {
             let v6 = v0 <= 0
@@ -791,7 +773,7 @@ pub fn picked_79(v0: Int, v1: Uh9) -> Us20 {
                 }
                 False -> {
                     let v8 = spiral_wrap_signed(v0 - 1, 32)
-                    picked_79(v8, v5)
+                    picked_78(v8, v5)
                 }
             }
         }
@@ -801,16 +783,16 @@ pub fn picked_79(v0: Int, v1: Uh9) -> Us20 {
     }
 }
 
-pub fn method77(v0: Uh9, v1: Uh13, v2: Uh10, v3: Int, v4: Int) -> #(Uh10, Int, Int) {
+pub fn method76(v0: Uh9, v1: Uh13, v2: Uh10, v3: Int, v4: Int) -> #(Uh10, Int, Int) {
     case v1  {
         Uh13Cons(v5, v6) -> {
             let v7 = 0
-            let v8 = method78(v0, v7)
+            let v8 = method77(v0, v7)
             let v9 = spiral_wrap_unsigned(v8, 64)
-            let #(v10, v11, v12) = uniform_68(v9, v3, v4)
+            let #(v10, v11, v12) = uniform_67(v9, v3, v4)
             let v13 = spiral_wrap_signed(v10, 32)
             let v14 = spiral_wrap_signed(v13 - 1, 32)
-            let v15 = picked_79(v14, v0)
+            let v15 = picked_78(v14, v0)
             let #(v29, v30, v31) =
                 case v15  {
                     Us20None -> {
@@ -823,11 +805,11 @@ pub fn method77(v0: Uh9, v1: Uh13, v2: Uh10, v3: Int, v4: Int) -> #(Uh10, Int, I
                         let v22 = Us16Revision(v21)
                         let v23 = Uh10Nil
                         let v24 = Uh10Cons(v22, v23)
-                        let v25 = method74(v2, v24)
+                        let v25 = method73(v2, v24)
                         #(v25, v11, v12)
                     }
                 }
-            method77(v0, v6, v29, v30, v31)
+            method76(v0, v6, v29, v30, v31)
         }
         Uh13Nil -> {
             #(v2, v3, v4)
@@ -835,7 +817,7 @@ pub fn method77(v0: Uh9, v1: Uh13, v2: Uh10, v3: Int, v4: Int) -> #(Uh10, Int, I
     }
 }
 
-pub fn blank_start_82(v0: String, v1: Int) -> Int {
+pub fn blank_start_81(v0: String, v1: Int) -> Int {
     let v2 = v1 > 0
     let v22 =
         case v2 {
@@ -898,7 +880,7 @@ pub fn blank_start_82(v0: String, v1: Int) -> Int {
     case v22 {
         True -> {
             let v23 = spiral_wrap_signed(v1 - 1, 32)
-            blank_start_82(v0, v23)
+            blank_start_81(v0, v23)
         }
         False -> {
             v1

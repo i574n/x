@@ -164,7 +164,7 @@ test cli static =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
 
 := without_at (text : string) : string =
-    ? sm'.starts_with "@" text ?> sm'.slice 1i32 (sm'.length text - 1i32) text |: text
+    ? sm'.starts_with "@" text ?> rest_from 1i32 text |: text
 
 :~ username_chars (h : string) : bool =
     := len : i32 = sm'.length h

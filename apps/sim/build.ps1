@@ -28,6 +28,10 @@ $env:ERL_CRASH_DUMP = Join-Path $crashDumps "erl_crash-xsim-$(Get-Date -Format y
 $client = Join-Path $XRoot 'apps/client'
 $frames = Join-Path $PSScriptRoot 'frames'
 . (Join-Path $SpiralRoot 'lib/spiral/lib.ps1')
+$split = Join-Path $PSScriptRoot 'split'
+$splitEntry = Join-Path $PSScriptRoot 'spi/xsim_split/xsim_split.spi'
+if (!(BuildSpiral $splitEntry (Join-Path $split 'src/xsim_split.gleam') 'x/apps/sim/split' -Backend Gleam)) { throw "GLEAM-FAILED x/apps/sim/split / compile" }
+{ pwsh -NoProfile -File (Join-Path $XRoot 'scripts/gleam-modules.ps1') -Source (Join-Path $split 'src/xsim_split.gleam') -Entry $splitEntry } | Invoke-Block
 if (!(BuildSpiral (Join-Path $PSScriptRoot 'spi/simframes/simframes.spi') (Join-Path $frames 'src/xsim_frames.gleam') 'x/apps/sim/frames' -Backend Gleam)) { throw "GLEAM-FAILED x/apps/sim/frames / compile" }
 { pwsh -NoProfile -File (Join-Path $XRoot 'scripts/gleam-modules.ps1') -Source (Join-Path $frames 'src/xsim_frames.gleam') -Entry (Join-Path $PSScriptRoot 'spi/simframes/simframes.spi') } | Invoke-Block
 { gleam build --target erlang } | Invoke-Block -Location $frames
@@ -134,9 +138,11 @@ if (!$fast) {
         { mix xsim.thread_run --file (Join-Path $client 'oauth1.spi') --expected (Join-Path $fixtures 'thread-oauth1.expected.json') } | Invoke-Block
         $program = ((Get-Content -Raw (Join-Path $fixtures 'thread-oauth1.expected.json') | ConvertFrom-Json).program -join "`n") + "`n"
         $tampered = Join-Path $fresh 'thread-oauth1.tampered.spi'
-        [IO.File]::WriteAllText($tampered, ($program -replace '_assert_eq "', '_assert_eq "tampered '))
-        & mix xsim.thread_run --file (Join-Path $client 'oauth1.spi') --program $tampered
+        [IO.File]::WriteAllText($tampered, $program + "`ntest tampered_thread_fails =`n    1i32 |> _assert_eq 2i32`n")
+        $verdict = @(& mix xsim.thread_run --file (Join-Path $client 'oauth1.spi') --program $tampered 2>&1 | ForEach-Object { "$_" })
+        $verdict | Out-Host
         if ($LASTEXITCODE -eq 0) { throw "mix xsim.thread_run / passed a tampered thread" }
+        if (!($verdict -match 'same_cells=false .*result=fail')) { throw "mix xsim.thread_run / rejected the tampered thread for another reason than its cells" }
         Write-Output "xsim / thread_run rejects a tampered thread"
     } finally {
         if ($IsWindows) {

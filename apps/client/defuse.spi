@@ -1,5 +1,5 @@
-///- --package .
-///> rust
+///- --package . --timeout 900000
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
 test defuse static =
     :< testing
@@ -93,6 +93,10 @@ test only_dots_before_a_known_tld_are_defused =
     := ~s = "listm.map.foo head.zzz x.io a.b.post"
     defused_dots s |> _assert_eq (zw "listm|.map|.foo head.zzz x.io a.b|.post")
 
+test a_link_right_after_a_wide_glyph_stays_plain =
+    := ~s = "日本x.com"
+    defused_dots s |> _assert_eq s
+
 test blocked_runs_and_numbers_stay_plain =
     := ~at = "@"
     defused_dots (at ++# "x.map /y.map 1.5 t.co") |> _assert_eq (at ++# zw "x.map /y.map 1.5 t|.co")
@@ -111,11 +115,22 @@ test blocked_runs_and_numbers_stay_plain =
     | g :: _ => ok g
     | [] => !-
 
-:~ mention_quiet (prev : string) : bool = not (word_glyph prev || wide_letter prev || sm'.contains prev "!#$%&*@")
+:~ mention_quiet (prev : string) : bool = not (word_glyph prev || one_of "!#$%&*@" prev || prev = "＠")
 
-:~ mention_after (prev : string) (rest : list string) : bool =
+:~ rt_letters (t : string) (r : string) : bool = one_of "tT" t && one_of "rR" r
+
+:~ rt_boundary (before : list string) : bool = not (first_is (\ g => label_glyph g || one_of "+~." g) before)
+
+:~ rt_before (before : list string) : bool =
+    ?= before ?|
+    | c :: t :: r :: rest ?& c = ":" && rt_letters t r => rt_boundary rest
+    | t :: r :: rest ?& rt_letters t r => rt_boundary rest
+    | _ => !-
+
+:~ mention_after (prev : string) (before : list string) (rest : list string) : bool =
     := n, tail = word_length rest 0i32
-    mention_quiet prev && n >= 1i32 && n <= 15i32 && not (first_is (\ g => word_glyph g || g = "@") tail)
+    := quiet = mention_quiet prev || rt_before before
+    quiet && n >= 1i32 && n <= 15i32 && not (first_is (\ g => word_glyph g || g = "@") tail)
 
 :~ ^ tag_has_letter (l : list string) : bool =
     ?= l ?|
@@ -123,7 +138,7 @@ test blocked_runs_and_numbers_stay_plain =
     | _ => !-
 
 :~ hashtag_after (prev : string) (rest : list string) : bool =
-    not (word_glyph prev || wide_letter prev || prev = "&" || prev = "#") && tag_has_letter rest
+    not (word_glyph prev || prev = "&" || prev = "#") && tag_has_letter rest
 
 :~ ^ letters_length (l : list string) (n : i32) : i32 * list string =
     ?= l ?|
@@ -143,12 +158,12 @@ test blocked_runs_and_numbers_stay_plain =
     := n, tail = letters_length rest 0i32
     cash_quiet prev && n >= 1i32 && n <= 6i32 && not (first_is (\ g => word_glyph g || wide_letter g) (suffix_ok tail))
 
-:~ tags (p : string) (g : string) (r : list string) : bool =
-    (g = "@" && mention_after p r) || (g = "#" && hashtag_after p r) || (g = "$" && cashtag_after p r)
+:~ tags (p : string) (before : list string) (g : string) (r : list string) : bool =
+    (g = "@" && mention_after p before r) || (g = "#" && hashtag_after p r) || (g = "$" && cashtag_after p r)
 
 :~ ^ entities_from (p : string) (l : list string) (acc : list string) : list string =
     ?= l ?|
-    | g :: r ?& tags p g r => entities_from g r (zero_width_space () :: g :: acc)
+    | g :: r ?& tags p acc g r => entities_from g r (zero_width_space () :: g :: acc)
     | g :: r => entities_from g r (g :: acc)
     | [] => listm.rev acc
 
@@ -158,6 +173,22 @@ test entity_sigils_get_a_zero_width_space =
     := ~at, hash, cash = "@", "#", "$"
     defused_entities (at ++# "bob " ++# hash ++# "tag " ++# cash ++# "ABC")
     |> _assert_eq (at ++# zw "|bob " ++# hash ++# zw "|tag " ++# cash ++# zw "|ABC")
+
+:= at_bob (lead : string) : string = defused_entities (lead ++# "@" ++# "bob")
+
+test a_mention_right_after_rt_is_defused =
+    (at_bob "RT", at_bob "rt:", at_bob "art")
+    |> _assert_eq (zw "RT@|bob", zw "rt:@|bob", "art" ++# "@" ++# "bob")
+
+test sigils_after_wide_glyphs_are_defused =
+    := ~at, hash = "@", "#"
+    (defused_entities ("日本" ++# at ++# "bob"), defused_entities ("🙂" ++# hash ++# "tag"))
+    |> _assert_eq ("日本" ++# at ++# zw "|bob", "🙂" ++# hash ++# zw "|tag")
+
+test a_link_and_a_mention_at_the_start_are_defused =
+    := ~at = "@"
+    (defused_dots "cell.app x", defused_entities (at ++# "bob hi"))
+    |> _assert_eq (zw "cell|.app x", at ++# zw "|bob hi")
 
 := sigil_restored (sigil : string) (s : string) : string = sm'.replace (sigil ++# zero_width_space ()) sigil s
 

@@ -9,6 +9,7 @@ test thread static =
 :< posts
 :< wire
 :< transport
+:< cursor_walk
 :< paging
 
 := pager_of (a : app) (s : thread_search) : pager failure =
