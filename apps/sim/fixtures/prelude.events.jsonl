@@ -1,0 +1,59 @@
+{"format":"xsim-events","version":1}
+{"at":0,"body":"///- --package . --timeout 600000","k":1,"kind":"frame","n":1,"parent":null,"post":"p0"}
+{"at":0,"body":"///- --package . --timeout 600000","k":1,"kind":"frame","n":1,"parent":null,"post":"p0"}
+{"at":2,"body":":< sm'_operators\n\n:= each \\* a b. (f : a -> b) (l : list a) : list b = listm::foldBack (\\ x acc => f x :: acc) l Nil\n\n:= keep \\* t. (ok : t -> bool) (l : list t) : list t = listm'::filter ok l\n\n:= spread \\* a b. (f : a -> list b) (l : list a) : list b = listm'::collect f","k":1,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":3,"body":" l\n\n:= first_where \\* t. (ok : t -> bool) (l : list t) : option t = listm'::try_find_ ok l\n\n:= has \\* t. (ok : t -> bool) (l : list t) : bool = listm'::exists' ok l\n\n:= take_first \\* t. (n : i32) (l : list t) : list t = listm'::take_ n l\n\n:= then_ok \\* a b e. (f : a ->","k":2,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":1,"body":"///- --test static\n\n:< testing","k":1,"kind":"frame","n":1,"parent":"p0","post":"p1"}
+{"at":4,"body":" result b e) (r : result a e) : result b e = resultm::bind f r\n\n:= map_ok \\* a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\n:= cut (start : i32) (len : i32) (s : string) : string = sm'::substring start len s\n\n:= split_on (sep : string) (s :","k":3,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":5,"body":" string) : list string = sm'::split_list sep s\n\n:= pieces (sep : string) (s : string) : list string = ? s = \"\" ?> Nil |: split_on sep s\n\n:~ delimited (sep : string) (l : list string) : string = sm'::concat_list sep l\n\n:= rest_from (i : i32) (s : string) : string = cut i","k":4,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":6,"body":" (sm'::length s - i) s\n\n:= first_line (text : string) : string =\n    := i : i32 = sm'::index_of \"\\n\" text\n    ? i < 0i32 ?> text |: cut 0i32 i text\n\n:= starts_at (prefix : string) (s : string) (i : i32) : bool =\n    ? i < 0i32 || i > sm'::length s ?> !- |:","k":5,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":8,"body":" digits_end s (i + 1i32) |: i\n\n:= digit_at (i : i32) (text : string) : i32 =\n    \"0123456789\" |> sm'::index_of (sm'::slice i i text)\n\n:~ ^ digits (text : string) (i : i32) (n : i32) : option i32 =\n    ? i >= sm'::length text ?> Some n\n    |:\n        := d = digit_at i text","k":7,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":10,"body":"\n    ? text = \"\" || without_digits text <> \"\" ?> None |: digits text 0 0","k":9,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":10,"body":"\n    ? text = \"\" || without_digits text <> \"\" ?> None |: digits text 0 0","k":9,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":11,"body":"///- --test\n///> zig\n\n:= ~n = 2i32\n[ 1i32; 2; 3 ] |> take_first n |> listm::length |> _assert_eq 2i32","k":1,"kind":"frame","n":1,"parent":"p2","post":"p3"}
+{"at":7,"body":" sm'::starts_with prefix (rest_from i s)\n\n:= digit_first (rest : string) : bool = has (\\ d => sm'::starts_with (sm'::obj_to_string d) rest) (listm::init 10i32 id)\n\n:~ ^ digits_end (s : string) (i : i32) : i32 =\n    ? i < sm'::length s && digit_first (rest_from i s) ?>","k":6,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":12,"body":"///- --test\n///> zig\n\n:= ~e = \"no\"\nError e |> then_ok (\\ (x : i32) => Ok (x + 1)) |> _assert_eq (Error \"no\")","k":1,"kind":"frame","n":1,"parent":"p3","post":"p4"}
+{"at":9,"body":"\n        ? d < 0 || n > 100000000 ?> None |: digits text (i + 1) (n * 10 + d)\n\n:= without_digits (text : string) : string =\n    listm::init 10i32 id |> listm::fold (\\ t d => sm'::replace (sm'::obj_to_string d) \"\" t) text\n\n:~ count_of_text (text : string) : option i32 =","k":8,"kind":"frame","n":9,"parent":"p1","post":"p2"}
+{"at":13,"body":"///- --test\n///> zig\n\n:= ~n = 2i32\n:= l = [ 1i32; 2; 3; 4 ]\nkeep (\\ x => x > n) l |> listm::length |> _assert_eq 2i32\nfirst_where (\\ x => x > n) l |> _assert_eq (Some 3i32)","k":1,"kind":"frame","n":1,"parent":"p4","post":"p5"}
+{"at":13,"body":"///- --test\n///> zig\n\n:= ~n = 2i32\n:= l = [ 1i32; 2; 3; 4 ]\nkeep (\\ x => x > n) l |> listm::length |> _assert_eq 2i32\nfirst_where (\\ x => x > n) l |> _assert_eq (Some 3i32)","k":1,"kind":"frame","n":1,"parent":"p4","post":"p5"}
+{"at":14,"kind":"like","post":"p0","user":"u1"}
+{"at":16,"kind":"like","post":"p1","user":"u1"}
+{"at":15,"kind":"like","post":"p0","user":"u2"}
+{"at":18,"kind":"like","post":"p2","user":"u1"}
+{"at":19,"kind":"like","post":"p2","user":"u2"}
+{"at":20,"kind":"like","post":"p3","user":"u1"}
+{"at":19,"kind":"like","post":"p2","user":"u2"}
+{"at":17,"kind":"like","post":"p1","user":"u2"}
+{"at":17,"kind":"like","post":"p1","user":"u2"}
+{"at":21,"kind":"like","post":"p4","user":"u1"}
+{"at":22,"kind":"like","post":"p4","user":"u2"}
+{"at":23,"kind":"like","post":"p4","user":"u3"}
+{"at":23,"kind":"like","post":"p4","user":"u3"}
+{"at":24,"kind":"like","post":"p5","user":"u1"}
+{"at":26,"body":":< sm'_operators\n\n:= each \\* a b. (f : a -> b) (l : list a) : list b = listm::foldBack (\\ x acc => f x :: acc) l Nil\n\n:= keep \\* t. (ok : t -> bool) (l : list t) : list t = listm'::filter ok l\n\n:= spread \\* a b. (f : a -> list b) (l : list a) : list b = listm'::collect f","k":1,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":27,"body":" l\n\n:= first_where \\* t. (ok : t -> bool) (l : list t) : option t = listm'::try_find_ ok l\n\n:= has \\* t. (ok : t -> bool) (l : list t) : bool = listm'::exists' ok l\n\n:= take_first \\* t. (n : i32) (l : list t) : list t = listm'::take_ n l\n\n:= then_ok \\* a b e. (f : a ->","k":2,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":28,"body":" result b e) (r : result a e) : result b e = resultm::bind f r\n\n:= map_ok \\* a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\n:= cut (start : i32) (len : i32) (s : string) : string = sm'::substring start len s\n\n:= split_on (sep : string) (s :","k":3,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":25,"body":"///- --package . --timeout 600000\n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":1}
+{"at":29,"body":" string) : list string = sm'::split_list sep s\n\n:= pieces (sep : string) (s : string) : list string = ? s = \"\" ?> Nil |: split_on sep s\n\n:~ delimited (sep : string) (l : list string) : string = sm'::concat_list sep l\n\n:= rest_from (i : i32) (s : string) : string = cut i","k":4,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":30,"body":" (sm'::length s - i) s\n\n:= first_line (text : string) : string =\n    := i : i32 = sm'::index_of \"\\n\" text\n    ? i < 0i32 ?> text |: cut 0i32 i text\n\n:= starts_at (prefix : string) (s : string) (i : i32) : bool =\n    ? i < 0i32 || i > sm'::length s ?> !- |:","k":5,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":34,"body":"\n    ? text = \"\" || without_digits text <> \"\" ?> None |: digits text 0 0\n","k":9,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":32,"body":" digits_end s (i + 1i32) |: i\n\n:= digit_at (i : i32) (text : string) : i32 =\n    \"0123456789\" |> sm'::index_of (sm'::slice i i text)\n\n:~ ^ digits (text : string) (i : i32) (n : i32) : option i32 =\n    ? i >= sm'::length text ?> Some n\n    |:\n        := d = digit_at i text","k":7,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":31,"body":" sm'::starts_with prefix (rest_from i s)\n\n:= digit_first (rest : string) : bool = has (\\ d => sm'::starts_with (sm'::obj_to_string d) rest) (listm::init 10i32 id)\n\n:~ ^ digits_end (s : string) (i : i32) : i32 =\n    ? i < sm'::length s && digit_first (rest_from i s) ?>","k":6,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":32,"body":" digits_end s (i + 1i32) |: i\n\n:= digit_at (i : i32) (text : string) : i32 =\n    \"0123456789\" |> sm'::index_of (sm'::slice i i text)\n\n:~ ^ digits (text : string) (i : i32) (n : i32) : option i32 =\n    ? i >= sm'::length text ?> Some n\n    |:\n        := d = digit_at i text","k":7,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":33,"body":"\n        ? d < 0 || n > 100000000 ?> None |: digits text (i + 1) (n * 10 + d)\n\n:= without_digits (text : string) : string =\n    listm::init 10i32 id |> listm::fold (\\ t d => sm'::replace (sm'::obj_to_string d) \"\" t) text\n\n:~ count_of_text (text : string) : option i32 =","k":8,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":36,"kind":"unlike","post":"p5","user":"u1"}
+{"at":33,"body":"\n        ? d < 0 || n > 100000000 ?> None |: digits text (i + 1) (n * 10 + d)\n\n:= without_digits (text : string) : string =\n    listm::init 10i32 id |> listm::fold (\\ t d => sm'::replace (sm'::obj_to_string d) \"\" t) text\n\n:~ count_of_text (text : string) : option i32 =","k":8,"kind":"edit_frame","n":9,"post":"p2","rev":1}
+{"at":36,"kind":"unlike","post":"p5","user":"u1"}
+{"at":37,"kind":"like","post":"p5","user":"fickle1"}
+{"at":38,"kind":"like","post":"p0","user":"editor2"}
+{"at":35,"kind":"unlike","post":"p4","user":"u2"}
+{"at":39,"kind":"unlike","post":"p5","user":"fickle1"}
+{"at":41,"kind":"like","post":"p5","user":"fickle1"}
+{"at":43,"kind":"unlike","post":"p5","user":"fickle1"}
+{"at":40,"body":"///- --package . --timeout 600000 \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":2}
+{"at":42,"body":"///- --package . --timeout 600000  \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":3}
+{"at":42,"body":"///- --package . --timeout 600000  \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":3}
+{"at":44,"body":"///- --package . --timeout 600000   \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":4}
+{"at":44,"body":"///- --package . --timeout 600000   \n","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":4}
+{"at":45,"kind":"like","post":"p5","user":"fickle1"}
+{"at":46,"body":"///- --package . --timeout 600000","k":1,"kind":"edit_frame","n":1,"post":"p0","rev":5}

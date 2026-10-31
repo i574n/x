@@ -1,0 +1,152 @@
+///- --package ..
+///> rust -d serde_json
+test requests static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< protocol
+:< oauth1
+:< wire
+:< transport
+
+:== target = { on : platform; via : api user_context }
+
+:= user_side (base : string) (token : string) (o : oauth1) (nonce : string) (stamp : string) : api user_context =
+    ? token <> "" ?> user_api base token |: signed_api base o nonce stamp
+
+:= era_parts (days : i32) : i32 * i32 =
+    := z = days + 719468i32
+    := era = (? z >= 0i32 ?> z |: z - 146096i32) / 146097i32
+    era, z - era * 146097i32
+
+:= year_of_era (doe : i32) : i32 = (doe - doe / 1460i32 + doe / 36524i32 - doe / 146096i32) / 365i32
+
+:= month_of (mp : i32) : i32 = ? mp < 10i32 ?> mp + 3i32 |: mp - 9i32
+
+:= day_parts (doe : i32) (yoe : i32) : i32 * i32 =
+    := doy = doe - (365i32 * yoe + yoe / 4i32 - yoe / 100i32)
+    := mp = (5i32 * doy + 2i32) / 153i32
+    month_of mp, doy - (153i32 * mp + 2i32) / 5i32 + 1i32
+
+:= civil_of (days : i32) : i32 * i32 * i32 =
+    := era, doe = era_parts days
+    := yoe = year_of_era doe
+    := m, d = day_parts doe yoe
+    yoe + era * 400i32 + (? m <= 2i32 ?> 1i32 |: 0i32), m, d
+
+:= two (n : i32) : string = ? n < 10i32 ?> "0" ++# sm'::obj_to_string n |: sm'::obj_to_string n
+
+:= clock_of (s : i32) : string = two (s / 3600i32) ++# ":" ++# two (s % 3600i32 / 60i32) ++# ":" ++# two (s % 60i32)
+
+:~ iso_of (seconds : i32) : string =
+    := y, m, d = civil_of (seconds / 86400i32)
+    sm'::obj_to_string y ++# "-" ++# two m ++# "-" ++# two d ++# "T" ++# clock_of (seconds % 86400i32) ++# "Z"
+
+:= oauth_in (keys : json) : oauth1 =
+    := ck, cs, t, ts = at_key "ck" keys, at_key "cs" keys, at_key "t" keys, at_key "ts" keys
+    { consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts }
+
+:= bluesky_target (who : json) (clock : json) : target =
+    := writer = { repo = at_key "repo" who; at = iso_of (convert::convert_i32 (at_key "seconds" clock)) }
+    { on = OnBluesky writer; via = user_api (at_key "base" who) (at_key "token" who) }
+
+:= signed_api_in (who : json) (keys : json) (clock : json) : api user_context =
+    := base, token, nonce, stamp = at_key "base" who, at_key "token" who, at_key "nonce" clock, at_key "stamp" clock
+    user_side base token (oauth_in keys) nonce stamp
+
+:= signed_target (who : json) (keys : json) (clock : json) : target =
+    { on = platform_named (at_key "name" who); via = signed_api_in who keys clock }
+
+:= target_in (site : json) : target =
+    := who, clock = field "who" site, field "clock" site
+    ? at_key "name" who = "bluesky" ?> bluesky_target who clock |: signed_target who (field "keys" site) clock
+
+:= platform_in (site : string) : platform = target_in (parse_json site) |> \ (t : target) => t::on
+
+:= ref_in (r : json) : created_reply = created_reply { id = post_id (at_key "id" r); text = ""; cid = at_key "cid" r }
+
+:= outgoing_in (ask : json) : outgoing =
+    := kind, text = at_key "kind" ask, at_key "text" ask
+    ? kind = "removal" ?> Removal (post_id text)
+    |? kind = "answer" ?> Answer (text, ref_in (field "root" ask), ref_in (field "parent" ask))
+    |: Fresh text
+
+:~ answered_on (site : string) (ask : string) : platform * got fetched =
+    := t = target_in (parse_json site)
+    := o = outgoing_in (parse_json ask)
+    ?= t::via ?|
+    | api e => t::on, raw_reply e (outgoing_verb t::on o) (outgoing_path t::on o)
+
+:= created_fields (c : created_reply) : created_out = 0i32, ref_uri c, ref_cid c, ""
+
+:= created_out_of (p : platform) (r : got fetched) : created_out =
+    ?= r ?|
+    | Ok (doc, _) => created_on p doc |> created_fields
+    | Error f => 4i32, "", "", describe_failure f
+
+:= deleted_out_of (p : platform) (r : got fetched) : deleted_out =
+    ?= r ?|
+    | Ok (doc, _) => 0i32, deleted_on p doc, ""
+    | Error f => 4i32, !-, describe_failure f
+
+:= created (site : string) (ask : string) : created_out = answered_on site ask |> \ (p, r) => created_out_of p r
+
+:= deleted (site : string) (ask : string) : deleted_out = answered_on site ask |> \ (p, r) => deleted_out_of p r
+
+:= session_fields (s : session) : session_out = 0i32, s::token, s::account, ""
+
+:= session_out_of (r : got fetched) : session_out =
+    ?= r ?|
+    | Ok (doc, _) => session_of doc |> session_fields
+    | Error f => 4i32, "", "", describe_failure f
+
+:= session_opened (base : string) (id : string) (pw : string) : session_out =
+    ?= anonymous_api base ?|
+    | api e => raw_reply e (Write (session_body id pw)) "/xrpc/com.atproto.server.createSession" |> session_out_of
+
+test bluesky_times_are_utc_rfc3339 =
+    := ~s = 0i32
+    (iso_of s, iso_of 1792999879i32, iso_of 951782400i32)
+    |> _assert_eq ("1970-01-01T00:00:00Z", "2026-10-26T07:31:19Z", "2000-02-29T00:00:00Z")
+
+:= answer_cids (o : outgoing) : string * string =
+    ?= o ?|
+    | Answer (_, root, parent) => ref_cid root, ref_cid parent
+    | _ => "", ""
+
+///> rust -d serde_json
+test an_answer_names_root_and_parent =
+    := ~ask = "{\"kind\":\"answer\",\"root\":{\"cid\":\"c1\"},\"parent\":{\"cid\":\"c2\"}}"
+    parse_json ask |> outgoing_in |> answer_cids |> _assert_eq ("c1", "c2")
+
+:= writer_of (p : platform) : string * string =
+    ?= p ?|
+    | OnBluesky w => w::repo, w::at
+    | _ => "", ""
+
+///> rust -d serde_json
+test a_bluesky_site_writes_as_its_account =
+    := ~site = "{\"who\":{\"name\":\"bluesky\",\"repo\":\"did:e2e\"},\"clock\":{\"seconds\":\"0\"}}"
+    platform_in site |> writer_of |> _assert_eq ("did:e2e", "1970-01-01T00:00:00Z")
+
+///> rust -d serde_json
+test a_bluesky_delete_reads_back_deleted =
+    := ~doc = "{}"
+    deleted_out_of (OnBluesky (unwritten ())) (Ok (parse_json doc, "")) |> _assert_eq (0i32, !+, "")
+
+///> rust -d serde_json
+test a_session_gives_a_token_or_why =
+    := ~doc = "{\"accessJwt\":\"t1\",\"did\":\"d1\"}"
+    (session_out_of (Ok (parse_json doc, "")), session_out_of (Error (Reported "no")))
+    |> _assert_eq ((0i32, "t1", "d1", ""), (4i32, "", "", "no"))
+
+:= write_exports () : () =
+    export "xc_create" ((\ (site, ask) => created site ask) : string * string -> created_out)
+    export "xc_delete" ((\ (site, ask) => deleted site ask) : string * string -> deleted_out)
+
+///> _
+:= main () : i32 =
+    write_exports ()
+    export "xc_session" ((\ (base, id, pw) => session_opened base id pw) : string * string * string -> session_out)
+    0i32

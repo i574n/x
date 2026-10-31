@@ -1,0 +1,21 @@
+///- --package ..
+///> rust -d serde_json unicode-segmentation=1.13
+test cells static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< splitter
+
+:= cell_json (cell : string) : string = $'Rc::<str>::from(serde_json::Value::from(&*!cell).to_string())'
+
+:~ cells_json (text : string) : string = "[" ++# (file_cells text |> each cell_json |> sm'::concat_list ",") ++# "]"
+
+test cells_travel_as_a_json_array =
+    := ~text = "a\n\nb \"c\"\n"
+    cells_json text |> _assert_eq "[\"a\",\"b \\\"c\\\"\"]"
+
+///> _
+:= main () : i32 =
+    export "xc_file_cells" ((\ t => cells_json t) : string -> string)
+    0i32

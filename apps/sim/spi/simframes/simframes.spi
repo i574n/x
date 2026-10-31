@@ -1,0 +1,151 @@
+///- --package .. --timeout 600000
+///> gleam
+test simframes static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< protocol
+:< splitter
+:< schedule
+:< invariants
+:< world
+:< scenario
+:< personas
+
+:= joined_chunks (name : string) (limit : i32) (source : string) : string =
+    global "import xsim_split"
+    $'xsim_split.split_cell_joined(!name, !limit, !source)'
+
+:= remote_split (label : string) (limit : i32) (source : string) : list string =
+    := joined = joined_chunks label limit source
+    ? joined = "" ?> [] |: split_all (char_of 0i32) joined
+
+:== staged_cells = string * i32 * i32 * i32 * string * i32 * bool
+
+:= staged_stream (x : staged_cells) : string =
+    := cells, seed, users, edits, personas, permille, framed = x
+    := g = { seed users edits personas permille framed chunking = remote_split }
+    scenario_stream g (split_all (char_of 0i32) cells)
+
+:= staged_final (x : staged_cells) : string =
+    := cells, seed, users, edits, personas, permille, framed = x
+    := g = { seed users edits personas permille framed chunking = remote_split }
+    scenario_final g (split_all (char_of 0i32) cells)
+
+:= stream_export () : () =
+    export "scenario_stream" ((\ x => staged_stream x) : staged_cells -> string)
+    export "scenario_final" ((\ x => staged_final x) : staged_cells -> string)
+
+:== world_cells = string * i32 * i32 * string * i32 * i32 * i32 * string * string * string
+
+:= view_of (x : world_cells) : losses * account_view =
+    := _, _, _, _, _, lost, lost_cells, _, user_id, username = x
+    { lost lost_cells }, { user_id username }
+
+:= ask_of (x : world_cells) : world_ask =
+    := _, seed, edits, personas, id_base, _, _, base_time, _, _ = x
+    := losses, account = view_of x
+    { seed edits personas id_base losses base_time account chunking = remote_split }
+
+:= staged_world (x : world_cells) : string * string =
+    := cells, _, _, _, _, _, _, _, _, _ = x
+    world_files (ask_of x) (split_all (char_of 0i32) cells)
+
+:= world_export () : () = export "world_files" ((\ x => staged_world x) : world_cells -> string * string)
+
+:== run_cells = string * i32 * i32 * i32 * i32 * i32 * string * bool * i32 * i32
+
+:= threads_of (text : string) : list (list string) = split_all (char_of 1i32) text |> each (split_all (char_of 0i32))
+
+test threads_of_splits_threads_then_cells =
+    := ~s = "a" ++# char_of 0i32 ++# "b" ++# char_of 1i32 ++# "c"
+    threads_of s |> each (delimited ",") |> delimited "|" |> _assert_eq "a,b|c"
+
+:= run_cast (x : run_cells) : casting =
+    := _, seed, users, edits, breaking, churn, personas, _, _, _ = x
+    := c = plain_casting seed
+    { c ?| users = users; edits = edits; breaking = breaking; churn = churn; personas = parsed_personas personas }
+
+:= run_ask_of (x : run_cells) : run_ask =
+    := _, _, _, _, _, _, _, framed, schedule, permille = x
+    { cast = run_cast x; framed; schedule; permille; chunking = remote_split }
+
+:= staged_run (x : run_cells) : string * i32 * i32 * string =
+    := threads, _, _, _, _, _, _, _, _, _ = x
+    := text, posts, events, broken = corpus_run (run_ask_of x) (threads_of threads)
+    text, posts, events, delimited (char_of 0i32) broken
+
+:= run_export () : () = export "corpus_run" ((\ x => staged_run x) : run_cells -> string * i32 * i32 * string)
+
+:= joined_broken (r : string * list string) : string * string =
+    := text, broken = r
+    text, delimited (char_of 0i32) broken
+
+:= corpus_raw (x : run_cells) : string * string =
+    := threads, _, _, _, _, _, _, _, _, _ = x
+    from_corpus (run_cast x) (threads_of threads) |> raw_scenario |> joined_broken
+
+:= cells_raw (x : run_cells) : string * string =
+    := cells, _, _, _, _, _, _, _, _, _ = x
+    from_cells (run_cast x) "" (pieces (char_of 0i32) cells) |> raw_scenario |> joined_broken
+
+:== pacing_cells = string * i32 * i32 * i32
+
+:= paced (x : pacing_cells) : string =
+    := text, seed, permille, window = x
+    rescheduled text seed { permille window }
+
+:= raw_exports () : () =
+    export "corpus_raw" ((\ x => corpus_raw x) : run_cells -> string * string)
+    export "cells_raw" ((\ x => cells_raw x) : run_cells -> string * string)
+
+:== simulate_cells = string * string * string
+
+:== beam = sim_run::beam_executors
+
+:= with_tally (root : string) (b : beam) : beam =
+    := tally = cells_executor::memo_tally ()
+    := run = \ (memo : bool) => cells_executor::cells_counted root memo tally
+    { b ?| cells = run; memo_counts = \ () => cells_executor::memo_counts tally }
+
+:= with_vm (root : string) (b : beam) : beam =
+    := baseline = cells_executor::cells_executor root
+    { b ?| cells_baseline = baseline; leak = cells_executor::shared_leak; beam_mb = cells_executor::beam_mb }
+
+:= with_daemon (b : beam) : beam = { b ?| daemon_watch = cells_executor::daemon_watch }
+
+:= with_async (b : beam) : beam = { b ?| async_run = cells_executor::async_run_with }
+
+:= beam_for (root : string) : beam =
+    sim_run::idle_beam () |> with_tally root |> with_vm root |> with_daemon |> with_async
+
+:= simulated_lines (x : simulate_cells) : string =
+    := args, threads, root = x
+    sim_run::simulated_text (beam_for root) (pieces (char_of 0i32) args) (threads_of threads)
+
+
+:= facade_exports () : () =
+    raw_exports ()
+    export "rescheduled" ((\ x => paced x) : pacing_cells -> string)
+    export "break_source" ((\ s => break_source s) : string -> string)
+
+:= check_exports () : () =
+    export "checked_text" ((\ t => checked_text t) : string -> string)
+    export "commute_text" ((\ (a, b) => commute_text a b) : string * string -> string)
+
+:= invariant_exports () : () =
+    check_exports ()
+    export "breaking_text" ((\ t => breaking_text t) : string -> string)
+    export "masked_text" ((\ t => masked_text t) : string -> string)
+
+///> _
+:= main () : i32 =
+    invariant_exports ()
+    facade_exports ()
+    run_export ()
+    world_export ()
+    stream_export ()
+    export "simulated_lines" ((\ x => simulated_lines x) : simulate_cells -> string)
+    0i32

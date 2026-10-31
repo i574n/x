@@ -1,0 +1,33 @@
+///- --package ..
+///> rust
+test select static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< posts
+
+:= pool_lines (text : string) : list string = pieces "\n" text |> keep (sm'::starts_with "r\t")
+
+:~ selected_text (text : string) (limit : i32) (per_author : i32) : string =
+    := kept = (digest_of text)::primary |> selected { limit per_author } |> each (entry_line "p")
+    listm::append kept (pool_lines text) |> sm'::concat_list "\n"
+
+:= quoting_line (role : string) : string = role ++# "\t1\terin\t\tquoted:2\thi\t2\t1\t14"
+
+test a_selected_line_keeps_its_digest_form =
+    := ~line = quoting_line "p"
+    selected_text (line ++# "\n" ++# quoting_line "r") 5i32 0i32 |> _assert_eq (line ++# "\n" ++# quoting_line "r")
+
+test the_limit_keeps_the_newest_lines =
+    := ~limit = 1i32
+    := older = "p\t1\terin\t2026-10-15T09:00:00Z\t\ta\t0\t0\t0"
+    := newer = "p\t2\terin\t2026-10-15T09:05:00Z\t\tb\t0\t0\t0"
+    selected_text (older ++# "\n" ++# newer) limit 0i32 |> _assert_eq newer
+
+///> _
+:= main () : i32 =
+    export
+        "xc_select"
+        ((\ (text, limit, per_author) => selected_text text limit per_author) : string * i32 * i32 -> string)
+    0i32

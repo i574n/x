@@ -1,0 +1,328 @@
+///- --package .
+///> rust -d sha2 unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test sim_run static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< events
+:< personas
+:< splitter
+:< scenario
+:< schedule
+:< inbox
+:< scheduler
+:< invariants
+:< runner_checks
+:< sim_report
+:< sim_args
+
+:= with_schedule_cast (o : run_options) (c : casting) : casting =
+    { c ?| users = o::schedule::users; edits = o::schedule::edits }
+
+:= with_corpus_cast (o : run_options) (c : casting) : casting =
+    { c ?| breaking = o::corpus::breaking; churn = o::corpus::churn; personas = parsed_personas o::corpus::personas }
+
+:= casting_for (o : run_options) : casting =
+    plain_casting o::schedule::seed |> with_schedule_cast o |> with_corpus_cast o
+
+:= faults_for (o : run_options) : fault_set =
+    { cancel = !+; rerun = !-; eviction = o::runner::eviction; naive = !-; limit = o::runner::max_concurrency }
+
+:= flow_for (o : run_options) (s : scenario) : flow =
+    ? o::corpus::frames ?> exploded split_named (post_limit ()) s::all_events |: s::all_events
+
+:== schedule_outcome = { line : string; sched : scheduler; found : list finding }
+
+:= shape_for (o : run_options) (round : i32) (posts : i32) (events : i32) (deliveries : i32) : run_shape =
+    { seed = o::schedule::seed; schedule = round; posts; events; deliveries; ms = 0i32; beam_mb = 0i32 }
+
+:= saved_path (pattern : string) (round : i32) : string = sm'::replace "{schedule}" (sm'::obj_to_string round) pattern
+
+:= replayed_from (path : string) : list delivery =
+    ?= decoded_stream (file_system::read_all_text path) ?|
+    | Ok l => l
+    | Error why => failwith ("xsim: --replay " ++# path ++# ": " ++# why)
+
+:= saved_as (pattern : string) (round : i32) (l : list delivery) : () =
+    ? pattern <> "" ?> file_system::write_all_text (saved_path pattern round) (stream l)
+
+:= generated_for (o : run_options) (f : flow) (round : i32) : list delivery =
+    deliveries f round { permille = o::schedule::duplicates_permille; window = 6i32 }
+
+:= deliveries_for (o : run_options) (f : flow) (round : i32) : list delivery =
+    := l = ? o::schedule::replay <> "" ?> replayed_from o::schedule::replay |: generated_for o f round
+    saved_as o::schedule::save round l
+    l
+
+:== cells_run = list string -> task_result
+
+:== schedule_fn = i32 -> cells_run -> fault_set -> list delivery -> scheduler * i32
+
+:= unmeasured (pace : i32) (e : cells_run) (f : fault_set) (l : list delivery) : scheduler * i32 = sync_run_with e f l, 0i32
+
+:== beam_executors =
+    { cells : bool -> cells_run; cells_baseline : cells_run; leak : string -> cells_run; memo_counts : () -> i32 * i32;
+        beam_mb : () -> i32; daemon_watch : () -> i32 -> list string; async_run : schedule_fn }
+
+:== executor_pair =
+    { run : cells_run; baseline : cells_run; judges_breaking : bool; notes : i32 -> list string; memory_mb : () -> i32;
+        scheduled_by : schedule_fn }
+
+:= fake_pair () : executor_pair =
+    := quiet = \ () => 0i32
+    { run = fake_result; baseline = fake_baseline; judges_breaking = !-; notes = \ _ => Nil; memory_mb = quiet
+        scheduled_by = unmeasured }
+
+:= fake_async (b : beam_executors) : executor_pair =
+    := p = fake_pair ()
+    { p ?| scheduled_by = b::async_run }
+
+:= cells_pair (b : beam_executors) (memo : bool) : executor_pair =
+    := p = fake_pair ()
+    { p ?| run = b::cells memo; baseline = b::cells_baseline; judges_breaking = !+; scheduled_by = b::async_run }
+
+:= leak_pair (b : beam_executors) : executor_pair =
+    := p = fake_pair ()
+    := leak_run, leak_base = b::leak "xsim_leak_run", b::leak "xsim_leak_baseline"
+    { p ?| run = leak_run; baseline = leak_base; scheduled_by = b::async_run }
+
+:= idle_beam () : beam_executors =
+    { cells = \ _ => fake_result; cells_baseline = fake_result; leak = \ _ => fake_result
+        memo_counts = \ () => (0i32, 0i32); beam_mb = \ () => 0i32; daemon_watch = \ () => \ _ => Nil
+        async_run = unmeasured }
+
+:= counts_text (hits : i32) (misses : i32) : string =
+    "hits=" ++# sm'::obj_to_string hits ++# " misses=" ++# sm'::obj_to_string misses
+
+:= memo_note (b : beam_executors) (round : i32) : list string =
+    := hits, misses = b::memo_counts ()
+    [ "  memo " ++# counts_text hits misses ++# " cumulative_after_schedule=" ++# sm'::obj_to_string round ]
+
+:= daemon_notes (b : beam_executors) (o : run_options) : i32 -> list string =
+    ? o::runner::daemon_memory ?> b::daemon_watch () |: \ _ => Nil
+
+:= notes_for (b : beam_executors) (o : run_options) : i32 -> list string =
+    := memo = ? o::runner::memo ?> memo_note b |: \ _ => Nil
+    := daemon = daemon_notes b o
+    \ round => listm::append (memo round) (daemon round)
+
+:= picked_pair (b : beam_executors) (o : run_options) : executor_pair =
+    ?= o::runner::executor ?|
+    | FakeExecutor => fake_async b
+    | CellsExecutor => cells_pair b o::runner::memo
+    | LeakingExecutor => leak_pair b
+
+:= executor_pair_of (b : beam_executors) (o : run_options) : executor_pair =
+    := p = picked_pair b o
+    { p ?| notes = notes_for b o; memory_mb = b::beam_mb }
+
+:= broken_set (s : scenario) : dictm::set string =
+    listm::fold (\ acc k => dictm::set_add k acc) (dictm::set_empty ()) s::broken
+
+:= breaking_finding (s : scenario) (sched : scheduler) : finding =
+    { rule = BreakingEditsFail; verdict = breaking_failed sched (broken_set s) }
+
+:= sources_key (l : list string) : string = sm'::concat_list "\n" l
+
+:= forward_pair (sched : scheduler) (base : cells_run) (acc : list (string * task_result)) (v : shown) : list (string * task_result) =
+    := l = sources sched::in_box v::id
+    (sources_key l, base l) :: acc
+
+:= known_baseline (done : list (string * task_result)) (base : cells_run) (l : list string) : task_result =
+    ?= first_where (\ (k, _) => k = sources_key l) done ?|
+    | Some (_, r) => r
+    | None => base l
+
+:= forward_baseline (sched : scheduler) (base : cells_run) : cells_run =
+    := s = snapshot_of sched
+    := done = s::visible |> keep (wants s) |> listm::fold (forward_pair sched base) Nil
+    known_baseline done base
+
+:= judged (x : executor_pair) (s : scenario) (sched : scheduler) : list finding =
+    := found = runner_checks sched (forward_baseline sched x::baseline)
+    ? x::judges_breaking ?> listm::append found [ breaking_finding s sched ] |: found
+
+:= outcome_of (found : list finding) (shape : run_shape) (sched : scheduler) : schedule_outcome =
+    { line = summary_line shape sched found; sched; found }
+
+:= size \* t. (l : list t) : i32 = listm::length l
+
+:= counted_shape (o : run_options) (s : scenario) (f : flow) (k : i32) (l : list delivery) : run_shape =
+    shape_for o k (size s::posts) (size f) (size l)
+
+:= noted (x : executor_pair) (k : i32) (r : schedule_outcome) : schedule_outcome =
+    { r ?| line = delimited "\n" (r::line :: x::notes k) }
+
+:= judged_outcome (x : executor_pair) (s : scenario) (shape : run_shape) (sched : scheduler) : schedule_outcome =
+    outcome_of (judged x s sched) shape sched
+
+:= is_equivalence (r : rule) : bool =
+    ?= r ?|
+    | SequentialEquivalence => !+
+    | _ => !-
+
+:= broken_ids (f : finding) : list string =
+    ?= f::verdict ?|
+    | Broken ids => ? is_equivalence f::rule ?> ids |: Nil
+    | Held => Nil
+
+:= status_word (s : task_status) : string =
+    ?= s ?|
+    | Done => "ok"
+    | Erred => "error"
+    | Crashed => "crash"
+
+:= inspected (r : task_result) : string = "%{out: \"" ++# r::out ++# "\", status: :" ++# status_word r::status ++# "}"
+
+:= concurrent_text (sched : scheduler) (id : string) : string =
+    ?= dictm::find id sched::visible_map ?|
+    | Some e => inspected e::result
+    | None => "nil"
+
+:= explain_head (id : string) (l : list string) : string =
+    "XSIM explain " ++# id ++# " cells=" ++# sm'::obj_to_string (listm::length l : i32)
+
+:= explain_text (x : executor_pair) (sched : scheduler) (id : string) : string =
+    := l = sources sched::in_box id
+    explain_head id l ++# "\n  concurrent=" ++# concurrent_text sched id ++# "\n  sequential=" ++# inspected (x::baseline l)
+
+:= explained (x : executor_pair) (r : schedule_outcome) : schedule_outcome =
+    ?= r::found |> spread broken_ids ?|
+    | id :: _ => { r ?| line = r::line ++# "\n" ++# explain_text x r::sched id }
+    | Nil => r
+
+:= reported (x : executor_pair) (k : i32) (r : schedule_outcome) : schedule_outcome = noted x k r |> explained x
+
+:= peak_mb (before : i32) (after : i32) : i32 = ? after > before ?> after |: before
+
+:= peak_scheduled (x : executor_pair) (o : run_options) (l : list delivery) : scheduler * i32 =
+    := before = x::memory_mb ()
+    := sched, during = x::scheduled_by o::runner::pace_ms x::run (faults_for o) l
+    sched, peak_mb (peak_mb before during) (x::memory_mb ())
+
+:= measured_shape (o : run_options) (s : scenario) (f : flow) (k : i32) (l : list delivery) (mb : i32) : run_shape =
+    := counted = counted_shape o s f k l
+    { counted ?| beam_mb = mb }
+
+:= schedule_run_of (x : executor_pair) (o : run_options) (s : scenario) (f : flow) (k : i32) : schedule_outcome =
+    := l = deliveries_for o f k
+    := sched, mb = peak_scheduled x o l
+    judged_outcome x s (measured_shape o s f k l mb) sched |> reported x k
+
+:== run_outcomes = list schedule_outcome
+
+:~ ^ outcomes_from
+    (x : executor_pair) (o : run_options) (s : scenario) (f : flow) (k : i32) (acc : run_outcomes) : run_outcomes =
+    ? k > o::schedule::schedules ?> listm::rev acc
+    |: outcomes_from x o s f (k + 1i32) (schedule_run_of x o s f k :: acc)
+
+:= closing_line (outcomes : list schedule_outcome) : string =
+    := scheds = each (\ (r : schedule_outcome) => r::sched) outcomes
+    verdict_line scheds (each (\ (r : schedule_outcome) => r::found) outcomes)
+
+:= with_closing (outcomes : list schedule_outcome) : list string =
+    listm::append (each (\ (r : schedule_outcome) => r::line) outcomes) [ closing_line outcomes ]
+
+:~ simulated_by (x : executor_pair) (o : run_options) (threads : list (list string)) : list string =
+    := s = from_corpus (casting_for o) threads
+    outcomes_from x o s (flow_for o s) 1i32 Nil |> with_closing
+
+:= simulated (o : run_options) (threads : list (list string)) : list string = simulated_by (fake_pair ()) o threads
+
+:= executed_text (b : beam_executors) (o : run_options) (threads : list (list string)) : string =
+    simulated_by (executor_pair_of b o) o threads |> delimited "\n"
+
+:= simulated_text (b : beam_executors) (args : list string) (threads : list (list string)) : string =
+    ?= run_args (default_run ()) args ?|
+    | RunParsed o => executed_text b o threads
+    | RunRejected why => "XSIM rejected " ++# why
+
+:= small_corpus () : list (list string) = [ [ "inl a = 1i32"; "inl b = a + 1i32"; "inl c = b * 2i32" ] ]
+
+:= small_options () : run_options =
+    := d = default_run ()
+    := plan = d::schedule
+    { d ?| schedule = { plan ?| schedules = 2i32; users = 3i32 } }
+
+:= run_summary (lines : list string) : i32 * bool * bool =
+    := commuted = has ((=) "XSIM commute=ok result=pass") lines
+    (listm::length lines : i32), has (sm'::starts_with "XSIM seed=1 schedule=2 ") lines, commuted
+
+test a_fake_run_prints_one_line_per_schedule_and_a_verdict =
+    := ~corpus = small_corpus ()
+    simulated (small_options ()) corpus |> run_summary |> _assert_eq (3i32, !+, !+)
+
+test a_save_pattern_names_each_schedule =
+    (saved_path "runs/s{schedule}.jsonl" 2i32, saved_path "plain.jsonl" 1i32)
+    |> _assert_eq ("runs/s2.jsonl", "plain.jsonl")
+
+:= with_executor (e : executor_kind) : run_options =
+    := d = default_run ()
+    := r = d::runner
+    { d ?| runner = { r ?| executor = e } }
+
+:= marked (out : string) (_ : list string) : task_result = { status = Done; out }
+
+:= marked_runs (b : beam_executors) : beam_executors =
+    := marked_cells = \ memo => marked (? memo ?> "cells+memo" |: "cells")
+    { b ?| cells = marked_cells; cells_baseline = marked "cells-baseline"; leak = \ key => marked ("leak:" ++# key) }
+
+:= marked_daemon () (round : i32) : list string = [ "  daemon marked " ++# sm'::obj_to_string round ]
+
+:= marked_beam () : beam_executors =
+    := b = idle_beam () |> marked_runs
+    { b ?| memo_counts = \ () => (2i32, 1i32); beam_mb = \ () => 7i32; daemon_watch = marked_daemon }
+
+:= with_memo (memo : bool) (o : run_options) : run_options =
+    := r = o::runner
+    { o ?| runner = { r ?| memo = memo } }
+
+:= picked (o : run_options) : string * string =
+    := x = executor_pair_of (marked_beam ()) o
+    := run, baseline = x::run [ "inl a = 1i32" ], x::baseline [ "inl a = 1i32" ]
+    run::out, baseline::out
+
+test the_executor_flag_picks_the_run_and_baseline =
+    (picked (with_executor CellsExecutor), picked (with_executor LeakingExecutor |> with_memo !+))
+    |> _assert_eq (("cells", "cells-baseline"), ("leak:xsim_leak_run", "leak:xsim_leak_baseline"))
+
+test only_memo_runs_reach_the_cells_run_and_not_the_baseline =
+    picked (with_executor CellsExecutor |> with_memo !+) |> _assert_eq ("cells+memo", "cells-baseline")
+
+:= judges_breaking_for (e : executor_kind) : bool =
+    := x = executor_pair_of (marked_beam ()) (with_executor e)
+    x::judges_breaking
+
+test only_the_cells_executor_judges_breaking_edits =
+    (judges_breaking_for CellsExecutor, judges_breaking_for FakeExecutor) |> _assert_eq (!+, !-)
+
+:= notes_at (o : run_options) (round : i32) : list string =
+    := x = executor_pair_of (marked_beam ()) o
+    x::notes round
+
+test the_memo_line_follows_each_schedule_only_with_memo =
+    (notes_at (with_executor FakeExecutor |> with_memo !+) 3i32, notes_at (with_executor FakeExecutor) 3i32)
+    |> _assert_eq ([ "  memo hits=2 misses=1 cumulative_after_schedule=3" ], Nil)
+
+:= with_daemon (o : run_options) : run_options =
+    := r = o::runner
+    { o ?| runner = { r ?| daemon_memory = !+ } }
+
+:= daemon_notes_at (memo : bool) (round : i32) : list string =
+    notes_at (with_executor FakeExecutor |> with_memo memo |> with_daemon) round
+
+test the_daemon_line_comes_only_with_daemon_memory =
+    (daemon_notes_at !- 1i32, notes_at (with_executor FakeExecutor) 1i32) |> _assert_eq ([ "  daemon marked 1" ], Nil)
+
+test the_daemon_line_follows_the_memo_line =
+    daemon_notes_at !+ 2i32 |> _assert_eq [ "  memo hits=2 misses=1 cumulative_after_schedule=2"; "  daemon marked 2" ]
+
+:= memory_pair (e : executor_kind) : i32 * i32 =
+    := x = executor_pair_of (marked_beam ()) (with_executor e)
+    := p = fake_pair ()
+    x::memory_mb (), p::memory_mb ()
+
+test the_schedule_memory_comes_from_the_beam_record_for_every_executor =
+    (memory_pair FakeExecutor, memory_pair CellsExecutor) |> _assert_eq ((7i32, 0i32), (7i32, 0i32))

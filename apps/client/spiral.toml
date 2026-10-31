@@ -1,0 +1,77 @@
+edition = 3
+packageDir = '../../../spiral/lib'
+packages = ['|core-', 'spiral-']
+modules = '''
+prelude
+paging
+glyphs
+tlds
+defuse
+protocol
+splitter
+posts
+reading
+cli
+fields
+oauth1
+wire
+transport
+net/
+    net
+api/
+    api
+checks/
+    checks
+timeline/
+    timeline
+args/
+    args
+users/
+    users
+fetch/
+    fetch
+refs/
+    refs
+resume/
+    resume
+requests/
+    requests
+write/
+    write
+digest/
+    digest
+select/
+    select
+view/
+    view
+jsonl/
+    jsonl
+token/
+    token
+thread/
+    thread
+chain/
+    chain
+cells/
+    cells
+domains/
+    domains
+entities/
+    entities
+posted/
+    posted
+weights/
+    weights
+chunks/
+    chunks
+frames/
+    frames
+preview/
+    preview
+locate/
+    locate
+assemble/
+    assemble
+xc/
+    xc
+'''

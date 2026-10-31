@@ -1,0 +1,146 @@
+///- --package . --timeout 900000
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test glyphs static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+
+:= char_of (n : i32) : string = unicode::char_of n
+
+:= zero_width_space () : string = char_of 8203i32
+
+:= defused_dot () : string = zero_width_space () ++# "."
+
+:= graphemes (s : string) : list string = unicode::graphemes s
+
+:= light (c : i32) : bool =
+    c <= 4351i32 || (c >= 8192i32 && c <= 8205i32) || (c >= 8208i32 && c <= 8223i32) || (c >= 8242i32 && c <= 8247i32)
+
+:= code_point_weight (c : i32) : i32 = ? light c ?> 1i32 |: 2i32
+
+:= plain_weight (s : string) : i32 = unicode::code_points s |> listm::fold (\ sum c => sum + code_point_weight c) 0i32
+
+:= first_code_point (s : string) : i32 = unicode::first_code_point s
+
+:= code_point_count (s : string) : i32 = unicode::code_point_count s
+
+:= holds_code_point (n : i32) (s : string) : bool = sm'::index_of (char_of n) s >= 0i32
+
+:= pictograph_led (first : i32) : bool = first >= 126976i32
+
+:= symbol_led (first : i32) : bool =
+    (first >= 8192i32 && first <= 11263i32)
+    || first = 169i32
+    || first = 174i32
+    || first = 12336i32
+    || first = 12349i32
+    || first = 12951i32
+    || first = 12953i32
+
+:= keycap_led (first : i32) : bool = first = 35i32 || first = 42i32 || (first >= 48i32 && first <= 57i32)
+
+:= emoji_presented (g : string) (first : i32) : bool = holds_code_point 65039i32 g && symbol_led first
+
+:= keycap (g : string) (first : i32) : bool = holds_code_point 8419i32 g && keycap_led first
+
+:= emoji_entity (g : string) : bool =
+    := first = first_code_point g
+    code_point_count g > 1i32 && (pictograph_led first || emoji_presented g first || keycap g first)
+
+:= glyph_weight (g : string) : i32 = ? emoji_entity g ?> 2i32 |: plain_weight g
+
+:= nfc (s : string) : string = unicode::nfc s
+
+:= ascii_letters () : string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+:= one_of (chars : string) (g : string) : bool = sm'::length g = 1i32 && sm'::index_of g chars >= 0i32
+
+:= letter (g : string) : bool = one_of (ascii_letters ()) g
+
+:= label_char (g : string) : bool = one_of (ascii_letters () ++# "0123456789_-") g
+
+:= blank (s : string) : bool = unicode::code_points s |> has (\ c => not (unicode::is_white_space c)) |> not
+
+:= split_all (sep : string) (s : string) : list string = sm'::split_list sep s
+
+:= all_pieces (sep : string) (s : string) : list string = ? s = "" ?> Nil |: split_all sep s
+
+:~ ^ blank_tail_length (l : list string) (n : i32) : i32 =
+    ?= l ?|
+    | g :: rest ?& blank g => blank_tail_length rest (n + sm'::length g)
+    | _ => n
+
+:= trimmed_end (s : string) : string = cut 0i32 (sm'::length s - blank_tail_length (graphemes s |> listm::rev) 0i32) s
+
+:= thumb () : string = char_of 128077i32 ++# char_of 127997i32
+
+:= accented () : string = "e" ++# char_of 769i32
+
+test graphemes_hold_clusters =
+    := ~s = "a" ++# accented () ++# " " ++# thumb () ++# "."
+    graphemes s |> listm::length |> _assert_eq 5i32
+    graphemes "" |> listm::length |> _assert_eq 0i32
+
+:= crlf () : string = char_of 13i32 ++# char_of 10i32
+
+test a_line_break_pair_is_one_grapheme =
+    := ~s = "a" ++# crlf () ++# "b"
+    graphemes s |> listm::length |> _assert_eq 3i32
+
+test weights_follow_x =
+    := ~s = "abc"
+    plain_weight s |> _assert_eq 3i32
+    plain_weight (char_of 26085i32) |> _assert_eq 2i32
+    plain_weight (thumb ()) |> _assert_eq 4i32
+    plain_weight (char_of 8212i32 ++# zero_width_space ()) |> _assert_eq 2i32
+
+:= family () : string =
+    char_of 128104i32
+    ++# char_of 8205i32
+    ++# char_of 128105i32
+    ++# char_of 8205i32
+    ++# char_of 128103i32
+    ++# char_of 8205i32
+    ++# char_of 128102i32
+
+:= japan () : string = char_of 127471i32 ++# char_of 127477i32
+
+:= keycap_one () : string = "1" ++# char_of 65039i32 ++# char_of 8419i32
+
+:= red_heart () : string = char_of 10084i32 ++# char_of 65039i32
+
+:= letter_vs16 () : string = "a" ++# char_of 65039i32
+
+test emoji_entities_weigh_two =
+    := ~g = thumb ()
+    [ g; family (); red_heart (); keycap_one (); japan () ] |> listm::map glyph_weight
+    |> _assert_eq [ 2i32; 2i32; 2i32; 2i32; 2i32 ]
+
+test other_clusters_keep_code_point_weights =
+    := ~g = accented ()
+    [ g; letter_vs16 (); char_of 26085i32; char_of 169i32; "a" ] |> listm::map glyph_weight
+    |> _assert_eq [ 2i32; 3i32; 2i32; 1i32; 1i32 ]
+
+test blanks_and_tails =
+    := ~s = "x \t\n"
+    trimmed_end s |> _assert_eq "x"
+    blank (char_of 160i32) |> _assert_eq !+
+    blank (zero_width_space ()) |> _assert_eq !-
+    trimmed_end ("a" ++# char_of 160i32) |> _assert_eq "a"
+
+:= rejoined (sep : string) (s : string) : string = split_all sep s |> sm'::concat_list "|"
+
+test split_all_keeps_empty_pieces =
+    := ~s = "a\n" ++# char_of 26085i32 ++# "\n\nb\n"
+    rejoined "\n" s |> _assert_eq ("a|" ++# char_of 26085i32 ++# "||b|")
+    all_pieces "\n" "" |> listm::length |> _assert_eq 0i32
+    rejoined "," "x" |> _assert_eq "x"
+
+test nfc_composes =
+    := ~s = accented ()
+    nfc s |> _assert_eq (char_of 233i32)
+    letter "a" |> _assert_eq !+
+    label_char "-" |> _assert_eq !+
+    letter "." |> _assert_eq !-

@@ -1,0 +1,41 @@
+///- --package .
+///> gleam
+test executors static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< scheduler
+
+:== executor = list string -> task_result
+
+:= fake_executor () : executor = \ sources => { status = Done; out = fake_out sources }
+
+:| leak_message =
+    | Swap : string * erlang_process::subject string
+
+:= swapped (last : string) (m : leak_message) : otp_actor::next string leak_message =
+    ?= m ?|
+    | Swap (next, reply) =>
+        erlang_process::send reply last
+        otp_actor::continue next
+
+:= leak_started () : option (erlang_process::subject leak_message) =
+    otp_actor::new "" |> otp_actor::on_message swapped |> otp_actor::start |> otp_actor::started_data
+
+:= leaking_executor (leak : erlang_process::subject leak_message) : executor =
+    \ sources =>
+        := digest = fake_out sources
+        { status = Done; out = digest ++# otp_actor::call leak 10000i32 (\ reply => Swap (digest, reply)) }
+
+:= two_leaking_runs (leak : erlang_process::subject leak_message) (sources : list string) : string * string =
+    := run = leaking_executor leak
+    := first = run sources
+    := second = run sources
+    first::out, second::out
+
+test a_leaking_executor_carries_the_previous_digest =
+    := ~a = [ "inl a = 1" ]
+    ?= leak_started () ?|
+    | Some leak => two_leaking_runs leak a |> _assert_eq (fake_out a, fake_out a ++# fake_out a)
+    | None => failwith "leak cell did not start"

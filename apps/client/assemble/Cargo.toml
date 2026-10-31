@@ -1,0 +1,16 @@
+[package]
+name = "xc_assemble"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "assemble.spi"
+output = "assemble.rs"
+
+[lib]
+name = "xc_assemble"
+path = "assemble.rs"
+
+[dependencies]
+serde_json = { workspace = true }

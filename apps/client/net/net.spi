@@ -1,0 +1,198 @@
+///- --package ..
+///> rust -d base64=0.23 jiff=0.2.38
+test net static =
+    :< testing
+
+:< sm'_operators
+:< oauth1
+
+:== http_reply = i32 * string
+
+:! bodiless = $'ureq::RequestBuilder<ureq::typestate::WithoutBody>'
+
+:! bodied = $'ureq::RequestBuilder<ureq::typestate::WithBody>'
+
+:= get_builder (url : string) (auth : string) : bodiless =
+    $'ureq::get(&*!url).header("Authorization", &*!auth)'
+
+:= delete_builder (url : string) (auth : string) : bodiless =
+    $'ureq::delete(&*!url).header("Authorization", &*!auth)'
+
+:= post_builder (url : string) (auth : string) : bodied =
+    $'ureq::post(&*!url).header("Authorization", &*!auth).header("Content-Type", "application/json")'
+
+:= patient (g : bodiless) : bodiless =
+    $'!g.config().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(30))).build()'
+
+:= patient_bodied (g : bodied) : bodied =
+    $'!g.config().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(30))).build()'
+
+:! ureq_response = $'ureq::http::Response<ureq::Body>'
+
+:! ureq_failure = $'ureq::Error'
+
+:! ureq_outcome = $'Result<ureq::http::Response<ureq::Body>, ureq::Error>'
+
+:= called (g : bodiless) : ureq_outcome = $'ureq::RequestBuilder::call(!g)'
+
+:= sent_with (g : bodied) (body : string) : ureq_outcome = $'ureq::RequestBuilder::send(!g, &*!body)'
+
+:= outcome_ok (r : ureq_outcome) : bool = $'!r.is_ok()'
+
+:= outcome_response (r : ureq_outcome) : ureq_response = $'!r.unwrap()'
+
+:= outcome_failure (r : ureq_outcome) : ureq_failure = $'!r.unwrap_err()'
+
+:= response_status (r : ureq_response) : i32 = ($'!r.status().as_u16()' : u16) |> conv
+
+:= response_body (r : ureq_response) : string = $'Rc::<str>::from(!r.body_mut().read_to_string().unwrap_or_default())'
+
+:= failure_text (e : ureq_failure) : string = $'Rc::<str>::from(!e.to_string())'
+
+:= reply_of (r : ureq_outcome) : http_reply =
+    ? outcome_ok r
+    ?>
+        := response = outcome_response r
+        response_status response, response_body response
+    |: 0i32, failure_text (outcome_failure r)
+
+:= call_reply (g : bodiless) : http_reply = called g |> reply_of
+
+:= send_reply (g : bodied) (body : string) : http_reply = sent_with g body |> reply_of
+
+:= status_of ((status, _) : http_reply) : i32 = status
+
+:= body_of ((_, body) : http_reply) : string = body
+
+:= bodiless_reply (method : string) (url : string) (auth : string) : http_reply =
+    ? method = "DELETE" ?> delete_builder url auth |> patient |> call_reply
+    |: get_builder url auth |> patient |> call_reply
+
+:= open_post_builder (url : string) : bodied = $'ureq::post(&*!url).header("Content-Type", "application/json")'
+
+:= posted (url : string) (auth : string) (body : string) : http_reply =
+    ? auth = "" ?> send_reply (open_post_builder url |> patient_bodied) body
+    |: send_reply (post_builder url auth |> patient_bodied) body
+
+:= request_counted () : () = process_counter_add "xc_requests" 1u64 |> ignore
+
+:= requests_made () : i32 = process_counter_value "xc_requests" |> conv
+
+:~ exchange (method : string) (url : string) (auth : string) (body : string) : i32 * string =
+    request_counted ()
+    := reply = ? method = "POST" ?> posted url auth body |: bodiless_reply method url auth
+    status_of reply, body_of reply
+
+:= form_builder (url : string) (auth : string) : bodied =
+    $'ureq::post(&*!url).header("Authorization", &*!auth).header("Content-Type", "application/x-www-form-urlencoded")'
+
+:= basic_auth (user : string) (password : string) : string =
+    := pair = user ++# ":" ++# password
+    := encoded = $'Rc::<str>::from(base64::Engine::encode(&base64::prelude::BASE64_STANDARD, (!pair).as_bytes()))'
+    "Basic " ++# encoded
+
+:== form_post = string * string * string * string
+
+:~ form_exchange (x : form_post) : i32 * string =
+    := url, user, password, body = x
+    request_counted ()
+    := reply = send_reply (form_builder url (basic_auth user password) |> patient_bodied) body
+    status_of reply, body_of reply
+
+:== sent = string * string * string * string
+
+:= sent_of (x : sent) : i32 * string =
+    := method, url, auth, body = x
+    exchange method url auth body
+
+:== signing = string * string * string * string * string * string * string * string
+
+:~ signed_header (x : signing) : string =
+    := ck, cs, t, ts, method, url, nonce, stamp = x
+    oauth_header { consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts } method url nonce stamp
+
+:! instant = $'Option<jiff::Timestamp>'
+
+:= instant_of (stamp : string) : instant = $'!stamp.parse::<jiff::Timestamp>().ok()'
+
+:! jiff_instant = $'jiff::Timestamp'
+
+:! jiff_zone = $'jiff::tz::TimeZone'
+
+:! jiff_zoned = $'jiff::Zoned'
+
+:= instant_found (t : instant) : bool = $'!t.is_some()'
+
+:= instant_value (t : instant) : jiff_instant = $'!t.unwrap()'
+
+:= system_zone () : jiff_zone = $'jiff::tz::TimeZone::system()'
+
+:= zoned_in (z : jiff_zone) (x : jiff_instant) : jiff_zoned = $'!x.to_zoned(!z)'
+
+:= minute_text (z : jiff_zoned) : string = $'Rc::<str>::from(!z.strftime("%Y-%m-%d %H:%M").to_string())'
+
+:= local_minute (stamp : string) : string =
+    := t = instant_of stamp
+    ? instant_found t ?> instant_value t |> zoned_in (system_zone ()) |> minute_text |: stamp
+
+:! civil_day = $'Option<jiff::civil::Date>'
+
+:! jiff_day = $'jiff::civil::Date'
+
+:! day_start = $'Option<jiff::Zoned>'
+
+:= day_of (day : string) : civil_day = $'!day.parse::<jiff::civil::Date>().ok()'
+
+:= day_found (d : civil_day) : bool = $'!d.is_some()'
+
+:= day_value (d : civil_day) : jiff_day = $'!d.unwrap()'
+
+:= day_zoned (z : jiff_zone) (d : jiff_day) : day_start = $'!d.to_zoned(!z).ok()'
+
+:= start_found (s : day_start) : bool = $'!s.is_some()'
+
+:= start_value (s : day_start) : jiff_zoned = $'!s.clone().unwrap()'
+
+:= utc_text (z : jiff_zoned) : string = $'Rc::<str>::from(!z.timestamp().strftime("%Y-%m-%dT%H:%M:%SZ").to_string())'
+
+:= midnight_of (d : jiff_day) : string =
+    := s = day_zoned (system_zone ()) d
+    ? start_found s ?> start_value s |> utc_text |: ""
+
+:= local_midnight (day : string) : string =
+    := d = day_of day
+    ? day_found d ?> day_value d |> midnight_of |: ""
+
+:= local_exports () : () =
+    export "xc_local_minute" ((\ s => local_minute s) : string -> string)
+    export "xc_local_midnight" ((\ d => local_midnight d) : string -> string)
+
+:= count_exports () : () = export "xc_requests" ((\ () => requests_made ()) : () -> i32)
+
+:= form_exports () : () = export "xc_post_form" ((\ x => form_exchange x) : form_post -> i32 * string)
+
+:= clock_exports () : () =
+    export "xc_fresh_nonce" ((\ () => fresh_nonce ()) : () -> string)
+    export "xc_unix_seconds" ((\ () => unix_seconds ()) : () -> string)
+
+test basic_auth_encodes_the_pair =
+    := ~user = "id"
+    basic_auth user "secret" |> _assert_eq "Basic aWQ6c2VjcmV0"
+
+test unreadable_times_pass_through =
+    := ~stamp = "not a time"
+    local_minute stamp |> _assert_eq "not a time"
+    local_midnight "2026-13-40" |> _assert_eq ""
+
+:= wire_exports () : () =
+    export "xc_send" ((\ x => sent_of x) : sent -> i32 * string)
+    export "xc_oauth1_header" ((\ x => signed_header x) : signing -> string)
+
+///> _
+:= main () : i32 =
+    wire_exports ()
+    count_exports ()
+    form_exports ()
+    clock_exports ()
+    local_exports ()
+    0i32

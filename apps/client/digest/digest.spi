@@ -1,0 +1,87 @@
+///- --package ..
+///> rust -d serde_json
+test digest static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< posts
+:< wire
+
+:== rebuilt = { primary : list post; pool : pool }
+
+:= kept_posts (keep : i32) (l : list post) : list post = ? keep > 0i32 ?> take_first keep l |: l
+
+:= primary_entry (author : string) (keep : i32) (doc : json) (r : rebuilt) : rebuilt =
+    ?= posts_of_doc author doc ?|
+    | posts_reply { pool primary } =>
+        { primary = listm::append (kept_posts keep primary) r::primary; pool = merge_pools r::pool pool }
+
+:= lookup_entry (doc : json) (r : rebuilt) : rebuilt =
+    ?= posts_of_doc "" doc ?|
+    | posts_reply { pool } => { r ?| pool = absorb r::pool pool }
+
+:= users_entry (doc : json) (r : rebuilt) : rebuilt =
+    := pl = r::pool
+    { r ?| pool = { pl ?| users = listm::append pl::users (accounts_in doc) } }
+
+:= primary_of (e : json) (doc : json) (r : rebuilt) : rebuilt =
+    primary_entry (at_key "author" e) (e |> field "keep" |> number_of) doc r
+
+:~ absorb_entry (r : rebuilt) (e : json) : rebuilt =
+    := role = at_key "role" e
+    := doc = e |> field "doc"
+    ? role = "primary" ?> primary_of e doc r
+    |? role = "lookup" ?> lookup_entry doc r
+    |: users_entry doc r
+
+
+:= rebuilt_of (bundle : string) : rebuilt =
+    parse_json bundle |> collect id |> listm::fold absorb_entry { primary = Nil; pool = empty_pool () }
+
+:~ entry_lines_of (role : string) (pl : pool) (l : list post) : list string = l |> each (entry_of pl >> entry_line role)
+
+:~ digested (bundle : string) : string =
+    := r = rebuilt_of bundle
+    listm::append (entry_lines_of (dyn "p") r::pool r::primary) (entry_lines_of (dyn "r") r::pool r::pool::posts)
+    |> sm'::concat_list (dyn "\n")
+
+:= primary_bundle () : string =
+    items [
+        object [
+            member "role" (quoted_text "primary")
+            member "author" (quoted_text "erin")
+            member "doc" (object [ member "data" (items [ post_json () ]) ])
+        ]
+    ]
+
+:= quote_line (role : string) : string = role ++# "\t1\terin\t\tquoted:2\thi\t2\t1\t14"
+
+:= primary_entry (keep : i32) (doc : string) : string =
+    object [
+        member "role" (quoted_text "primary")
+        member "author" (quoted_text "erin")
+        member "keep" (sm'::obj_to_string keep)
+        member "doc" doc
+    ]
+
+:= two_post_bundle (keep : i32) : string =
+    items [ primary_entry keep (object [ member "data" (items [ post_json (); post_json () ]) ]) ]
+
+test keep_cuts_each_account_to_its_newest =
+    := ~keep = 1i32
+    (
+        (listm::length (rebuilt_of (two_post_bundle keep))::primary : i32),
+        (listm::length (rebuilt_of (two_post_bundle 0i32))::primary : i32)
+    )
+    |> _assert_eq (1i32, 2i32)
+
+
+test primary_posts_become_entry_lines =
+    := ~bundle = primary_bundle ()
+    digested bundle |> _assert_eq (quote_line "p" ++# "\n" ++# quote_line "r")
+
+///> _
+:= main () : i32 =
+    export "xc_digest" ((\ bundle => digested bundle) : string -> string)
+    0i32

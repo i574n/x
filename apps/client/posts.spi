@@ -1,0 +1,433 @@
+///- --package . --timeout 900000
+test posts static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< protocol
+
+:! user_id = string
+
+:= user_text (u : user_id) : string =
+    ?= u ?|
+    | user_id s => s
+
+:= same_user (a : user_id) (b : user_id) : bool = user_text a = user_text b
+
+:== user_ids = list user_id
+
+:== account = { id : user_id; username : string }
+
+:== accounts = list account
+
+:| ref_kind =
+    | Quoted
+    | RepliedTo
+    | Reposted
+
+:== reference = { kind : ref_kind; id : post_id }
+
+:== url_entity = { url : string; expanded_url : string; title : string }
+
+:== framed = { id : post_id; text : string; history : list post_id; urls : list url_entity; parent : option post_id }
+
+:= latest (f : framed) : bool =
+    ?= listm::rev f::history ?|
+    | last :: _ => same_post last f::id
+    | Nil => !+
+
+:== medium = { media_key : string; kind : string; alt_text : string }
+
+:== public_metrics = { reply_count : i32; repost_count : i32; like_count : i32 }
+
+:= no_metrics () : public_metrics = { reply_count = 0i32; repost_count = 0i32; like_count = 0i32 }
+
+:== post_fields =
+    { id : post_id; author_id : user_id; author_username : string; created_at : string; text : string;
+        public_metrics : public_metrics; refs : list reference; urls : list url_entity; media_keys : list string }
+
+:== post = heap post_fields
+
+:= fields_of_post (p : post) : post_fields = (~!) p
+
+:== pool = { posts : list post; media : list medium; users : accounts }
+
+:= empty_pool () : pool = { posts = Nil; media = Nil; users = Nil }
+
+:= media_in (p : pool) : list medium =
+    := { media } = p
+    media
+
+:~ merge_pools (a : pool) (b : pool) : pool =
+    {
+        posts = listm::append a::posts b::posts
+        media = listm::append (media_in a) (media_in b)
+        users = listm::append a::users b::users
+    }
+
+:= reference_as (text : string) (id : post_id) : list reference =
+    ? text = "quoted" ?> [ { kind = Quoted; id } ]
+    |? text = "replied_to" ?> [ { kind = RepliedTo; id } ]
+    |? text = "reposted" || text = "retweeted" ?> [ { kind = Reposted; id } ]
+    |: Nil
+
+:= ref_label (k : ref_kind) : string =
+    ?= k ?|
+    | Quoted => "quoted"
+    | RepliedTo => "replied to"
+    | Reposted => "reposted"
+
+:~ single_line (text : string) : string =
+    text
+    |> sm'::replace "\r\n" " "
+    |> sm'::replace "\n" " "
+    |> sm'::replace "\r" " "
+    |> sm'::replace "\t" " "
+
+:= expand_urls (urls : list url_entity) (text : string) : string =
+    listm::fold (\ t (u : url_entity) => ? u::expanded_url = "" ?> t |: sm'::replace u::url u::expanded_url t) text urls
+
+:~ shown_text (p : post) : string = p::text |> expand_urls p::urls |> single_line
+
+:= medium_text (m : medium) : string =
+    ? m::alt_text = "" ?> "[" ++# m::kind ++# "]" |: "[" ++# m::kind ++# "] " ++# single_line m::alt_text
+
+:= medium_hint (pl : pool) (key : string) : string =
+    ?= first_where (\ (m : medium) => m::media_key = key) (media_in pl) ?|
+    | Some m => medium_text m
+    | None => "[media]"
+
+:= url_hints (p : post) : list string =
+    p::urls
+    |> keep (\ (u : url_entity) => u::title <> "")
+    |> each \ (u : url_entity) => "[url] " ++# single_line u::title
+
+:= hint_texts (pl : pool) (p : post) : list string =
+    listm::append (p::media_keys |> each (medium_hint pl)) (url_hints p)
+
+:= named_author (pl : pool) (p : post) : string =
+    ?= first_where (\ (a : account) => same_user a::id p::author_id) pl::users ?|
+    | Some a => a::username
+    | None => "user " ++# user_text p::author_id
+
+:= author_of (pl : pool) (p : post) : string = ? p::author_username <> "" ?> p::author_username |: named_author pl p
+
+:== entry_fields =
+    { id : post_id; username : string; created_at : string; text : string; reply_count : string;
+        repost_count : string; like_count : string; hints : list string; refs : list reference }
+
+:== entry = heap entry_fields
+
+:= count_text (n : i32) : string = sm'::obj_to_string n
+
+:= counts_of (p : post) : string * string * string =
+    := m = p::public_metrics
+    count_text m::reply_count, count_text m::repost_count, count_text m::like_count
+
+:= shown_of (pl : pool) (p : post) : string * string * string * list string =
+    author_of pl p, p::created_at, shown_text p, hint_texts pl p
+
+:~ entry_of (pl : pool) (p : post) : entry =
+    := reply_count, repost_count, like_count = counts_of p
+    := username, created_at, text, hints = shown_of pl p
+    heap { id = p::id; username created_at text reply_count repost_count like_count hints refs = p::refs }
+
+:= ref_word (k : ref_kind) : string =
+    ?= k ?|
+    | Quoted => "quoted"
+    | RepliedTo => "replied_to"
+    | Reposted => "reposted"
+
+:= refs_text (l : list reference) : string =
+    l |> each (\ (r : reference) => ref_word r::kind ++# ":" ++# post_text r::id) |> sm'::concat_list (dyn ",")
+
+:= entry_id (e : entry) : string = post_text e::id
+
+:= counted_fields (e : entry) : list string = e::reply_count :: e::repost_count :: e::like_count :: e::hints
+
+:~ entry_line (role : string) (e : entry) : string =
+    := head = [ role; entry_id e; e::username; e::created_at; refs_text e::refs; e::text ]
+    listm::append head (counted_fields e) |> sm'::concat_list (dyn "\t")
+
+:= after (i : i32) (t : string) : string = sm'::substring (i + 1i32) (sm'::length t - i - 1i32) t
+
+:= reference_of_text (t : string) : list reference =
+    := i : i32 = sm'::index_of ":" t
+    ? i < 0i32 ?> Nil |: reference_as (sm'::substring 0i32 i t) (post_id (after i t))
+
+:= refs_of_text (t : string) : list reference = pieces "," t |> spread reference_of_text
+
+:== role_entry = string * entry
+
+:~ ^ field_at (i : i32) (l : list string) : string =
+    ?= l ?|
+    | x :: xs => ? i = 0i32 ?> x |: field_at (i - 1i32) xs
+    | Nil => ""
+
+:~ ^ fields_after (i : i32) (l : list string) : list string =
+    ?= l ?|
+    | _ :: xs ?& i > 0i32 => fields_after (i - 1i32) xs
+    | _ => l
+
+:= counts_at (l : list string) : string * string * string = field_at 6 l, field_at 7 l, field_at 8 l
+
+:= names_at (l : list string) : post_id * string * string * string =
+    post_id (field_at 1 l), field_at 2 l, field_at 3 l, field_at 5 l
+
+:= links_at (l : list string) : list string * list reference = fields_after 9 l, refs_of_text (field_at 4 l)
+
+:= entry_at (l : list string) : entry =
+    := id, username, created_at, text = names_at l
+    := reply_count, repost_count, like_count = counts_at l
+    := hints, refs = links_at l
+    heap { id username created_at text reply_count repost_count like_count hints refs }
+
+:~ entry_of_line (line : string) : list role_entry =
+    := l = pieces "\t" line
+    ? listm::length l < 9i32 ?> Nil |: [ field_at 0 l, entry_at l ]
+
+:== digest = { primary : list entry; pool : list entry }
+
+:= sorted (d : digest) (r : role_entry) : digest =
+    := role, e = r
+    ? role = "p" ?> { d ?| primary = e :: d::primary } |: { d ?| pool = e :: d::pool }
+
+:~ digest_of (text : string) : digest =
+    := d = pieces "\n" text |> spread entry_of_line |> listm::fold sorted { primary = Nil; pool = Nil }
+    { primary = listm::rev d::primary; pool = listm::rev d::pool }
+
+:= second_of (stamp : string) : string =
+    ? sm'::length stamp < 19i32 ?> stamp |: sm'::substring 0i32 19i32 stamp
+
+:= later_id (a : post_id) (b : post_id) : bool =
+    := la : i32 = sm'::length (post_text a)
+    := lb : i32 = sm'::length (post_text b)
+    ? la <> lb ?> la > lb |: comp (post_text a) (post_text b) |> gt_is
+
+:= newer (a : entry) (b : entry) : bool =
+    := sa = second_of a::created_at
+    := sb = second_of b::created_at
+    ? sa <> sb ?> comp sa sb |> gt_is |: later_id a::id b::id
+
+:~ ^ merge_newest (a : list entry) (b : list entry) : list entry =
+    ?= a ?|
+    | Nil => b
+    | x :: xs =>
+        ?= b ?|
+        | Nil => a
+        | y :: ys => ? newer x y ?> x :: merge_newest xs b |: y :: merge_newest a ys
+
+:~ ^ halves (l : list entry) : list entry * list entry =
+    ?= l ?|
+    | x :: y :: rest =>
+        := left, right = halves rest
+        x :: left, y :: right
+    | _ => l, Nil
+
+:~ ^ newest_first (l : list entry) : list entry =
+    ?= l ?|
+    | Nil | (_ :: Nil) => l
+    | _ =>
+        := left, right = halves l
+        merge_newest (newest_first left) (newest_first right)
+
+:== tally = { seen : list (string * i32); kept : list entry }
+
+:= count_of_author (author : string) (seen : list (string * i32)) : i32 =
+    ?= first_where (\ (a, _) => a = author) seen ?|
+    | Some (_, n) => n
+    | None => 0
+
+:= counted (author : string) (seen : list (string * i32)) : list (string * i32) =
+    (author, count_of_author author seen + 1) :: keep (\ (a, _) => a <> author) seen
+
+:= tally_step (cap : i32) (t : tally) (e : entry) : tally =
+    ? count_of_author e::username t::seen >= cap ?> t
+    |: { seen = counted e::username t::seen; kept = e :: t::kept }
+
+:= per_author (cap : i32) (l : list entry) : list entry =
+    ? cap <= 0 ?> l
+    |: listm::fold (tally_step cap) { seen = Nil; kept = Nil } l |> \ t => listm::rev t::kept
+
+:== selection = { limit : i32; per_author : i32 }
+
+:~ selected (s : selection) (l : list entry) : list entry =
+    l |> newest_first |> per_author s::per_author |> take_first s::limit
+
+:= utc_minute (at : string) : string =
+    ? sm'::length at < 16i32 ?> at
+    |: sm'::substring 0i32 10i32 at ++# " " ++# sm'::substring 11i32 5i32 at
+
+:~ quantity (n : string) (one : string) (many : string) : string = n ++# " " ++# (? n = "1" ?> one |: many)
+
+:~ metrics_text (e : entry) : string =
+    := replies = quantity e::reply_count "reply" "replies"
+    := reposts = quantity e::repost_count "repost" "reposts"
+    "  [" ++# replies ++# ", " ++# reposts ++# ", " ++# quantity e::like_count "like" "likes" ++# "]"
+
+:~ render_post (minute : string -> string) (e : entry) : string =
+    minute e::created_at ++# "  @" ++# e::username ++# "  " ++# e::text ++# metrics_text e
+
+:~ indent (level : i32) : string =
+    listm::fold (\ s _ => s ++# "  ") "" (listm::init level id)
+
+:= hint_lines (level : i32) (e : entry) : list string = e::hints |> each (\ h => indent level ++# h)
+
+:~ ref_line (level : i32) (kind : ref_kind) (e : entry) : string =
+    indent level ++# "> " ++# ref_label kind ++# " @" ++# e::username ++# ": " ++# e::text ++# metrics_text e
+
+:= find_entry (l : list entry) (id : post_id) : option entry = first_where (\ (e : entry) => same_post e::id id) l
+
+:= missing_ref (level : i32) (r : reference) : string =
+    indent level ++# "> " ++# ref_label r::kind ++# " a post not loaded (" ++# post_text r::id ++# ")"
+
+:== view_options = { depth : i32; hints : bool; minute : string -> string }
+
+:= hints_of (o : view_options) (level : i32) (e : entry) : list string =
+    ? o::hints ?> hint_lines (level + 1) e |: Nil
+
+:~ ^ post_lines (pl : list entry) (o : view_options) (level : i32) (e : entry) : list string =
+    := hints = hints_of o level e
+    ? level >= o::depth ?> hints |: listm::append hints (spread (ref_lines pl o level) e::refs)
+
+:& :~ ref_lines (pl : list entry) (o : view_options) (level : i32) (r : reference) : list string =
+    ?= find_entry pl r::id ?|
+    | Some e => ref_line (level + 1) r::kind e :: post_lines pl o (level + 1) e
+    | None => [ missing_ref (level + 1) r ]
+
+:= reposted_id (e : entry) : option post_id =
+    ?= e::refs ?|
+    | { kind id } :: Nil =>
+        ?= kind ?|
+        | Reposted => Some id
+        | _ => None
+    | _ => None
+
+:= original_of (pl : list entry) (o : view_options) (e : entry) : option entry =
+    ?= reposted_id e ?|
+    | Some id ?& o::depth > 0 => find_entry pl id
+    | _ => None
+
+:= repost_line (o : view_options) (p : entry) (q : entry) : string =
+    := head = o::minute p::created_at ++# "  @" ++# p::username ++# "  reposted @" ++# q::username
+    head ++# ": " ++# q::text ++# metrics_text q
+
+:~ entry_lines (pl : list entry) (o : view_options) (e : entry) : list string =
+    ?= original_of pl o e ?|
+    | Some q => repost_line o e q :: post_lines pl o 0 q
+    | None => render_post o::minute e :: post_lines pl o 0 e
+
+:= at (id : string) (who : string) (stamp : string) : post =
+    heap { id = post_id id; author_id = user_id ("u" ++# who); author_username = who; created_at = stamp;
+        text = "t" ++# id; public_metrics = no_metrics (); refs = Nil; urls = Nil; media_keys = Nil }
+
+:= citing (kind : ref_kind) (target : string) (p : post) : post =
+    := f = fields_of_post p
+    heap { f ?| refs = [ { kind id = post_id target } ] }
+
+:= quote_chain () : post * pool =
+    := c = at "3" "c" "07:00"
+    := b = at "2" "b" "08:00" |> citing Quoted "3"
+    := a = at "1" "a" "09:00" |> citing RepliedTo "2"
+    := e = empty_pool ()
+    a, { e ?| posts = [ a; b; c ] }
+
+:= lone (p : post) : entry = entry_of (empty_pool ()) p
+
+:= entries_of (pl : pool) : list entry = pl::posts |> each (entry_of pl)
+
+:= rendered (p : post) : string = render_post utc_minute (lone p)
+
+:= quiet (line : string) : string = line ++# "  [0 replies, 0 reposts, 0 likes]"
+
+:= plain_view (depth : i32) : view_options = { depth hints = !-; minute = utc_minute }
+
+:= lines_of (pl : pool) (depth : i32) (p : post) : string =
+    entry_lines (entries_of pl) (plain_view depth) (entry_of pl p) |> sm'::concat_list "|"
+
+:= entry_ids (l : list entry) : string = l |> each entry_id |> sm'::concat_list (dyn ",")
+
+:= ids (l : list post) : string = l |> each lone |> newest_first |> entry_ids
+
+:= with_url (url : string) (p : post) : post =
+    := f = fields_of_post p
+    heap { f ?| text = "read\nthis " ++# url; urls = [ { url; expanded_url = "long1"; title = "" } ] }
+
+///> zig
+test newest_first_orders_by_time =
+    := ~early = "2026-10-15T08:00:00.000Z"
+    [ at "1" "a" early; at "2" "b" "2026-10-15T09:30:00Z" ] |> ids |> _assert_eq "2,1"
+
+///> zig
+test same_second_orders_newer_id_first_across_formats =
+    := ~stamp = "2026-10-15T09:30:00.000Z"
+    [ at "9" "a" stamp; at "10" "b" "2026-10-15T09:30:00Z"; at "8" "c" stamp ] |> ids |> _assert_eq "10,9,8"
+
+:= loud_posts () : list post = [ at "5" "loud" "09:05"; at "4" "loud" "09:04" ]
+
+///> zig
+test per_author_keeps_quiet_accounts_visible =
+    := ~cap = 1i32
+    at "1" "quiet" "08:00" :: loud_posts ()
+    |> each lone
+    |> selected { limit = 2; per_author = cap }
+    |> entry_ids
+    |> _assert_eq "5,1"
+
+///> zig
+test links_are_expanded_and_lines_flattened =
+    := ~url = "s1"
+    at "1" "b" "09:05" |> with_url url |> rendered
+    |> _assert_eq (quiet ("09:05  @" ++# "b  read this long1"))
+
+:= liked (likes : i32) : public_metrics = { reply_count = 1; repost_count = 0; like_count = likes }
+
+///> zig
+test counts_say_one_or_many =
+    := ~likes = 2i32
+    := f = at "1" "b" "09:05" |> fields_of_post
+    rendered (heap { f ?| public_metrics = liked likes })
+    |> _assert_eq ("09:05  @" ++# "b  t1  [1 reply, 0 reposts, 2 likes]")
+
+///> zig
+test entries_survive_their_line_form =
+    := ~who = "b"
+    := line = at "1" who "09:05" |> citing Quoted "7" |> lone |> entry_line "p"
+    entry_of_line line |> each (\ (role, e) => entry_line role e) |> sm'::concat_list "" |> _assert_eq line
+
+///> zig
+test references_nest_to_the_requested_depth =
+    := ~depth = 2i32
+    := a, pl = quote_chain ()
+    lines_of pl depth a |> pieces "|" |> listm::length |> _assert_eq 3i32
+
+///> zig
+test missing_posts_are_named =
+    := ~depth = 1i32
+    at "1" "a" "09:00" |> citing Reposted "77" |> lines_of (empty_pool ()) depth
+    |> _assert_eq (quiet ("09:00  @" ++# "a  t1") ++# "|  > reposted a post not loaded (77)")
+
+:= pool_of (l : list post) : pool =
+    := e = empty_pool ()
+    { e ?| posts = l }
+
+:= fan_repost () : post =
+    := f = at "3" "fan" "09:00" |> fields_of_post
+    heap { f ?| text = "RT @" ++# "orig: trunc" } |> citing Reposted "2"
+
+///> zig
+test a_repost_shows_its_original_once =
+    := ~depth = 1i32
+    := r = fan_repost ()
+    lines_of (pool_of [ r; at "2" "orig" "08:00" ]) depth r
+    |> _assert_eq (quiet ("09:00  @" ++# "fan  reposted @" ++# "orig: t2"))
+
+:= edited (history : list string) : framed =
+    { id = post_id "2"; text = ""; history = history |> each post_id; urls = Nil; parent = None }
+
+///> zig
+test only_the_newest_edit_is_latest =
+    := ~newest = "2"
+    edited [ "1"; newest ] |> latest |> _assert_eq !+
+    edited [ newest; "3" ] |> latest |> _assert_eq !-
+    edited Nil |> latest |> _assert_eq !+

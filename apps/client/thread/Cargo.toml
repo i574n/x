@@ -1,0 +1,18 @@
+[package]
+name = "xc_thread"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "thread.spi"
+output = "thread.rs"
+
+[lib]
+name = "xc_thread"
+path = "thread.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+xc_net = { path = "../net" }
+xc_api = { path = "../api" }

@@ -1,0 +1,16 @@
+[package]
+name = "xc_entities"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "entities.spi"
+output = "entities.rs"
+
+[lib]
+name = "xc_entities"
+path = "entities.rs"
+
+[dependencies]
+unicode-segmentation = "1.13"

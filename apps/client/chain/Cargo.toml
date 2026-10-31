@@ -1,0 +1,17 @@
+[package]
+name = "xc_chain"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "chain.spi"
+output = "chain.rs"
+
+[lib]
+name = "xc_chain"
+path = "chain.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+xc_thread = { path = "../thread" }

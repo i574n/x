@@ -1,0 +1,547 @@
+///- --package .
+test cli static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+
+:| source =
+    | Accounts : list string
+    | FollowingOf : string
+
+:| following_cap =
+    | AtMost : i32
+    | AllFollowing
+
+:== filters = { start_time : string; end_time : string; no_replies : bool; no_reposts : bool }
+
+:== request =
+    { source : source; per_account : i32; limit : i32; per_author : i32; cap : following_cap;
+        filters : filters; depth : i32; hints : bool; json : bool }
+
+:| thread_op =
+    | ReadThread : string
+    | PostThread : string
+    | PreviewThread : string
+    | PreviewThreads : list string
+    | DeleteThread : string
+    | ResumeThread : string * string
+
+:| command =
+    | ShowTimeline : request
+    | PublishPost : string
+    | RemovePost : string
+    | RefreshToken : string
+    | OnThread : thread_op
+    | ShowHelp
+    | Rejected : string
+
+:== draft =
+    { usernames : list string; following : option string; per_account : i32; limit : i32; per_author : i32;
+        cap : following_cap; filters : filters; depth : i32; hints : bool; json : bool }
+
+:== step = result draft string
+
+:== args = list string
+
+:== progress = step * args
+
+:| flag =
+    | PerAccount
+    | Limit
+    | PerAuthor
+    | MaxFollowing
+    | Following
+    | StartTime
+    | EndTime
+    | Depth
+
+:| switch =
+    | NoReplies
+    | NoReposts
+    | Originals
+    | Hints
+    | Json
+
+:= lookup_limit () : i32 = 100i32
+
+:= usage_synopsis () : string =
+    "usage: xc timeline [options] USERNAME...\n"
+    ++# "       xc timeline [options] [--max-following N|all] --following USERNAME\n"
+
+:= usage_writes () : string =
+    "       xc post TEXT | xc delete ID   (user credentials: OAuth 1.0a keys or X_OAUTH2_ACCESS_TOKEN)\n"
+    ++# "       xc refresh ENV_FILE   renew X_OAUTH2_ACCESS_TOKEN in ENV_FILE with X_OAUTH2_REFRESH_TOKEN\n"
+
+:= usage_reads () : string = "       xc thread ID          the program a thread of framed posts (CELL k/n) carries\n"
+
+:= usage_thread_writes () : string =
+    "       xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)\n"
+    ++# "       xc post-thread --resume ROOT_ID FILE   finish a half-posted thread of FILE after its last post\n"
+
+:= usage_thread_previews () : string =
+    "       xc post-thread --dry-run FILE...   preview each FILE's thread after a '=== FILE' line\n"
+
+:= usage_thread_deletes () : string =
+    "       xc delete-thread ID   delete your posts of that thread (user credentials)\n"
+
+:= usage_environment () : string =
+    "env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)\n"
+
+:= usage_counts () : string =
+    "       --per-account N   posts shown per account, 1..100 (default 5)\n"
+    ++# "       --limit N         timeline entries shown (default 20)\n"
+    ++# "       --per-author N    entries shown per author (default all)\n"
+
+:= usage_filters () : string =
+    "       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n"
+    ++# "       --end-time DATE   posts before DATE\n"
+    ++# "       --no-replies, --no-reposts, --originals (both)\n"
+
+:= usage_views () : string =
+    "       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n"
+    ++# "       --hints           media alt text and url titles under each post\n"
+
+:= usage_output () : string = "       --json            one JSON object per entry (JSON Lines) instead of text\n"
+
+:= usage_following () : string =
+    "       --max-following N accounts followed by USERNAME to include, or all (default 20)"
+
+:= usage_commands () : string =
+    usage_synopsis () ++# usage_writes () ++# usage_reads () ++# usage_thread_writes () ++# usage_thread_previews ()
+    ++# usage_thread_deletes ()
+
+:= usage () : string =
+    := filters, views = usage_counts () ++# usage_filters (), usage_views () ++# usage_output ()
+    usage_commands () ++# usage_environment () ++# filters ++# views ++# usage_following ()
+
+:| arg_kind =
+    | Switched : switch
+    | Valued : flag
+    | Plain
+
+:= value_flag_of (text : string) : arg_kind =
+    ? text = "--max-following" ?> Valued MaxFollowing
+    |? text = "--following" ?> Valued Following
+    |? text = "--start-time" ?> Valued StartTime
+    |? text = "--end-time" ?> Valued EndTime
+    |: Plain
+
+:= flag_of (text : string) : arg_kind =
+    ? text = "--per-account" ?> Valued PerAccount
+    |? text = "--limit" ?> Valued Limit
+    |? text = "--per-author" ?> Valued PerAuthor
+    |? text = "--depth" ?> Valued Depth
+    |: value_flag_of text
+
+:= output_kind (text : string) : arg_kind =
+    ? text = "--json" ?> Switched Json
+    |? text = "--hints" ?> Switched Hints
+    |: flag_of text
+
+:= kind_of (text : string) : arg_kind =
+    ? text = "--no-replies" ?> Switched NoReplies
+    |? text = "--no-reposts" ?> Switched NoReposts
+    |? text = "--originals" ?> Switched Originals
+    |: output_kind text
+
+:= char_at (i : i32) (text : string) : string = sm'::slice i i text
+
+:= fits_at (pattern : string) (text : string) (i : i32) : bool =
+    ? char_at i pattern = "9" ?> digit_at i text >= 0 |: char_at i pattern = char_at i text
+
+:= shaped (pattern : string) (text : string) : bool =
+    := n : i32 = sm'::length pattern
+    :~ ^ go (i : i32) : bool = i >= n || fits_at pattern text i && go (i + 1)
+    sm'::length text = n && go 0
+
+:= date_of_text (text : string) : option string =
+    ? shaped "9999-99-99" text ?> Some (text ++# "T00:00:00Z")
+    |? shaped "9999-99-99T99:99:99Z" text ?> Some text
+    |: None
+
+:= username_alphabet () : string =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
+
+:= without_at (text : string) : string =
+    ? sm'::starts_with "@" text ?> rest_from 1i32 text |: text
+
+:~ username_chars (h : string) : bool =
+    := len : i32 = sm'::length h
+    :~ ^ ok (i : i32) : bool = i >= len || (username_alphabet () |> sm'::contains (char_at i h)) && ok (i + 1)
+    len >= 1 && len <= 15 && ok 0
+
+:= username_of_text (text : string) : option string =
+    := h = without_at text
+    ? username_chars h ?> Some h |: None
+
+:= range_of (f : flag) : i32 * i32 =
+    ?= f ?|
+    | PerAccount => 1i32, 100i32
+    | Depth => 0i32, 3i32
+    | _ => 1i32, 100000i32
+
+:== checks = { count : string -> option i32; instant : string -> option string; username : string -> option string }
+
+:= pure_checks () : checks = { count = count_of_text; instant = date_of_text; username = username_of_text }
+
+:= out_of_range (name : string) (low : i32) (high : i32) (text : string) : string =
+    := range = sm'::obj_to_string low ++# " to " ++# sm'::obj_to_string high
+    name ++# " expects a number from " ++# range ++# ", got '" ++# text ++# "'"
+
+:= with_count (f : flag) (d : draft) (n : i32) : draft =
+    ?= f ?|
+    | PerAccount => { d ?| per_account = n }
+    | Limit => { d ?| limit = n }
+    | PerAuthor => { d ?| per_author = n }
+    | Depth => { d ?| depth = n }
+    | _ => { d ?| cap = AtMost n }
+
+:~ bounded (c : checks) (f : flag) (name : string) (text : string) (d : draft) : step =
+    := low, high = range_of f
+    ?= c::count text ?|
+    | Some n ?& n >= low && n <= high => Ok (with_count f d n)
+    | _ => Error (out_of_range name low high text)
+
+:= not_a_username (text : string) : string = "not an X username: '" ++# text ++# "'"
+
+:~ with_following (c : checks) (value : string) (d : draft) : step =
+    ?= c::username value, d::following ?|
+    | None, _ => Error (not_a_username value)
+    | Some _, Some _ => Error "--following given twice"
+    | Some h, None => Ok { d ?| following = Some h }
+
+:= with_filters (d : draft) (f : filters) : draft = { d ?| filters = f }
+
+:= date_expected (name : string) (value : string) : string =
+    name ++# " expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '" ++# value ++# "'"
+
+:= dated (g : flag) (at : string) (f : filters) : filters =
+    ?= g ?|
+    | StartTime => { f ?| start_time = at }
+    | _ => { f ?| end_time = at }
+
+:~ with_date (c : checks) (g : flag) (name : string) (value : string) (d : draft) : step =
+    ?= c::instant value ?|
+    | None => Error (date_expected name value)
+    | Some at => Ok (with_filters d (dated g at d::filters))
+
+:= uncapped (d : draft) : step = Ok { d ?| cap = AllFollowing }
+
+:~ apply_flag (c : checks) (f : flag) (n : string) (v : string) (d : draft) : step =
+    ?= f ?|
+    | Following => with_following c v d
+    | StartTime | EndTime => with_date c f n v d
+    | MaxFollowing ?& v = "all" => uncapped d
+    | _ => bounded c f n v d
+
+:= switched (s : switch) (f : filters) : filters =
+    ?= s ?|
+    | NoReplies => { f ?| no_replies = !+ }
+    | NoReposts => { f ?| no_reposts = !+ }
+    | _ => { f ?| no_replies = !+; no_reposts = !+ }
+
+:~ apply_switch (s : switch) (d : draft) : step =
+    ?= s ?|
+    | Hints => Ok { d ?| hints = !+ }
+    | Json => Ok { d ?| json = !+ }
+    | _ => Ok (with_filters d (switched s d::filters))
+
+:= unknown_option (arg : string) : string = "unknown option " ++# arg
+
+:~ with_username (c : checks) (arg : string) (d : draft) : step =
+    ?= c::username arg ?|
+    | _ ?& sm'::starts_with "-" arg => Error (unknown_option arg)
+    | Some h => Ok { d ?| usernames = h :: d::usernames }
+    | None => Error (not_a_username arg)
+
+:= request_of (d : draft) (s : source) : command =
+    := { per_account limit per_author cap filters depth hints json } = d
+    ShowTimeline { source = s; per_account limit per_author cap filters depth hints json }
+
+:= following_alone () : string = "--following takes one account and no other usernames"
+
+:= nothing_named () : string = "name at least one account, or --following USERNAME"
+
+:= usernames_in (d : draft) : list string = listm::rev d::usernames
+
+:~ finish (d : draft) : command =
+    ?= d::following, usernames_in d ?|
+    | Some h, Nil => request_of d (FollowingOf h)
+    | Some _, _ => Rejected (following_alone ())
+    | None, Nil => Rejected (nothing_named ())
+    | None, hs => request_of d (Accounts hs)
+
+:= too_many () : string = "at most " ++# sm'::obj_to_string (lookup_limit ()) ++# " accounts per run"
+
+:~ capped (d : draft) : command =
+    ? listm::length d::usernames > lookup_limit () ?> Rejected (too_many ()) |: finish d
+
+:= is_help (arg : string) : bool = arg = "--help" || arg = "-h" || arg = "help"
+
+
+:= needs_value (a : string) : progress = Error (a ++# " needs a value"), Nil
+
+:= valued (c : checks) (d : draft) (a : string) (f : flag) (r : args) : progress =
+    ?= r ?|
+    | Nil => needs_value a
+    | v :: r' => apply_flag c f a v d, r'
+
+:~ advance (c : checks) (d : draft) (a : string) (r : args) : progress =
+    ?= kind_of a ?|
+    | Switched s => apply_switch s d, r
+    | Valued f => valued c d a f r
+    | Plain => with_username c a d, r
+
+:~ ^ parse_from (c : checks) (d : draft) (args : list string) : command =
+    ?= args ?|
+    | Nil => capped d
+    | arg :: rest =>
+        ?= advance c d arg rest ?|
+        | Ok d, more => parse_from c d more
+        | Error why, _ => Rejected why
+
+:= no_filters () : filters = { start_time = ""; end_time = ""; no_replies = !-; no_reposts = !- }
+
+:= initial_draft () : draft =
+    { usernames = Nil; following = None; per_account = 5i32; limit = 20i32; per_author = 0i32;
+        cap = AtMost 20i32; filters = no_filters (); depth = 0i32; hints = !-; json = !- }
+
+:= unknown_command (arg : string) : string = "unknown command " ++# arg ++# "; try: xc timeline"
+
+:= wants_help (args : list string) : bool = listm::fold (\ seen a => seen || is_help a) !- args
+
+:~ one_value (name : string) (args : list string) (make : string -> command) : command =
+    ?= args ?|
+    | value :: Nil ?& value <> "" => make value
+    | _ => Rejected (name ++# " takes exactly one argument")
+
+:= previews (paths : list string) : command =
+    ?= paths ?|
+    | path :: Nil => OnThread (PreviewThread path)
+    | _ => OnThread (PreviewThreads paths)
+
+:= dry_or_post (rest : args) : command =
+    ?= rest ?|
+    | flag :: path :: more ?& flag = "--dry-run" => previews (path :: more)
+    | _ => one_value "post-thread" rest (PostThread >> OnThread)
+
+:= thread_post_command (rest : args) : command =
+    ?= rest ?|
+    | flag :: root :: path :: Nil ?& flag = "--resume" => OnThread (ResumeThread (root, path))
+    | _ => dry_or_post rest
+
+:~ thread_command (sub : string) (rest : args) : command =
+    ? sub = "post-thread" ?> thread_post_command rest
+    |? sub = "delete-thread" ?> one_value sub rest (DeleteThread >> OnThread)
+    |: Rejected (unknown_command sub)
+
+:~ other_command (sub : string) (rest : args) : command =
+    ? sub = "refresh" ?> one_value sub rest RefreshToken
+    |? sub = "thread" ?> one_value sub rest (ReadThread >> OnThread)
+    |: thread_command sub rest
+
+:~ write_command (sub : string) (rest : args) : command =
+    ? sub = "post" ?> one_value sub rest PublishPost
+    |? sub = "delete" ?> one_value sub rest RemovePost
+    |: other_command sub rest
+
+:= subcommand (c : checks) (start : draft) (sub : string) (rest : args) : command =
+    ? sub = "timeline" ?> parse_from c start rest |: write_command sub rest
+
+:~ parse_args_with (c : checks) (start : draft) (args : list string) : command =
+    ?= args ?|
+    | sub :: rest ?& not (wants_help args) => subcommand c start sub rest
+    | _ => ShowHelp
+
+:= parse_args (args : list string) : command = parse_args_with (pure_checks ()) (initial_draft ()) args
+
+:~ parse_writes (args : list string) : command =
+    ?= args ?|
+    | sub :: rest ?& not (wants_help args) => write_command sub rest
+    | _ => ShowHelp
+
+:= cap_text (c : following_cap) : string =
+    ?= c ?|
+    | AtMost n => sm'::obj_to_string n
+    | AllFollowing => "all"
+
+:= source_text (s : source) : string =
+    ?= s ?|
+    | Accounts hs => "accounts " ++# sm'::concat_list "," hs
+    | FollowingOf h => "following-of " ++# h
+
+:= dates_text (f : filters) : string =
+    (? f::start_time = "" ?> "" |: " start_time=" ++# f::start_time)
+    ++# (? f::end_time = "" ?> "" |: " end_time=" ++# f::end_time)
+
+:= flags_text (f : filters) : string =
+    dates_text f ++# (? f::no_replies ?> " no-replies" |: "") ++# (? f::no_reposts ?> " no-reposts" |: "")
+
+:= counts_text (r : request) : string =
+    " per=" ++# sm'::obj_to_string r::per_account ++# " limit=" ++# sm'::obj_to_string r::limit
+
+:= views_text (r : request) : string =
+    := view = " author=" ++# sm'::obj_to_string r::per_author ++# " depth=" ++# sm'::obj_to_string r::depth
+    view ++# " cap=" ++# cap_text r::cap
+
+:~ request_text (r : request) : string =
+    := hints = (? r::hints ?> " hints" |: "") ++# (? r::json ?> " json" |: "")
+    source_text r::source ++# counts_text r ++# views_text r ++# flags_text r::filters ++# hints
+
+:= thread_batch_text (t : thread_op) : string =
+    ?= t ?|
+    | PreviewThreads paths => "post-thread --dry-run " ++# delimited " " paths
+    | _ => ""
+
+:= thread_edit_text (t : thread_op) : string =
+    ?= t ?|
+    | DeleteThread id => "delete-thread " ++# id
+    | ResumeThread (root, path) => "post-thread --resume " ++# root ++# " " ++# path
+    | _ => thread_batch_text t
+
+:= thread_op_text (t : thread_op) : string =
+    ?= t ?|
+    | ReadThread id => "thread " ++# id
+    | PostThread path => "post-thread " ++# path
+    | PreviewThread path => "post-thread --dry-run " ++# path
+    | _ => thread_edit_text t
+
+:= thread_text (c : command) : string =
+    ?= c ?|
+    | OnThread t => thread_op_text t
+    | _ => ""
+
+:= described_write (c : command) : string =
+    ?= c ?|
+    | PublishPost text => "post " ++# text
+    | RemovePost id => "delete " ++# id
+    | RefreshToken path => "refresh " ++# path
+    | _ => thread_text c
+
+:= describe (c : command) : string =
+    ?= c ?|
+    | ShowHelp => "help"
+    | Rejected message => "rejected: " ++# message
+    | ShowTimeline r => request_text r
+    | _ => described_write c
+
+:= parsed (args : list string) : string = parse_args args |> describe
+
+///> zig
+test accounts_strip_the_at_sign =
+    := ~h = "@" ++# "alice"
+    parsed [ "timeline"; h; "bob" ] |> _assert_eq "accounts alice,bob per=5 limit=20 author=0 depth=0 cap=20"
+
+///> zig
+test following_with_every_option =
+    := ~all = "all"
+    parsed [ "timeline"; "--following"; "carol"; "--max-following"; all; "--per-account"; "10" ]
+    |> _assert_eq "following-of carol per=10 limit=20 author=0 depth=0 cap=all"
+
+///> zig
+test filters_are_collected =
+    := ~day = "2026-10-15"
+    parsed [ "timeline"; "--start-time"; day; "--originals"; "a" ]
+    |> _assert_eq
+        "accounts a per=5 limit=20 author=0 depth=0 cap=20 start_time=2026-10-15T00:00:00Z no-replies no-reposts"
+
+///> zig
+test views_are_collected =
+    := ~depth = "2"
+    parsed [ "timeline"; "--depth"; depth; "--hints"; "--per-author"; "1"; "a" ]
+    |> _assert_eq "accounts a per=5 limit=20 author=1 depth=2 cap=20 hints"
+
+///> zig
+test dates_must_be_well_formed =
+    := ~day = "2026-10-5"
+    parsed [ "timeline"; "--end-time"; day; "a" ]
+    |> _assert_eq "rejected: --end-time expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '2026-10-5'"
+
+///> zig
+test depth_is_capped_at_three =
+    := ~n = "4"
+    parsed [ "timeline"; "--depth"; n; "a" ] |> _assert_eq "rejected: --depth expects a number from 0 to 3, got '4'"
+
+///> zig
+test per_account_rejects_zero =
+    := ~n = "0"
+    parsed [ "timeline"; "--per-account"; n; "alice" ]
+    |> _assert_eq "rejected: --per-account expects a number from 1 to 100, got '0'"
+
+///> zig
+test per_account_takes_one =
+    := ~n = "1"
+    parsed [ "timeline"; "--per-account"; n; "alice" ]
+    |> _assert_eq "accounts alice per=1 limit=20 author=0 depth=0 cap=20"
+
+///> zig
+test following_excludes_other_usernames =
+    := ~h = "alice"
+    parsed [ "timeline"; "--following"; "carol"; h ]
+    |> _assert_eq "rejected: --following takes one account and no other usernames"
+
+///> zig
+test usernames_are_validated =
+    := ~h = "al-ice"
+    parsed [ "timeline"; h ] |> _assert_eq "rejected: not an X username: 'al-ice'"
+
+///> zig
+test a_flag_needs_a_value =
+    := ~flag = "--limit"
+    parsed [ "timeline"; flag ] |> _assert_eq "rejected: --limit needs a value"
+
+///> zig
+test unknown_options_are_rejected =
+    := ~flag = "--verbose"
+    parsed [ "timeline"; flag ] |> _assert_eq "rejected: unknown option --verbose"
+
+///> zig
+test unknown_commands_are_rejected =
+    := ~sub = "home"
+    parsed [ sub; "carol" ] |> _assert_eq "rejected: unknown command home; try: xc timeline"
+
+///> zig
+test post_and_delete_take_one_argument =
+    := ~text = "hello from x"
+    parsed [ "post"; text ] |> _assert_eq "post hello from x"
+    parsed [ "delete"; "1"; "2" ] |> _assert_eq "rejected: delete takes exactly one argument"
+
+///> zig
+test help_wins_anywhere =
+    := ~h = "-h"
+    parsed [ "timeline"; "alice"; h ] |> _assert_eq "help"
+
+///> zig
+test json_and_refresh_are_parsed =
+    := ~path = "x-api.env"
+    parsed [ "timeline"; "--json"; "a" ] |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 json"
+    parsed [ "refresh"; path ] |> _assert_eq "refresh x-api.env"
+
+///> zig
+test post_thread_takes_a_file_and_an_optional_dry_run =
+    := ~path = "prelude.spi"
+    parsed [ "post-thread"; path ] |> _assert_eq "post-thread prelude.spi"
+    parsed [ "post-thread"; "--dry-run"; path ] |> _assert_eq "post-thread --dry-run prelude.spi"
+
+///> zig
+test post_thread_dry_run_takes_several_files =
+    := ~path = "prelude.spi"
+    parsed [ "post-thread"; "--dry-run"; path; "glyphs.spi" ]
+    |> _assert_eq "post-thread --dry-run prelude.spi glyphs.spi"
+
+///> zig
+test post_thread_resumes_from_a_root =
+    := ~path = "prelude.spi"
+    parsed [ "post-thread"; "--resume"; "9003"; path ] |> _assert_eq "post-thread --resume 9003 prelude.spi"
+
+///> zig
+test delete_thread_takes_one_id =
+    := ~id = "9003"
+    parsed [ "delete-thread"; id ] |> _assert_eq "delete-thread 9003"
+    parsed [ "delete-thread"; id; "9004" ] |> _assert_eq "rejected: delete-thread takes exactly one argument"
+
+///> zig
+test post_thread_needs_a_file =
+    := ~sub = "post-thread"
+    parsed [ sub ] |> _assert_eq "rejected: post-thread takes exactly one argument"

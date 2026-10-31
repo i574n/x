@@ -1,0 +1,34 @@
+///- --package ..
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+test posted static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< splitter
+:< protocol
+
+:= known_remotely (tld : string) : bool = $'xc_domains::xc_is_tld(&*!tld)'
+
+:= entities_remotely (s : string) : string = $'xc_entities::xc_defused_entities(&*!s)'
+
+:~ posted_named (name : string) (s : string) : string =
+    posted_by known_remotely entities_remotely (platform_named name) s
+
+test x_defuses_a_dot_it_would_link =
+    := ~s = "go x.com"
+    posted_on OnX s |> _assert_eq ("go x" ++# defused_dot () ++# "com")
+
+test x_defuses_a_mention_sigil =
+    := ~s = "@" ++# "bob"
+    posted_on OnX s |> _assert_eq ("@" ++# zero_width_space () ++# "bob")
+
+test mastodon_posts_the_text_as_written =
+    := ~s = "go x.io"
+    posted_on OnMastodon s |> _assert_eq s
+
+///> _
+:= main () : i32 =
+    export "xc_posted_text" ((\ (name, s) => posted_named name s) : string * string -> string)
+    0i32

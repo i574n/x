@@ -1,0 +1,43 @@
+///- --package ..
+///> rust -d serde_json unicode-segmentation=1.13 unicode-normalization=0.1
+test chunks static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< splitter
+:< wire
+:< protocol
+
+:= chunk_json (chunk : string) : string = $'Rc::<str>::from(serde_json::Value::from(&*!chunk).to_string())'
+
+:= unit_of (v : json) : weighed = { glyph = at_key "glyph" v; weight = v |> field "weight" |> number_of }
+
+:= units_text (name : string) (posted : string) : string = $'xc_weights::xc_units(&*!name, &*!posted)'
+
+:= remote_units (name : string) (posted : string) : units = units_text name posted |> parse_json |> collect unit_of
+
+:= remote_weight (name : string) (t : string) : i32 = $'xc_weights::xc_weight(&*!name, &*!t)'
+
+:~ chunks_by (weigh : string -> i32) (all : units) (p : platform) (i : i32) : string =
+    := f = { limit = limit_on p; label = cell_label i; weigh }
+    "[" ++# (split_units f all |> each chunk_json |> sm'::concat_list ",") ++# "]"
+
+:~ chunks_json (name : string) (i : i32) (posted : string) : string =
+    chunks_by (remote_weight name) (remote_units name posted) (platform_named name) i
+
+:= local_json (i : i32) (posted : string) : string = chunks_by (weight_on OnX) (weighed_on OnX (nfc posted)) OnX i
+
+test a_short_cell_is_one_chunk =
+    := ~cell = "a"
+    local_json 1i32 cell |> _assert_eq "[\"a\"]"
+
+test a_posted_dot_stays_glued_to_its_space =
+    := ~cell = "go x" ++# defused_dot () ++# "io"
+    local_json 1i32 cell |> _assert_eq ("[\"go x" ++# defused_dot () ++# "io\"]")
+
+///> _
+:= main () : i32 =
+    export "xc_cell_chunks" ((\ (name, i, posted) => chunks_json name i posted) : string * i32 * string -> string)
+    0i32

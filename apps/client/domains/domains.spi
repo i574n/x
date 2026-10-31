@@ -1,0 +1,19 @@
+///- --package ..
+///> rust
+test domains static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< tlds
+
+:~ known_tld (label : string) : bool = is_tld label
+
+test known_tlds_are_found =
+    := ~label = "com"
+    (known_tld label, known_tld "IO", known_tld "head") |> _assert_eq (!+, !+, !-)
+
+///> _
+:= main () : i32 =
+    export "xc_is_tld" ((\ label => known_tld label) : string -> bool)
+    0i32

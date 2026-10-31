@@ -1,0 +1,83 @@
+///- --package ..
+///> rust -d serde_json
+test locate static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< posts
+:< wire
+:< glyphs
+:< protocol
+:< reading
+
+:= first_of (l : post_ids) (fallback : post_id) : post_id =
+    ?= l ?|
+    | x :: _ => x
+    | Nil => fallback
+
+:= count_member (key : string) (n : i32) : string = member key (sm'::obj_to_string n)
+
+:= place_members (h : frame_header) : list string =
+    [ member "cell" (json_string (cell_text h::cell)); count_member "k" h::part; count_member "n" h::part_count ]
+
+:= text_member (key : string) (s : string) : string = member key (json_string s)
+
+:= frame_members (body : string) (original : post_id) (parent : option post_id) : list string =
+    [
+        text_member "body" body
+        text_member "original" (post_text original)
+        text_member "parent" (optional_text parent)
+    ]
+
+:= frame_json (h : frame_header) (body : string) (original : post_id) (parent : option post_id) : string =
+    object (listm::append (place_members h) (frame_members body original parent))
+
+:~ frames_of (f : framed) : list string =
+    ?= frame_text_of (expand_urls f::urls f::text) ?|
+    | Some t ?& latest f => [ frame_json t::header t::body (first_of f::history f::id) f::parent ]
+    | _ => Nil
+
+:= known_ids (l : list framed) : post_ids = l |> spread (\ (f : framed) => f::id :: f::history)
+
+:= page_posts (doc : json) : list json = doc |> collect id |> spread (\ (p : json) => p |> field "data" |> collect id)
+
+:= known_json (l : list framed) : string = known_ids l |> each post_text |> each quoted_text |> items
+
+:~ located (bundle : string) : string =
+    := posts = parse_json bundle |> page_posts |> each framed_of
+    := frames = posts |> spread frames_of |> items
+    object [ member "frames" frames; member "known" (known_json posts) ]
+
+:= page_post (id : string) (text : string) : string =
+    object [
+        member "id" (quoted_text id)
+        member "text" (json_string text)
+        member "edit_history_post_ids" (items [ quoted_text id ])
+    ]
+
+:= one_page (posts : list string) : string = items [ object [ member "data" (items posts) ] ]
+
+:= one_frame () : string = "{\"cell\":\"c1\",\"k\":1,\"n\":2,\"body\":\"go a.zz\",\"original\":\"5\",\"parent\":\"\"}"
+
+:= located_pair () : string = "{\"frames\":[" ++# one_frame () ++# "],\"known\":[\"5\",\"5\",\"6\",\"6\"]}"
+
+test posts_with_headers_become_frames =
+    := ~text = "c1 1/2\ngo a" ++# defused_dot () ++# "zz"
+    located (one_page [ page_post "5" text; page_post "6" "no header here" ]) |> _assert_eq (located_pair ())
+
+:= edited_post () : string =
+    object [
+        member "id" (quoted_text "7")
+        member "text" (json_string "c1 1/1\nold")
+        member "edit_history_post_ids" (items [ quoted_text "7"; quoted_text "8" ])
+    ]
+
+test superseded_edits_are_known_but_not_framed =
+    := ~page = one_page [ edited_post () ]
+    located page |> _assert_eq "{\"frames\":[],\"known\":[\"7\",\"7\",\"8\"]}"
+
+///> _
+:= main () : i32 =
+    export "xc_locate" ((\ bundle => located bundle) : string -> string)
+    0i32

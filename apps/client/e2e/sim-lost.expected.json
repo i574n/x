@@ -1,0 +1,14 @@
+{
+    "gaps": [],
+    "incomplete": [
+        "p2"
+    ],
+    "program": [
+        "///- --package . --timeout 600000",
+        "",
+        "///- --test static",
+        "",
+        ":< testing"
+    ],
+    "root": "5000001"
+}

@@ -1,0 +1,437 @@
+///- --package ..
+///> rust
+test xc static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< posts
+:< transport
+
+:= write_line (text : string) : () = console::write_line text
+
+:= write_error (text : string) : () = console::write_error_line text
+
+:~ env_or (name : string) (fallback : string) : string =
+    := v = env::get_environment_variable name |> sm'::trim
+    ? v = "" ?> fallback |: v
+
+:= env_of (name : string) : string = env_or name ""
+
+:~ base_url () : string = env_or "X_API_BASE_URL" "https://api.x.com"
+
+:~ platform_name () : string = env_or "XC_SITE" "x"
+
+:= site_known () : bool = platform_name () = "x" || platform_name () = "mastodon" || platform_name () = "bluesky"
+
+:= write_base () : string =
+    ? platform_name () = "mastodon" ?> env_of "MASTODON_BASE_URL"
+    |? platform_name () = "bluesky" ?> env_or "BLUESKY_BASE_URL" "https://bsky.social"
+    |: base_url ()
+
+:== parsed =
+    i32 * string * bool * string * i32 * i32 * i32 * i32 * string * string * bool * bool * i32 * bool * bool
+
+:= parsed_args () : parsed = $'xc_args::xc_parse_os_args()'
+
+:= usage () : string = $'xc_args::xc_usage()'
+
+:= fresh_nonce () : string = $'xc_net::xc_fresh_nonce()'
+
+:= unix_seconds () : string = $'xc_net::xc_unix_seconds()'
+
+:== site = { base : string; bearer : string }
+
+:= users_named (s : site) (hs : string) : i32 * string * string * string =
+    := { base bearer } = s
+    $'xc_users::xc_users_named(&*!base, &*!bearer, &*!hs)'
+
+:= users_followed (s : site) (id : string) (cap : i32) : i32 * string * string =
+    := { base bearer } = s
+    $'xc_users::xc_users_followed(&*!base, &*!bearer, &*!id, !cap)'
+
+:= users_by_ids (s : site) (ids : string) : i32 * string * string =
+    := { base bearer } = s
+    $'xc_users::xc_users_by_ids(&*!base, &*!bearer, &*!ids)'
+
+:== window = { max_results : i32; since : string; until : string; nr : bool; np : bool; depth : i32; hints : bool }
+
+:= window_of (p : parsed) : window =
+    := _, _, _, _, max_results, _, _, _, since, until, nr, np, depth, hints, _ = p
+    { max_results since until nr np depth hints }
+
+:== fetch_reply = string * string * string * string * string * string
+
+:= fetch (s : site) (lines : string) (w : window) : fetch_reply =
+    := { base bearer } = s
+    := { max_results since until nr np depth hints } = w
+    $'xc_fetch::xc_fetch(&*!base, &*!bearer, &*!lines, !max_results, &*!since, &*!until, !nr, !np, !depth, !hints)'
+
+:= fetch_notes (r : fetch_reply) : string =
+    := _, notes, _, _, _, _ = r
+    notes
+
+:== refs_reply = string * string * string
+
+:= refs (s : site) (r : fetch_reply) (w : window) : refs_reply =
+    := { base bearer } = s
+    := _, _, _, ids, authors, named = r
+    := { depth hints } = w
+    $'xc_refs::xc_refs(&*!base, &*!bearer, &*!ids, &*!authors, &*!named, !depth, !hints)'
+
+:== keys =
+    {
+        consumer_key : string
+        consumer_secret : string
+        access_token : string
+        access_token_secret : string
+        oauth2_access_token : string
+    }
+
+:== order = { base : string; nonce : string; stamp : string; kind : i32; payload : string; site : string }
+
+:= key_parts (k : keys) : string * string * string * string * string =
+    k::consumer_key, k::consumer_secret, k::access_token, k::access_token_secret, k::oauth2_access_token
+
+:= remote_write (k : keys) (o : order) : i32 * string =
+    := ck, cs, t, ts, token = key_parts k
+    := { base nonce stamp kind payload site } = o
+    $'xc_write::xc_write(&*!base, &*!token, &*!ck, &*!cs, &*!t, &*!ts, &*!nonce, &*!stamp, !kind, &*!payload, &*!site)'
+
+:= digest (bundle : string) : string = $'xc_digest::xc_digest(&*!bundle)'
+
+:= text_view (text : string) (limit : i32) (per_author : i32) (depth : i32) (hints : bool) : string * i32 =
+    $'xc_view::xc_view(&*!text, !limit, !per_author, !depth, !hints)'
+
+:= json_view (text : string) (limit : i32) (per_author : i32) (depth : i32) : string * i32 =
+    $'xc_jsonl::xc_jsonl(&*!text, !limit, !per_author, !depth)'
+
+:= view (text : string) (p : parsed) : string * i32 =
+    := _, _, _, _, _, limit, per_author, _, _, _, _, _, depth, hints, json = p
+    ? json ?> json_view text limit per_author depth |: text_view text limit per_author depth hints
+
+:== plan = { lines : string; notes : string; failure : string }
+
+:= failed_plan (failure : string) : plan = { lines = ""; notes = ""; failure }
+
+:= no_account (hs : string) : string = "no X account @" ++# sm'::replace "," ", @" hs
+
+:= unknown_notes (unknown : string) : string = pieces "," unknown |> each no_account |> sm'::concat_list "\n"
+
+:= found_plan (found : string) (unknown : string) : plan =
+    { lines = found; notes = unknown_notes unknown; failure = "" }
+
+:~ account_plan (s : site) (hs : string) : plan =
+    := code, found, unknown, failure = users_named s hs
+    ? code <> 0i32 ?> failed_plan failure
+    |? found = "" ?> failed_plan (no_account unknown)
+    |: found_plan found unknown
+
+:= home_note (username : string) (followed : string) : string =
+    := n : i32 = pieces "\n" followed |> listm::length
+    "home timeline of @" ++# username ++# " from " ++# sm'::obj_to_string n ++# " followed accounts"
+
+:= lines_with (found : string) (followed : string) : string =
+    ? followed = "" ?> found |: found ++# "\n" ++# followed
+
+:= with_followed (w : account) (found : string) (r : i32 * string * string) : plan =
+    := code, followed, failure = r
+    ? code <> 0i32 ?> failed_plan failure
+    |: { lines = lines_with found followed; notes = home_note w::username followed; failure = "" }
+
+:= followed_plan (s : site) (found : string) (cap : i32) : plan =
+    := w = account_of_line found
+    users_followed s (user_text w::id) cap |> with_followed w found
+
+:~ home_plan (s : site) (h : string) (cap : i32) : plan =
+    := code, found, _, failure = users_named s h
+    ? code <> 0i32 ?> failed_plan failure
+    |? found = "" ?> failed_plan (no_account h)
+    |: followed_plan s found cap
+
+:= users_entry (body : string) : string = ",{\"role\":\"users\",\"author\":\"\",\"doc\":" ++# body ++# "}"
+
+:= with_users (s : site) (docs : string) (unnamed : string) : string * string =
+    := code, body, f = users_by_ids s unnamed
+    ? code = 0i32 ?> docs ++# users_entry body, "" |: docs, f
+
+:= joined_docs (a : string) (b : string) : string = ? b = "" ?> a |? a = "" ?> b |: a ++# "," ++# b
+
+:= named_docs (s : site) (docs : string) (r : refs_reply) : string * string =
+    := more, failure, unnamed = r
+    := docs = joined_docs docs more
+    ? failure <> "" || unnamed = "" ?> docs, failure |: with_users s docs unnamed
+
+:~ referenced_docs (s : site) (r : fetch_reply) (w : window) : string * string =
+    := docs, _, failure, _, _, _ = r
+    ? failure <> "" || w::depth = 0i32 ?> docs, failure |: named_docs s docs (refs s r w)
+
+:= lines_of (text : string) : () =
+    ? text <> "" ?> write_line text
+
+:= notes_of (text : string) : () =
+    ? text <> "" ?> text |> sm'::replace "\n" "\nxc: " |> \ t => write_error ("xc: " ++# t)
+
+:= both_notes (a : string) (b : string) : string = ? a = "" ?> b |? b = "" ?> a |: a ++# "\n" ++# b
+
+:~ failed (message : string) : i32 =
+    write_error ("xc: " ++# message)
+    4i32
+
+:= api_requests_so_far () : i32 = $'xc_net::xc_requests()'
+
+:= requests_counted (n : i32) : string = sm'::obj_to_string n ++# (? n = 1i32 ?> " API request" |: " API requests")
+
+:= cost_noted (what : string) : () = write_error ("xc: " ++# requests_counted (api_requests_so_far ()) ++# what)
+
+:= closing (failure : string) (shown : i32) : i32 =
+    ? failure = "" ?> 0i32
+    |? shown = 0i32 ?> failed failure
+    |: failed ("stopped early, showing what was read before: " ++# failure)
+
+:= nothing_note (failure : string) (shown : i32) : () =
+    ? failure = "" && shown = 0i32 ?> write_error "xc: no posts matched"
+
+:= gathered (s : site) (pl : plan) (w : window) : string * string * string =
+    := r = fetch s pl::lines w
+    := docs, failure = referenced_docs s r w
+    docs, failure, both_notes pl::notes (fetch_notes r)
+
+:= viewed (docs : string) (p : parsed) : string * i32 = view (digest ("[" ++# docs ++# "]")) p
+
+:= posts_read_in (docs : string) : i32 =
+    := bundle = "[" ++# docs ++# "]"
+    $'xc_api::xc_posts_read(&*!bundle)'
+
+:= timeline_cost (docs : string) (shown : i32) : () =
+    cost_noted (
+        ", " ++# sm'::obj_to_string (posts_read_in docs) ++# " posts read, " ++# sm'::obj_to_string shown ++# " shown"
+    )
+
+:= costed_view (docs : string) (p : parsed) : string * i32 =
+    := text, shown = viewed docs p
+    timeline_cost docs shown
+    text, shown
+
+:~ shown_timeline (s : site) (pl : plan) (p : parsed) : i32 =
+    := docs, failure, notes = gathered s pl (window_of p)
+    := text, shown = costed_view docs p
+    notes_of notes
+    nothing_note failure shown
+    lines_of text
+    closing failure shown
+
+:~ missing_bearer () : i32 =
+    write_error "xc: X_BEARER_TOKEN is not set; generate the app's bearer token at https://console.x.com"
+    3i32
+
+:= site_plan (s : site) (p : parsed) : plan =
+    := _, _, following, hs, _, _, _, cap, _, _, _, _, _, _, _ = p
+    ? following ?> home_plan s hs cap |: account_plan s hs
+
+:~ run_timeline (p : parsed) : i32 =
+    := s = { base = base_url (); bearer = env_of "X_BEARER_TOKEN" }
+    ? s::bearer = "" ?> missing_bearer ()
+    |:
+        := pl = site_plan s p
+        ? pl::failure <> "" ?> failed pl::failure |: shown_timeline s pl p
+
+:= credentials_hint () : () =
+    write_error
+        "    X_OAUTH1_ACCESS_TOKEN_SECRET (OAuth 1.0a, never expire), or X_OAUTH2_ACCESS_TOKEN (OAuth 2.0, 2 hours)"
+
+:= no_user () : i32 =
+    write_error "xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_ACCESS_TOKEN and"
+    credentials_hint ()
+    3i32
+
+:~ reported (r : i32 * string) : i32 =
+    := code, message = r
+    ? code = 0i32 ?> write_line message |: write_error ("xc: " ++# message)
+    code
+
+:= oauth1_keys () : string * string * string * string =
+    env_of "X_CONSUMER_KEY",
+    env_of "X_CONSUMER_SECRET",
+    env_of "X_OAUTH1_ACCESS_TOKEN",
+    env_of "X_OAUTH1_ACCESS_TOKEN_SECRET"
+
+:= user_keys () : keys =
+    := consumer_key, consumer_secret, access_token, access_token_secret = oauth1_keys ()
+    { consumer_key consumer_secret access_token access_token_secret oauth2_access_token = "" }
+
+:~ signed (k : keys) : bool =
+    k::consumer_key <> "" && k::consumer_secret <> "" && k::access_token <> "" && k::access_token_secret <> ""
+
+:= oauth2_token_name () : string = ? platform_name () = "mastodon" ?> "MASTODON_ACCESS_TOKEN" |: "X_OAUTH2_ACCESS_TOKEN"
+
+:= with_oauth2_token (k : keys) : keys =
+    ? signed k && platform_name () <> "mastodon" ?> k |: { k ?| oauth2_access_token = env_of (oauth2_token_name ()) }
+
+:= order_of (kind : i32) (payload : string) : order =
+    := nonce = env_or "XC_OAUTH1_NONCE" (fresh_nonce ())
+    := base, site = write_base (), platform_name ()
+    { nonce kind payload base site stamp = env_or "XC_OAUTH1_TIMESTAMP" (unix_seconds ()) }
+
+:= unknown_site () : i32 =
+    write_error ("xc: XC_SITE must be x, mastodon or bluesky, got " ++# platform_name ())
+    2i32
+
+:= unusable (k : keys) : bool =
+    ? platform_name () = "bluesky"
+    ?> env_of "BLUESKY_APP_PASSWORD" = ""
+    |: not (signed k) && k::oauth2_access_token = ""
+
+:~ run_write (kind : i32) (payload : string) : i32 =
+    := k = user_keys () |> with_oauth2_token
+    ? not (site_known ()) ?> unknown_site ()
+    |? unusable k ?> no_user ()
+    |: remote_write k (order_of kind payload) |> reported
+
+:= refresh (path : string) : i32 * string =
+    := base, id, secret = base_url (), env_of "X_OAUTH2_CLIENT_ID", env_of "X_OAUTH2_CLIENT_SECRET"
+    := token = env_of "X_OAUTH2_REFRESH_TOKEN"
+    $'xc_token::xc_refresh(&*!base, &*!id, &*!secret, &*!token, &*!path)'
+
+:= no_client () : i32 =
+    write_error "xc: refresh needs X_OAUTH2_CLIENT_ID, X_OAUTH2_CLIENT_SECRET and X_OAUTH2_REFRESH_TOKEN"
+    3i32
+
+:= client_set () : bool =
+    env_of "X_OAUTH2_CLIENT_ID" <> "" && env_of "X_OAUTH2_CLIENT_SECRET" <> "" && env_of "X_OAUTH2_REFRESH_TOKEN" <> ""
+
+:~ run_refresh (path : string) : i32 = ? client_set () ?> refresh path |> reported |: no_client ()
+
+:= rejected (message : string) : i32 =
+    write_error ("xc: " ++# message)
+    write_error (usage ())
+    2i32
+
+:= helped () : i32 =
+    write_line (usage ())
+    0i32
+
+:= thread_pages (s : site) (id : string) : i32 * string * string =
+    := { base bearer } = s
+    $'xc_thread::xc_thread_pages(&*!base, &*!bearer, &*!id)'
+
+:= assembled (bundle : string) : i32 * string * string = $'xc_assemble::xc_assemble(&xc_locate::xc_locate(&*!bundle))'
+
+:= thread (s : site) (id : string) : i32 * string * string =
+    := code, bundle, failure = thread_pages s id
+    ? code = 0i32 ?> assembled bundle |: code, "", failure
+
+:= printed_thread (r : i32 * string * string) : i32 =
+    := code, program, notes = r
+    notes_of notes
+    lines_of program
+    cost_noted ""
+    code
+
+:~ run_thread (id : string) : i32 =
+    := s = { base = base_url (); bearer = env_of "X_BEARER_TOKEN" }
+    ? s::bearer = "" ?> missing_bearer () |: thread s id |> printed_thread
+
+:= file_text (path : string) : string = file_system::read_all_text path
+
+:= is_file (path : string) : bool = file_system::file_exists path
+
+:= framed (text : string) : string =
+    := name = platform_name ()
+    $'xc_frames::xc_frames(&*!name, &*!text)'
+
+:= preview (text : string) : string =
+    := site = platform_name ()
+    $'xc_preview::xc_preview(&*!site, &*!text)'
+
+:~ run_post_thread (dry : bool) (path : string) : i32 =
+    ? not (is_file path) ?> failed ("no such file " ++# path)
+    |? dry ?>
+        write_line (preview (file_text path))
+        0i32
+    |: run_write 7i32 (framed (file_text path))
+
+:= previewed_into (worst : i32) (path : string) : i32 =
+    write_line ("=== " ++# path)
+    := code = run_post_thread !+ path
+    ? code > worst ?> code |: worst
+
+:= run_preview_threads (payload : string) : i32 = split_on "\n" payload |> listm::fold previewed_into 0i32
+
+:= thread_ids (s : site) (id : string) : i32 * string * string =
+    := { base bearer } = s
+    $'xc_thread::xc_thread_ids(&*!base, &*!bearer, &*!id)'
+
+:= deleted_from (r : i32 * string * string) : i32 =
+    := code, ids, failure = r
+    ? code <> 0i32 ?> failed failure |: run_write 9i32 ids
+
+:~ run_delete_thread (id : string) : i32 =
+    := s = { base = base_url (); bearer = env_of "X_BEARER_TOKEN" }
+    ? s::bearer = "" ?> missing_bearer () |: thread_ids s id |> deleted_from
+
+:= thread_chain (s : site) (id : string) : i32 * string * string =
+    := { base bearer } = s
+    $'xc_chain::xc_chain(&*!base, &*!bearer, &*!id)'
+
+:= resume_payload (planned : string) (found : string) : string =
+    "{\"planned\":" ++# planned ++# ",\"found\":" ++# found ++# "}"
+
+:= resumed_from (path : string) (r : i32 * string * string) : i32 =
+    := code, found, failure = r
+    ? code <> 0i32 ?> failed failure |: run_write 10i32 (resume_payload (framed (file_text path)) found)
+
+:= resume_args (payload : string) : string * string =
+    := at : i32 = sm'::index_of "\n" payload
+    cut 0i32 at payload, rest_from (at + 1i32) payload
+
+:= resume_checked (s : site) (root : string) (path : string) : i32 =
+    ? not (is_file path) ?> failed ("no such file " ++# path)
+    |? s::bearer = "" ?> missing_bearer ()
+    |: thread_chain s root |> resumed_from path
+
+:~ run_resume_thread (payload : string) : i32 =
+    := root, path = resume_args payload
+    resume_checked { base = base_url (); bearer = env_of "X_BEARER_TOKEN" } root path
+
+:= run_thread_more (kind : i32) (payload : string) : i32 =
+    ? kind = 10i32 ?> run_resume_thread payload
+    |? kind = 11i32 ?> run_preview_threads payload
+    |: run_post_thread (kind = 8i32) payload
+
+:= x_only (site : string) : i32 =
+    write_error ("xc: delete-thread and --resume read threads through X's API, which needs XC_SITE=x, not " ++# site)
+    2i32
+
+:= needs_x_site (kind : i32) (site : string) : bool = (kind = 9i32 || kind = 10i32) && site <> "x"
+
+:= run_thread_kind (kind : i32) (payload : string) : i32 =
+    := site = platform_name ()
+    ? needs_x_site kind site ?> x_only site
+    |? kind = 6i32 ?> run_thread payload
+    |? kind = 9i32 ?> run_delete_thread payload
+    |: run_thread_more kind payload
+
+:= run_user (kind : i32) (payload : string) : i32 =
+    ? kind = 5i32 ?> run_refresh payload |? kind >= 6i32 ?> run_thread_kind kind payload |: run_write kind payload
+
+:= two_unknown () : string = "no X account @" ++# "a\nno X account @" ++# "b"
+
+test unknown_accounts_get_one_note_each =
+    := ~unknown = "a,b"
+    unknown_notes unknown |> _assert_eq (two_unknown ())
+    both_notes "" "x" |> _assert_eq "x"
+
+test doc_bundles_join_without_empty_parts =
+    := ~a = "x"
+    joined_docs a "" |> _assert_eq "x"
+    joined_docs a "y" |> _assert_eq "x,y"
+
+///> _
+:= main () : i32 =
+    := p = parsed_args ()
+    := kind, payload, _, _, _, _, _, _, _, _, _, _, _, _, _ = p
+    ? kind = 0i32 ?> run_timeline p
+    |? kind = 3i32 ?> helped ()
+    |? kind = 4i32 ?> rejected payload
+    |: run_user kind payload

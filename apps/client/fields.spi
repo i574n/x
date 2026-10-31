@@ -1,0 +1,145 @@
+///- --package .
+///> rust
+test fields static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< cli
+
+:= process_args () : list string =
+    :~ ^ from (i : i32) (acc : list string) : list string =
+        ? i < 0i32 ?> acc |: from (i - 1) (env::command_line_argument i :: acc)
+    from (env::command_line_argument_count () - 1) Nil
+
+:== selection_fields =
+    {
+        following : bool
+        usernames : string
+        max_results : i32
+        limit : i32
+        per_author : i32
+        cap : i32
+    }
+
+:== window_fields =
+    {
+        since : string
+        until : string
+        no_replies : bool
+        no_reposts : bool
+        depth : i32
+        hints : bool
+        json : bool
+    }
+
+:== command_fields =
+    {
+        kind : i32
+        payload : string
+        selection : selection_fields
+        window : window_fields
+    }
+
+:= blank_selection () : selection_fields =
+    { following = !-; usernames = ""; max_results = 5; limit = 20; per_author = 0; cap = 20 }
+
+:= blank_window () : window_fields =
+    { since = ""; until = ""; no_replies = !-; no_reposts = !-; depth = 0; hints = !-; json = !- }
+
+:= blank () : command_fields = { kind = 3; payload = ""; selection = blank_selection (); window = blank_window () }
+
+:= cap_number (c : following_cap) : i32 =
+    ?= c ?|
+    | AtMost n => n
+    | AllFollowing => -1i32
+
+:= source_selection (s : source) (sel : selection_fields) : selection_fields =
+    ?= s ?|
+    | Accounts hs => { sel ?| following = !-; usernames = sm'::concat_list "," hs }
+    | FollowingOf h => { sel ?| following = !+; usernames = h }
+
+:= source_fields (s : source) (f : command_fields) : command_fields =
+    { f ?| selection = source_selection s f::selection }
+
+:= counted_selection (r : request) (sel : selection_fields) : selection_fields =
+    { sel ?| max_results = r::per_account; limit = r::limit; per_author = r::per_author; cap = cap_number r::cap }
+
+:= counts_fields (r : request) (f : command_fields) : command_fields =
+    { f ?| kind = 0i32; selection = counted_selection r f::selection }
+
+:= filtered_window (r : request) (w : window_fields) : window_fields =
+    := x = r::filters
+    { w ?| since = x::start_time; until = x::end_time; no_replies = x::no_replies; no_reposts = x::no_reposts;
+        depth = r::depth; hints = r::hints }
+
+:= filter_fields (r : request) (f : command_fields) : command_fields = { f ?| window = filtered_window r f::window }
+
+:= output_window (r : request) (w : window_fields) : window_fields = { w ?| json = r::json }
+
+:= output_fields (r : request) (f : command_fields) : command_fields = { f ?| window = output_window r f::window }
+
+:= request_fields (r : request) : command_fields =
+    blank () |> counts_fields r |> filter_fields r |> output_fields r |> source_fields r::source
+
+:= with_payload (kind : i32) (payload : string) : command_fields =
+    := z = blank ()
+    { z ?| kind = kind; payload = payload }
+
+:= thread_edit_payload (t : thread_op) : i32 * string =
+    ?= t ?|
+    | DeleteThread id => 9i32, id
+    | ResumeThread (root, path) => 10i32, root ++# "\n" ++# path
+    | _ => 3i32, ""
+
+:= thread_op_payload (t : thread_op) : i32 * string =
+    ?= t ?|
+    | ReadThread id => 6i32, id
+    | PostThread path => 7i32, path
+    | PreviewThread path => 8i32, path
+    | PreviewThreads paths => 11i32, delimited "\n" paths
+    | _ => thread_edit_payload t
+
+:= thread_payload (c : command) : i32 * string =
+    ?= c ?|
+    | OnThread t => thread_op_payload t
+    | _ => 3i32, ""
+
+:= payload_of (c : command) : i32 * string =
+    ?= c ?|
+    | PublishPost text => 1i32, text
+    | RemovePost id => 2i32, id
+    | Rejected message => 4i32, message
+    | RefreshToken path => 5i32, path
+    | _ => thread_payload c
+
+:~ fields_of (c : command) : command_fields =
+    ?= c ?|
+    | ShowTimeline r => request_fields r
+    | _ => payload_of c |> \ (kind, payload) => with_payload kind payload
+
+:= runtime_empty () : string = $'Rc::<str>::from(String::new())'
+
+:= seeded_draft () : draft =
+    := d = initial_draft ()
+    := f = d::filters
+    { d ?| filters = { f ?| start_time = runtime_empty (); end_time = runtime_empty () } }
+
+:= external_count (t : string) : option i32 =
+    := n : i32 = $'xc_checks::xc_count(&*!t)'
+    ? n < 0i32 ?> None |: Some n
+
+:= external_text (found : string) : option string = ? found = "" ?> None |: Some found
+
+:= external_checks () : checks =
+    { count = external_count; instant = \ t => external_text $'xc_checks::xc_date(&*!t)'
+        username = \ t => external_text $'xc_checks::xc_username(&*!t)' }
+
+///> rust
+test a_payload_keeps_the_blank_defaults =
+    := f = with_payload 6i32 "3000001"
+    (f::kind, f::payload, f::selection::max_results, f::window::json) |> _assert_eq (6i32, "3000001", 5i32, !-)
+
+///> rust
+test empty_external_text_is_none =
+    (external_text "", external_text "x") |> _assert_eq (None, Some "x")

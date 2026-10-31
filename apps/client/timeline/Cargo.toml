@@ -1,0 +1,16 @@
+[package]
+name = "xc_timeline"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "timeline.spi"
+output = "timeline.rs"
+
+[lib]
+name = "xc_timeline"
+path = "timeline.rs"
+
+[dependencies]
+xc_checks = { path = "../checks" }

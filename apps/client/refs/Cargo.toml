@@ -1,0 +1,18 @@
+[package]
+name = "xc_refs"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "refs.spi"
+output = "refs.rs"
+
+[lib]
+name = "xc_refs"
+path = "refs.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+xc_net = { path = "../net" }
+xc_api = { path = "../api" }

@@ -1,0 +1,13 @@
+[package]
+name = "xc_select"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "select.spi"
+output = "select.rs"
+
+[lib]
+name = "xc_select"
+path = "select.rs"

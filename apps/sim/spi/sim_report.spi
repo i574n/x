@@ -1,0 +1,119 @@
+///- --package . --timeout 600000
+///> rust -d sha2
+///> gleam
+test sim_report static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< events
+:< inbox
+:< scheduler
+:< invariants
+:< runner_checks
+
+:== run_shape = { seed : i32; schedule : i32; posts : i32; events : i32; deliveries : i32; ms : i32; beam_mb : i32 }
+
+:= summed (d : dictm::dict string i32) : i32 = dictm::fold (\ total _ n => total + n) 0i32 d
+
+:= field_text (name : string) (value : i32) : string = name ++# "=" ++# sm'::obj_to_string value
+
+:= shape_fields (r : run_shape) : list string =
+    [
+        field_text "seed" r::seed
+        field_text "schedule" r::schedule
+        field_text "posts" r::posts
+        field_text "events" r::events
+        field_text "deliveries" r::deliveries
+    ]
+
+:= world_fields (t : tallies) : list string =
+    [
+        field_text "duplicates" t::duplicates
+        field_text "buffered" t::buffered
+        field_text "framed" t::framed
+        field_text "framed_edits" t::framed_edits
+    ]
+
+:= start_fields (s : scheduler) : list string =
+    [
+        field_text "starts" (summed s::run_counts::starts)
+        field_text "prefixes" (dictm::size s::task_work::results)
+        field_text "peak_results" s::run_counts::peak_results
+    ]
+
+:= lapse_fields (c : run_counts) : list string =
+    [
+        field_text "evictions" (summed c::evicted)
+        field_text "rescues" c::rescues
+        field_text "recomputes" c::recomputes
+    ]
+
+:= view_fields (s : scheduler) : list string =
+    [
+        field_text "cancels" s::run_counts::cancels
+        field_text "visible" (dictm::size s::visible_map)
+        field_text "peak_inflight" s::run_counts::peak_inflight
+    ]
+
+:= run_fields (s : scheduler) : list string =
+    listm::append (start_fields s) (listm::append (lapse_fields s::run_counts) (view_fields s))
+
+:= tail_fields (r : run_shape) : list string = [ field_text "peak_beam_mb" r::beam_mb; field_text "ms" r::ms ]
+
+:= line_fields (r : run_shape) (s : scheduler) : list string =
+    := rest = listm::append (run_fields s) (tail_fields r)
+    listm::append (shape_fields r) (listm::append (world_fields s::in_box::tallies) rest)
+
+:= summary_line (r : run_shape) (s : scheduler) (findings : list finding) : string =
+    "XSIM " ++# delimited " " (line_fields r s) ++# " " ++# findings_text findings
+
+:~ ^ commuted_runs (runs : list scheduler) : verdict =
+    ?= runs ?|
+    | a :: b :: rest =>
+        ?= runs_commute a b ?|
+        | Held => commuted_runs (b :: rest)
+        | broken => broken
+    | _ => Held
+
+:= findings_held (l : list finding) : bool =
+    l |> has (\ (f : finding) => ?= f::verdict ?| Held => !- | _ => !+) |> not
+
+:= all_held (all_findings : list (list finding)) : bool = has (\ l => not (findings_held l)) all_findings |> not
+
+:= commute_held (v : verdict) : bool = ?= v ?| Held => !+ | _ => !-
+
+:= result_word (passed : bool) : string = ? passed ?> "pass" |: "fail"
+
+:= verdict_line (runs : list scheduler) (all_findings : list (list finding)) : string =
+    := commute = commuted_runs runs
+    := passed = all_held all_findings && commute_held commute
+    "XSIM commute=" ++# verdict_text commute ++# " result=" ++# result_word passed
+
+:= one_post_run (seed : i32) : scheduler =
+    := id = "p0"
+    sync_run (plain_faults ()) [ post_at 0i32 id None "x"; like_at 1i32 id "u" ]
+
+:= shape_of (deliveries : i32) : run_shape =
+    { seed = 1i32; schedule = 1i32; posts = 1i32; events = 2i32; deliveries; ms = 7i32; beam_mb = 0i32 }
+
+:= expected_head () : string =
+    "XSIM seed=1 schedule=1 posts=1 events=2 deliveries=2 duplicates=0 buffered=0 framed=0 framed_edits=0 "
+    ++# "starts=1 prefixes=1 peak_results=1 evictions=0 rescues=0 recomputes=0 cancels=0 visible=1 "
+
+:= expected_tail () : string =
+    "peak_inflight=1 peak_beam_mb=0 ms=7 sequential_equivalence=ok no_stale_results=ok "
+    ++# "one_compile_per_prefix=ok withdrawn_demand_hidden=ok"
+
+test the_summary_line_has_the_elixir_field_order =
+    := ~seed = 1i32
+    := s = one_post_run seed
+    summary_line (shape_of 2i32) s (runner_checks s fake_baseline) |> _assert_eq (expected_head () ++# expected_tail ())
+
+:= pass_then_fail (a : scheduler) : string * string =
+    := ok = runner_checks a fake_baseline
+    verdict_line [ a; a ] [ ok; ok ], verdict_line [ a; a ] [ ok; runner_checks a wrong_baseline ]
+
+test equal_runs_pass_and_a_failed_finding_fails =
+    := ~seed = 1i32
+    one_post_run seed |> pass_then_fail |> _assert_eq ("XSIM commute=ok result=pass", "XSIM commute=ok result=fail")

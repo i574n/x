@@ -1,0 +1,16 @@
+[package]
+name = "xc_locate"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "locate.spi"
+output = "locate.rs"
+
+[lib]
+name = "xc_locate"
+path = "locate.rs"
+
+[dependencies]
+serde_json = { workspace = true }

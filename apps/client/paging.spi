@@ -1,0 +1,66 @@
+///- --package . --timeout 900000
+///> rust
+///> gleam
+test paging static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< cursor_walk
+
+:== page = cursor_page
+
+:== pager e = string -> result cursor_page e
+
+:= page_budget () : i32 = 500i32
+
+:= all_pages \* e. (halted : cursor_halt -> e) (fetch : pager e) : result (list string) e =
+    cursor_walk::all_pages { halted budget = page_budget (); fetch }
+
+:= whole_second (created_at : string) : string =
+    ? sm'::length created_at < 19i32 ?> created_at |: cut 0i32 19i32 created_at ++# "Z"
+
+:= two_pages (token : string) : result page string =
+    ? token = "" ?> Ok { next_token = "t2"; body = "a" }
+    |? token = "t2" ?> Ok { next_token = ""; body = "b" }
+    |: Error token
+
+:= walked (r : result (list string) string) : string =
+    ?= r ?|
+    | Ok bodies => delimited "," bodies
+    | Error e => "stopped at " ++# e
+
+:= halt_text (h : cursor_halt) : string =
+    ?= h ?|
+    | CursorRepeated s => "repeated " ++# s::token ++# " after " ++# sm'::obj_to_string s::pages
+    | CursorBudget s => "budget at " ++# sm'::obj_to_string s::pages
+
+:= walk_with (budget : i32) (fetch : pager string) (first : string) : result (list string) string =
+    cursor_walk::walked_from { halted = halt_text; budget; fetch } first { seen = []; pages = 0i32; bodies = [] }
+
+test pages_follow_next_tokens =
+    := ~first = ""
+    walk_with 500i32 two_pages first |> walked |> _assert_eq "a,b"
+
+:= broken (token : string) : result page string = ? token = "" ?> Ok { next_token = "bad"; body = "a" } |: Error token
+
+test a_failed_page_stops_the_walk =
+    := ~first = ""
+    walk_with 500i32 broken first |> walked |> _assert_eq "stopped at bad"
+
+:= looping (token : string) : result page string = Ok { next_token = "t1"; body = token }
+
+test a_repeated_cursor_stops_the_walk =
+    := ~first = ""
+    walk_with 500i32 looping first |> walked |> _assert_eq "stopped at repeated t1 after 2"
+
+:= endless (token : string) : result page string = Ok { next_token = token ++# "x"; body = "b" }
+
+test the_page_budget_stops_an_endless_cursor =
+    := ~first = ""
+    walk_with 3i32 endless first |> walked |> _assert_eq "stopped at budget at 3"
+
+test searches_start_at_a_whole_second =
+    := ~at = "2026-10-18T12:00:00.000Z"
+    whole_second at |> _assert_eq "2026-10-18T12:00:00Z"
+    whole_second "2026" |> _assert_eq "2026"

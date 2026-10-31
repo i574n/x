@@ -1,0 +1,17 @@
+[package]
+name = "xc_jsonl"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "jsonl.spi"
+output = "jsonl.rs"
+
+[lib]
+name = "xc_jsonl"
+path = "jsonl.rs"
+
+[dependencies]
+xc_select = { path = "../select" }
+serde_json = { workspace = true }

@@ -1,0 +1,38 @@
+///- --package ..
+///> rust -d serde_json unicode-segmentation=1.13 unicode-normalization=0.1
+test weights static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< splitter
+:< protocol
+
+:= unit_json (u : weighed) : string =
+    := g, w = u::glyph, u::weight
+    $'Rc::<str>::from(serde_json::json\!({"glyph": &*!g, "weight": !w}).to_string())'
+
+:~ units_json (name : string) (s : string) : string =
+    "[" ++# (weighed_on (platform_named name) (nfc s) |> each unit_json |> sm'::concat_list ",") ++# "]"
+
+:~ weight_named (name : string) (t : string) : i32 = weight_on (platform_named name) t
+
+test a_glyph_is_one_unit_of_its_weight =
+    := ~s = "a"
+    units_json "x" s |> _assert_eq "[{\"glyph\":\"a\",\"weight\":1}]"
+
+test a_posted_dot_is_one_unit =
+    := ~s = "x" ++# defused_dot ()
+    := dot = "{\"glyph\":\"" ++# defused_dot () ++# "\",\"weight\":2}"
+    units_json "x" s |> _assert_eq ("[{\"glyph\":\"x\",\"weight\":1}," ++# dot ++# "]")
+
+test a_numbered_post_weighs_its_header =
+    := ~t = "c1 1/1\na"
+    weight_named "x" t |> _assert_eq 8i32
+
+///> _
+:= main () : i32 =
+    export "xc_units" ((\ (name, s) => units_json name s) : string * string -> string)
+    export "xc_weight" ((\ (name, t) => weight_named name t) : string * string -> i32)
+    0i32

@@ -1,0 +1,341 @@
+///- --package . --timeout 600000
+///> rust -d sha2
+///> gleam
+test inbox static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< defuse
+:< events
+
+:== post_state = { parent : option string; revisions : dictm::dict i32 string; deleted : bool }
+
+:== gathering = { frame_parts : dictm::dict i32 frame_part; first : i32 }
+
+:== intake = { seen : dictm::set i32; pending : list delivery; frames : dictm::dict string gathering }
+
+:== graph =
+    {
+        posts : dictm::dict string post_state
+        keys : dictm::dict string string
+        children : dictm::dict string (list string)
+    }
+
+:== clock_mark = { at : i32; liked : bool }
+
+:== demand = dictm::dict string (dictm::set string)
+
+:== social_state = { demand : demand; clock : dictm::dict string clock_mark }
+
+:== tallies = { framed : i32; framed_edits : i32; duplicates : i32; buffered : i32 }
+
+:== inbox = { intake : intake; graph : graph; reactions : social_state; dirty : dictm::set string; tallies : tallies }
+
+:| inbox_step =
+    | Applied : inbox
+    | Waiting
+
+:= no_tallies () : tallies = { framed = 0i32; framed_edits = 0i32; duplicates = 0i32; buffered = 0i32 }
+
+:= empty_intake () : intake = { seen = dictm::set_empty (); pending = Nil; frames = dictm::empty () }
+
+:= empty_graph () : graph = { posts = dictm::empty (); keys = dictm::empty (); children = dictm::empty () }
+
+:= new_inbox () : inbox =
+    {
+        intake = empty_intake ()
+        graph = empty_graph ()
+        reactions = { demand = dictm::empty (); clock = dictm::empty () }
+        dirty = dictm::set_empty ()
+        tallies = no_tallies ()
+    }
+
+:= touched (id : string) (w : inbox) : inbox = { w ?| dirty = dictm::set_add id w::dirty }
+
+:= counted_as (bump : tallies -> tallies) (w : inbox) : inbox = { w ?| tallies = bump w::tallies }
+
+:= parked (d : delivery) (w : inbox) : inbox =
+    := i = w::intake
+    { w ?| intake = { i ?| pending = d :: i::pending } }
+    |> counted_as \ t => { t ?| buffered = t::buffered + 1i32 }
+
+:= unparked (at : i32) (w : inbox) : inbox =
+    := i = w::intake
+    { w ?| intake = { i ?| pending = i::pending |> keep (\ (d : delivery) => d::at <> at) } }
+
+:= latest_at (p : post_state) : i32 =
+    p::revisions |> dictm::fold (\ best at _ => ? at > best ?> at |: best) (-1i32)
+
+:= latest_source (p : post_state) : string = dictm::present (latest_at p) p::revisions
+
+:= key_of (parent_key : string) (source : string) : string =
+    cut 0i32 16i32 (crypto::hash_text (parent_key ++# char_of 0i32 ++# source))
+
+:= parent_key_of (g : graph) (p : post_state) : string =
+    ?= p::parent ?|
+    | Some q => dictm::present q g::keys
+    | None => ""
+
+:= keyed_once (id : string) (w : inbox) : inbox =
+    := g = w::graph
+    := p = dictm::present id g::posts
+    touched id { w ?| graph = { g ?| keys = dictm::insert id (key_of (parent_key_of g p) (latest_source p)) g::keys } }
+
+:~ ^ rekeyed (id : string) (w : inbox) : inbox =
+    := children = dictm::find id w::graph::children
+    := w = keyed_once id w
+    ?= children ?|
+    | Some l => l |> listm::fold (\ w child => rekeyed child w) w
+    | None => w
+
+:= with_child (parent : option string) (id : string) (g : graph) : graph =
+    ?= parent ?|
+    | Some p => { g ?| children = dictm::updated p Nil (\ l => id :: l) g::children }
+    | None => g
+
+:= new_post_state (r : rooted) (at : i32) : post_state =
+    { parent = r::parent; revisions = dictm::empty () |> dictm::insert at r::source; deleted = !- }
+
+:= with_post (r : rooted) (at : i32) (w : inbox) : inbox =
+    := g = w::graph
+    := posts = dictm::insert r::post_id (new_post_state r at) g::posts
+    { w ?| graph = { g ?| posts = posts } |> with_child r::parent r::post_id }
+
+:= post_applied (r : rooted) (at : i32) (w : inbox) : inbox_step =
+    ?= r::parent ?|
+    | Some p ?& dictm::has p w::graph::posts |> not => Waiting
+    | _ => Applied (with_post r at w |> rekeyed r::post_id)
+
+:= with_post_state (id : string) (p : post_state) (w : inbox) : inbox =
+    := g = w::graph
+    { w ?| graph = { g ?| posts = dictm::insert id p g::posts } }
+
+:= revised_state (s : sourced) (at : i32) (p : post_state) : post_state =
+    { p ?| revisions = dictm::insert at s::source p::revisions }
+
+:= edit_applied (s : sourced) (at : i32) (w : inbox) : inbox_step =
+    ?= dictm::find s::post_id w::graph::posts ?|
+    | Some p => Applied (with_post_state s::post_id (revised_state s at p) w |> rekeyed s::post_id)
+    | None => Waiting
+
+:= removed_post (id : string) (w : inbox) : inbox_step =
+    ?= dictm::find id w::graph::posts ?|
+    | Some p => Applied (with_post_state id { p ?| deleted = !+ } w |> touched id)
+    | None => Waiting
+
+:= clock_key (s : social) : string = s::post_id ++# "\n" ++# s::user
+
+:= with_user (s : social) (liked : bool) (u : dictm::set string) : dictm::set string =
+    ? liked ?> dictm::set_add s::user u |: dictm::set_drop s::user u
+
+:= demand_after (s : social) (liked : bool) (d : demand) : demand =
+    d |> dictm::updated s::post_id (dictm::set_empty ()) (with_user s liked)
+
+:= reacted_now (s : social) (at : i32) (liked : bool) (w : inbox) : inbox =
+    := so = w::reactions
+    := so = { demand = demand_after s liked so::demand; clock = dictm::insert (clock_key s) { at liked } so::clock }
+    { w ?| reactions = so } |> touched s::post_id
+
+:= stale_reaction (s : social) (at : i32) (w : inbox) : bool =
+    ?= dictm::find (clock_key s) w::reactions::clock ?|
+    | Some m => m::at > at
+    | None => !-
+
+:= reacted (s : social) (at : i32) (liked : bool) (w : inbox) : inbox_step =
+    ? dictm::has s::post_id w::graph::posts |> not ?> Waiting
+    |: ? stale_reaction s at w ?> Applied w |: Applied (reacted_now s at liked w)
+
+:= fresh_key (id : string) : string = "post\n" ++# id
+
+:= edit_key (id : string) (rev : i32) : string = "edit\n" ++# id ++# "\n" ++# sm'::obj_to_string rev
+
+:= rebuilt_parts (frame_parts : dictm::dict i32 frame_part) : string =
+    listm::init (dictm::size frame_parts) (\ i => (dictm::present (i + 1i32) frame_parts)::body)
+    |> delimited ""
+    |> restored_text
+
+:= gathering_at (key : string) (at : i32) (w : inbox) : gathering =
+    ?= dictm::find key w::intake::frames ?|
+    | Some g => g
+    | None => { frame_parts = dictm::empty (); first = at }
+
+:= with_gathering (key : string) (g : gathering) (w : inbox) : inbox =
+    := i = w::intake
+    { w ?| intake = { i ?| frames = dictm::insert key g i::frames } }
+
+:= without_gathering (key : string) (w : inbox) : inbox =
+    := i = w::intake
+    { w ?| intake = { i ?| frames = dictm::remove key i::frames } }
+
+:= fresh_made (p : placed) (source : string) : event =
+    Content (Posted { post_id = p::post_id; parent = p::parent; source })
+
+:= edit_made (r : revised) (source : string) : event = Revision (Edited { post_id = r::post_id; source })
+
+:= framed_once (t : tallies) : tallies = { t ?| framed = t::framed + 1i32 }
+
+:= edit_framed_once (t : tallies) : tallies = { t ?| framed_edits = t::framed_edits + 1i32 }
+
+:= joined_gathering (part : frame_part) (at : i32) (g : gathering) : gathering =
+    { frame_parts = dictm::insert part::k part g::frame_parts; first = ? at < g::first ?> at |: g::first }
+
+:= joined_at (key : string) (at : i32) (part : frame_part) (w : inbox) : gathering =
+    gathering_at key at w |> joined_gathering part at
+
+:== maker = string -> event
+
+:== tally_bump = tallies -> tallies
+
+:~ ^ applied_event (at : i32) (e : event) (w : inbox) : inbox_step =
+    ?= e ?|
+    | Content c => content_applied at c w
+    | Revision r => revision_applied at r w
+    | Reaction (Liked s) => reacted s at !+ w
+    | Reaction (Unliked s) => reacted s at !- w
+
+:& :~ content_applied (at : i32) (c : content) (w : inbox) : inbox_step =
+    ?= c ?|
+    | Posted r => post_applied r at w
+    | Framed p => frame_gathered (fresh_key p::post_id) at p::part (fresh_made p) framed_once w
+
+:& :~ revision_applied (at : i32) (r : revision) (w : inbox) : inbox_step =
+    ?= r ?|
+    | Edited s => edit_applied s at w
+    | FrameEdited f => frame_edit_gathered at f w
+    | Deleted id => removed_post id w
+
+:& :~ frame_edit_gathered (at : i32) (f : revised) (w : inbox) : inbox_step =
+    frame_gathered (edit_key f::post_id f::rev) at f::part (edit_made f) edit_framed_once w
+
+:& :~ frame_gathered
+    (key : string) (at : i32) (part : frame_part) (made : maker) (bump : tally_bump) (w : inbox)
+    : inbox_step
+    =
+    frame_step key (joined_at key at part w) part made bump w
+
+:& :~ frame_step
+    (key : string) (g : gathering) (part : frame_part) (made : maker) (bump : tally_bump) (w : inbox)
+    : inbox_step
+    =
+    ? dictm::size g::frame_parts = part::n ?> frame_done key g made bump w |: Applied (with_gathering key g w)
+
+:& :~ frame_done (key : string) (g : gathering) (made : maker) (bump : tally_bump) (w : inbox) : inbox_step =
+    completed g::first (made (rebuilt_parts g::frame_parts)) (without_gathering key w |> counted_as bump)
+
+:& :~ completed (first : i32) (e : event) (w : inbox) : inbox_step =
+    ?= applied_event first e w ?|
+    | Applied w => Applied w
+    | Waiting => Applied (parked { at = first; event = e } w)
+
+:~ ^ drained_from (todo : list delivery) (w : inbox) : inbox =
+    ?= todo ?|
+    | Nil => w
+    | d :: rest =>
+        ?= applied_event d::at d::event w ?|
+        | Applied next => drained (unparked d::at next)
+        | Waiting => drained_from rest w
+
+:& :~ drained (w : inbox) : inbox = drained_from w::intake::pending w
+
+:= marked_seen (at : i32) (w : inbox) : inbox =
+    := i = w::intake
+    { w ?| intake = { i ?| seen = dictm::set_add at i::seen } }
+
+:= duplicate_counted (w : inbox) : inbox = w |> counted_as (\ t => { t ?| duplicates = t::duplicates + 1i32 })
+
+:= first_seen (d : delivery) (w : inbox) : inbox =
+    := w = marked_seen d::at w
+    ?= applied_event d::at d::event w ?|
+    | Applied w => drained w
+    | Waiting => parked d w
+
+:~ delivered (w : inbox) (d : delivery) : inbox =
+    ? dictm::set_has d::at w::intake::seen ?> duplicate_counted w |: first_seen d w
+
+:~ ^ chain_sources (w : inbox) (id : option string) (acc : list string) : list string =
+    ?= id ?|
+    | None => acc
+    | Some i =>
+        := p = dictm::present i w::graph::posts
+        chain_sources w p::parent (latest_source p :: acc)
+
+:= sources (w : inbox) (id : string) : list string = chain_sources w (Some id) Nil
+
+:= wanted_key (w : inbox) (id : string) : option string =
+    ?= dictm::find id w::reactions::demand, dictm::find id w::graph::posts ?|
+    | Some users, Some p ?& dictm::set_size users > 0i32 && not p::deleted => dictm::find id w::graph::keys
+    | _ => None
+
+:= wanted_keys (w : inbox) : dictm::dict string string =
+    w::reactions::demand
+    |> dictm::fold \ acc id _ =>
+            ?= wanted_key w id ?|
+            | Some k => dictm::insert id k acc
+            | None => acc
+        (dictm::empty ())
+
+:= dirty_taken (w : inbox) : list string * inbox = dictm::set_items w::dirty, { w ?| dirty = dictm::set_empty () }
+
+:= post_at (at : i32) (id : string) (parent : option string) (source : string) : delivery =
+    { at; event = Content (Posted { post_id = id; parent; source }) }
+
+:= like_at (at : i32) (id : string) (user : string) : delivery =
+    { at; event = Reaction (Liked { post_id = id; user }) }
+
+:= unlike_at (at : i32) (id : string) (user : string) : delivery =
+    { at; event = Reaction (Unliked { post_id = id; user }) }
+
+:= frame_delivery (at : i32) (id : string) (k : i32) (n : i32) (body : string) : delivery =
+    { at; event = Content (Framed { post_id = id; parent = None; part = { k; n; body } }) }
+
+:= frame_from (at : i32) (id : string) (parent : option string) (k : i32) (n : i32) (body : string) : delivery =
+    { at; event = Content (Framed { post_id = id; parent; part = { k; n; body } }) }
+
+:= edit_frame_at (at : i32) (id : string) (rev : i32) (k : i32) (n : i32) (body : string) : delivery =
+    { at; event = Revision (FrameEdited { post_id = id; rev; part = { k; n; body } }) }
+
+:= run (l : list delivery) : inbox = l |> listm::fold delivered (new_inbox ())
+
+test duplicates_are_counted_once =
+    := ~id = "p0"
+    := w = run [ post_at 0i32 id None "inl a = 1"; post_at 0i32 id None "inl a = 1" ]
+    (w::tallies::duplicates, dictm::size w::graph::posts) |> _assert_eq (1i32, 1i32)
+
+:= waiting_shape (w : inbox) : i32 * i32 * i32 =
+    w::tallies::buffered, dictm::size w::graph::posts, (listm::length w::intake::pending : i32)
+
+test a_child_before_its_parent_waits_then_lands =
+    := ~id = "c"
+    run [ post_at 1i32 id (Some "p") "inl b = 2"; post_at 0i32 "p" None "inl a = 1" ] |> waiting_shape
+    |> _assert_eq (1i32, 2i32, 0i32)
+
+test frames_in_any_order_rebuild_the_post =
+    := ~id = "f"
+    := w = run [ frame_delivery 2i32 id 2i32 2i32 "b"; frame_delivery 1i32 id 1i32 2i32 "a" ]
+    (w::tallies::framed, sources w id) |> _assert_eq (1i32, [ "ab" ])
+
+test an_older_unlike_does_not_undo_a_newer_like =
+    := ~id = "p0"
+    := w = run [ post_at 0i32 id None "x"; like_at 5i32 id "u"; unlike_at 3i32 id "u" ]
+    (?= wanted_key w id ?|
+        | Some _ => !+
+        | None => !-) |> _assert_eq !+
+
+:= child_key (w : inbox) : string = dictm::present "c" w::graph::keys
+
+:= edited_to (id : string) (source : string) : delivery =
+    { at = 2i32; event = Revision (Edited { post_id = id; source }) }
+
+test an_edit_rekeys_the_children =
+    := ~id = "p"
+    := w = run [ post_at 0i32 id None "a"; post_at 1i32 "c" (Some id) "b" ]
+    := before = child_key w
+    (child_key (delivered w (edited_to id "a2")) <> before, sm'::length before) |> _assert_eq (!+, 16i32)
+
+test keys_match_the_elixir_world =
+    := ~id = "p"
+    := w = run [ post_at 0i32 id None "a"; post_at 1i32 "c" (Some id) "b" ]
+    (dictm::present id w::graph::keys, dictm::present "c" w::graph::keys)
+    |> _assert_eq ("022a6979e6dab7aa", "451526e1c47e6023")

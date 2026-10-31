@@ -1,0 +1,81 @@
+///- --package .
+///> gleam
+test runner_guard static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< scheduler
+
+:| guard_signal =
+    | CancelWork
+    | WorkDown : erlang_process::down
+
+:== guarded_task = { key : string; timeout_ms : i32; work : () -> () }
+
+:= crash_of (key : string) (out : string) : visible_entry = { key; result = { status = Crashed; out } }
+
+:== reporter = visible_entry -> ()
+
+:== handle = erlang_process::subject ()
+
+:== worker = erlang_process::pid
+
+:= guard_choices (own : handle) (watch : erlang_process::monitor) : erlang_process::selector guard_signal =
+    erlang_process::new_selector ()
+    |> erlang_process::select_map own (\ () => CancelWork)
+    |> erlang_process::select_specific_monitor watch WorkDown
+
+:= down_reported (report : reporter) (t : guarded_task) (d : erlang_process::down) : () =
+    ? erlang_process::exited_normally (erlang_process::down_reason d) ?> () |: report (crash_of t::key "crashed")
+
+:= signalled (report : reporter) (t : guarded_task) (w : worker) (signal : guard_signal) : () =
+    ?= signal ?|
+    | CancelWork => erlang_process::kill w
+    | WorkDown d => down_reported report t d
+
+:= guard_settled (report : reporter) (t : guarded_task) (w : worker) (received : option guard_signal) : () =
+    ?= received ?|
+    | Some signal => signalled report t w signal
+    | None =>
+        erlang_process::kill w
+        report (crash_of t::key "timeout")
+
+:= first_signal (own : handle) (w : worker) (timeout_ms : i32) : option guard_signal =
+    guard_choices own (erlang_process::monitor w)
+    |> \ choices => erlang_process::selector_receive_within choices timeout_ms
+    |> erlang_process::receipt_value
+
+:= awaited (report : reporter) (t : guarded_task) (own : handle) (w : worker) : () =
+    first_signal own w t::timeout_ms |> guard_settled report t w
+
+:= guard_body (report : reporter) (handed : handle -> ()) (t : guarded_task) () : () =
+    := own : handle = erlang_process::new_subject ()
+    handed own
+    awaited report t own (erlang_process::spawn_unlinked t::work)
+
+:= guarded (report : reporter) (handed : handle -> ()) (t : guarded_task) : worker =
+    erlang_process::spawn_unlinked (guard_body report handed t)
+
+:= reports_to (inbox : erlang_process::subject visible_entry) : reporter = \ e => erlang_process::send inbox e
+
+:= ignored_handle (_ : handle) : () = ()
+
+:= new_inbox () : erlang_process::subject visible_entry = erlang_process::new_subject ()
+
+:= first_report_out (inbox : erlang_process::subject visible_entry) : option string =
+    erlang_process::receive_within inbox 20000i32 |> erlang_process::receipt_value |> optionm::map \ e => e::result::out
+
+test a_crashing_worker_is_reported_as_crashed =
+    := ~key = "k1"
+    := inbox = new_inbox ()
+    guarded (reports_to inbox) ignored_handle { key; timeout_ms = 10000i32; work = \ () => failwith "boom" } |> ignore
+    first_report_out inbox |> _assert_eq (Some "crashed")
+
+:= stalled () : () = (erlang_process::new_subject () : handle) |> erlang_process::receive_forever
+
+test a_slow_worker_is_reported_as_timed_out =
+    := ~key = "k2"
+    := inbox = new_inbox ()
+    guarded (reports_to inbox) ignored_handle { key; timeout_ms = 50i32; work = stalled } |> ignore
+    first_report_out inbox |> _assert_eq (Some "timeout")

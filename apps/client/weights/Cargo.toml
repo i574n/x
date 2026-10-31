@@ -1,0 +1,18 @@
+[package]
+name = "xc_weights"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "weights.spi"
+output = "weights.rs"
+
+[lib]
+name = "xc_weights"
+path = "weights.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+unicode-normalization = "0.1"
+unicode-segmentation = "1.13"

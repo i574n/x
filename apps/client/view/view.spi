@@ -1,0 +1,45 @@
+///- --package ..
+///> rust
+test view static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< posts
+
+:= local_minute (stamp : string) : string = $'xc_net::xc_local_minute(&*!stamp)'
+
+:= shown_lines (d : digest) (o : view_options) (shown : list entry) : string * i32 =
+    shown |> spread (entry_lines d::pool o) |> sm'::concat_list "\n", listm::length shown
+
+:= selected_lines (text : string) (limit : i32) (per_author : i32) : string =
+    $'xc_select::xc_select(&*!text, !limit, !per_author)'
+
+:~ rendered (text : string) (limit : i32) (per_author : i32) (depth : i32) (hints : bool) : string * i32 =
+    := d = digest_of (selected_lines text limit per_author)
+    d::primary |> shown_lines d { depth hints minute = local_minute }
+
+:= shown_text (r : string * i32) : string =
+    := text, n = r
+    text ++# "|" ++# sm'::obj_to_string n
+
+:= utc_view () : view_options = { depth = 0i32; hints = !-; minute = utc_minute }
+
+:= quiet_line () : string = "2026-10-15 09:05  @" ++# "b  t1  [0 replies, 0 reposts, 0 likes]|1"
+
+test entry_lines_render_as_the_timeline =
+    := ~line = at "1" "b" "2026-10-15T09:05:00Z" |> lone |> entry_line "p"
+    := d = digest_of line
+    shown_lines d (utc_view ()) d::primary |> shown_text |> _assert_eq (quiet_line ())
+
+:== view_args = string * i32 * i32 * i32 * bool
+
+///> _
+:= main () : i32 =
+    export
+        "xc_view"
+        (
+            \ (text, limit, per_author, depth, hints) => rendered text limit per_author depth hints
+            : view_args -> string * i32
+        )
+    0i32

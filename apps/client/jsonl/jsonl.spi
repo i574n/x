@@ -1,0 +1,84 @@
+///- --package ..
+///> rust -d serde_json
+test jsonl static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< protocol
+:< posts
+
+:= quoted (s : string) : string = $'Rc::<str>::from(serde_json::Value::from(&*!s).to_string())'
+
+:= ref_json (r : reference) : string =
+    "{\"type\":" ++# quoted (ref_word r::kind) ++# ",\"id\":" ++# quoted (post_text r::id) ++# "}"
+
+:= array (l : list string) : string = "[" ++# sm'::concat_list "," l ++# "]"
+
+:= pair (key : string) (value : string) : string = "\"" ++# key ++# "\":" ++# value
+
+:= counts_json (e : entry) : list string =
+    [ pair "reply_count" e::reply_count; pair "repost_count" e::repost_count; pair "like_count" e::like_count ]
+
+:= names_json (e : entry) : list string =
+    [
+        pair "id" (quoted (entry_id e))
+        pair "username" (quoted e::username)
+        pair "created_at" (quoted e::created_at)
+        pair "text" (quoted e::text)
+    ]
+
+:= links_json (e : entry) : list string =
+    [ pair "refs" (array (e::refs |> each ref_json)); pair "hints" (array (e::hints |> each quoted)) ]
+
+:= place_json (level : i32) (via : string) : list string =
+    [ pair "level" (sm'::obj_to_string level); pair "via" (quoted via) ]
+
+:~ entry_json (level : i32) (via : string) (e : entry) : string =
+    := links, place = links_json e, place_json level via
+    "{"
+    ++# sm'::concat_list "," (listm::append (names_json e) (listm::append (counts_json e) (listm::append links place)))
+    ++# "}"
+
+:~ ^ referenced_json (pool : list entry) (depth : i32) (level : i32) (e : entry) : list string =
+    ? level >= depth ?> Nil |: e::refs |> spread (reference_json pool depth level e)
+
+:& :~ reference_json (pool : list entry) (depth : i32) (level : i32) (e : entry) (r : reference) : list string =
+    ?= find_entry pool r::id ?|
+    | Some q => entry_json (level + 1) (entry_id e) q :: referenced_json pool depth (level + 1) q
+    | None => Nil
+
+:= with_references (pool : list entry) (depth : i32) (e : entry) : list string =
+    entry_json 0i32 "" e :: referenced_json pool depth 0i32 e
+
+:= lines_of (pool : list entry) (depth : i32) (shown : list entry) : string =
+    shown |> spread (with_references pool depth) |> sm'::concat_list "\n"
+
+:~ rendered_json (d : digest) (depth : i32) : string * i32 = lines_of d::pool depth d::primary, listm::length d::primary
+
+:= selected_lines (text : string) (limit : i32) (per_author : i32) : string =
+    $'xc_select::xc_select(&*!text, !limit, !per_author)'
+
+:= json_lines (text : string) (limit : i32) (per_author : i32) (depth : i32) : string * i32 =
+    rendered_json (digest_of (selected_lines text limit per_author)) depth
+
+:= quiet_entry () : string =
+    "{\"id\":\"1\",\"username\":\"b\",\"created_at\":\"09:05\",\"text\":\"t1\",\"reply_count\":0,\"repost_count\":0"
+    ^^ ",\"like_count\":0,\"refs\":[],\"hints\":[],\"level\":0,\"via\":\"\"}"
+
+:= lines_text (r : string * i32) : string =
+    := text, n = r
+    text ++# "|" ++# sm'::obj_to_string n
+
+test entry_lines_become_json_lines =
+    := ~line = at "1" "b" "09:05" |> lone |> entry_line "p"
+    rendered_json (digest_of line) 0i32 |> lines_text |> _assert_eq (quiet_entry () ++# "|1")
+
+:== jsonl_args = string * i32 * i32 * i32
+
+///> _
+:= main () : i32 =
+    export
+        "xc_jsonl"
+        ((\ (text, limit, per_author, depth) => json_lines text limit per_author depth) : jsonl_args -> string * i32)
+    0i32

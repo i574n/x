@@ -1,0 +1,16 @@
+[package]
+name = "xc_api"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "api.spi"
+output = "api.rs"
+
+[lib]
+name = "xc_api"
+path = "api.rs"
+
+[dependencies]
+serde_json = { workspace = true }

@@ -1,0 +1,340 @@
+///- --package .
+///> gleam
+test cells_executor static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< scheduler
+:< executors
+
+:== term = erlang_term::term
+
+:= at (key : string) (map : term) (fallback : term) : term =
+    erlang_term::apply "maps" "get" [ erlang_term::atom key; map; fallback ]
+
+:= keyed (pairs : list (string * term)) : term =
+    := tuples = pairs |> each (\ (k, v) => erlang_term::tuple [ erlang_term::atom k; v ])
+    erlang_term::apply "maps" "from_list" [ erlang_term::list_term tuples ]
+
+:= spiral_cell (source : string) : term =
+    keyed [ ("kind", erlang_term::atom "spiral"); ("source", erlang_term::of source) ]
+
+:= cells_doc (sources : list string) : term = keyed [ ("cells", sources |> each spiral_cell |> erlang_term::list_term) ]
+
+:= option_pair (k : string) (v : term) : term = erlang_term::tuple [ erlang_term::atom k; v ]
+
+:= run_opts (root : string) (memo : bool) : term =
+    := at_root = erlang_term::of root
+    := memo_pair = option_pair "memo" (erlang_term::of memo)
+    erlang_term::list_term [ option_pair "root" at_root; option_pair "spiral_lib" at_root; memo_pair ]
+
+:= evaluated (sources : list string) (root : string) (memo : bool) : term =
+    erlang_term::apply "Elixir.Spiral.Cells.Notebook" "evaluate" [ cells_doc sources; run_opts root memo ]
+
+:= indexed (result : term) (field : string) (index : i32) : term =
+    := table = at field result (erlang_term::apply "maps" "new" [])
+    erlang_term::apply "maps" "get" [ erlang_term::of index; table; erlang_term::atom "nil" ]
+
+:= last_of (result : term) (index : i32) : term =
+    := status = at "status" result (erlang_term::atom "nil")
+    erlang_term::tuple [ status; indexed result "verdicts" index; indexed result "outputs" index ]
+
+:= ran_result (result : term) (index : i32) : task_result =
+    := ok = erlang_term::equal (at "status" result (erlang_term::atom "nil")) (erlang_term::atom "ok")
+    { status = ? ok ?> Done |: Erred; out = erlang_term::inspect (last_of result index) }
+
+:= is_map (t : term) : bool = erlang_term::apply "erlang" "is_map" [ t ] |> erlang_term::cast
+
+:= counted_result (count : term -> ()) (result : term) (index : i32) : task_result =
+    count result
+    ran_result result index
+
+:= unexpected (result : term) : task_result = { status = Erred; out = "unexpected " ++# erlang_term::inspect result }
+
+:= cells_ran_with (memo : bool) (count : term -> ()) (sources : list string) (root : string) : task_result =
+    := result = evaluated sources root memo
+    ? is_map result ?> counted_result count result (listm::length sources - 1i32) |: unexpected result
+
+:= cells_ran (sources : list string) (root : string) : task_result = cells_ran_with !- (\ _ => ()) sources root
+
+:= cells_executor (root : string) : executor = \ sources => cells_ran sources root
+
+:= memo_tally () : term =
+    := atomics = erlang_term::list_term [ erlang_term::atom "atomics" ]
+    erlang_term::apply "counters" "new" [ erlang_term::of 2i32; atomics ]
+
+:= term_length (l : term) : i32 = erlang_term::apply "erlang" "length" [ l ] |> erlang_term::cast
+
+:= flag_count (flags : term) (flag : string) : i32 =
+    := wanted = \ (f : term) => erlang_term::equal f (erlang_term::atom flag)
+    term_length (erlang_term::apply "lists" "filter" [ erlang_term::of wanted; flags ])
+
+:= counter_added (tally : term) (slot : i32) (n : i32) : () =
+    erlang_term::apply "counters" "add" [ tally; erlang_term::of slot; erlang_term::of n ] |> ignore
+
+:= memo_counted (tally : term) (result : term) : () =
+    := flags = erlang_term::apply "maps" "values" [ at "memo" result (erlang_term::apply "maps" "new" []) ]
+    counter_added tally 1i32 (flag_count flags "hit")
+    counter_added tally 2i32 (flag_count flags "miss")
+
+:= counter_at (tally : term) (slot : i32) : i32 =
+    erlang_term::apply "counters" "get" [ tally; erlang_term::of slot ] |> erlang_term::cast
+
+:= beam_mb () : i32 =
+    := total = erlang_term::apply "erlang" "memory" [ erlang_term::atom "total" ]
+    erlang_term::apply "erlang" "div" [ total; erlang_term::of 1048576i32 ] |> erlang_term::cast
+
+:= memo_counts (tally : term) : i32 * i32 = counter_at tally 1i32, counter_at tally 2i32
+
+:= cells_counted (root : string) (memo : bool) (tally : term) : executor =
+    \ sources => cells_ran_with memo (memo_counted tally) sources root
+
+:= leak_swap (key : string) (digest : string) : string =
+    := previous = erlang_term::apply "erlang" "put" [ erlang_term::atom key; erlang_term::of digest ]
+    ? erlang_term::equal previous (erlang_term::atom "undefined") ?> "" |: erlang_term::cast previous
+
+:= dictionary_leak (key : string) : executor =
+    \ sources =>
+        := digest = fake_out sources
+        { status = Done; out = digest ++# leak_swap key digest }
+
+:= shared_leak (key : string) : executor =
+    ?= leak_started () ?|
+    | Some leak => leaking_executor leak
+    | None => \ _ => { status = Crashed; out = "leak cell did not start for " ++# key }
+
+:= is_tuple (t : term) : bool = erlang_term::apply "erlang" "is_tuple" [ t ] |> erlang_term::cast
+
+:= element_at (n : i32) (t : term) : term = erlang_term::apply "erlang" "element" [ erlang_term::of n; t ]
+
+:= ok_value (t : term) : option term =
+    ? not (is_tuple t) ?> None
+    |? erlang_term::equal (element_at 1i32 t) (erlang_term::atom "ok") ?> Some (element_at 2i32 t)
+    |: None
+
+:= tcp (name : string) (args : list term) : term = erlang_term::apply "gen_tcp" name args
+
+:= tcp_options () : term =
+    := line_packets = option_pair "packet" (erlang_term::atom "line")
+    erlang_term::list_term [ erlang_term::atom "binary"; line_packets; option_pair "active" (erlang_term::of !-) ]
+
+:= received_line (got : term) : string =
+    ?= ok_value got ?|
+    | Some line => erlang_term::cast line
+    | None => ""
+
+:= hello_on (sock : term) : string =
+    tcp "send" [ sock; erlang_term::of "hello\n" ] |> ignore
+    := got = tcp "recv" [ sock; erlang_term::of 0i32; erlang_term::of 2000i32 ]
+    tcp "close" [ sock ] |> ignore
+    received_line got
+
+:= daemon_port () : term = erlang_term::apply "Elixir.Spiral.Cells.CompilerDaemon" "port" []
+
+:= loopback () : term = erlang_term::charlist "127.0.0.1"
+
+:= daemon_hello () : string =
+    := opened = tcp "connect" [ loopback (); daemon_port (); tcp_options (); erlang_term::of 1000i32 ]
+    ?= ok_value opened ?|
+    | Some sock => hello_on sock
+    | None => ""
+
+:= daemon_pid_text () : string =
+    ?= tree_memory::daemon_pid_of (daemon_hello ()) ?|
+    | Some pid => sm'::obj_to_string pid
+    | None => ""
+
+:= script_head () : list string = [ "param([int]%Root)"; "%all = @(Get-CimInstance Win32_Process)" ]
+
+:= script_guard () : list string =
+    [ "if (-not (%all | ? ProcessId -eq %Root)) { exit 0 }"; "%tree = [Collections.Generic.List[int]]::new()" ]
+
+:= script_walk () : list string =
+    [ "%tree.Add(%Root)"; "for (%i = 0; %i -lt %tree.Count; %i++) {"; "  foreach (%p in %all) {" ]
+
+:= script_kids () : list string =
+    [ "    %kid = [int]%p.ProcessId"; "    %up = %p.ParentProcessId -eq %tree[%i]" ]
+
+:= script_tail () : list string =
+    [ "    if (%up -and %kid -ne %tree[%i]) { %tree.Add(%kid) }"; "  }"; "}" ]
+
+:= script_mine () : list string = [ "%mine = %all | ? { %tree.Contains([int]%_.ProcessId) }" ]
+
+:= script_sum () : list string = [ "%bytes = (%mine | Measure-Object WorkingSetSize -Sum).Sum" ]
+
+:= script_top () : list string = [ script_head (); script_guard (); script_walk () ] |> listm::concat
+
+:= script_lines () : list string =
+    [ script_top (); script_kids (); script_tail (); script_mine (); script_sum () ] |> listm::concat
+
+:= sampler_script () : string =
+    := printed = "\"%(%tree.Count) %([int64](%bytes / 1MB))\""
+    sm'::concat_list "\n" (listm::append (script_lines ()) [ printed ]) |> sm'::replace "%" "$"
+
+:= system_text (name : string) : string = erlang_term::apply "Elixir.System" name [] |> erlang_term::cast
+
+:= written_script () : string =
+    := path = system_text "tmp_dir!" ++# "/xsim-tree-sample-" ++# system_text "pid" ++# ".ps1"
+    file_system::write_all_text path (sampler_script ())
+    path
+
+:= daemon_read (script : string) () : string =
+    ?= tree_memory::daemon_pid_of (daemon_hello ()) ?|
+    | Some pid => memory_watch::sample_line script pid
+    | None => ""
+
+:= count_fields (r : tree_memory::memory_reading) : string =
+    " procs=" ++# sm'::obj_to_string r::procs ++# " samples=" ++# sm'::obj_to_string r::samples
+
+:= reading_fields (r : tree_memory::memory_reading) : string =
+    "peak_mb=" ++# sm'::obj_to_string r::peak_mb ++# " last_mb=" ++# sm'::obj_to_string r::last_mb ++# count_fields r
+
+:= daemon_line (pid : string) (r : tree_memory::memory_reading) (round : i32) : string =
+    "  daemon pid=" ++# pid ++# " " ++# reading_fields r ++# " cumulative_after_schedule=" ++# sm'::obj_to_string round
+
+:= watched_notes (w : erlang_process::subject memory_watch::watch_message) (round : i32) : list string =
+    [ daemon_line (daemon_pid_text ()) (memory_watch::peak_of w) round ]
+
+:= daemon_watch () : i32 -> list string =
+    ?= memory_watch::ticking 1000i32 (daemon_read (written_script ())) ?|
+    | Some w => watched_notes w
+    | None => \ _ => [ "  daemon watch did not start" ]
+
+:== task_reply = string * erlang_process::pid * task_result
+
+:== async_state = { sched : scheduler; pids : dictm::dict string erlang_process::pid; peak_mb : i32 }
+
+:== reply_to = erlang_process::subject task_reply
+
+:= replied (exec : executor) (reply : reply_to) (key : string) (sources : list string) () : () =
+    erlang_process::send reply (key, erlang_process::self (), exec sources)
+
+:= spawned_task (exec : executor) (reply : reply_to) (key : string) (sources : list string) : erlang_process::pid =
+    erlang_process::spawn_unlinked (replied exec reply key sources)
+
+:= started_in (exec : executor) (reply : reply_to) (a : async_state) (key : string) (code : list string) : async_state =
+    { a ?| pids = dictm::insert key (spawned_task exec reply key code) a::pids }
+
+:= cancelled_in (a : async_state) (key : string) : async_state =
+    ?= dictm::find key a::pids ?|
+    | Some p =>
+        erlang_process::kill p
+        { a ?| pids = dictm::remove key a::pids }
+    | None => a
+
+:= commanded (exec : executor) (reply : reply_to) (a : async_state) (c : task_command) : async_state =
+    ?= c ?|
+    | StartTask t => started_in exec reply a t::key t::sources
+    | CancelTask key => cancelled_in a key
+
+:= launched (exec : executor) (reply : reply_to) (a : async_state) : async_state =
+    := cmds, s = commands_taken a::sched
+    := b = { a ?| sched = s }
+    listm::fold (commanded exec reply) b cmds
+
+:= same_pid (a : erlang_process::pid) (b : erlang_process::pid) : bool =
+    erlang_term::equal (erlang_term::of a) (erlang_term::of b)
+
+:= current_run (a : async_state) (key : string) (from : erlang_process::pid) : bool =
+    ?= dictm::find key a::pids ?|
+    | Some p => same_pid p from
+    | None => !-
+
+:= finished_in (a : async_state) (key : string) (p : erlang_process::pid) (r : task_result) : async_state =
+    ? not (current_run a key p) ?> a
+    |:
+        := s = finished_task key r a::sched |> drained
+        { a ?| sched = s; pids = dictm::remove key a::pids }
+
+:~ ^ collected (reply : reply_to) (wait_ms : i32) (a : async_state) : async_state =
+    ?= erlang_process::receive_within reply wait_ms |> erlang_process::receipt_value ?|
+    | Some (key, from, r) => collected reply 0i32 (finished_in a key from r)
+    | None => a
+
+:= sampled (a : async_state) : async_state =
+    := mb = beam_mb ()
+    { a ?| peak_mb = ? mb > a::peak_mb ?> mb |: a::peak_mb }
+
+:= stepped (exec : executor) (reply : reply_to) (pace : i32) (a : async_state) (d : events::delivery) : async_state =
+    := b = { a ?| sched = delivered_to d a::sched }
+    b |> launched exec reply |> sampled |> collected reply pace |> launched exec reply
+
+:= abandoned (b : async_state) (key : string) (p : erlang_process::pid) : async_state =
+    erlang_process::kill p
+    finished_in b key p { status = Erred; out = "no reply within 600 s" }
+
+:= timed_out (a : async_state) : async_state = a::pids |> dictm::fold abandoned a
+
+:= waited (reply : reply_to) (b : async_state) : async_state =
+    := c = collected reply 600000i32 b
+    ? dictm::size c::pids = dictm::size b::pids ?> timed_out c |: c
+
+:~ ^ settled_runs (exec : executor) (reply : reply_to) (a : async_state) : async_state =
+    := b = launched exec reply a
+    ? dictm::size b::pids = 0i32 ?> b
+    |: waited reply b |> settled_runs exec reply
+
+:= async_start (f : fault_set) : async_state = { sched = new_scheduler f; pids = dictm::empty (); peak_mb = 0i32 }
+
+:= finished_view (a : async_state) : scheduler = a::sched |> expired !+ |> settled_view
+
+:= async_run_with (pace : i32) (x : executor) (f : fault_set) (l : list events::delivery) : scheduler * i32 =
+    := r = erlang_process::new_subject ()
+    := a = listm::fold (stepped x r pace) (async_start f) l |> settled_runs x r
+    finished_view a, a::peak_mb
+
+:= ebins (lib : string) : term = erlang_term::apply "filelib" "wildcard" [ erlang_term::charlist (lib ++# "/*/ebin") ]
+
+:= vm_paths_added (build_lib : string) (elixir_lib : string) : () =
+    := paths = erlang_term::apply "lists" "append" [ ebins build_lib; ebins elixir_lib ]
+    erlang_term::apply "code" "add_paths" [ paths ] |> ignore
+
+:= started_ok (started : term) : bool =
+    erlang_term::equal
+        (erlang_term::apply "erlang" "element" [ erlang_term::of 1i32; started ])
+        (erlang_term::atom "ok")
+
+:= cells_vm_started (build_lib : string) (elixir_lib : string) : bool =
+    vm_paths_added build_lib elixir_lib
+    erlang_term::apply "application" "ensure_all_started" [ erlang_term::atom "spiral_cells" ] |> started_ok
+
+:= cell_count (doc : term) : i32 =
+    := cells = at "cells" doc (erlang_term::list_term Nil)
+    erlang_term::apply "erlang" "length" [ cells ] |> erlang_term::cast
+
+:= last_source (doc : term) : string =
+    := cells = at "cells" doc (erlang_term::list_term Nil)
+    := last = erlang_term::apply "lists" "last" [ cells ]
+    at "source" last (erlang_term::of "") |> erlang_term::cast
+
+test the_cells_document_holds_one_spiral_cell_per_source =
+    := ~sources = [ "inl a = 1"; "a |> _assert_eq 1" ]
+    := doc = cells_doc sources
+    (cell_count doc, last_source doc) |> _assert_eq (2i32, "a |> _assert_eq 1")
+
+test a_dictionary_leak_carries_the_previous_digest =
+    := ~a = [ "inl a = 1" ]
+    := run = dictionary_leak "xsim_leak_test"
+    := first, second = run a, run a
+    (first::out, second::out) |> _assert_eq (fake_out a, fake_out a ++# fake_out a)
+
+test memo_flags_are_counted_per_kind =
+    := flags = erlang_term::list_term [ erlang_term::atom "hit"; erlang_term::atom "miss"; erlang_term::atom "hit" ]
+    (flag_count flags "hit", flag_count flags "miss") |> _assert_eq (2i32, 1i32)
+
+test the_daemon_line_matches_the_elixir_format =
+    daemon_line "42" (tree_memory::read_samples (tree_memory::no_reading ()) "3 120\n5 340\n") 2i32
+    |> _assert_eq "  daemon pid=42 peak_mb=340 last_mb=340 procs=5 samples=2 cumulative_after_schedule=2"
+
+:= inspected (t : term) : option string = ok_value t |> optionm::map erlang_term::inspect
+
+test only_an_ok_tuple_yields_its_value =
+    := ok = erlang_term::tuple [ erlang_term::atom "ok"; erlang_term::of 7i32 ]
+    (inspected ok, inspected (erlang_term::atom "error")) |> _assert_eq (Some "7", None)
+
+:= script_shape (script : string) : bool * bool * i32 =
+    sm'::starts_with "param([int]" script, sm'::index_of "%" script >= 0i32, listm::length (pieces "\n" script)
+
+test the_sampler_script_takes_a_root_and_prints_one_line =
+    script_shape (sampler_script ()) |> _assert_eq (!+, !-, 15i32)

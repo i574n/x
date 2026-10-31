@@ -1,0 +1,20 @@
+///- --package ..
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+test entities static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< defuse
+
+:~ tags_defused (s : string) : string = defused_entities s
+
+test a_mention_sigil_gets_its_zero_width_space =
+    := ~at = "@"
+    tags_defused (at ++# "bob hi") |> _assert_eq (at ++# zero_width_space () ++# "bob hi")
+
+///> _
+:= main () : i32 =
+    export "xc_defused_entities" ((\ s => tags_defused s) : string -> string)
+    0i32

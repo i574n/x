@@ -1,0 +1,19 @@
+[package]
+name = "xc_chunks"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "chunks.spi"
+output = "chunks.rs"
+
+[lib]
+name = "xc_chunks"
+path = "chunks.rs"
+
+[dependencies]
+xc_weights = { path = "../weights" }
+serde_json = { workspace = true }
+unicode-normalization = "0.1"
+unicode-segmentation = "1.13"

@@ -1,0 +1,42 @@
+{
+    "cells": [
+        {
+            "parent": null,
+            "post": "p0",
+            "source": "///- --package . --timeout 600000"
+        },
+        {
+            "parent": "p0",
+            "post": "p1",
+            "source": "///- --test static\n\n:< testing"
+        },
+        {
+            "parent": "p1",
+            "post": "p2",
+            "source": ":< sm'_operators\n\n:= each \\* a b. (f : a -> b) (l : list a) : list b = listm::foldBack (\\ x acc => f x :: acc) l Nil\n\n:= keep \\* t. (ok : t -> bool) (l : list t) : list t = listm'::filter ok l\n\n:= spread \\* a b. (f : a -> list b) (l : list a) : list b = listm'::collect f l\n\n:= first_where \\* t. (ok : t -> bool) (l : list t) : option t = listm'::try_find_ ok l\n\n:= has \\* t. (ok : t -> bool) (l : list t) : bool = listm'::exists' ok l\n\n:= take_first \\* t. (n : i32) (l : list t) : list t = listm'::take_ n l\n\n:= then_ok \\* a b e. (f : a -> result b e) (r : result a e) : result b e = resultm::bind f r\n\n:= map_ok \\* a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r\n\n:= cut (start : i32) (len : i32) (s : string) : string = sm'::substring start len s\n\n:= split_on (sep : string) (s : string) : list string = sm'::split_list sep s\n\n:= pieces (sep : string) (s : string) : list string = ? s = \"\" ?> Nil |: split_on sep s\n\n:~ delimited (sep : string) (l : list string) : string = sm'::concat_list sep l\n\n:= rest_from (i : i32) (s : string) : string = cut i (sm'::length s - i) s\n\n:= first_line (text : string) : string =\n    := i : i32 = sm'::index_of \"\\n\" text\n    ? i < 0i32 ?> text |: cut 0i32 i text\n\n:= starts_at (prefix : string) (s : string) (i : i32) : bool =\n    ? i < 0i32 || i > sm'::length s ?> !- |: sm'::starts_with prefix (rest_from i s)\n\n:= digit_first (rest : string) : bool = has (\\ d => sm'::starts_with (sm'::obj_to_string d) rest) (listm::init 10i32 id)\n\n:~ ^ digits_end (s : string) (i : i32) : i32 =\n    ? i < sm'::length s && digit_first (rest_from i s) ?> digits_end s (i + 1i32) |: i\n\n:= digit_at (i : i32) (text : string) : i32 =\n    \"0123456789\" |> sm'::index_of (sm'::slice i i text)\n\n:~ ^ digits (text : string) (i : i32) (n : i32) : option i32 =\n    ? i >= sm'::length text ?> Some n\n    |:\n        := d = digit_at i text\n        ? d < 0 || n > 100000000 ?> None |: digits text (i + 1) (n * 10 + d)\n\n:= without_digits (text : string) : string =\n    listm::init 10i32 id |> listm::fold (\\ t d => sm'::replace (sm'::obj_to_string d) \"\" t) text\n\n:~ count_of_text (text : string) : option i32 =\n    ? text = \"\" || without_digits text <> \"\" ?> None |: digits text 0 0\n"
+        },
+        {
+            "parent": "p2",
+            "post": "p3",
+            "source": "///- --test\n///> zig\n\n:= ~n = 2i32\n[ 1i32; 2; 3 ] |> take_first n |> listm::length |> _assert_eq 2i32"
+        },
+        {
+            "parent": "p3",
+            "post": "p4",
+            "source": "///- --test\n///> zig\n\n:= ~e = \"no\"\nError e |> then_ok (\\ (x : i32) => Ok (x + 1)) |> _assert_eq (Error \"no\")"
+        },
+        {
+            "parent": "p4",
+            "post": "p5",
+            "source": "///- --test\n///> zig\n\n:= ~n = 2i32\n:= l = [ 1i32; 2; 3; 4 ]\nkeep (\\ x => x > n) l |> listm::length |> _assert_eq 2i32\nfirst_where (\\ x => x > n) l |> _assert_eq (Some 3i32)"
+        }
+    ],
+    "likes": {
+        "p0": 3,
+        "p1": 2,
+        "p2": 2,
+        "p3": 1,
+        "p4": 2,
+        "p5": 1
+    }
+}

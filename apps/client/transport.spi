@@ -1,0 +1,83 @@
+///- --package .
+test transport static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< posts
+:< oauth1
+:< wire
+
+:= net_send (m : string) (u : string) (a : string) (b : string) : i32 * string =
+    $'xc_net::xc_send(&*!m, &*!u, &*!a, &*!b)'
+
+:= keys_of (o : oauth1) : string * string * string * string =
+    o::consumer_key, o::consumer_secret, o::token, o::token_secret
+
+:= net_header (o : oauth1) (m : string) (u : string) (nonce : string) (stamp : string) : string =
+    := ck, cs, t, ts = keys_of o
+    $'xc_net::xc_oauth1_header(&*!ck, &*!cs, &*!t, &*!ts, &*!m, &*!u, &*!nonce, &*!stamp)'
+
+:= header_for \* c. (a : authorizer c) (method : string) (url : string) : string =
+    ?= a ?|
+    | BearerToken t => "Bearer " ++# t
+    | Signed (o, nonce, stamp) => net_header o method url nonce stamp
+    | Anonymous => ""
+
+:== fetched = json * string
+
+:= api_classified (resource : string) (status : i32) (body : string) : i32 * string =
+    $'xc_api::xc_classified(&*!resource, !status, &*!body)'
+
+:= kept (resource : string) (status : i32) (body : string) : got fetched =
+    := code, text = api_classified resource status body
+    ? code = 0i32 ?> Ok (parse_json text, text) |: Error (Reported text)
+
+:~ raw_reply \* c. (e : endpoint c) (v : verb) (resource : string) : got fetched =
+    := url = e::base ++# resource
+    := m = method_of v
+    := status, body = net_send m url (header_for e::auth m url) (body_of_verb v)
+    kept resource status body
+
+:= bearer_of \* c. (a : authorizer c) : string =
+    ?= a ?|
+    | BearerToken t => "Bearer " ++# t
+    | Signed _ => ""
+    | Anonymous => ""
+
+:~ app_reply (e : endpoint app_context) (resource : string) : got fetched =
+    := url = e::base ++# resource
+    := status, body = net_send "GET" url (bearer_of e::auth) ""
+    kept resource status body
+
+:= get_raw (a : app) (resource : string) : got fetched =
+    ?= a ?|
+    | api e => app_reply e resource
+
+
+:= account_line (a : account) : string = user_text a::id ++# ":" ++# a::username
+
+:= account_lines (l : accounts) : string = l |> each account_line |> sm'::concat_list "\n"
+
+:= account_of_line (line : string) : account =
+    := i : i32 = sm'::index_of ":" line
+    {
+        id = user_id (sm'::substring 0i32 i line)
+        username = sm'::substring (i + 1i32) (sm'::length line - i - 1i32) line
+    }
+
+:= accounts_of_lines (s : string) : accounts = pieces "\n" s |> each account_of_line
+
+///> zig
+test account_lines_round_trip =
+    := ~h = "bob"
+    [ { id = user_id "1"; username = "alice" }; { id = user_id "22"; username = h } ]
+    |> account_lines
+    |> accounts_of_lines
+    |> account_lines
+    |> _assert_eq "1:alice\n22:bob"
+
+///> zig
+test pieces_of_nothing_are_none =
+    := ~s = ""
+    pieces "," s |> listm::length |> _assert_eq 0i32

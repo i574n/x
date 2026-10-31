@@ -1,0 +1,392 @@
+///- --package . --timeout 600000
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+test events static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+
+:== frame_part = { k : i32; n : i32; body : string }
+
+:== rooted = { post_id : string; parent : option string; source : string }
+
+:== placed = { post_id : string; parent : option string; part : frame_part }
+
+:== sourced = { post_id : string; source : string }
+
+:== revised = { post_id : string; rev : i32; part : frame_part }
+
+:== social = { post_id : string; user : string }
+
+:| content =
+    | Posted : rooted
+    | Framed : placed
+
+:| revision =
+    | Edited : sourced
+    | FrameEdited : revised
+    | Deleted : string
+
+:| reaction =
+    | Liked : social
+    | Unliked : social
+
+:| event =
+    | Content : content
+    | Revision : revision
+    | Reaction : reaction
+
+:== delivery = { at : i32; event : event }
+
+:= stream_header () : string = "{\"format\":\"xsim-events\",\"version\":1}"
+
+:= hex_digit (d : i32) : string = sm'::slice d d "0123456789abcdef"
+
+:= unicode_escape (c : i32) : string = "\\u00" ++# hex_digit (c / 16i32) ++# hex_digit (c % 16i32)
+
+:= short_escape (c : i32) : option string =
+    ? c = 8i32 ?> Some "\\b" |? c = 9i32 ?> Some "\\t" |? c = 10i32 ?> Some "\\n"
+    |? c = 12i32 ?> Some "\\f" |? c = 13i32 ?> Some "\\r" |: None
+
+:= control_escape (c : i32) : string =
+    ?= short_escape c ?|
+    | Some e => e
+    | None => unicode_escape c
+
+:~ ^ controls_from (c : i32) (t : string) : string =
+    ? c >= 32i32 ?> t |: controls_from (c + 1i32) (sm'::replace (char_of c) (control_escape c) t)
+
+:~ without_controls (s : string) : string = controls_from 0i32 s
+
+:~ quoted (s : string) : string =
+    "\"" ++# (s |> sm'::replace "\\" "\\\\" |> sm'::replace "\"" "\\\"" |> without_controls) ++# "\""
+
+:~ field (key : string) (value : string) : string = quoted key ++# ":" ++# value
+
+:= number (n : i32) : string = sm'::obj_to_string n
+
+:= parent_of (p : option string) : string =
+    ?= p ?|
+    | Some id => quoted id
+    | None => "null"
+
+:= object (fields : list string) : string = "{" ++# sm'::concat_list "," fields ++# "}"
+
+:= content_kind (c : content) : string =
+    ?= c ?|
+    | Posted _ => "post"
+    | Framed _ => "frame"
+
+:= revision_kind (r : revision) : string =
+    ?= r ?|
+    | Edited _ => "edit"
+    | FrameEdited _ => "edit_frame"
+    | Deleted _ => "delete"
+
+:= reaction_kind (r : reaction) : string =
+    ?= r ?|
+    | Liked _ => "like"
+    | Unliked _ => "unlike"
+
+:= kind_of (e : event) : string =
+    ?= e ?|
+    | Content c => content_kind c
+    | Revision r => revision_kind r
+    | Reaction r => reaction_kind r
+
+:= kind_field (e : event) : string = field "kind" (quoted (kind_of e))
+
+:= opening (at : i32) (e : event) : list string = [ field "at" (number at); kind_field e ]
+
+:= framed_fields (at : i32) (e : event) (part : frame_part) : list string =
+    [
+        field "at" (number at)
+        field "body" (quoted part::body)
+        field "k" (number part::k)
+        kind_field e
+        field "n" (number part::n)
+    ]
+
+:= owned (post_id : string) : string = field "post" (quoted post_id)
+
+:= rooted_fields (at : i32) (e : event) (r : rooted) : list string =
+    listm::append (opening at e) [
+        field "parent" (parent_of r::parent)
+        owned r::post_id
+        field "source" (quoted r::source)
+    ]
+
+:= placed_fields (at : i32) (e : event) (p : placed) : list string =
+    listm::append (framed_fields at e p::part) [ field "parent" (parent_of p::parent); owned p::post_id ]
+
+:= content_fields (at : i32) (e : event) (c : content) : list string =
+    ?= c ?|
+    | Posted r => rooted_fields at e r
+    | Framed p => placed_fields at e p
+
+:= revised_fields (at : i32) (e : event) (r : revised) : list string =
+    listm::append (framed_fields at e r::part) [ owned r::post_id; field "rev" (number r::rev) ]
+
+:= sourced_fields (at : i32) (e : event) (s : sourced) : list string =
+    listm::append (opening at e) [ owned s::post_id; field "source" (quoted s::source) ]
+
+:= revision_fields (at : i32) (e : event) (r : revision) : list string =
+    ?= r ?|
+    | Edited s => sourced_fields at e s
+    | FrameEdited v => revised_fields at e v
+    | Deleted post_id => listm::append (opening at e) [ owned post_id ]
+
+:= social_fields (at : i32) (e : event) (s : social) : list string =
+    listm::append (opening at e) [ owned s::post_id; field "user" (quoted s::user) ]
+
+:= reaction_fields (at : i32) (e : event) (r : reaction) : list string =
+    ?= r ?|
+    | Liked s => social_fields at e s
+    | Unliked s => social_fields at e s
+
+:= fields_of (at : i32) (e : event) : list string =
+    ?= e ?|
+    | Content c => content_fields at e c
+    | Revision r => revision_fields at e r
+    | Reaction r => reaction_fields at e r
+
+:~ encoded (d : delivery) : string = object (fields_of d::at d::event)
+
+:~ stream (l : list delivery) : string =
+    stream_header () :: each encoded l |> sm'::concat_list "\n" |> \ t => t ++# "\n"
+
+:| json_value =
+    | Text : string
+    | Whole : i32
+    | Null
+
+:== json_field = { key : string; value : json_value }
+
+:== fields = list json_field
+
+:== scanned = { text : string; resume_at : i32 }
+
+:= escaped_char (c : string) : string =
+    ? c = "n" ?> "\n" |? c = "t" ?> "\t" |? c = "r" ?> "\r"
+    |? c = "b" ?> char_of 8i32 |? c = "f" ?> char_of 12i32 |: c
+
+:~ hex_at (s : string) (i : i32) : i32 =
+    := d = sm'::index_of (cut i 1i32 s) "0123456789abcdefABCDEF"
+    ? d < 16i32 ?> d |: d - 6i32
+
+:= code_at (s : string) (i : i32) : i32 =
+    ((hex_at s i * 16i32 + hex_at s (i + 1i32)) * 16i32 + hex_at s (i + 2i32)) * 16i32 + hex_at s (i + 3i32)
+
+:= escape_step (s : string) (i : i32) : string * i32 =
+    := c = cut i 1i32 s
+    ? c = "u" ?> char_of (code_at s (i + 1i32)), i + 5i32 |: escaped_char c, i + 1i32
+
+:= escape_first (q : i32) (b : i32) : bool = b >= 0i32 && (q < 0i32 || b < q)
+
+:= escaped_on (s : string) (i : i32) (b : i32) (acc : string) : string * i32 =
+    := c, next = escape_step s (i + b + 1i32)
+    acc ++# cut i b s ++# c, next
+
+:= closed_at (s : string) (i : i32) (q : i32) (acc : string) : scanned =
+    ? q < 0i32 ?> { text = acc; resume_at = -1i32 } |: { text = acc ++# cut i q s; resume_at = i + q + 1i32 }
+
+:= marks (s : string) (i : i32) : i32 * i32 = sm'::index_of "\"" (rest_from i s), sm'::index_of "\\" (rest_from i s)
+
+:~ ^ string_from (s : string) (i : i32) (acc : string) : scanned =
+    := q, b = marks s i
+    ? not (escape_first q b) ?> closed_at s i q acc
+    |: escaped_on s i b acc |> \ (kept, next) => string_from s next kept
+
+:= number_from (s : string) (i : i32) : json_value * i32 =
+    := e = digits_end s i
+    ?= count_of_text (cut i (e - i) s) ?|
+    | Some n => Whole n, e
+    | None => Null, -1i32
+
+:= text_value (r : scanned) : json_value * i32 = Text r::text, r::resume_at
+
+:= value_from (s : string) (i : i32) : json_value * i32 =
+    ? starts_at "\"" s i ?> text_value (string_from s (i + 1i32) "")
+    |? starts_at "null" s i ?> Null, i + 4i32
+    |? i >= 0i32 && i < sm'::length s ?> number_from s i
+    |: Null, -1i32
+
+:= field_from (s : string) (i : i32) : json_field * i32 =
+    := k = string_from s (i + 1i32) ""
+    := v, next = ? starts_at ":" s k::resume_at ?> value_from s (k::resume_at + 1i32) |: Null, -1i32
+    { key = k::text; value = v }, next
+
+:= no_field () : json_field * i32 = { key = ""; value = Null }, -1i32
+
+:= field_at (s : string) (i : i32) : json_field * i32 = ? starts_at "\"" s i ?> field_from s i |: no_field ()
+
+:= closes (s : string) (i : i32) : bool = starts_at "}" s i && i + 1i32 = sm'::length s
+
+:~ ^ fields_from (s : string) (i : i32) (acc : fields) : option fields =
+    := f, next = field_at s i
+    ? starts_at "," s next ?> fields_from s (next + 1i32) (f :: acc)
+    |? closes s next ?> Some (listm::rev ((f :: acc)))
+    |: None
+
+:= fields_of_line (line : string) : option fields = ? starts_at "{" line 0i32 ?> fields_from line 1i32 Nil |: None
+
+:~ value_of (key : string) (l : fields) : json_value =
+    ?= first_where (\ (f : json_field) => f::key = key) l ?|
+    | Some f => f::value
+    | None => Null
+
+:~ text_at (key : string) (l : fields) : string =
+    ?= value_of key l ?|
+    | Text t => t
+    | _ => ""
+
+:~ count_at (key : string) (l : fields) : i32 =
+    ?= value_of key l ?|
+    | Whole n => n
+    | _ => -1i32
+
+:~ parent_at (l : fields) : option string =
+    ?= value_of "parent" l ?|
+    | Text t => Some t
+    | _ => None
+
+:= part_at (l : fields) : frame_part = { k = count_at "k" l; n = count_at "n" l; body = text_at "body" l }
+
+:= social_at (l : fields) : social = { post_id = text_at "post" l; user = text_at "user" l }
+
+:= reaction_at (kind : string) (l : fields) : option event =
+    ? kind = "like" ?> Some (Reaction (Liked (social_at l)))
+    |? kind = "unlike" ?> Some (Reaction (Unliked (social_at l)))
+    |: None
+
+:= revised_at (l : fields) : revised = { post_id = text_at "post" l; rev = count_at "rev" l; part = part_at l }
+
+:= sourced_at (l : fields) : sourced = { post_id = text_at "post" l; source = text_at "source" l }
+
+:= revised (r : revision) : option event = Some (Revision r)
+
+:= removal_at (kind : string) (l : fields) : option event =
+    ? kind = "delete" ?> revised (Deleted (text_at "post" l)) |: reaction_at kind l
+
+:= revision_at (kind : string) (l : fields) : option event =
+    ? kind = "edit" ?> revised (Edited (sourced_at l))
+    |? kind = "edit_frame" ?> revised (FrameEdited (revised_at l))
+    |: removal_at kind l
+
+:= rooted_at (l : fields) : rooted = { post_id = text_at "post" l; parent = parent_at l; source = text_at "source" l }
+
+:= placed_at (l : fields) : placed = { post_id = text_at "post" l; parent = parent_at l; part = part_at l }
+
+:= event_at (kind : string) (l : fields) : option event =
+    ? kind = "post" ?> Some (Content (Posted (rooted_at l)))
+    |? kind = "frame" ?> Some (Content (Framed (placed_at l)))
+    |: revision_at kind l
+
+:= delivery_of (l : fields) : result delivery string =
+    ?= event_at (text_at "kind" l) l ?|
+    | Some event => Ok { at = count_at "at" l; event }
+    | None => Error ("unknown event kind '" ++# text_at "kind" l ++# "'")
+
+:~ decoded (line : string) : result delivery string =
+    ?= fields_of_line line ?|
+    | Some l => delivery_of l
+    | None => Error ("not a compact xsim-events line: " ++# line)
+
+:= header_ok (line : string) : bool =
+    ?= fields_of_line line ?|
+    | Some l => text_at "format" l = "xsim-events" && count_at "version" l = 1i32
+    | None => !-
+
+:~ ^ all_decoded (l : list string) (acc : list delivery) : result (list delivery) string =
+    ?= l ?|
+    | Nil => Ok (listm::rev acc)
+    | line :: rest => decoded line |> then_ok \ d => all_decoded rest (d :: acc)
+
+:~ decoded_stream (text : string) : result (list delivery) string =
+    ?= all_pieces "\n" text |> each sm'::trim |> keep (\ l => l <> "") ?|
+    | head :: lines ?& header_ok head => all_decoded lines Nil
+    | _ => Error "not an xsim-events v1 stream"
+
+:= first_frame () : string =
+    "{\"at\":0,\"body\":\"x\",\"k\":1,\"kind\":\"frame\",\"n\":1,\"parent\":null,\"post\":\"p0\"}"
+
+test frames_encode_like_the_fixture =
+    := ~post_id = "p0"
+    := e = Content (Framed { post_id parent = None; part = { k = 1i32; n = 1i32; body = "x" } })
+    encoded { at = 0i32; event = e } |> _assert_eq (first_frame ())
+
+test bodies_escape_quotes_and_lines =
+    := ~body = "a \"b\"\n\tc\\"
+    quoted body |> _assert_eq "\"a \\\"b\\\"\\n\\tc\\\\\""
+    quoted (char_of 1i32) |> _assert_eq "\"\\u0001\""
+
+:= liked_line () : string = "{\"at\":7,\"kind\":\"like\",\"post\":\"p2\",\"user\":\"u3\"}"
+
+test reactions_name_the_user =
+    := ~user = "u3"
+    encoded { at = 7i32; event = Reaction (Liked { post_id = "p2"; user }) } |> _assert_eq (liked_line ())
+    kind_of (Reaction (Unliked { post_id = "p2"; user })) |> _assert_eq "unlike"
+
+test an_empty_stream_is_its_header =
+    := ~header = stream_header ()
+    stream Nil |> _assert_eq (header ++# "\n")
+
+:= posted_one () : delivery = { at = 0i32; event = Content (Posted { post_id = "p0"; parent = None; source = "x" }) }
+
+:= framed_one () : delivery =
+    {
+        at = 1i32
+        event =
+            Content (
+                Framed { post_id = "p1"; parent = Some "p0"; part = { k = 2i32; n = 3i32; body = "a \"q\"\n\tb" } }
+            )
+    }
+
+:= revised_one () : delivery =
+    {
+        at = 2i32
+        event = Revision (FrameEdited { post_id = "p1"; rev = 1i32; part = { k = 1i32; n = 1i32; body = "é" } })
+    }
+
+:= reacted_one () : delivery = { at = 4i32; event = Reaction (Unliked { post_id = "p1"; user = "u2" }) }
+
+:= sample_deliveries () : list delivery =
+    [ posted_one (); framed_one (); revised_one (); { at = 3i32; event = Revision (Deleted "p0") }; reacted_one () ]
+
+:= reencoded (text : string) : string =
+    ?= decoded_stream text ?|
+    | Ok l => stream l
+    | Error e => e
+
+test streams_decode_back_to_themselves =
+    := ~text = stream (sample_deliveries ())
+    reencoded text |> _assert_eq text
+
+:= edit_line () : string =
+    "{\"at\":4,\"kind\":\"edit\",\"post\":\"p3\",\"source\":\"a" ++# zero_width_space () ++# ".b\\u0001\"}"
+
+:= line_again (line : string) : string =
+    ?= decoded line ?|
+    | Ok d => encoded d
+    | Error e => e
+
+test fixture_lines_keep_their_escapes =
+    := ~line = edit_line ()
+    line_again line |> _assert_eq line
+
+:= verdict (r : result (list delivery) string) : string =
+    ?= r ?|
+    | Ok l => sm'::obj_to_string (listm::length l : i32)
+    | Error e => e
+
+test foreign_streams_are_refused =
+    := ~other = "{\"format\":\"other\",\"version\":1}"
+    decoded_stream (other ++# "\n") |> verdict |> _assert_eq "not an xsim-events v1 stream"
+
+:= boosted () : string = stream_header () ++# "\n{\"at\":1,\"kind\":\"boost\"}"
+
+test unknown_kinds_are_refused =
+    := ~text = boosted ()
+    decoded_stream text |> verdict |> _assert_eq "unknown event kind 'boost'"

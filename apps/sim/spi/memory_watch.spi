@@ -1,0 +1,101 @@
+///- --package .
+///> gleam
+test memory_watch static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< tree_memory
+
+:| watch_message =
+    | Tick
+    | Peak : erlang_process::subject memory_reading
+
+:| sample_source =
+    | GrowingText : () -> string
+    | FreshLine : () -> string
+
+:== watch_state =
+    { reading : memory_reading; consumed : i32; source : sample_source; every_ms : i32;
+        me : erlang_process::subject watch_message }
+
+:= complete_lines (fresh : string) : string =
+    sm'::substring 0i32 (sm'::last_index_of "\n" fresh + 1i32) fresh
+
+:= fresh_base (st : watch_state) (text : string) : i32 = ? sm'::length text >= st::consumed ?> st::consumed |: 0i32
+
+:= complete_after (base : i32) (text : string) : string =
+    complete_lines (sm'::substring base (sm'::length text - base) text)
+
+:= grown (st : watch_state) (text : string) : watch_state =
+    := base = fresh_base st text
+    := complete = complete_after base text
+    { st ?| reading = read_samples st::reading complete; consumed = base + sm'::length complete }
+
+:= ticked (st : watch_state) : watch_state =
+    erlang_process::send_after st::me st::every_ms Tick |> ignore
+    ?= st::source ?|
+    | GrowingText read => grown st (read ())
+    | FreshLine read => { st ?| reading = read_samples st::reading (read ()) }
+
+:= watched (st : watch_state) (m : watch_message) : otp_actor::next watch_state watch_message =
+    ?= m ?|
+    | Tick => otp_actor::continue (ticked st)
+    | Peak reply =>
+        erlang_process::send reply st::reading
+        otp_actor::continue st
+
+:= watch_initial (every_ms : i32) (source : sample_source) (me : erlang_process::subject watch_message) : watch_state =
+    { reading = no_reading (); consumed = 0i32; source; every_ms; me }
+
+:= watch_started (every_ms : i32) (source : sample_source) : option (erlang_process::subject watch_message) =
+    otp_actor::new_with_self 10000i32 (watch_initial every_ms source)
+    |> otp_actor::on_message watched
+    |> otp_actor::start
+    |> otp_actor::started_data
+
+:= peak_of (w : erlang_process::subject watch_message) : memory_reading = otp_actor::call w 10000i32 Peak
+
+:= ticked_once (w : erlang_process::subject watch_message) : erlang_process::subject watch_message =
+    otp_actor::send w Tick
+    w
+
+:= ticking (every_ms : i32) (read : () -> string) : option (erlang_process::subject watch_message) =
+    watch_started every_ms (FreshLine read) |> optionm::map ticked_once
+
+:= sample_line (script : string) (root : i32) : string =
+    ?= process::try_capture_combined_list "pwsh" [ "-NoProfile"; "-File"; script; "-Root"; sm'::obj_to_string root ] ?|
+    | Some line => line
+    | None => ""
+
+:= tree_sampler (script : string) (root : i32) : sample_source = FreshLine (\ () => sample_line script root)
+
+:= two_ticks_peak (w : erlang_process::subject watch_message) : string =
+    otp_actor::send w Tick
+    otp_actor::send w Tick
+    otp_actor::call w 10000i32 Peak |> reading_text
+
+:= peak_after_two_ticks (source : sample_source) : string =
+    ?= watch_started 60000i32 source ?|
+    | Some w => two_ticks_peak w
+    | None => failwith "memory watch did not start"
+
+test a_growing_sample_text_is_folded_once =
+    := ~text = "3 120\n5 340\n"
+    peak_after_two_ticks (GrowingText (\ () => text)) |> _assert_eq "samples=2 last=340 procs=5 peak=340"
+
+test a_partial_last_line_waits_for_its_newline =
+    := ~text = "3 120\n5 34"
+    peak_after_two_ticks (GrowingText (\ () => text)) |> _assert_eq "samples=1 last=120 procs=3 peak=120"
+
+test a_ticking_watch_samples_without_being_told =
+    := ~line = "4 90\n"
+    ?= ticking 60000i32 (\ () => line) ?|
+    | Some w =>
+        := r = peak_of w
+        (r::samples > 0i32) |> _assert_eq !+
+    | None => failwith "ticking did not start"
+
+test a_fresh_line_source_counts_every_tick =
+    := ~line = "3 120\n"
+    peak_after_two_ticks (FreshLine (\ () => line)) |> _assert_eq "samples=2 last=120 procs=3 peak=120"
