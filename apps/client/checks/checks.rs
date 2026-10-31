@@ -97,7 +97,7 @@ fn count_of_text_0(mut v0: Rc<str>) -> US0 {
     } else {
         let v26: i32 = 0i32;
         let v27: i32 = 0i32;
-        digits_1(v0.clone(), v26, v27)
+        digits_1(v0, v26, v27)
     }
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {

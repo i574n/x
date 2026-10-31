@@ -37,7 +37,7 @@ if (!(BuildSpiral (Join-Path $PSScriptRoot 'spi/simframes/simframes.spi') (Join-
 { pwsh -NoProfile -File (Join-Path $XRoot 'scripts/gleam-modules.ps1') -Source (Join-Path $frames 'src/xsim_frames.gleam') -Entry (Join-Path $PSScriptRoot 'spi/simframes/simframes.spi') } | Invoke-Block
 { gleam build --target erlang } | Invoke-Block -Location $frames
 
-{ mix deps.get } | Invoke-Block
+$simRun = Join-Path $XRoot 'scripts/sim-run.ps1'
 
 $Ladder = @($Ladder | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim(" '`"") } | Where-Object { $_ })
 if ($Ladder) {
@@ -55,7 +55,7 @@ if ($Ladder) {
         Write-Output "xsim / ladder rung=$rung memo_dir=$env:SPIRAL_CELLS_MEMO_DIR warm_entries=$(@(Get-ChildItem $env:SPIRAL_CELLS_MEMO_DIR -Recurse -File -ErrorAction Ignore).Count)"
         $started = Get-Date
         try {
-            mix xsim.run --spi-file $list --cells $cells --executor cells --memo --evict --personas 'fickle=2+editor=1+breaker=1' --edits 1 --breaking 1 --max-concurrency $concurrency --schedules 2 --daemon-memory
+            pwsh -NoProfile -File $simRun --spi-file $list --cells $cells --executor cells --memo --evict --personas 'fickle=2+editor=1+breaker=1' --edits 1 --breaking 1 --max-concurrency $concurrency --schedules 2 --daemon-memory
             $code = $LASTEXITCODE
         } finally {
             if ($IsWindows) {
@@ -91,24 +91,20 @@ function Confirm-Fixture([string] $Name, [string] $Dir = $fixtures) {
 }
 foreach ($w in $worlds) {
     $world, $expected = (Join-Path $fresh "$($w.Name).world.json"), (Join-Path $fresh "$($w.Name).expected.json")
-    $argv = @('xsim.world') + $w.Args + @('--out', $world, '--expected', $expected)
-    & mix @argv
-    if ($LASTEXITCODE -ne 0) { throw "mix xsim.world / $($w.Name) / exit $LASTEXITCODE" }
+    $argv = @('world') + $w.Args + @('--out', $world, '--expected', $expected)
+    & pwsh -NoProfile -File $simRun @argv
+    if ($LASTEXITCODE -ne 0) { throw "xsim world / $($w.Name) / exit $LASTEXITCODE" }
     foreach ($kind in 'world', 'expected') { Confirm-Fixture "$($w.Name).$kind.json" }
 }
-$argv = @('xsim.frames', '--file', (Join-Path $client 'oauth1.spi'), '--out', (Join-Path $fresh 'thread-oauth1.expected.json'))
-& mix @argv
-if ($LASTEXITCODE -ne 0) { throw "mix xsim.frames / exit $LASTEXITCODE" }
+$argv = @('frames', '--file', (Join-Path $client 'oauth1.spi'), '--out', (Join-Path $fresh 'thread-oauth1.expected.json'))
+& pwsh -NoProfile -File $simRun @argv
+if ($LASTEXITCODE -ne 0) { throw "xsim frames / exit $LASTEXITCODE" }
 Confirm-Fixture 'thread-oauth1.expected.json'
 $streams = Join-Path $PSScriptRoot 'fixtures'
-$argv = @('xsim.events', '--spi', (Join-Path $client 'prelude.spi'), '--seed', '3', '--users', '3', '--edits', '2', '--personas', 'fickle=1+editor=1', '--frames', '--out', (Join-Path $fresh 'prelude.events.jsonl'), '--expected', (Join-Path $fresh 'prelude.final.json'))
-& mix @argv
-if ($LASTEXITCODE -ne 0) { throw "mix xsim.events / exit $LASTEXITCODE" }
-$argv = @('xsim.parity', '--events', (Join-Path $fresh 'prelude.events.jsonl'), '--out', (Join-Path $fresh 'prelude.parity.json'))
-& mix @argv
-if ($LASTEXITCODE -ne 0) { throw "mix xsim.parity / exit $LASTEXITCODE" }
-foreach ($name in 'prelude.events.jsonl', 'prelude.final.json', 'prelude.parity.json') { Confirm-Fixture $name $streams }
-{ mix test } | Invoke-Block
+$argv = @('events', '--spi', (Join-Path $client 'prelude.spi'), '--seed', '3', '--users', '3', '--edits', '2', '--personas', 'fickle=1+editor=1', '--frames', '--out', (Join-Path $fresh 'prelude.events.jsonl'), '--expected', (Join-Path $fresh 'prelude.final.json'))
+& pwsh -NoProfile -File $simRun @argv
+if ($LASTEXITCODE -ne 0) { throw "xsim events / exit $LASTEXITCODE" }
+foreach ($name in 'prelude.events.jsonl', 'prelude.final.json') { Confirm-Fixture $name $streams }
 
 $spi = Join-Path $PSScriptRoot 'spi'
 . (Join-Path $SpiralRoot 'lib/spiral/lib.ps1')
@@ -127,7 +123,7 @@ $corpus = Get-ChildItem $lib -Recurse -Filter *.spi |
 $list = Join-Path (Get-XTargetDir sim) "corpus-$PID.txt"
 [IO.File]::WriteAllText($list, ($corpus -join "`n") + "`n")
 $corpusStarted = Get-Date
-{ mix xsim.run --spi-file $list --schedules 2 --users 3 --edits 3 --breaking 1 --churn 2 --frames --duplicates 0.15 --personas lurker=2+fickle=3+editor=2+breaker=2 --evict } | Invoke-Block
+{ pwsh -NoProfile -File $simRun --spi-file $list --schedules 2 --users 3 --edits 3 --breaking 1 --churn 2 --frames --duplicates 0.15 --personas lurker=2+fickle=3+editor=2+breaker=2 --evict } | Invoke-Block
 Remove-Item $list -ErrorAction Ignore
 $corpusWall = ((Get-Date) - $corpusStarted).TotalSeconds
 Write-Output ("xsim / corpus files={0} schedules=2 wall_s={1} per_schedule_s={2}" -f $corpus.Count, [int]$corpusWall, [int]($corpusWall / 2))
@@ -135,15 +131,15 @@ Write-Output ("xsim / corpus files={0} schedules=2 wall_s={1} per_schedule_s={2}
 if (!$fast) {
     $env:SPIRAL_CELLS_COMPILER_PORT = $daemonPort
     try {
-        { mix xsim.run --spi (Join-Path $lib 'math.spi') --cells 3 --users 2 --edits 0 --schedules 1 --executor cells --max-concurrency 2 } | Invoke-Block
-        { mix xsim.thread_run --file (Join-Path $client 'oauth1.spi') --expected (Join-Path $fixtures 'thread-oauth1.expected.json') } | Invoke-Block
+        { pwsh -NoProfile -File $simRun --spi (Join-Path $lib 'math.spi') --cells 3 --users 2 --edits 0 --schedules 1 --executor cells --max-concurrency 2 } | Invoke-Block
+        { pwsh -NoProfile -File $simRun thread_run --file (Join-Path $client 'oauth1.spi') --expected (Join-Path $fixtures 'thread-oauth1.expected.json') } | Invoke-Block
         $program = ((Get-Content -Raw (Join-Path $fixtures 'thread-oauth1.expected.json') | ConvertFrom-Json).program -join "`n") + "`n"
         $tampered = Join-Path $fresh 'thread-oauth1.tampered.spi'
         [IO.File]::WriteAllText($tampered, $program + "`ntest tampered_thread_fails =`n    1i32 |> _assert_eq 2i32`n")
-        $verdict = @(& mix xsim.thread_run --file (Join-Path $client 'oauth1.spi') --program $tampered 2>&1 | ForEach-Object { "$_" })
+        $verdict = @(& pwsh -NoProfile -File $simRun thread_run --file (Join-Path $client 'oauth1.spi') --program $tampered 2>&1 | ForEach-Object { "$_" })
         $verdict | Out-Host
-        if ($LASTEXITCODE -eq 0) { throw "mix xsim.thread_run / passed a tampered thread" }
-        if (!($verdict -match 'same_cells=false .*result=fail')) { throw "mix xsim.thread_run / rejected the tampered thread for another reason than its cells" }
+        if ($LASTEXITCODE -eq 0) { throw "xsim thread_run / passed a tampered thread" }
+        if (!($verdict -match 'same_cells=false .*result=fail')) { throw "xsim thread_run / rejected the tampered thread for another reason than its cells" }
         Write-Output "xsim / thread_run rejects a tampered thread"
     } finally {
         if ($IsWindows) {

@@ -2,7 +2,7 @@
     "gaps": [],
     "incomplete": [],
     "program": [
-        "///- --package .",
+        "///- --package . --timeout 900000",
         "",
         "///- --test static",
         "",

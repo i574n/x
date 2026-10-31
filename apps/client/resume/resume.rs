@@ -165,15 +165,15 @@ fn resume_plan_of_0(mut v0: Rc<str>) -> (i32, i32, Rc<str>) {
     let v6: i32 = ((v5) as i32);
     let v7: i32 = v6.wrapping_sub(1i32);
     let v8: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v9: Rc<UH0> = from_1(v4.clone(), v7, v8.clone());
+    let v9: Rc<UH0> = from_1(v4, v7, v8);
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("found"); } LIT.with(|lit| lit.clone()) };
     let mut v11: serde_json::Value = v1.get(&*v10).cloned().unwrap_or_default();
     let v12: usize = v11.as_array().map_or(0, Vec::len);
     let v13: i32 = ((v12) as i32);
     let mut v14: i32 = v13.wrapping_sub(1i32);
     let mut v15: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v16: Rc<UH0> = from_1(v11.clone(), v14, v15.clone());
-    let v17: US0 = resume_from_2(v2, v9.clone(), v16.clone());
+    let v16: Rc<UH0> = from_1(v11, v14, v15);
+    let v17: US0 = resume_from_2(v2, v9, v16);
     match &v17 {
         US0::US0_ResumeAfter(v18, v19) => {
             let v18: i32 = *v18;
@@ -181,10 +181,10 @@ fn resume_plan_of_0(mut v0: Rc<str>) -> (i32, i32, Rc<str>) {
             let v20: bool = v18 > 0i32;
             if v20 {
                 let v21: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                let v22: Rc<UH0> = method5(v19.clone(), v21.clone());
+                let v22: Rc<UH0> = method5(v19, v21);
                 let v23: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
                 let v24: i32 = 0i32;
-                let mut v25: i32 = method6(v23.clone(), v22.clone(), v24);
+                let mut v25: i32 = method6(v23.clone(), v22, v24);
                 let v26: Rc<Vec<Rc<str>>> = Rc::new(v23.borrow().clone());
                 let v27: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v26).as_ref().clone()));
                 let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
@@ -193,10 +193,10 @@ fn resume_plan_of_0(mut v0: Rc<str>) -> (i32, i32, Rc<str>) {
                 let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v29));
                 let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) };
                 let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v32));
-                (0i32, v18, v33.clone())
+                (0i32, v18, v33)
             } else {
                 let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no posted thread found before the resume point; nothing posted"); } LIT.with(|lit| lit.clone()) };
-                (4i32, 0i32, v34.clone())
+                (4i32, 0i32, v34)
             }
         }
         _ => {
@@ -208,7 +208,7 @@ fn resume_plan_of_0(mut v0: Rc<str>) -> (i32, i32, Rc<str>) {
                     let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v59, v58));
                     let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" posts, more than the file plans; nothing posted"); } LIT.with(|lit| lit.clone()) };
                     let v62: Rc<str> = Rc::<str>::from(format!("{}{}", v60, v61));
-                    v62.clone()
+                    v62
                 }
                 US0::US0_PostDiffers(v38, v39, v40) => {
                     let v38: i32 = *v38;
@@ -227,11 +227,11 @@ fn resume_plan_of_0(mut v0: Rc<str>) -> (i32, i32, Rc<str>) {
                     let v54: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v51, v52)), v39));
                     let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'); nothing posted"); } LIT.with(|lit| lit.clone()) };
                     let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v55));
-                    v56.clone()
+                    v56
                 }
                 _ => unreachable!(),
             };
-            (4i32, 0i32, v64.clone())
+            (4i32, 0i32, v64)
         }
     }
 }

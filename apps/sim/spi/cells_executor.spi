@@ -244,12 +244,28 @@ test cells_executor static =
 := finished_in (a : async_state) (key : string) (p : erlang_process::pid) (r : task_result) : async_state =
     ? not (current_run a key p) ?> a
     |:
-        := s = finished_task key r a::sched |> drained
-        { a ?| sched = s; pids = dictm::remove key a::pids }
+        { a ?| sched = finished_task key r a::sched; pids = dictm::remove key a::pids }
 
 :~ ^ collected (reply : reply_to) (wait_ms : i32) (a : async_state) : async_state =
     ?= erlang_process::receive_within reply wait_ms |> erlang_process::receipt_value ?|
     | Some (key, from, r) => collected reply 0i32 (finished_in a key from r)
+    | None => a
+
+:= now_ms () : term = erlang_term::apply "erlang" "monotonic_time" [ erlang_term::atom "millisecond" ]
+
+:= deadline_after (ms : i32) : term = erlang_term::apply "erlang" "+" [ now_ms (); erlang_term::of ms ]
+
+:= left_until (deadline : term) : i32 =
+    := left = erlang_term::apply "erlang" "-" [ deadline; now_ms () ]
+    erlang_term::apply "erlang" "max" [ erlang_term::of 0i32; left ] |> erlang_term::cast
+
+:= next_reply (reply : reply_to) (deadline : term) (a : async_state) : option task_reply =
+    ? dictm::size a::pids = 0i32 ?> None
+    |: erlang_process::receive_within reply (left_until deadline) |> erlang_process::receipt_value
+
+:~ ^ harvested (reply : reply_to) (deadline : term) (a : async_state) : async_state =
+    ?= next_reply reply deadline a ?|
+    | Some (key, from, r) => harvested reply deadline (finished_in a key from r)
     | None => a
 
 := sampled (a : async_state) : async_state =
@@ -258,7 +274,7 @@ test cells_executor static =
 
 := stepped (exec : executor) (reply : reply_to) (pace : i32) (a : async_state) (d : events::delivery) : async_state =
     := b = { a ?| sched = delivered_to d a::sched }
-    b |> launched exec reply |> sampled |> collected reply pace |> launched exec reply
+    b |> launched exec reply |> sampled |> harvested reply (deadline_after pace)
 
 := abandoned (b : async_state) (key : string) (p : erlang_process::pid) : async_state =
     erlang_process::kill p
@@ -271,7 +287,7 @@ test cells_executor static =
     ? dictm::size c::pids = dictm::size b::pids ?> timed_out c |: c
 
 :~ ^ settled_runs (exec : executor) (reply : reply_to) (a : async_state) : async_state =
-    := b = launched exec reply a
+    := b = launched exec reply { a ?| sched = drained a::sched }
     ? dictm::size b::pids = 0i32 ?> b
     |: waited reply b |> settled_runs exec reply
 
@@ -307,6 +323,86 @@ test cells_executor static =
     := cells = at "cells" doc (erlang_term::list_term Nil)
     := last = erlang_term::apply "lists" "last" [ cells ]
     at "source" last (erlang_term::of "") |> erlang_term::cast
+
+:= nth_cell (cells : term) (i : i32) : term = erlang_term::apply "lists" "nth" [ erlang_term::of (i + 1i32); cells ]
+
+:= spiral_kind (cell : term) : bool =
+    erlang_term::equal (at "kind" cell (erlang_term::atom "none")) (erlang_term::atom "spiral")
+
+:= cell_source (cell : term) : string = at "source" cell (erlang_term::of "") |> erlang_term::cast
+
+:= document_sources (doc : term) : list string =
+    := cells = at "cells" doc (erlang_term::list_term Nil)
+    listm::init (term_length cells) (nth_cell cells) |> keep spiral_kind |> each cell_source
+
+:= real_spir (spi : string) : string =
+    := stem = ? sm'::ends_with ".spi" spi ?> cut 0i32 (sm'::length spi - 4i32) spi |: spi
+    := spir = stem ++# "_real.spir"
+    ? file_system::file_exists spir ?> file_system::read_all_text spir |: ""
+
+:= parsed_text (text : string) (spir : string) : term =
+    erlang_term::apply "Elixir.Spiral.Cells.Document" "parse_spi" [ erlang_term::of text; erlang_term::of spir ]
+
+:= parsed_spi (spi : string) : term = parsed_text (file_system::read_all_text spi) (real_spir spi)
+
+:= plain_spi (spi : string) : term = parsed_text (file_system::read_all_text spi) ""
+
+:= false_flag (key : string) : term = option_pair key (erlang_term::of !-)
+
+:= plan_flags () : list term = [ option_pair "plan" (erlang_term::atom "tests"); false_flag "spi"; false_flag "memo" ]
+
+:= test_plan (file : string) (root : string) : term =
+    := paths = [ option_pair "path" (erlang_term::of file); option_pair "root" (erlang_term::of root) ]
+    erlang_term::list_term (listm::append paths (plan_flags ()))
+
+:= evaluated_tests (doc : term) (file : string) (root : string) : term =
+    erlang_term::apply "Elixir.Spiral.Cells.Notebook" "evaluate" [ doc; test_plan file root ]
+
+:= text_at (key : string) (m : term) : string =
+    erlang_term::apply "maps" "get" [ erlang_term::of key; m; erlang_term::of "" ] |> erlang_term::inspect
+
+:= list_at (key : string) (m : term) : term =
+    erlang_term::apply "maps" "get" [ erlang_term::of key; m; erlang_term::list_term Nil ]
+
+:= target_text (t : term) : string = text_at "target" t ++# "=" ++# text_at "status" t
+
+:= row_text (test : term) : string =
+    := targets = list_at "targets" test
+    := shown = listm::init (term_length targets) (nth_cell targets) |> each target_text |> delimited ","
+    text_at "name" test ++# " " ++# text_at "status" test ++# " [" ++# shown ++# "]"
+
+:= test_rows (result : term) : list string =
+    := tests = list_at "tests" (at "report" result (keyed Nil))
+    listm::init (term_length tests) (nth_cell tests) |> each row_text
+
+:= elixir_inspect (t : term) (opts : list term) : string =
+    erlang_term::apply "Elixir.Kernel" "inspect" [ t; erlang_term::list_term opts ] |> erlang_term::cast
+
+:= rooted_plan (root : string) : term =
+    := at_root = erlang_term::of root
+    erlang_term::list_term [ option_pair "root" at_root; option_pair "spiral_lib" at_root ]
+
+:= evaluated_cells (sources : list string) (root : string) : term =
+    erlang_term::apply "Elixir.Spiral.Cells.Notebook" "evaluate" [ cells_doc sources; rooted_plan root ]
+
+:= indexed (key : string) (i : i32) (result : term) : term =
+    erlang_term::apply "maps" "get" [ erlang_term::of i; at key result (keyed Nil); erlang_term::atom "nil" ]
+
+:= status_text (result : term) : string = at "status" result (erlang_term::atom "none") |> erlang_term::inspect
+
+:= result_ok (result : term) : bool =
+    erlang_term::equal (at "status" result (erlang_term::atom "none")) (erlang_term::atom "ok")
+
+:= start_failed (app : string) (started : term) : bool =
+    := text = "xsim / " ++# app ++# " did not start: " ++# erlang_term::inspect started ++# "\n"
+    erlang_term::apply "io" "put_chars" [ erlang_term::atom "standard_error"; erlang_term::of text ] |> ignore
+    !-
+
+:= app_started (app : string) : bool =
+    := started = erlang_term::apply "application" "ensure_all_started" [ erlang_term::atom app ]
+    ? started_ok started ?> !+ |: start_failed app started
+
+:= cli_vm_started () : bool = app_started "crypto" && app_started "spiral_cells"
 
 test the_cells_document_holds_one_spiral_cell_per_source =
     := ~sources = [ "inl a = 1"; "a |> _assert_eq 1" ]

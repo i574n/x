@@ -53,13 +53,14 @@ function Check([bool] $Condition, [string] $Message) { if (!$Condition) { $failu
 function Step-Of([hashtable] $Results, [string] $Pattern) { $Results[@($Results.Keys | Where-Object { $_ -match $Pattern })[0]] }
 function Queries-Of($Step) { @($Step.Requests | ForEach-Object { "$($_.method) $($_.path)?$($_.query)" }) }
 
-$python = (Get-Command python, python3 -CommandType Application -ErrorAction Ignore | Select-Object -First 1).Source
-$stub = Start-Process $python -ArgumentList "-I", (Join-Path $PSScriptRoot "stub.py"), (Join-Path $PSScriptRoot "world.json"), $portFile, $requestLog -PassThru -NoNewWindow
+$server = if ($env:XSIM_SERVER -eq 'sim') { @((Join-Path $PSScriptRoot "../../../scripts/sim-run.ps1"), "serve") } else { @(Join-Path $PSScriptRoot "stub.ps1") }
+$stub = Start-Process pwsh -ArgumentList (@("-NoProfile", "-File") + $server + @((Join-Path $PSScriptRoot "world.json"), $portFile, $requestLog)) -PassThru -NoNewWindow
 try {
-    $deadline = (Get-Date).AddSeconds(60)
+    $startSeconds = if ($env:XSIM_SERVER -eq 'sim') { 300 } else { 60 }
+    $deadline = (Get-Date).AddSeconds($startSeconds)
     while (!(Test-Path $portFile) -or !(Get-Content $portFile -ErrorAction Ignore)) {
         if ($stub.HasExited) { throw "the X API stub exited before writing its port (exit code $($stub.ExitCode))" }
-        if ((Get-Date) -gt $deadline) { throw "the X API stub did not write its port within 60 s" }
+        if ((Get-Date) -gt $deadline) { throw "the X API stub did not write its port within $startSeconds s" }
         Start-Sleep -Milliseconds 100
     }
     $port = [int](Get-Content $portFile)
@@ -234,7 +235,7 @@ try {
     Check ($leaks.Count -eq 0) "a token appeared in program output"
     Write-Output "x e2e / $((Read-Requests).Count) requests to the stub on port $port"
 } finally {
-    if (!$stub.HasExited) { Stop-Process -Id $stub.Id -Force }
+    if (!$stub.HasExited) { if ($IsWindows) { taskkill /PID $stub.Id /T /F *> $null } else { Stop-Process -Id $stub.Id -Force } }
 }
 
 if ($Accept) {

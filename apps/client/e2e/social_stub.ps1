@@ -1,5 +1,6 @@
 param([string] $Site, [string] $PortPath, [string] $LogPath, [switch] $SelfTest)
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "stub_http.ps1")
 
 $sites = @{
     mastodon = @{ Limit = 500; LinkWeight = 23; ByteLimit = $null; Token = "mastodon-e2e-token" }
@@ -134,52 +135,19 @@ function Invoke-Bluesky([string] $Method, [string] $Path, $Body, [bool] $TokenOk
     404, [ordered]@{ error = "MethodNotImplemented"; message = "Method Not Implemented" }
 }
 
-function Read-Request([IO.Stream] $Stream) {
-    $head = [Collections.Generic.List[byte]]::new()
-    while ($head.Count -lt 4 -or $head[$head.Count - 4] -ne 13 -or $head[$head.Count - 3] -ne 10 -or $head[$head.Count - 2] -ne 13 -or $head[$head.Count - 1] -ne 10) {
-        $b = $Stream.ReadByte()
-        if ($b -lt 0) { return $null }
-        $head.Add([byte]$b)
-    }
-    $lines = [Text.Encoding]::ASCII.GetString($head.ToArray()) -split "`r`n" | Where-Object { $_ }
-    $method, $target = ($lines[0] -split " ")[0, 1]
-    $headers = @{}
-    foreach ($line in $lines | Select-Object -Skip 1) { $k, $v = $line -split ":", 2; $headers[$k.Trim()] = $v.Trim() }
-    $length = [int]($headers["Content-Length"] ?? 0)
-    $body = [byte[]]::new($length)
-    $read = 0
-    while ($read -lt $length) {
-        $n = $Stream.Read($body, $read, $length - $read)
-        if ($n -le 0) { break }
-        $read += $n
-    }
-    $path, $query = $target -split "\?", 2
-    [pscustomobject]@{ Method = $method; Path = $path; Query = [Web.HttpUtility]::ParseQueryString([string]$query); Headers = $headers; Raw = [Text.Encoding]::UTF8.GetString($body, 0, $read) }
-}
-
-function Send-Response([IO.Stream] $Stream, [int] $Status, [string] $Json) {
-    $reasons = @{ 200 = "OK"; 400 = "Bad Request"; 401 = "Unauthorized"; 404 = "Not Found"; 422 = "Unprocessable Entity"; 500 = "Internal Server Error" }
-    $data = [Text.Encoding]::UTF8.GetBytes($Json)
-    $head = [Text.Encoding]::ASCII.GetBytes("HTTP/1.1 $Status $($reasons[$Status])`r`nContent-Type: application/json; charset=utf-8`r`nContent-Length: $($data.Length)`r`nConnection: close`r`n`r`n")
-    $Stream.Write($head, 0, $head.Length)
-    $Stream.Write($data, 0, $data.Length)
-}
-
-function Invoke-Exchange([IO.Stream] $Stream) {
-    $request = Read-Request $Stream
-    if (!$request) { return }
+function Invoke-Exchange($Request) {
     $body = @{}
-    if ($request.Method -eq "POST" -and ($request.Headers["Content-Type"] ?? "").StartsWith("application/x-www-form-urlencoded")) {
-        $form = [Web.HttpUtility]::ParseQueryString($request.Raw)
+    if ($Request.Method -eq "POST" -and ($Request.Headers["Content-Type"] ?? "").StartsWith("application/x-www-form-urlencoded")) {
+        $form = [Web.HttpUtility]::ParseQueryString($Request.Raw)
         foreach ($k in $form.AllKeys) { $body[$k] = $form[$k] }
-    } elseif ($request.Method -eq "POST" -and $request.Raw) {
-        $body = $request.Raw | ConvertFrom-Json -AsHashtable
+    } elseif ($Request.Method -eq "POST" -and $Request.Raw) {
+        $body = $Request.Raw | ConvertFrom-Json -AsHashtable
     }
-    $tokenOk = $request.Headers["Authorization"] -ceq "Bearer $($sites[$Site].Token)"
-    $status, $payload = if ($Site -eq "mastodon") { Invoke-Mastodon $request.Method $request.Path $body $tokenOk } else { Invoke-Bluesky $request.Method $request.Path $body $tokenOk $request.Query }
-    $row = [ordered]@{ site = $Site; method = $request.Method; path = $request.Path; status = $status; body = $request.Raw } | ConvertTo-Json -Compress
+    $tokenOk = $Request.Headers["Authorization"] -ceq "Bearer $($sites[$Site].Token)"
+    $status, $payload = if ($Site -eq "mastodon") { Invoke-Mastodon $Request.Method $Request.Path $body $tokenOk } else { Invoke-Bluesky $Request.Method $Request.Path $body $tokenOk ([Web.HttpUtility]::ParseQueryString($Request.RawQuery)) }
+    $row = [ordered]@{ site = $Site; method = $Request.Method; path = $Request.Path; status = $status; body = $Request.Raw } | ConvertTo-Json -Compress
     [IO.File]::AppendAllText($LogPath, "$row`n")
-    Send-Response $Stream $status ($payload | ConvertTo-Json -Depth 100 -Compress)
+    $status, ($payload | ConvertTo-Json -Depth 100 -Compress)
 }
 
 function Invoke-SelfTest {
@@ -225,12 +193,4 @@ if ($SelfTest) {
     exit ([int]($out[-1] -gt 0))
 }
 if (!$sites.ContainsKey($Site)) { throw "unknown site $Site; known: $($sites.Keys -join ', ')" }
-$server = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
-$server.Start()
-[IO.File]::WriteAllText($PortPath, [string]$server.LocalEndpoint.Port)
-while ($true) {
-    $client = $server.AcceptTcpClient()
-    try { Invoke-Exchange $client.GetStream() }
-    catch { [Console]::Error.WriteLine("social_stub: $_") }
-    finally { $client.Dispose() }
-}
+Start-StubServer $PortPath { param($r) Invoke-Exchange $r }

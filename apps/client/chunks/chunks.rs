@@ -249,10 +249,10 @@ fn method12(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
 fn split_point_5(mut v0: Rc<UH0>) -> (Rc<UH0>, Rc<UH0>) {
     let v1: Rc<dyn Fn(Rc<str>, i32) -> bool> = closure1();
     let mut v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let (mut v3, mut v4): (Rc<UH0>, Rc<UH0>) = taken_while_9(v1.clone(), v0.clone(), v2.clone());
+    let (mut v3, mut v4): (Rc<UH0>, Rc<UH0>) = taken_while_9(v1, v0.clone(), v2);
     let mut v5: Rc<dyn Fn(Rc<str>, i32) -> bool> = closure3();
     let v6: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let (mut v7, mut v8): (Rc<UH0>, Rc<UH0>) = taken_while_9(v5.clone(), v4.clone(), v6.clone());
+    let (mut v7, mut v8): (Rc<UH0>, Rc<UH0>) = taken_while_9(v5.clone(), v4, v6);
     let v9: bool = match &*v8 {
         UH0::UH0_Nil => {
             false
@@ -273,11 +273,11 @@ fn split_point_5(mut v0: Rc<UH0>) -> (Rc<UH0>, Rc<UH0>) {
         false
     };
     if v16 {
-        let v17: Rc<UH0> = method12(v3.clone(), v7.clone());
-        (v17.clone(), v8.clone())
+        let v17: Rc<UH0> = method12(v3, v7);
+        (v17, v8)
     } else {
         let v18: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-        let (mut v19, mut v20): (Rc<UH0>, Rc<UH0>) = taken_while_9(v5.clone(), v0.clone(), v18.clone());
+        let (mut v19, mut v20): (Rc<UH0>, Rc<UH0>) = taken_while_9(v5, v0.clone(), v18);
         let v21: bool = match &*v20 {
             UH0::UH0_Nil => {
                 false
@@ -287,10 +287,10 @@ fn split_point_5(mut v0: Rc<UH0>) -> (Rc<UH0>, Rc<UH0>) {
             }
         };
         if v21 {
-            (v19.clone(), v20.clone())
+            (v19, v20)
         } else {
             let v22: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            (v22.clone(), v0.clone())
+            (v22, v0)
         }
     }
 }
@@ -506,12 +506,12 @@ fn chunks_by_1(mut v0: Rc<dyn Fn(Rc<str>) -> i32>, mut v1: Rc<UH0>, mut v2: US0,
     let v9: Rc<str> = Rc::<str>::from(format!("{:?}", v3));
     let v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("c"); } LIT.with(|lit| lit.clone()) };
     let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v9));
-    let v12: Rc<UH1> = split_units_2(v8, v11.clone(), v0.clone(), v1.clone());
+    let v12: Rc<UH1> = split_units_2(v8, v11, v0, v1);
     let v13: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-    let v14: Rc<UH1> = method17(v12.clone(), v13.clone());
+    let v14: Rc<UH1> = method17(v12, v13);
     let v15: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
     let v16: i32 = 0i32;
-    let v17: i32 = method14(v15.clone(), v14.clone(), v16);
+    let v17: i32 = method14(v15.clone(), v14, v16);
     let v18: Rc<Vec<Rc<str>>> = Rc::new(v15.borrow().clone());
     let v19: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v18).as_ref().clone()));
     let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
@@ -520,7 +520,7 @@ fn chunks_by_1(mut v0: Rc<dyn Fn(Rc<str>) -> i32>, mut v1: Rc<UH0>, mut v2: US0,
     let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v21));
     let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) };
     let v25: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v24));
-    v25.clone()
+    v25
 }
 fn closure4(mut v0: Rc<str>) -> Rc<dyn Fn(Rc<str>) -> i32> {
     Rc::new(move |mut v1: Rc<str>| -> i32 {
@@ -558,7 +558,7 @@ fn chunks_json_0(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
     let v7: i32 = ((v6) as i32);
     let v8: i32 = v7.wrapping_sub(1i32);
     let v9: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v10: Rc<UH0> = from_18(v5.clone(), v8, v9.clone());
+    let v10: Rc<UH0> = from_18(v5, v8, v9);
     let mut v11: bool = &*v0 == "mastodon";
     let v18: US0 = if v11 {
         US0::US0_OnMastodon
@@ -566,12 +566,12 @@ fn chunks_json_0(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> Rc<str> {
         let v13: bool = &*v0 == "bluesky";
         if v13 {
             let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            US0::US0_OnBluesky(v14.clone(), v14.clone())
+            US0::US0_OnBluesky(v14.clone(), v14)
         } else {
             US0::US0_OnX
         }
     };
-    chunks_by_1(v3.clone(), v10.clone(), v18.clone(), v1)
+    chunks_by_1(v3, v10, v18, v1)
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, i32, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, i32, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>| -> Rc<str> {

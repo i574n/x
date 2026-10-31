@@ -199,9 +199,9 @@ fn last_or_13(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<str> {
 }
 fn run_piece_10(mut v0: Rc<str>, mut v1: Rc<UH0>) -> (Rc<str>, Rc<UH0>, Rc<str>, Rc<UH0>) {
     let v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let (mut v3, mut v4): (Rc<UH0>, Rc<UH0>) = run_of_11(v1.clone(), v2.clone());
+    let (mut v3, mut v4): (Rc<UH0>, Rc<UH0>) = run_of_11(v1, v2);
     let v5: Rc<str> = last_or_13(v0.clone(), v3.clone());
-    (v5.clone(), v4.clone(), v0.clone(), v3.clone())
+    (v5, v4, v0, v3)
 }
 fn method15(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
     loop {
@@ -381,11 +381,11 @@ fn tld_ok_25(mut v0: Rc<dyn Fn(Rc<str>) -> bool>, mut v1: Rc<str>, mut v2: Rc<st
 }
 fn linked_dot_21(mut v0: Rc<dyn Fn(Rc<str>) -> bool>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> bool {
     let v3: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let (mut v4, mut v5): (Rc<str>, bool) = letters_after_22(v2.clone(), v3.clone());
+    let (mut v4, mut v5): (Rc<str>, bool) = letters_after_22(v2, v3);
     let mut v6: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v7: Rc<str> = label_before_24(v1.clone(), v6.clone());
+    let v7: Rc<str> = label_before_24(v1, v6);
     if v5 {
-        let v8: bool = tld_ok_25(v0.clone(), v7.clone(), v4.clone());
+        let v8: bool = tld_ok_25(v0, v7.clone(), v4.clone());
         if v8 {
             true
         } else {
@@ -470,13 +470,13 @@ fn blocks_domain_27(mut v0: Rc<str>) -> bool {
     }
 }
 fn run_text_18(mut v0: Rc<dyn Fn(Rc<str>) -> bool>, mut v1: Rc<str>, mut v2: Rc<UH0>) -> Rc<UH0> {
-    let v3: bool = blocks_domain_27(v1.clone());
+    let v3: bool = blocks_domain_27(v1);
     if v3 {
         v2.clone()
     } else {
         let v4: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
         let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-        defused_run_19(v0.clone(), v4.clone(), v2.clone(), v5.clone())
+        defused_run_19(v0, v4, v2, v5)
     }
 }
 fn method16(mut v0: Rc<dyn Fn(Rc<str>) -> bool>, mut v1: Rc<UH1>, mut v2: Rc<UH0>) -> Rc<UH0> {
@@ -502,18 +502,18 @@ fn defused_dots_by_1(mut v0: Rc<dyn Fn(Rc<str>) -> bool>, mut v1: Rc<str>) -> Rc
     let mut v6: i32 = ((v5) as i32);
     let v7: i32 = 0i32;
     let v8: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let mut v9: Rc<UH0> = method2(v4.clone(), v6, v7, v8.clone());
+    let mut v9: Rc<UH0> = method2(v4, v6, v7, v8);
     let mut v10: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-    let v11: Rc<UH1> = pieces_from_3(v2.clone(), v9.clone(), v10.clone());
+    let v11: Rc<UH1> = pieces_from_3(v2.clone(), v9, v10);
     let v12: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v13: Rc<UH0> = method16(v0.clone(), v11.clone(), v12.clone());
+    let v13: Rc<UH0> = method16(v0, v11, v12);
     let v14: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
     let v15: i32 = 0i32;
-    let v16: i32 = method23(v14.clone(), v13.clone(), v15);
+    let v16: i32 = method23(v14.clone(), v13, v15);
     let v17: Rc<Vec<Rc<str>>> = Rc::new(v14.borrow().clone());
     let v18: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v17).as_ref().clone()));
     let v19: Rc<str> = Rc::<str>::from((*v18.borrow()).join(&*v2));
-    v19.clone()
+    v19
 }
 fn posted_named_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v2: bool = &*v0 == "mastodon";
@@ -523,7 +523,7 @@ fn posted_named_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         let v4: bool = &*v0 == "bluesky";
         if v4 {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            US0::US0_OnBluesky(v5.clone(), v5.clone())
+            US0::US0_OnBluesky(v5.clone(), v5)
         } else {
             US0::US0_OnX
         }
@@ -539,9 +539,9 @@ fn posted_named_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         }
         US0::US0_OnX => {
             let mut v10: Rc<dyn Fn(Rc<str>) -> bool> = closure1();
-            let v11: Rc<str> = defused_dots_by_1(v10.clone(), v1.clone());
+            let v11: Rc<str> = defused_dots_by_1(v10, v1);
             let v12: Rc<str> = xc_entities::xc_defused_entities(&*v11);
-            v12.clone()
+            v12
         }
     }
 }

@@ -614,16 +614,16 @@ fn defused_entities_1(mut v0: Rc<str>) -> Rc<str> {
     let v5: i32 = ((v4) as i32);
     let mut v6: i32 = 0i32;
     let mut v7: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let mut v8: Rc<UH0> = method2(v3.clone(), v5, v6, v7.clone());
+    let mut v8: Rc<UH0> = method2(v3, v5, v6, v7);
     let mut v9: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let mut v10: Rc<UH0> = entities_from_3(v1.clone(), v8.clone(), v9.clone());
+    let mut v10: Rc<UH0> = entities_from_3(v1.clone(), v8, v9);
     let v11: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
     let v12: i32 = 0i32;
-    let v13: i32 = method27(v11.clone(), v10.clone(), v12);
+    let v13: i32 = method27(v11.clone(), v10, v12);
     let v14: Rc<Vec<Rc<str>>> = Rc::new(v11.borrow().clone());
     let v15: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v14).as_ref().clone()));
     let v16: Rc<str> = Rc::<str>::from((*v15.borrow()).join(&*v1));
-    v16.clone()
+    v16
 }
 fn tags_defused_0(mut v0: Rc<str>) -> Rc<str> {
     defused_entities_1(v0)

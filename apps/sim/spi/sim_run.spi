@@ -60,7 +60,8 @@ test sim_run static =
 
 :== schedule_fn = i32 -> cells_run -> fault_set -> list delivery -> scheduler * i32
 
-:= unmeasured (pace : i32) (e : cells_run) (f : fault_set) (l : list delivery) : scheduler * i32 = sync_run_with e f l, 0i32
+:= unmeasured (pace : i32) (e : cells_run) (f : fault_set) (l : list delivery) : scheduler * i32 =
+    sync_run_with e f l, 0i32
 
 :== beam_executors =
     { cells : bool -> cells_run; cells_baseline : cells_run; leak : string -> cells_run; memo_counts : () -> i32 * i32;
@@ -126,11 +127,13 @@ test sim_run static =
 
 := sources_key (l : list string) : string = sm'::concat_list "\n" l
 
-:= forward_pair (sched : scheduler) (base : cells_run) (acc : list (string * task_result)) (v : shown) : list (string * task_result) =
+:== baseline_pair = string * task_result
+
+:= forward_pair (sched : scheduler) (base : cells_run) (acc : list baseline_pair) (v : shown) : list baseline_pair =
     := l = sources sched::in_box v::id
     (sources_key l, base l) :: acc
 
-:= known_baseline (done : list (string * task_result)) (base : cells_run) (l : list string) : task_result =
+:= known_baseline (done : list baseline_pair) (base : cells_run) (l : list string) : task_result =
     ?= first_where (\ (k, _) => k = sources_key l) done ?|
     | Some (_, r) => r
     | None => base l
@@ -186,7 +189,8 @@ test sim_run static =
 
 := explain_text (x : executor_pair) (sched : scheduler) (id : string) : string =
     := l = sources sched::in_box id
-    explain_head id l ++# "\n  concurrent=" ++# concurrent_text sched id ++# "\n  sequential=" ++# inspected (x::baseline l)
+    explain_head id l ++# "\n  concurrent=" ++# concurrent_text sched id
+    ++# "\n  sequential=" ++# inspected (x::baseline l)
 
 := explained (x : executor_pair) (r : schedule_outcome) : schedule_outcome =
     ?= r::found |> spread broken_ids ?|

@@ -296,15 +296,15 @@ fn method11(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
 }
 fn cell_posts_by_3(mut v0: Rc<dyn Fn(i32) -> Rc<dyn Fn(Rc<str>) -> Rc<UH0>>>, mut v1: i32, mut v2: Rc<str>) -> Rc<UH0> {
     let mut v3: Rc<dyn Fn(Rc<str>) -> Rc<UH0>> = v0(v1);
-    let v4: Rc<UH0> = v3(v2.clone());
+    let v4: Rc<UH0> = v3(v2);
     let v8: Rc<UH0> = match &*v4 {
         UH0::UH0_Nil => {
             let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             let v6: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            Rc::new(UH0::UH0_Cons(v5.clone(), v6.clone()))
+            Rc::new(UH0::UH0_Cons(v5, v6))
         }
         _ => {
-            v4.clone()
+            v4
         }
     };
     let v9: Rc<str> = Rc::<str>::from(format!("{:?}", v1));
@@ -314,7 +314,7 @@ fn cell_posts_by_3(mut v0: Rc<dyn Fn(i32) -> Rc<dyn Fn(Rc<str>) -> Rc<UH0>>>, mu
     let v13: i32 = method11(v8.clone(), v12);
     let v14: i32 = 1i32;
     let v15: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    numbered_4(v11.clone(), v13, v14, v8.clone(), v15.clone())
+    numbered_4(v11, v13, v14, v8, v15)
 }
 fn method12(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
     loop {
@@ -414,12 +414,12 @@ fn method16(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH0>, mut v2: i32) -> 
 fn framed_by_1(mut v0: Rc<dyn Fn(i32) -> Rc<dyn Fn(Rc<str>) -> Rc<UH0>>>, mut v1: Rc<dyn Fn(Rc<str>) -> i32>, mut v2: Rc<UH0>) -> Rc<str> {
     let mut v3: i32 = 1i32;
     let v4: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-    let mut v5: Rc<UH0> = thread_by_2(v0.clone(), v3, v2.clone(), v4.clone());
+    let mut v5: Rc<UH0> = thread_by_2(v0, v3, v2, v4);
     let v6: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v7: Rc<UH0> = method15(v1.clone(), v5.clone(), v6.clone());
+    let v7: Rc<UH0> = method15(v1, v5, v6);
     let v8: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
     let v9: i32 = 0i32;
-    let v10: i32 = method16(v8.clone(), v7.clone(), v9);
+    let v10: i32 = method16(v8.clone(), v7, v9);
     let v11: Rc<Vec<Rc<str>>> = Rc::new(v8.borrow().clone());
     let v12: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v11).as_ref().clone()));
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
@@ -428,7 +428,7 @@ fn framed_by_1(mut v0: Rc<dyn Fn(i32) -> Rc<dyn Fn(Rc<str>) -> Rc<UH0>>>, mut v1
     let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v14));
     let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) };
     let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v17));
-    v18.clone()
+    v18
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {

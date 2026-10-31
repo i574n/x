@@ -1,3 +1,16 @@
+pub type SpiralArrayKey
+
+
+pub type SpiralArray(a) {
+  SpiralArray(key: SpiralArrayKey, size: Int)
+}
+
+
+pub type SpiralRef(a) {
+  SpiralRef(key: SpiralArrayKey)
+}
+
+
 pub type ListString {
     ListStringNil
     ListStringCons(String, ListString)
@@ -28,6 +41,8 @@ pub type Uh3 {
     Uh3Nil
     Uh3Cons(Int, Uh3)
 }
+
+pub type Mut0 { Mut0(l0 : Int, l1 : ListString) }
 
 pub type Uh4 {
     Uh4Nil

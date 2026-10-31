@@ -102,24 +102,24 @@ fn one_value_7(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<dyn Fn(Rc<str>) -> U
                 UH0::UH0_Nil => {
                     let v5: bool = &*v3 != "";
                     if v5 {
-                        v2(v3.clone())
+                        v2(v3)
                     } else {
                         let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
                         let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v7));
-                        US0::US0_Rejected(v8.clone())
+                        US0::US0_Rejected(v8)
                     }
                 }
                 _ => {
                     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
                     let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v11));
-                    US0::US0_Rejected(v12.clone())
+                    US0::US0_Rejected(v12)
                 }
             }
         }
         _ => {
             let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" takes exactly one argument"); } LIT.with(|lit| lit.clone()) };
             let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v15));
-            US0::US0_Rejected(v16.clone())
+            US0::US0_Rejected(v16)
         }
     }
 }
@@ -154,18 +154,18 @@ fn thread_command_9(mut v0: Rc<str>, mut v1: Rc<UH0>) -> US0 {
                                     UH0::UH0_Nil => {
                                         let v9: bool = &*v3 == "--resume";
                                         if v9 {
-                                            let v10: US3 = US3::US3_ResumeThread(v5.clone(), v7.clone());
-                                            US0::US0_OnThread(v10.clone())
+                                            let v10: US3 = US3::US3_ResumeThread(v5.clone(), v7);
+                                            US0::US0_OnThread(v10)
                                         } else {
                                             let v12: bool = &*v3 == "--dry-run";
                                             if v12 {
                                                 let v13: Rc<UH0> = Rc::new(UH0::UH0_Cons(v5.clone(), v6.clone()));
-                                                let v14: US3 = US3::US3_PreviewThreads(v13.clone());
-                                                US0::US0_OnThread(v14.clone())
+                                                let v14: US3 = US3::US3_PreviewThreads(v13);
+                                                US0::US0_OnThread(v14)
                                             } else {
                                                 let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
                                                 let v17: Rc<dyn Fn(Rc<str>) -> US0> = closure1();
-                                                one_value_7(v16.clone(), v1.clone(), v17.clone())
+                                                one_value_7(v16, v1.clone(), v17)
                                             }
                                         }
                                     }
@@ -173,12 +173,12 @@ fn thread_command_9(mut v0: Rc<str>, mut v1: Rc<UH0>) -> US0 {
                                         let v21: bool = &*v3 == "--dry-run";
                                         if v21 {
                                             let v22: Rc<UH0> = Rc::new(UH0::UH0_Cons(v5.clone(), v6.clone()));
-                                            let v23: US3 = US3::US3_PreviewThreads(v22.clone());
-                                            US0::US0_OnThread(v23.clone())
+                                            let v23: US3 = US3::US3_PreviewThreads(v22);
+                                            US0::US0_OnThread(v23)
                                         } else {
                                             let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
                                             let v26: Rc<dyn Fn(Rc<str>) -> US0> = closure1();
-                                            one_value_7(v25.clone(), v1.clone(), v26.clone())
+                                            one_value_7(v25, v1.clone(), v26)
                                         }
                                     }
                                 }
@@ -188,15 +188,15 @@ fn thread_command_9(mut v0: Rc<str>, mut v1: Rc<UH0>) -> US0 {
                                 if v30 {
                                     match &*v6 {
                                         UH0::UH0_Nil => {
-                                            let v31: US3 = US3::US3_PreviewThread(v5.clone());
-                                            US0::US0_OnThread(v31.clone())
+                                            let v31: US3 = US3::US3_PreviewThread(v5);
+                                            US0::US0_OnThread(v31)
                                         }
                                         _ => unreachable!(),
                                     }
                                 } else {
                                     let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
                                     let v35: Rc<dyn Fn(Rc<str>) -> US0> = closure1();
-                                    one_value_7(v34.clone(), v1.clone(), v35.clone())
+                                    one_value_7(v34, v1.clone(), v35)
                                 }
                             }
                         }
@@ -204,27 +204,27 @@ fn thread_command_9(mut v0: Rc<str>, mut v1: Rc<UH0>) -> US0 {
                     _ => {
                         let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
                         let v40: Rc<dyn Fn(Rc<str>) -> US0> = closure1();
-                        one_value_7(v39.clone(), v1.clone(), v40.clone())
+                        one_value_7(v39, v1.clone(), v40)
                     }
                 }
             }
             _ => {
                 let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post-thread"); } LIT.with(|lit| lit.clone()) };
                 let v44: Rc<dyn Fn(Rc<str>) -> US0> = closure1();
-                one_value_7(v43.clone(), v1.clone(), v44.clone())
+                one_value_7(v43, v1.clone(), v44)
             }
         }
     } else {
         let v47: bool = &*v0 == "delete-thread";
         if v47 {
             let v48: Rc<dyn Fn(Rc<str>) -> US0> = closure2();
-            one_value_7(v0.clone(), v1.clone(), v48.clone())
+            one_value_7(v0.clone(), v1, v48)
         } else {
             let v50: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown command "); } LIT.with(|lit| lit.clone()) };
             let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v50, v0));
             let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; try: xc timeline"); } LIT.with(|lit| lit.clone()) };
             let v53: Rc<str> = Rc::<str>::from(format!("{}{}", v51, v52));
-            US0::US0_Rejected(v53.clone())
+            US0::US0_Rejected(v53)
         }
     }
 }
@@ -353,26 +353,26 @@ fn fields_of_10(mut v0: US0) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
                     let v16: Rc<UH0> = v16.clone();
                     let v17: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
                     let v18: i32 = 0i32;
-                    let v19: i32 = method11(v17.clone(), v16.clone(), v18);
+                    let v19: i32 = method11(v17.clone(), v16, v18);
                     let v20: Rc<Vec<Rc<str>>> = Rc::new(v17.borrow().clone());
                     let v21: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v20).as_ref().clone()));
                     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                     let v23: Rc<str> = Rc::<str>::from((*v21.borrow()).join(&*v22));
-                    (false, v23.clone(), v2, v3, v4, v15)
+                    (false, v23, v2, v3, v4, v15)
                 }
                 _ => {
                     let (mut v25, mut v26, mut v27, mut v28, mut v29, mut v30): (bool, Rc<str>, i32, i32, i32, i32) = match &v1 {
                         US1::US1_FollowingOf(v24) => {
                             let v24: Rc<str> = v24.clone();
-                            (true, v24.clone(), v2, v3, v4, v15)
+                            (true, v24, v2, v3, v4, v15)
                         }
                         _ => unreachable!(),
                     };
-                    (v25, v26.clone(), v27, v28, v29, v30)
+                    (v25, v26, v27, v28, v29, v30)
                 }
             };
             let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (0i32, v37.clone(), v31, v32.clone(), v33, v34, v35, v36, v6.clone(), v7.clone(), v8, v9, v10, v11, v12)
+            (0i32, v37, v31, v32, v33, v34, v35, v36, v6, v7, v8, v9, v10, v11, v12)
         }
         _ => {
             let (mut v76, mut v77): (i32, Rc<str>) = match &v0 {
@@ -381,67 +381,67 @@ fn fields_of_10(mut v0: US0) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
                     match &v42 {
                         US3::US3_DeleteThread(v49) => {
                             let v49: Rc<str> = v49.clone();
-                            (9i32, v49.clone())
+                            (9i32, v49)
                         }
                         US3::US3_PostThread(v44) => {
                             let v44: Rc<str> = v44.clone();
-                            (7i32, v44.clone())
+                            (7i32, v44)
                         }
                         US3::US3_PreviewThread(v45) => {
                             let v45: Rc<str> = v45.clone();
-                            (8i32, v45.clone())
+                            (8i32, v45)
                         }
                         US3::US3_PreviewThreads(v46) => {
                             let v46: Rc<UH0> = v46.clone();
                             let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                            let v48: Rc<str> = delimited_12(v47.clone(), v46.clone());
-                            (11i32, v48.clone())
+                            let v48: Rc<str> = delimited_12(v47, v46);
+                            (11i32, v48)
                         }
                         US3::US3_ReadThread(v43) => {
                             let v43: Rc<str> = v43.clone();
-                            (6i32, v43.clone())
+                            (6i32, v43)
                         }
                         US3::US3_ResumeThread(v50, v51) => {
                             let v50: Rc<str> = v50.clone();
                             let v51: Rc<str> = v51.clone();
                             let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                             let v54: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v50, v52)), v51));
-                            (10i32, v54.clone())
+                            (10i32, v54)
                         }
                     }
                 }
                 US0::US0_PublishPost(v38) => {
                     let v38: Rc<str> = v38.clone();
-                    (1i32, v38.clone())
+                    (1i32, v38)
                 }
                 US0::US0_RefreshToken(v41) => {
                     let v41: Rc<str> = v41.clone();
-                    (5i32, v41.clone())
+                    (5i32, v41)
                 }
                 US0::US0_Rejected(v40) => {
                     let v40: Rc<str> = v40.clone();
-                    (4i32, v40.clone())
+                    (4i32, v40)
                 }
                 US0::US0_RemovePost(v39) => {
                     let v39: Rc<str> = v39.clone();
-                    (2i32, v39.clone())
+                    (2i32, v39)
                 }
                 _ => {
                     let v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    (3i32, v67.clone())
+                    (3i32, v67)
                 }
             };
             let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (v76, v77.clone(), false, v78.clone(), 5i32, 20i32, 0i32, 20i32, v78.clone(), v78.clone(), false, false, 0i32, false, false)
+            (v76, v77, false, v78.clone(), 5i32, 20i32, 0i32, 20i32, v78.clone(), v78, false, false, 0i32, false, false)
         }
     };
-    (v79, v80.clone(), v81, v82.clone(), v83, v84, v85, v86, v87.clone(), v88.clone(), v89, v90, v91, v92, v93)
+    (v79, v80, v81, v82, v83, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93)
 }
 fn parsed_fields_0() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) {
     let mut v0: i32 = command_line_argument_count_1();
     let v1: i32 = v0.wrapping_sub(1i32);
     let mut v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v3: Rc<UH0> = from_2(v1, v2.clone());
+    let v3: Rc<UH0> = from_2(v1, v2);
     let (mut v73, mut v74, mut v75, mut v76, mut v77, mut v78, mut v79, mut v80, mut v81, mut v82, mut v83, mut v84, mut v85, mut v86, mut v87): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = match &*v3 {
         UH0::UH0_Cons(v4, v5) => {
             let v4: Rc<str> = v4.clone();
@@ -457,20 +457,20 @@ fn parsed_fields_0() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str
             };
             if v10 {
                 let (mut v11, mut v12, mut v13, mut v14, mut v15, mut v16, mut v17, mut v18, mut v19, mut v20, mut v21, mut v22, mut v23, mut v24, mut v25): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = xc_timeline::xc_timeline_fields();
-                (v11, v12.clone(), v13, v14.clone(), v15, v16, v17, v18, v19.clone(), v20.clone(), v21, v22, v23, v24, v25)
+                (v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25)
             } else {
                 let v26: US0 = parse_writes_5(v3.clone());
-                let (mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37, mut v38, mut v39, mut v40, mut v41): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = fields_of_10(v26.clone());
-                (v27, v28.clone(), v29, v30.clone(), v31, v32, v33, v34, v35.clone(), v36.clone(), v37, v38, v39, v40, v41)
+                let (mut v27, mut v28, mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37, mut v38, mut v39, mut v40, mut v41): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = fields_of_10(v26);
+                (v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41)
             }
         }
         _ => {
-            let v57: US0 = parse_writes_5(v3.clone());
-            let (mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64, mut v65, mut v66, mut v67, mut v68, mut v69, mut v70, mut v71, mut v72): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = fields_of_10(v57.clone());
-            (v58, v59.clone(), v60, v61.clone(), v62, v63, v64, v65, v66.clone(), v67.clone(), v68, v69, v70, v71, v72)
+            let v57: US0 = parse_writes_5(v3);
+            let (mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64, mut v65, mut v66, mut v67, mut v68, mut v69, mut v70, mut v71, mut v72): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = fields_of_10(v57);
+            (v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72)
         }
     };
-    (v73, v74.clone(), v75, v76.clone(), v77, v78, v79, v80, v81.clone(), v82.clone(), v83, v84, v85, v86, v87)
+    (v73, v74, v75, v76, v77, v78, v79, v80, v81, v82, v83, v84, v85, v86, v87)
 }
 fn closure0() -> Rc<dyn Fn() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool)> = Rc::new(move || -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) {

@@ -1,3 +1,5 @@
+import gary
+import gary/array
 import gleam/bit_array
 import gleam/dynamic.{type Dynamic}
 import gleam/erlang/atom
@@ -6,7 +8,7 @@ import gleam/list
 import gleam/option
 import gleam/result
 import gleam/string
-import xsim_split/types.{type ListString, type Uh1, ListStringCons, ListStringNil, Uh1Cons, Uh1Nil}
+import xsim_split/types.{type SpiralArrayKey, type SpiralArray, type SpiralRef, type ListString, type Uh1, ListStringCons, ListStringNil, SpiralArray, SpiralRef, Uh1Cons, Uh1Nil}
 
 @ external(erlang, "unicode", "characters_to_binary")
 pub fn unicode_erlang_characters_to_binary(chars: List(Int)) -> String
@@ -71,6 +73,72 @@ pub fn spiral_string_slice(text: String, from: Int, to: Int) -> String {
           }
       }
   }
+}
+
+
+@external(erlang, "erlang", "make_ref")
+pub fn spiral_array_new_key() -> SpiralArrayKey
+
+
+@external(erlang, "erlang", "put")
+pub fn spiral_array_store(key: SpiralArrayKey, storage: gary.ErlangArray(option.Option(a))) -> b
+
+
+@external(erlang, "erlang", "get")
+pub fn spiral_array_load(key: SpiralArrayKey) -> gary.ErlangArray(option.Option(a))
+
+
+pub fn spiral_array_from_storage(storage: gary.ErlangArray(option.Option(a)), size: Int) -> SpiralArray(a) {
+  let key = spiral_array_new_key()
+  let _ = spiral_array_store(key, storage)
+  SpiralArray(key: key, size: size)
+}
+
+
+
+
+pub fn spiral_array_from_list(values: List(a)) -> SpiralArray(a) {
+  values |> list.map(option.Some) |> array.from_list(option.None) |> spiral_array_from_storage(list.length(values))
+}
+
+
+
+pub fn spiral_array_get(xs: SpiralArray(a), i: Int) -> a {
+  case i >= 0 && i < xs.size {
+    True ->
+      case spiral_array_load(xs.key) |> array.get(i) {
+        Ok(option.Some(x)) -> x
+        _ -> panic as "spiral array: read of an element that was never set"
+      }
+    False -> panic as "spiral array: index out of bounds"
+  }
+}
+
+
+
+@external(erlang, "erlang", "put")
+pub fn spiral_ref_store(key: SpiralArrayKey, value: a) -> b
+
+
+@external(erlang, "erlang", "get")
+pub fn spiral_ref_load(key: SpiralArrayKey) -> a
+
+
+pub fn spiral_ref_new(value: a) -> SpiralRef(a) {
+  let key = spiral_array_new_key()
+  let _ = spiral_ref_store(key, value)
+  SpiralRef(key: key)
+}
+
+
+pub fn spiral_ref_get(reference: SpiralRef(a)) -> a {
+  spiral_ref_load(reference.key)
+}
+
+
+pub fn spiral_ref_set(reference: SpiralRef(a), value: a) -> Nil {
+  let _ = spiral_ref_store(reference.key, value)
+  Nil
 }
 
 
@@ -198,237 +266,159 @@ pub fn is_tld_1(v0: String) -> Bool {
     let v121 = v119 <> v120 
     let v122 = v7 |> string.contains(v4)
     case v122 {
-        True -> {
-            True
-        }
+        True -> True
         False -> {
             let v123 = v10 |> string.contains(v4)
             case v123 {
-                True -> {
-                    True
-                }
+                True -> True
                 False -> {
                     let v124 = v13 |> string.contains(v4)
                     case v124 {
-                        True -> {
-                            True
-                        }
+                        True -> True
                         False -> {
                             let v125 = v16 |> string.contains(v4)
                             case v125 {
-                                True -> {
-                                    True
-                                }
+                                True -> True
                                 False -> {
                                     let v126 = v19 |> string.contains(v4)
                                     case v126 {
-                                        True -> {
-                                            True
-                                        }
+                                        True -> True
                                         False -> {
                                             let v127 = v22 |> string.contains(v4)
                                             case v127 {
-                                                True -> {
-                                                    True
-                                                }
+                                                True -> True
                                                 False -> {
                                                     let v128 = v25 |> string.contains(v4)
                                                     case v128 {
-                                                        True -> {
-                                                            True
-                                                        }
+                                                        True -> True
                                                         False -> {
                                                             let v129 = v28 |> string.contains(v4)
                                                             case v129 {
-                                                                True -> {
-                                                                    True
-                                                                }
+                                                                True -> True
                                                                 False -> {
                                                                     let v130 = v31 |> string.contains(v4)
                                                                     case v130 {
-                                                                        True -> {
-                                                                            True
-                                                                        }
+                                                                        True -> True
                                                                         False -> {
                                                                             let v131 = v34 |> string.contains(v4)
                                                                             case v131 {
-                                                                                True -> {
-                                                                                    True
-                                                                                }
+                                                                                True -> True
                                                                                 False -> {
                                                                                     let v132 = v37 |> string.contains(v4)
                                                                                     case v132 {
-                                                                                        True -> {
-                                                                                            True
-                                                                                        }
+                                                                                        True -> True
                                                                                         False -> {
                                                                                             let v133 = v40 |> string.contains(v4)
                                                                                             case v133 {
-                                                                                                True -> {
-                                                                                                    True
-                                                                                                }
+                                                                                                True -> True
                                                                                                 False -> {
                                                                                                     let v134 = v43 |> string.contains(v4)
                                                                                                     case v134 {
-                                                                                                        True -> {
-                                                                                                            True
-                                                                                                        }
+                                                                                                        True -> True
                                                                                                         False -> {
                                                                                                             let v135 = v46 |> string.contains(v4)
                                                                                                             case v135 {
-                                                                                                                True -> {
-                                                                                                                    True
-                                                                                                                }
+                                                                                                                True -> True
                                                                                                                 False -> {
                                                                                                                     let v136 = v49 |> string.contains(v4)
                                                                                                                     case v136 {
-                                                                                                                        True -> {
-                                                                                                                            True
-                                                                                                                        }
+                                                                                                                        True -> True
                                                                                                                         False -> {
                                                                                                                             let v137 = v52 |> string.contains(v4)
                                                                                                                             case v137 {
-                                                                                                                                True -> {
-                                                                                                                                    True
-                                                                                                                                }
+                                                                                                                                True -> True
                                                                                                                                 False -> {
                                                                                                                                     let v138 = v55 |> string.contains(v4)
                                                                                                                                     case v138 {
-                                                                                                                                        True -> {
-                                                                                                                                            True
-                                                                                                                                        }
+                                                                                                                                        True -> True
                                                                                                                                         False -> {
                                                                                                                                             let v139 = v58 |> string.contains(v4)
                                                                                                                                             case v139 {
-                                                                                                                                                True -> {
-                                                                                                                                                    True
-                                                                                                                                                }
+                                                                                                                                                True -> True
                                                                                                                                                 False -> {
                                                                                                                                                     let v140 = v61 |> string.contains(v4)
                                                                                                                                                     case v140 {
-                                                                                                                                                        True -> {
-                                                                                                                                                            True
-                                                                                                                                                        }
+                                                                                                                                                        True -> True
                                                                                                                                                         False -> {
                                                                                                                                                             let v141 = v64 |> string.contains(v4)
                                                                                                                                                             case v141 {
-                                                                                                                                                                True -> {
-                                                                                                                                                                    True
-                                                                                                                                                                }
+                                                                                                                                                                True -> True
                                                                                                                                                                 False -> {
                                                                                                                                                                     let v142 = v67 |> string.contains(v4)
                                                                                                                                                                     case v142 {
-                                                                                                                                                                        True -> {
-                                                                                                                                                                            True
-                                                                                                                                                                        }
+                                                                                                                                                                        True -> True
                                                                                                                                                                         False -> {
                                                                                                                                                                             let v143 = v70 |> string.contains(v4)
                                                                                                                                                                             case v143 {
-                                                                                                                                                                                True -> {
-                                                                                                                                                                                    True
-                                                                                                                                                                                }
+                                                                                                                                                                                True -> True
                                                                                                                                                                                 False -> {
                                                                                                                                                                                     let v144 = v73 |> string.contains(v4)
                                                                                                                                                                                     case v144 {
-                                                                                                                                                                                        True -> {
-                                                                                                                                                                                            True
-                                                                                                                                                                                        }
+                                                                                                                                                                                        True -> True
                                                                                                                                                                                         False -> {
                                                                                                                                                                                             let v145 = v76 |> string.contains(v4)
                                                                                                                                                                                             case v145 {
-                                                                                                                                                                                                True -> {
-                                                                                                                                                                                                    True
-                                                                                                                                                                                                }
+                                                                                                                                                                                                True -> True
                                                                                                                                                                                                 False -> {
                                                                                                                                                                                                     let v146 = v79 |> string.contains(v4)
                                                                                                                                                                                                     case v146 {
-                                                                                                                                                                                                        True -> {
-                                                                                                                                                                                                            True
-                                                                                                                                                                                                        }
+                                                                                                                                                                                                        True -> True
                                                                                                                                                                                                         False -> {
                                                                                                                                                                                                             let v147 = v82 |> string.contains(v4)
                                                                                                                                                                                                             case v147 {
-                                                                                                                                                                                                                True -> {
-                                                                                                                                                                                                                    True
-                                                                                                                                                                                                                }
+                                                                                                                                                                                                                True -> True
                                                                                                                                                                                                                 False -> {
                                                                                                                                                                                                                     let v148 = v85 |> string.contains(v4)
                                                                                                                                                                                                                     case v148 {
-                                                                                                                                                                                                                        True -> {
-                                                                                                                                                                                                                            True
-                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                        True -> True
                                                                                                                                                                                                                         False -> {
                                                                                                                                                                                                                             let v149 = v88 |> string.contains(v4)
                                                                                                                                                                                                                             case v149 {
-                                                                                                                                                                                                                                True -> {
-                                                                                                                                                                                                                                    True
-                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                True -> True
                                                                                                                                                                                                                                 False -> {
                                                                                                                                                                                                                                     let v150 = v91 |> string.contains(v4)
                                                                                                                                                                                                                                     case v150 {
-                                                                                                                                                                                                                                        True -> {
-                                                                                                                                                                                                                                            True
-                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                        True -> True
                                                                                                                                                                                                                                         False -> {
                                                                                                                                                                                                                                             let v151 = v94 |> string.contains(v4)
                                                                                                                                                                                                                                             case v151 {
-                                                                                                                                                                                                                                                True -> {
-                                                                                                                                                                                                                                                    True
-                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                True -> True
                                                                                                                                                                                                                                                 False -> {
                                                                                                                                                                                                                                                     let v152 = v97 |> string.contains(v4)
                                                                                                                                                                                                                                                     case v152 {
-                                                                                                                                                                                                                                                        True -> {
-                                                                                                                                                                                                                                                            True
-                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                        True -> True
                                                                                                                                                                                                                                                         False -> {
                                                                                                                                                                                                                                                             let v153 = v100 |> string.contains(v4)
                                                                                                                                                                                                                                                             case v153 {
-                                                                                                                                                                                                                                                                True -> {
-                                                                                                                                                                                                                                                                    True
-                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                True -> True
                                                                                                                                                                                                                                                                 False -> {
                                                                                                                                                                                                                                                                     let v154 = v103 |> string.contains(v4)
                                                                                                                                                                                                                                                                     case v154 {
-                                                                                                                                                                                                                                                                        True -> {
-                                                                                                                                                                                                                                                                            True
-                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                        True -> True
                                                                                                                                                                                                                                                                         False -> {
                                                                                                                                                                                                                                                                             let v155 = v106 |> string.contains(v4)
                                                                                                                                                                                                                                                                             case v155 {
-                                                                                                                                                                                                                                                                                True -> {
-                                                                                                                                                                                                                                                                                    True
-                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                True -> True
                                                                                                                                                                                                                                                                                 False -> {
                                                                                                                                                                                                                                                                                     let v156 = v109 |> string.contains(v4)
                                                                                                                                                                                                                                                                                     case v156 {
-                                                                                                                                                                                                                                                                                        True -> {
-                                                                                                                                                                                                                                                                                            True
-                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                        True -> True
                                                                                                                                                                                                                                                                                         False -> {
                                                                                                                                                                                                                                                                                             let v157 = v112 |> string.contains(v4)
                                                                                                                                                                                                                                                                                             case v157 {
-                                                                                                                                                                                                                                                                                                True -> {
-                                                                                                                                                                                                                                                                                                    True
-                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                True -> True
                                                                                                                                                                                                                                                                                                 False -> {
                                                                                                                                                                                                                                                                                                     let v158 = v115 |> string.contains(v4)
                                                                                                                                                                                                                                                                                                     case v158 {
-                                                                                                                                                                                                                                                                                                        True -> {
-                                                                                                                                                                                                                                                                                                            True
-                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                        True -> True
                                                                                                                                                                                                                                                                                                         False -> {
                                                                                                                                                                                                                                                                                                             let v159 = v118 |> string.contains(v4)
                                                                                                                                                                                                                                                                                                             case v159 {
-                                                                                                                                                                                                                                                                                                                True -> {
-                                                                                                                                                                                                                                                                                                                    True
-                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                True -> True
                                                                                                                                                                                                                                                                                                                 False -> {
                                                                                                                                                                                                                                                                                                                     let v160 = v121 |> string.contains(v4)
                                                                                                                                                                                                                                                                                                                     case v160 {
-                                                                                                                                                                                                                                                                                                                        True -> {
-                                                                                                                                                                                                                                                                                                                            True
-                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                        True -> True
                                                                                                                                                                                                                                                                                                                         False -> {
                                                                                                                                                                                                                                                                                                                             let v161 = "|zappos|zara|zero|zip|zm|zone|zuerich|zw|"
                                                                                                                                                                                                                                                                                                                             let v162 = v161 |> string.contains(v4)
@@ -529,9 +519,7 @@ pub fn closure2(capt: Nil) -> fn(Int) -> Int {
 pub fn ascii_of_7(v0: String) -> Int {
     let v1 = v0 == ""
     case v1 {
-        True -> {
-            0
-        }
+        True -> 0
         False -> {
             let v2 = spiral_string_length(v0)
             let v3 = v2 == 1
@@ -543,9 +531,7 @@ pub fn ascii_of_7(v0: String) -> Int {
                     let v7 = v6 |> option.unwrap(0)
                     v7
                 }
-                False -> {
-                    256
-                }
+                False -> 256
             }
         }
     }
@@ -560,14 +546,10 @@ pub fn ascii_letter_6(v0: String) -> Bool {
                 let v3 = v1 <= 90
                 v3
             }
-            False -> {
-                False
-            }
+            False -> False
         }
     case v4 {
-        True -> {
-            True
-        }
+        True -> True
         False -> {
             let v5 = v1 >= 97
             case v5 {
@@ -575,9 +557,7 @@ pub fn ascii_letter_6(v0: String) -> Bool {
                     let v6 = v1 <= 122
                     v6
                 }
-                False -> {
-                    False
-                }
+                False -> False
             }
         }
     }
@@ -587,9 +567,7 @@ pub fn label_glyph_5(v0: String) -> Bool {
     let v1 = ascii_letter_6(v0)
     let v6 =
         case v1 {
-            True -> {
-                True
-            }
+            True -> True
             False -> {
                 let v2 = ascii_of_7(v0)
                 let v3 = v2 >= 48
@@ -598,26 +576,20 @@ pub fn label_glyph_5(v0: String) -> Bool {
                         let v4 = v2 <= 57
                         v4
                     }
-                    False -> {
-                        False
-                    }
+                    False -> False
                 }
             }
         }
     let v8 =
         case v6 {
-            True -> {
-                True
-            }
+            True -> True
             False -> {
                 let v7 = v0 == "_"
                 v7
             }
         }
     case v8 {
-        True -> {
-            True
-        }
+        True -> True
         False -> {
             let v9 = v0 == "-"
             v9
@@ -628,9 +600,7 @@ pub fn label_glyph_5(v0: String) -> Bool {
 pub fn run_glyph_4(v0: String) -> Bool {
     let v1 = label_glyph_5(v0)
     case v1 {
-        True -> {
-            True
-        }
+        True -> True
         False -> {
             let v2 = v0 == "."
             v2
@@ -644,9 +614,7 @@ pub fn method10(v0: ListString, v1: ListString) -> ListString {
             let v4 = ListStringCons(v2, v1)
             method10(v3, v4)
         }
-        ListStringNil -> {
-            v1
-        }
+        ListStringNil -> v1
     }
 }
 
@@ -676,12 +644,8 @@ pub fn run_of_9(v0: ListString, v1: ListString) -> #(ListString, ListString) {
 
 pub fn method12(v0: ListString, v1: String) -> String {
     case v0  {
-        ListStringCons(v2, v3) -> {
-            method12(v3, v2)
-        }
-        ListStringNil -> {
-            v1
-        }
+        ListStringCons(v2, v3) -> method12(v3, v2)
+        ListStringNil -> v1
     }
 }
 
@@ -702,9 +666,7 @@ pub fn method13(v0: Uh1, v1: Uh1) -> Uh1 {
             let v5 = Uh1Cons(v2, v3, v1)
             method13(v4, v5)
         }
-        Uh1Nil -> {
-            v1
-        }
+        Uh1Nil -> v1
     }
 }
 
@@ -737,18 +699,14 @@ pub fn blocks_domain_16(v0: String) -> Bool {
     let v1 = v0 == "@"
     let v3 =
         case v1 {
-            True -> {
-                True
-            }
+            True -> True
             False -> {
                 let v2 = v0 == "/"
                 v2
             }
         }
     case v3 {
-        True -> {
-            True
-        }
+        True -> True
         False -> {
             let v4 = ascii_of_7(v0)
             let v5 = v4 > 127
@@ -759,12 +717,8 @@ pub fn blocks_domain_16(v0: String) -> Bool {
 
 pub fn after_label_19(v0: ListString) -> Bool {
     case v0  {
-        ListStringCons(v1, v2) -> {
-            label_glyph_5(v1)
-        }
-        ListStringNil -> {
-            False
-        }
+        ListStringCons(v1, v2) -> label_glyph_5(v1)
+        ListStringNil -> False
     }
 }
 
@@ -796,9 +750,7 @@ pub fn concat_balanced_22(v0: String, v1: ListString) -> String {
     case v1  {
         ListStringCons(v3, v4) -> {
             case v4  {
-                ListStringNil -> {
-                    v3
-                }
+                ListStringNil -> v3
                 _ -> {
                     let v5 = ListStringNil
                     let v6 = concat_pass_23(v0, v1, v5)
@@ -873,26 +825,18 @@ pub fn tld_ok_25(v0: fn(String) -> Bool, v1: String, v2: String) -> Bool {
                 let v5 = v3 <= 63
                 v5
             }
-            False -> {
-                False
-            }
+            False -> False
         }
     let v8 =
         case v6 {
-            True -> {
-                v0(v2)
-            }
-            False -> {
-                False
-            }
+            True -> v0(v2)
+            False -> False
         }
     case v8 {
         True -> {
             let v9 = v3 != 2
             case v9 {
-                True -> {
-                    True
-                }
+                True -> True
                 False -> {
                     let v10 = spiral_string_length(v1)
                     let v11 = v10 > 2
@@ -900,9 +844,7 @@ pub fn tld_ok_25(v0: fn(String) -> Bool, v1: String, v2: String) -> Bool {
                 }
             }
         }
-        False -> {
-            False
-        }
+        False -> False
     }
 }
 
@@ -915,9 +857,7 @@ pub fn linked_dot_20(v0: fn(String) -> Bool, v1: ListString, v2: ListString) -> 
         True -> {
             let v8 = tld_ok_25(v0, v7, v4)
             case v8 {
-                True -> {
-                    True
-                }
+                True -> True
                 False -> {
                     let v9 = v7 == "t"
                     case v9 {
@@ -925,16 +865,12 @@ pub fn linked_dot_20(v0: fn(String) -> Bool, v1: ListString, v2: ListString) -> 
                             let v10 = v4 == "co"
                             v10
                         }
-                        False -> {
-                            False
-                        }
+                        False -> False
                     }
                 }
             }
         }
-        False -> {
-            False
-        }
+        False -> False
     }
 }
 
@@ -942,19 +878,67 @@ pub fn defusable_18(v0: fn(String) -> Bool, v1: ListString, v2: String, v3: List
     let v4 = v2 == "."
     let v6 =
         case v4 {
-            True -> {
-                after_label_19(v1)
-            }
-            False -> {
-                False
-            }
+            True -> after_label_19(v1)
+            False -> False
         }
     case v6 {
-        True -> {
-            linked_dot_20(v0, v1, v3)
+        True -> linked_dot_20(v0, v1, v3)
+        False -> False
+    }
+}
+
+pub fn defused_run_17(v0: fn(String) -> Bool, v1: ListString, v2: ListString, v3: ListString) -> ListString {
+    case v2  {
+        ListStringCons(v4, v5) -> {
+            let v6 = ListStringCons(v4, v1)
+            let v7 = defusable_18(v0, v1, v4, v5)
+            let v10 =
+                case v7 {
+                    True -> {
+                        let v8 = unicode_erlang_characters_to_binary([8203])
+                        ListStringCons(v8, v3)
+                    }
+                    False -> v3
+                }
+            let v11 = ListStringCons(v4, v10)
+            defused_run_17(v0, v6, v5, v11)
         }
+        ListStringNil -> {
+            let v13 = ListStringNil
+            method10(v3, v13)
+        }
+    }
+}
+
+pub fn run_text_15(v0: fn(String) -> Bool, v1: String, v2: ListString) -> ListString {
+    let v3 = blocks_domain_16(v1)
+    case v3 {
+        True -> v2
         False -> {
-            False
+            let v4 = ListStringNil
+            let v5 = ListStringNil
+            defused_run_17(v0, v4, v2, v5)
         }
+    }
+}
+
+pub fn method26(v0: ListString, v1: ListString) -> ListString {
+    case v0  {
+        ListStringCons(v2, v3) -> {
+            let v4 = method26(v3, v1)
+            ListStringCons(v2, v4)
+        }
+        ListStringNil -> v1
+    }
+}
+
+pub fn method14(v0: fn(String) -> Bool, v1: Uh1, v2: ListString) -> ListString {
+    case v1  {
+        Uh1Cons(v3, v4, v5) -> {
+            let v6 = method14(v0, v5, v2)
+            let v7 = run_text_15(v0, v3, v4)
+            method26(v7, v6)
+        }
+        Uh1Nil -> v2
     }
 }

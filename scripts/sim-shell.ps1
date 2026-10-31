@@ -1,4 +1,4 @@
-param([Parameter(ValueFromRemainingArguments)] [string[]] $ShellArgs = @())
+$ShellArgs = @($args)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
 Assert-SpiralBeside

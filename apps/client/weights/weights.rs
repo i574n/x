@@ -376,7 +376,7 @@ fn units_on_1(mut v0: US0, mut v1: Rc<str>) -> Rc<UH0> {
             let v23: i32 = ((v22) as i32);
             let v24: i32 = 0i32;
             let v25: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-            method8(v21.clone(), v23, v24, v25.clone())
+            method8(v21, v23, v24, v25)
         }
         US0::US0_OnMastodon => {
             let mut v11: Rc<Vec<Rc<str>>> = Rc::new(unicode_segmentation::UnicodeSegmentation::graphemes(&*v1, true).map(Rc::<str>::from).collect());
@@ -385,7 +385,7 @@ fn units_on_1(mut v0: US0, mut v1: Rc<str>) -> Rc<UH0> {
             let v14: i32 = ((v13) as i32);
             let v15: i32 = 0i32;
             let v16: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-            method8(v12.clone(), v14, v15, v16.clone())
+            method8(v12, v14, v15, v16)
         }
         US0::US0_OnX => {
             let v2: Rc<Vec<Rc<str>>> = Rc::new(unicode_segmentation::UnicodeSegmentation::graphemes(&*v1, true).map(Rc::<str>::from).collect());
@@ -394,13 +394,13 @@ fn units_on_1(mut v0: US0, mut v1: Rc<str>) -> Rc<UH0> {
             let v5: i32 = ((v4) as i32);
             let v6: i32 = 0i32;
             let v7: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-            let mut v8: Rc<UH1> = method8(v3.clone(), v5, v6, v7.clone());
+            let mut v8: Rc<UH1> = method8(v3, v5, v6, v7);
             let v9: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-            glued_9(v8.clone(), v9.clone())
+            glued_9(v8, v9)
         }
     };
     let v30: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    method2(v0.clone(), v29.clone(), v30.clone())
+    method2(v0, v29, v30)
 }
 fn prefix_text_12(mut v0: i32, mut v1: Rc<UH0>, mut v2: Rc<str>) -> Rc<str> {
     loop {
@@ -662,7 +662,7 @@ fn units_json_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         let v4: bool = &*v0 == "bluesky";
         if v4 {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            US0::US0_OnBluesky(v5.clone(), v5.clone())
+            US0::US0_OnBluesky(v5.clone(), v5)
         } else {
             US0::US0_OnX
         }
@@ -672,24 +672,24 @@ fn units_json_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         US0::US0_OnBluesky(v17, v18) => {
             let v17: Rc<str> = v17.clone();
             let v18: Rc<str> = v18.clone();
-            units_on_1(v9.clone(), v10.clone())
+            units_on_1(v9, v10.clone())
         }
         US0::US0_OnMastodon => {
             let v13: US0 = US0::US0_OnMastodon;
-            let v14: Rc<UH0> = units_on_1(v13.clone(), v10.clone());
+            let v14: Rc<UH0> = units_on_1(v13, v10.clone());
             let v15: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            linked_11(v14.clone(), v15.clone())
+            linked_11(v14, v15)
         }
         US0::US0_OnX => {
             let mut v11: US0 = US0::US0_OnX;
-            units_on_1(v11.clone(), v10.clone())
+            units_on_1(v11, v10)
         }
     };
     let v23: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-    let v24: Rc<UH1> = method17(v22.clone(), v23.clone());
+    let v24: Rc<UH1> = method17(v22, v23);
     let v25: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
     let mut v26: i32 = 0i32;
-    let mut v27: i32 = method18(v25.clone(), v24.clone(), v26);
+    let mut v27: i32 = method18(v25.clone(), v24, v26);
     let v28: Rc<Vec<Rc<str>>> = Rc::new(v25.borrow().clone());
     let v29: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v28).as_ref().clone()));
     let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
@@ -698,7 +698,7 @@ fn units_json_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v32, v31));
     let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) };
     let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v33, v34));
-    v35.clone()
+    v35
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {
@@ -730,7 +730,7 @@ fn weight_named_19(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         let v4: bool = &*v0 == "bluesky";
         if v4 {
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            US0::US0_OnBluesky(v5.clone(), v5.clone())
+            US0::US0_OnBluesky(v5.clone(), v5)
         } else {
             US0::US0_OnX
         }
@@ -739,21 +739,21 @@ fn weight_named_19(mut v0: Rc<str>, mut v1: Rc<str>) -> i32 {
         US0::US0_OnBluesky(v16, v17) => {
             let v16: Rc<str> = v16.clone();
             let v17: Rc<str> = v17.clone();
-            units_on_1(v9.clone(), v1.clone())
+            units_on_1(v9, v1.clone())
         }
         US0::US0_OnMastodon => {
             let mut v12: US0 = US0::US0_OnMastodon;
-            let v13: Rc<UH0> = units_on_1(v12.clone(), v1.clone());
+            let v13: Rc<UH0> = units_on_1(v12, v1.clone());
             let v14: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-            linked_11(v13.clone(), v14.clone())
+            linked_11(v13, v14)
         }
         US0::US0_OnX => {
             let v10: US0 = US0::US0_OnX;
-            units_on_1(v10.clone(), v1.clone())
+            units_on_1(v10, v1)
         }
     };
     let v22: i32 = 0i32;
-    method20(v21.clone(), v22)
+    method20(v21, v22)
 }
 fn closure5() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> i32 {

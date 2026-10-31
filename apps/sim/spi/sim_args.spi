@@ -247,6 +247,11 @@ test sim_args static =
     | Ok o => RunParsed o
     | Error why => RunRejected why
 
+:= parsed_corpus (args : list string) : option corpus_options =
+    ?= run_args (default_run ()) args ?|
+    | RunParsed o => Some o::corpus
+    | RunRejected _ => None
+
 :== events_options =
     { spi : string; cells : i32; seed : i32; users : i32; edits : i32; personas : string; duplicates_permille : i32;
         frames : bool; out : string; expected : string }
@@ -384,6 +389,48 @@ test sim_args static =
 := frames_args (args : list string) : result frames_options string =
     ?= flags_parsed (frames_rules ()) { file = ""; out = "" } args ?|
     | Ok o ?& frames_missing o <> "" => Error (frames_missing o)
+    | parsed => parsed
+
+:== thread_options = { file : string; program : string; expected : string }
+
+:= thread_source_set (name : string) (value : string) (o : thread_options) : option thread_options =
+    ? name = "file" ?> Some { o ?| file = value } |? name = "program" ?> Some { o ?| program = value } |: None
+
+:= thread_set (name : string) (value : string) (o : thread_options) : option thread_options =
+    ? name = "expected" ?> Some { o ?| expected = value } |: thread_source_set name value o
+
+:= thread_valued (o : thread_options) (name : string) (value : string) : result thread_options string =
+    ?= thread_set name value o ?| Some next => Ok next | None => Error ("unknown option --" ++# name)
+
+:= no_program () : string = "missing --program (xc thread output) or --expected (a thread-*.expected.json)"
+
+:= thread_missing (o : thread_options) : string =
+    ? o::file = "" ?> "missing --file" |? o::program = "" && o::expected = "" ?> no_program () |: ""
+
+:= thread_rules () : flag_rules thread_options = { switched = \ _ _ => None; valued = thread_valued }
+
+:= thread_args (args : list string) : result thread_options string =
+    ?= flags_parsed (thread_rules ()) { file = ""; program = ""; expected = "" } args ?|
+    | Ok o ?& thread_missing o <> "" => Error (thread_missing o)
+    | parsed => parsed
+
+:== diff_options = { spi : string; cells : i32 }
+
+:= diff_cells (o : diff_options) (value : string) : result diff_options string =
+    ?= count_of_text value ?|
+    | Some n => Ok { o ?| cells = n }
+    | None => Error ("--cells takes a whole number, got '" ++# value ++# "'")
+
+:= diff_valued (o : diff_options) (name : string) (value : string) : result diff_options string =
+    ? name = "spi" ?> Ok { o ?| spi = value }
+    |? name = "cells" ?> diff_cells o value
+    |: Error ("unknown option --" ++# name)
+
+:= diff_rules () : flag_rules diff_options = { switched = \ _ _ => None; valued = diff_valued }
+
+:= diff_args (args : list string) : result diff_options string =
+    ?= flags_parsed (diff_rules ()) { spi = ""; cells = 5i32 } args ?|
+    | Ok o ?& o::spi = "" => Error "missing --spi"
     | parsed => parsed
 
 := events_args (args : list string) : result events_options string =

@@ -103,11 +103,6 @@ if ($Notebooks) {
 $withClient = $Part -ne 'sim'
 $withSim = $Part -ne 'client'
 if (!$withClient -and !$withSim) { throw "x verify / part '$Part' selects nothing to build" }
-if ($withSim) {
-    Push-Location $sim
-    mix deps.get *> $null
-    Pop-Location
-}
 if ($Accept -and $withSim) { $null = Invoke-Step 'sim accept' { pwsh -NoProfile -File (Join-Path $sim 'build.ps1') -Accept -fast 1 } }
 if ($Accept -and $withClient) {
     $null = Invoke-Step 'client build before accepting' { pwsh -NoProfile -File (Join-Path $client 'build.ps1') -fast 1 }

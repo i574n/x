@@ -120,15 +120,15 @@ fn preview_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v5: i32 = ((v4) as i32);
     let v6: i32 = v5.wrapping_sub(1i32);
     let v7: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v8: Rc<UH0> = from_1(v3.clone(), v6, v7.clone());
+    let v8: Rc<UH0> = from_1(v3, v6, v7);
     let v9: i32 = 0i32;
     let v10: i32 = method2(v8.clone(), v9);
     let mut v11: i32 = 1i32;
     let v12: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-    let v13: Rc<UH1> = previews_3(v10, v11, v8.clone(), v12.clone());
+    let v13: Rc<UH1> = previews_3(v10, v11, v8, v12);
     let v14: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
     let v15: i32 = 0i32;
-    let v16: i32 = method5(v14.clone(), v13.clone(), v15);
+    let v16: i32 = method5(v14.clone(), v13, v15);
     let v17: Rc<Vec<Rc<str>>> = Rc::new(v14.borrow().clone());
     let v18: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v17).as_ref().clone()));
     let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
@@ -145,15 +145,15 @@ fn preview_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         let v29: bool = v28 < 10i32;
         let v35: Rc<str> = if v29 {
             let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("00"); } LIT.with(|lit| lit.clone()) };
-            v30.clone()
+            v30
         } else {
             let v31: bool = v28 < 100i32;
             if v31 {
                 let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0"); } LIT.with(|lit| lit.clone()) };
-                v32.clone()
+                v32
             } else {
                 let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v33.clone()
+                v33
             }
         };
         let v36: i32 = v27.wrapping_div(1000i32);
@@ -167,13 +167,13 @@ fn preview_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
         let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v44));
         let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" to create"); } LIT.with(|lit| lit.clone()) };
         let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v47));
-        v48.clone()
+        v48
     } else {
         let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        v49.clone()
+        v49
     };
     let v52: Rc<str> = Rc::<str>::from(format!("{}{}", v20, Rc::<str>::from(format!("{}{}", v25, v50))));
-    v52.clone()
+    v52
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {

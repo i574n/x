@@ -141,7 +141,7 @@ fn with_username_6(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>
     if v19 {
         let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown option "); } LIT.with(|lit| lit.clone()) };
         let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v3));
-        US6::US6_Error(v21.clone())
+        US6::US6_Error(v21)
     } else {
         match &v17 {
             US1::US1_None => {
@@ -149,12 +149,12 @@ fn with_username_6(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>
                 let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v3));
                 let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
                 let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
-                US6::US6_Error(v29.clone())
+                US6::US6_Error(v29)
             }
             US1::US1_Some(v23) => {
                 let v23: Rc<str> = v23.clone();
-                let v24: Rc<UH0> = Rc::new(UH0::UH0_Cons(v23.clone(), v4.clone()));
-                US6::US6_Ok(v24.clone(), v5.clone(), v6, v7, v8, v9.clone(), v10.clone(), v11.clone(), v12, v13, v14, v15, v16)
+                let v24: Rc<UH0> = Rc::new(UH0::UH0_Cons(v23, v4));
+                US6::US6_Ok(v24, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
             }
         }
     }
@@ -196,19 +196,19 @@ fn with_date_10(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -
             let v22: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v4, v20)), v5));
             let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
             let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v23));
-            US6::US6_Error(v24.clone())
+            US6::US6_Error(v24)
         }
         US1::US1_Some(v26) => {
             let v26: Rc<str> = v26.clone();
             let (mut v27, mut v28, mut v29, mut v30): (Rc<str>, Rc<str>, bool, bool) = match &v3 {
                 US9::US9_StartTime => {
-                    (v26.clone(), v13.clone(), v14, v15)
+                    (v26.clone(), v13, v14, v15)
                 }
                 _ => {
-                    (v12.clone(), v26.clone(), v14, v15)
+                    (v12, v26, v14, v15)
                 }
             };
-            US6::US6_Ok(v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v27.clone(), v28.clone(), v29, v30, v16, v17, v18)
+            US6::US6_Ok(v6, v7, v8, v9, v10, v11, v27, v28, v29, v30, v16, v17, v18)
         }
     }
 }
@@ -223,19 +223,19 @@ fn with_following_11(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<st
             let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v3));
             let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
             let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v20));
-            US6::US6_Error(v21.clone())
+            US6::US6_Error(v21)
         }
         US1::US1_Some(v23) => {
             let v23: Rc<str> = v23.clone();
             match &v5 {
                 US1::US1_None => {
-                    let v27: US1 = US1::US1_Some(v23.clone());
-                    US6::US6_Ok(v4.clone(), v27.clone(), v6, v7, v8, v9.clone(), v10.clone(), v11.clone(), v12, v13, v14, v15, v16)
+                    let v27: US1 = US1::US1_Some(v23);
+                    US6::US6_Ok(v4, v27, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
                 }
                 US1::US1_Some(v24) => {
                     let v24: Rc<str> = v24.clone();
                     let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--following given twice"); } LIT.with(|lit| lit.clone()) };
-                    US6::US6_Error(v25.clone())
+                    US6::US6_Error(v25)
                 }
             }
         }
@@ -282,23 +282,23 @@ fn bounded_12(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> 
                                     _ => {
                                         let (mut v29, mut v30, mut v31, mut v32, mut v33, mut v34, mut v35, mut v36, mut v37, mut v38, mut v39, mut v40, mut v41): (Rc<UH0>, US1, i32, i32, i32, US2, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = match &v3 {
                                             US9::US9_Depth => {
-                                                (v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v24, v17, v18)
+                                                (v6.clone(), v7.clone(), v8, v9, v10, v11, v12.clone(), v13.clone(), v14, v15, v24, v17, v18)
                                             }
                                             _ => {
                                                 let v28: US2 = US2::US2_AtMost(v24);
-                                                (v6.clone(), v7.clone(), v8, v9, v10, v28.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17, v18)
+                                                (v6, v7, v8, v9, v10, v28, v12, v13, v14, v15, v16, v17, v18)
                                             }
                                         };
-                                        (v29.clone(), v30.clone(), v31, v32, v33, v34.clone(), v35.clone(), v36.clone(), v37, v38, v39, v40, v41)
+                                        (v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41)
                                     }
                                 };
-                                (v42.clone(), v43.clone(), v44, v45, v46, v47.clone(), v48.clone(), v49.clone(), v50, v51, v52, v53, v54)
+                                (v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54)
                             }
                         };
-                        (v55.clone(), v56.clone(), v57, v58, v59, v60.clone(), v61.clone(), v62.clone(), v63, v64, v65, v66, v67)
+                        (v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67)
                     }
                 };
-                US6::US6_Ok(v68.clone(), v69.clone(), v70, v71, v72, v73.clone(), v74.clone(), v75.clone(), v76, v77, v78, v79, v80)
+                US6::US6_Ok(v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79, v80)
             } else {
                 let v82: Rc<str> = Rc::<str>::from(format!("{:?}", v21));
                 let v83: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" to "); } LIT.with(|lit| lit.clone()) };
@@ -310,7 +310,7 @@ fn bounded_12(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> 
                 let v92: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v89, v90)), v5));
                 let v93: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
                 let v94: Rc<str> = Rc::<str>::from(format!("{}{}", v92, v93));
-                US6::US6_Error(v94.clone())
+                US6::US6_Error(v94)
             }
         }
         _ => {
@@ -324,7 +324,7 @@ fn bounded_12(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> 
             let v107: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v104, v105)), v5));
             let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
             let v109: Rc<str> = Rc::<str>::from(format!("{}{}", v107, v108));
-            US6::US6_Error(v109.clone())
+            US6::US6_Error(v109)
         }
     }
 }
@@ -357,67 +357,67 @@ fn advance_5(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
     let v18: bool = &*v16 == "--no-replies";
     let v70: US7 = if v18 {
         let v19: US8 = US8::US8_NoReplies;
-        US7::US7_Switched(v19.clone())
+        US7::US7_Switched(v19)
     } else {
         let v21: bool = &*v16 == "--no-reposts";
         if v21 {
             let v22: US8 = US8::US8_NoReposts;
-            US7::US7_Switched(v22.clone())
+            US7::US7_Switched(v22)
         } else {
             let v24: bool = &*v16 == "--originals";
             if v24 {
                 let v25: US8 = US8::US8_Originals;
-                US7::US7_Switched(v25.clone())
+                US7::US7_Switched(v25)
             } else {
                 let v27: bool = &*v16 == "--json";
                 if v27 {
                     let v28: US8 = US8::US8_Json;
-                    US7::US7_Switched(v28.clone())
+                    US7::US7_Switched(v28)
                 } else {
                     let v30: bool = &*v16 == "--hints";
                     if v30 {
                         let v31: US8 = US8::US8_Hints;
-                        US7::US7_Switched(v31.clone())
+                        US7::US7_Switched(v31)
                     } else {
                         let v33: bool = &*v16 == "--per-account";
                         if v33 {
                             let v34: US9 = US9::US9_PerAccount;
-                            US7::US7_Valued(v34.clone())
+                            US7::US7_Valued(v34)
                         } else {
                             let v36: bool = &*v16 == "--limit";
                             if v36 {
                                 let v37: US9 = US9::US9_Limit;
-                                US7::US7_Valued(v37.clone())
+                                US7::US7_Valued(v37)
                             } else {
                                 let v39: bool = &*v16 == "--per-author";
                                 if v39 {
                                     let v40: US9 = US9::US9_PerAuthor;
-                                    US7::US7_Valued(v40.clone())
+                                    US7::US7_Valued(v40)
                                 } else {
                                     let v42: bool = &*v16 == "--depth";
                                     if v42 {
                                         let v43: US9 = US9::US9_Depth;
-                                        US7::US7_Valued(v43.clone())
+                                        US7::US7_Valued(v43)
                                     } else {
                                         let v45: bool = &*v16 == "--max-following";
                                         if v45 {
                                             let v46: US9 = US9::US9_MaxFollowing;
-                                            US7::US7_Valued(v46.clone())
+                                            US7::US7_Valued(v46)
                                         } else {
                                             let v48: bool = &*v16 == "--following";
                                             if v48 {
                                                 let v49: US9 = US9::US9_Following;
-                                                US7::US7_Valued(v49.clone())
+                                                US7::US7_Valued(v49)
                                             } else {
                                                 let v51: bool = &*v16 == "--start-time";
                                                 if v51 {
                                                     let v52: US9 = US9::US9_StartTime;
-                                                    US7::US7_Valued(v52.clone())
+                                                    US7::US7_Valued(v52)
                                                 } else {
                                                     let v54: bool = &*v16 == "--end-time";
                                                     if v54 {
                                                         let v55: US9 = US9::US9_EndTime;
-                                                        US7::US7_Valued(v55.clone())
+                                                        US7::US7_Valued(v55)
                                                     } else {
                                                         US7::US7_Plain
                                                     }
@@ -436,12 +436,12 @@ fn advance_5(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
     match &v70 {
         US7::US7_Plain => {
             let v85: US6 = with_username_6(v0.clone(), v1.clone(), v2.clone(), v16.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15);
-            (v85.clone(), v17.clone())
+            (v85, v17.clone())
         }
         US7::US7_Switched(v71) => {
             let v71: US8 = v71.clone();
-            let v72: US6 = apply_switch_7(v71.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15);
-            (v72.clone(), v17.clone())
+            let v72: US6 = apply_switch_7(v71, v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15);
+            (v72, v17.clone())
         }
         US7::US7_Valued(v73) => {
             let v73: US9 = v73.clone();
@@ -449,15 +449,15 @@ fn advance_5(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
                 UH0::UH0_Cons(v78, v79) => {
                     let v78: Rc<str> = v78.clone();
                     let v79: Rc<UH0> = v79.clone();
-                    let v80: US6 = apply_flag_8(v0.clone(), v1.clone(), v2.clone(), v73.clone(), v16.clone(), v78.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15);
-                    (v80.clone(), v79.clone())
+                    let v80: US6 = apply_flag_8(v0, v1, v2, v73, v16.clone(), v78, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
+                    (v80, v79)
                 }
                 UH0::UH0_Nil => {
                     let v74: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" needs a value"); } LIT.with(|lit| lit.clone()) };
                     let v75: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v74));
-                    let v76: US6 = US6::US6_Error(v75.clone());
+                    let v76: US6 = US6::US6_Error(v75);
                     let v77: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                    (v76.clone(), v77.clone())
+                    (v76, v77)
                 }
             }
         }
@@ -481,17 +481,17 @@ fn method15(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
 }
 fn finish_14(mut v0: Rc<UH0>, mut v1: US1, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: US2, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: bool, mut v9: bool, mut v10: i32, mut v11: bool, mut v12: bool) -> US3 {
     let v13: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v14: Rc<UH0> = method15(v0.clone(), v13.clone());
+    let v14: Rc<UH0> = method15(v0, v13);
     match &v1 {
         US1::US1_None => {
             match &*v14 {
                 UH0::UH0_Nil => {
                     let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("name at least one account, or --following USERNAME"); } LIT.with(|lit| lit.clone()) };
-                    US3::US3_Rejected(v21.clone())
+                    US3::US3_Rejected(v21)
                 }
                 _ => {
                     let v23: US4 = US4::US4_Accounts(v14.clone());
-                    US3::US3_ShowTimeline(v23.clone(), v2, v3, v4, v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11, v12)
+                    US3::US3_ShowTimeline(v23, v2, v3, v4, v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11, v12)
                 }
             }
         }
@@ -499,12 +499,12 @@ fn finish_14(mut v0: Rc<UH0>, mut v1: US1, mut v2: i32, mut v3: i32, mut v4: i32
             let v15: Rc<str> = v15.clone();
             match &*v14 {
                 UH0::UH0_Nil => {
-                    let v16: US4 = US4::US4_FollowingOf(v15.clone());
-                    US3::US3_ShowTimeline(v16.clone(), v2, v3, v4, v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11, v12)
+                    let v16: US4 = US4::US4_FollowingOf(v15);
+                    US3::US3_ShowTimeline(v16, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
                 }
                 _ => {
                     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--following takes one account and no other usernames"); } LIT.with(|lit| lit.clone()) };
-                    US3::US3_Rejected(v18.clone())
+                    US3::US3_Rejected(v18)
                 }
             }
         }
@@ -536,9 +536,9 @@ fn capped_13(mut v0: Rc<UH0>, mut v1: US1, mut v2: i32, mut v3: i32, mut v4: i32
         let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v16));
         let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" accounts per run"); } LIT.with(|lit| lit.clone()) };
         let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v19));
-        US3::US3_Rejected(v20.clone())
+        US3::US3_Rejected(v20)
     } else {
-        finish_14(v0.clone(), v1.clone(), v2, v3, v4, v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11, v12)
+        finish_14(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
     }
 }
 fn parse_from_4(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<UH0>, mut v4: US1, mut v5: i32, mut v6: i32, mut v7: i32, mut v8: US2, mut v9: Rc<str>, mut v10: Rc<str>, mut v11: bool, mut v12: bool, mut v13: i32, mut v14: bool, mut v15: bool, mut v16: Rc<UH0>) -> US3 {
@@ -633,26 +633,26 @@ fn fields_of_17(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
                     let v16: Rc<UH0> = v16.clone();
                     let v17: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
                     let v18: i32 = 0i32;
-                    let v19: i32 = method18(v17.clone(), v16.clone(), v18);
+                    let v19: i32 = method18(v17.clone(), v16, v18);
                     let v20: Rc<Vec<Rc<str>>> = Rc::new(v17.borrow().clone());
                     let v21: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v20).as_ref().clone()));
                     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                     let v23: Rc<str> = Rc::<str>::from((*v21.borrow()).join(&*v22));
-                    (false, v23.clone(), v2, v3, v4, v15)
+                    (false, v23, v2, v3, v4, v15)
                 }
                 _ => {
                     let (mut v25, mut v26, mut v27, mut v28, mut v29, mut v30): (bool, Rc<str>, i32, i32, i32, i32) = match &v1 {
                         US4::US4_FollowingOf(v24) => {
                             let v24: Rc<str> = v24.clone();
-                            (true, v24.clone(), v2, v3, v4, v15)
+                            (true, v24, v2, v3, v4, v15)
                         }
                         _ => unreachable!(),
                     };
-                    (v25, v26.clone(), v27, v28, v29, v30)
+                    (v25, v26, v27, v28, v29, v30)
                 }
             };
             let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (0i32, v37.clone(), v31, v32.clone(), v33, v34, v35, v36, v6.clone(), v7.clone(), v8, v9, v10, v11, v12)
+            (0i32, v37, v31, v32, v33, v34, v35, v36, v6, v7, v8, v9, v10, v11, v12)
         }
         _ => {
             let (mut v76, mut v77): (i32, Rc<str>) = match &v0 {
@@ -661,67 +661,67 @@ fn fields_of_17(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
                     match &v42 {
                         US5::US5_DeleteThread(v49) => {
                             let v49: Rc<str> = v49.clone();
-                            (9i32, v49.clone())
+                            (9i32, v49)
                         }
                         US5::US5_PostThread(v44) => {
                             let v44: Rc<str> = v44.clone();
-                            (7i32, v44.clone())
+                            (7i32, v44)
                         }
                         US5::US5_PreviewThread(v45) => {
                             let v45: Rc<str> = v45.clone();
-                            (8i32, v45.clone())
+                            (8i32, v45)
                         }
                         US5::US5_PreviewThreads(v46) => {
                             let v46: Rc<UH0> = v46.clone();
                             let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                            let v48: Rc<str> = delimited_19(v47.clone(), v46.clone());
-                            (11i32, v48.clone())
+                            let v48: Rc<str> = delimited_19(v47, v46);
+                            (11i32, v48)
                         }
                         US5::US5_ReadThread(v43) => {
                             let v43: Rc<str> = v43.clone();
-                            (6i32, v43.clone())
+                            (6i32, v43)
                         }
                         US5::US5_ResumeThread(v50, v51) => {
                             let v50: Rc<str> = v50.clone();
                             let v51: Rc<str> = v51.clone();
                             let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                             let v54: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v50, v52)), v51));
-                            (10i32, v54.clone())
+                            (10i32, v54)
                         }
                     }
                 }
                 US3::US3_PublishPost(v38) => {
                     let v38: Rc<str> = v38.clone();
-                    (1i32, v38.clone())
+                    (1i32, v38)
                 }
                 US3::US3_RefreshToken(v41) => {
                     let v41: Rc<str> = v41.clone();
-                    (5i32, v41.clone())
+                    (5i32, v41)
                 }
                 US3::US3_Rejected(v40) => {
                     let v40: Rc<str> = v40.clone();
-                    (4i32, v40.clone())
+                    (4i32, v40)
                 }
                 US3::US3_RemovePost(v39) => {
                     let v39: Rc<str> = v39.clone();
-                    (2i32, v39.clone())
+                    (2i32, v39)
                 }
                 _ => {
                     let v67: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    (3i32, v67.clone())
+                    (3i32, v67)
                 }
             };
             let v78: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (v76, v77.clone(), false, v78.clone(), 5i32, 20i32, 0i32, 20i32, v78.clone(), v78.clone(), false, false, 0i32, false, false)
+            (v76, v77, false, v78.clone(), 5i32, 20i32, 0i32, 20i32, v78.clone(), v78, false, false, 0i32, false, false)
         }
     };
-    (v79, v80.clone(), v81, v82.clone(), v83, v84, v85, v86, v87.clone(), v88.clone(), v89, v90, v91, v92, v93)
+    (v79, v80, v81, v82, v83, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93)
 }
 fn timeline_fields_0() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) {
     let mut v0: i32 = command_line_argument_count_1();
     let mut v1: i32 = v0.wrapping_sub(1i32);
     let mut v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v3: Rc<UH0> = from_2(v1, v2.clone());
+    let v3: Rc<UH0> = from_2(v1, v2);
     let (mut v70, mut v71, mut v72, mut v73, mut v74, mut v75, mut v76, mut v77, mut v78, mut v79, mut v80, mut v81, mut v82, mut v83, mut v84): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = match &*v3 {
         UH0::UH0_Cons(v4, v5) => {
             let v4: Rc<str> = v4.clone();
@@ -743,21 +743,21 @@ fn timeline_fields_0() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<s
             let v20: i32 = 0i32;
             let v21: bool = false;
             let v22: bool = false;
-            let v23: US3 = parse_from_4(v6.clone(), v7.clone(), v8.clone(), v11.clone(), v12.clone(), v13, v14, v15, v17.clone(), v9.clone(), v10.clone(), v18, v19, v20, v21, v22, v5.clone());
-            fields_of_17(v23.clone())
+            let v23: US3 = parse_from_4(v6, v7, v8, v11, v12, v13, v14, v15, v17, v9, v10, v18, v19, v20, v21, v22, v5);
+            fields_of_17(v23)
         }
         _ => {
             let (mut v55, mut v56, mut v57, mut v58, mut v59, mut v60, mut v61, mut v62, mut v63, mut v64, mut v65, mut v66, mut v67, mut v68, mut v69): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = match &*v3 {
                 UH0::UH0_Nil => {
                     let v39: US3 = US3::US3_ShowHelp;
-                    fields_of_17(v39.clone())
+                    fields_of_17(v39)
                 }
                 _ => unreachable!(),
             };
-            (v55, v56.clone(), v57, v58.clone(), v59, v60, v61, v62, v63.clone(), v64.clone(), v65, v66, v67, v68, v69)
+            (v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69)
         }
     };
-    (v70, v71.clone(), v72, v73.clone(), v74, v75, v76, v77, v78.clone(), v79.clone(), v80, v81, v82, v83, v84)
+    (v70, v71, v72, v73, v74, v75, v76, v77, v78, v79, v80, v81, v82, v83, v84)
 }
 fn closure0() -> Rc<dyn Fn() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool)> = Rc::new(move || -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) {
