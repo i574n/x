@@ -28,10 +28,10 @@ test wire static =
 
 := number_of (v : json) : i32 = ($'!v.as_i64().unwrap_or(0)' : i64) |> conv
 
-:= count_of (v : json) : i32 = ($'!v.as_array().map_or(0, Vec::len)' : convert.unativeint) |> convert.convert
+:= count_of (v : json) : i32 = ($'!v.as_array().map_or(0, Vec::len)' : convert::unativeint) |> convert::convert
 
 := item (i : i32) (v : json) : json =
-    := at : convert.unativeint = convert.convert i
+    := at : convert::unativeint = convert::convert i
     $'!v.get(!at).cloned().unwrap_or_default()'
 
 := absent (v : json) : bool = $'!v.is_null()'
@@ -42,7 +42,7 @@ test wire static =
 := reply_body (text : string) (to : string) : string =
     $'Rc::<str>::from(serde_json::json\!({"text": &*!text, "reply": {"in_reply_to_tweet_id": &*!to}}).to_string())'
 
-:= unescaped (t : string) : string = t |> sm'.replace "&lt;" "<" |> sm'.replace "&gt;" ">" |> sm'.replace "&amp;" "&"
+:= unescaped (t : string) : string = t |> sm'::replace "&lt;" "<" |> sm'::replace "&gt;" ">" |> sm'::replace "&amp;" "&"
 
 :! app_context = ()
 
@@ -136,8 +136,8 @@ test wire static =
     | Remove
 
 := trimmed_base (base_url : string) : string =
-    := n : i32 = sm'.length base_url
-    ? sm'.ends_with "/" base_url ?> cut 0i32 (n - 1i32) base_url |: base_url
+    := n : i32 = sm'::length base_url
+    ? sm'::ends_with "/" base_url ?> cut 0i32 (n - 1i32) base_url |: base_url
 
 := header_kind \* c. (a : authorizer c) : string =
     ?= a ?|
@@ -159,45 +159,45 @@ test wire static =
 
 := base_of \* c. (a : api c) : string =
     ?= a ?|
-    | api e => e.base
+    | api e => e::base
 
 := following_path (p : following_page) : string =
-    := first = "/2/users/" ++# user_text p.follower ++# "/following?max_results=" ++# sm'.obj_to_string p.size
-    ? p.pagination_token = "" ?> first |: first ++# "&pagination_token=" ++# p.pagination_token
+    := first = "/2/users/" ++# user_text p::follower ++# "/following?max_results=" ++# sm'::obj_to_string p::size
+    ? p::pagination_token = "" ?> first |: first ++# "&pagination_token=" ++# p::pagination_token
 
 := expansions_of (q : query) : list string =
-    listm.append (? q.depth > 0 ?> [ "referenced_posts"; "referenced_posts.author_id" ] |: Nil)
-        (? q.hints ?> [ "attachments.media_keys" ] |: Nil)
+    listm::append (? q::depth > 0 ?> [ "referenced_posts"; "referenced_posts.author_id" ] |: Nil)
+        (? q::hints ?> [ "attachments.media_keys" ] |: Nil)
 
 := expansion_params (q : query) : string =
-    := media = ? q.hints ?> "&media.fields=type,alt_text" |: ""
+    := media = ? q::hints ?> "&media.fields=type,alt_text" |: ""
     ?= expansions_of q ?|
     | Nil => ""
-    | names => "&expansions=" ++# sm'.concat_list "," names ++# media
+    | names => "&expansions=" ++# sm'::concat_list "," names ++# media
 
 := fields_params (q : query) : string =
     "&post.fields=created_at,author_id,public_metrics,entities,attachments" ++# expansion_params q
 
 := exclude_param (f : filters) : string =
-    ?= f.no_replies, f.no_reposts ?|
+    ?= f::no_replies, f::no_reposts ?|
     | !+, !+ => "&exclude=replies,retweets"
     | !+, !- => "&exclude=replies"
     | !-, !+ => "&exclude=retweets"
     | !-, !- => ""
 
 := window_params (f : filters) : string =
-    := start_time = ? f.start_time = "" ?> "" |: "&start_time=" ++# f.start_time
-    start_time ++# (? f.end_time = "" ?> "" |: "&end_time=" ++# f.end_time)
+    := start_time = ? f::start_time = "" ?> "" |: "&start_time=" ++# f::start_time
+    start_time ++# (? f::end_time = "" ?> "" |: "&end_time=" ++# f::end_time)
 
 := timeline_floor () : i32 = 5i32
 
 := requested_posts (shown : i32) : i32 = ? shown < timeline_floor () ?> timeline_floor () |: shown
 
 :~ posts_path (u : user_id) (q : query) : string =
-    "/2/users/" ++# user_text u ++# "/tweets?max_results=" ++# sm'.obj_to_string (requested_posts q.max_results)
-    ++# fields_params q ++# window_params q.filters ++# exclude_param q.filters
+    "/2/users/" ++# user_text u ++# "/tweets?max_results=" ++# sm'::obj_to_string (requested_posts q::max_results)
+    ++# fields_params q ++# window_params q::filters ++# exclude_param q::filters
 
-:= joined (prefix : string) (ids : list string) : string = prefix ++# sm'.concat_list "," ids
+:= joined (prefix : string) (ids : list string) : string = prefix ++# sm'::concat_list "," ids
 
 :~ lookup_path (l : post_ids) (q : query) : string = joined "/2/tweets?ids=" (l |> each post_text) ++# fields_params q
 
@@ -211,11 +211,11 @@ test wire static =
 
 := search_head (s : thread_search) : string =
     "/2/tweets/search/all?query=conversation_id%3A"
-    ++# conversation_text s.conversation_id
+    ++# conversation_text s::conversation_id
     ++# "%20from%3A"
-    ++# user_text s.author_id
+    ++# user_text s::author_id
     ++# "&start_time="
-    ++# s.start_time
+    ++# s::start_time
 
 := page_path (s : thread_search) (token : string) : string =
     := first = search_head s ++# "&max_results=100&post.fields=conversation_id,entities,referenced_posts"
@@ -230,7 +230,7 @@ test wire static =
     ?= q ?|
     | Users k => users_path k
     | FollowedBy p => following_path p
-    | PostsOf (a, qy) => posts_path a.id qy
+    | PostsOf (a, qy) => posts_path a::id qy
     | PostsById (l, qy) => lookup_path l qy
 
 :| outgoing =
@@ -311,7 +311,7 @@ test wire static =
 := accounts_in (doc : json) : accounts = doc |> field "data" |> collect account_of
 
 := named_accounts (users : json) : accounts =
-    users |> collect account_of |> keep (\ (a : account) => a.username <> "")
+    users |> collect account_of |> keep (\ (a : account) => a::username <> "")
 
 := unknown_in (doc : json) : list string = doc |> field "errors" |> collect (at_key "value")
 
@@ -326,7 +326,7 @@ test wire static =
 
 := included_pool (primary : list post) (inc : json) : pool =
     {
-        posts = listm.append primary (included_posts inc)
+        posts = listm::append primary (included_posts inc)
         media = inc |> field "media" |> collect medium_of
         users = inc |> field "users" |> named_accounts
     }
@@ -376,7 +376,7 @@ test wire static =
     ?= q ?|
     | Users _ => users_of_doc doc
     | FollowedBy _ => page_of_doc doc
-    | PostsOf (a, _) => posts_of_doc a.username doc
+    | PostsOf (a, _) => posts_of_doc a::username doc
     | PostsById _ => posts_of_doc "" doc
 
 := created_of (d : json) : created_reply =
@@ -410,7 +410,7 @@ test wire static =
     $'serde_json::json\!({"uri": &*!uri, "cid": &*!cid})'
 
 := post_record (w : bluesky_writer) (text : string) : json =
-    := key, kind, at = record_type_key (), post_collection (), w.at
+    := key, kind, at = record_type_key (), post_collection (), w::at
     $'serde_json::json\!({(&*!key): &*!kind, "text": &*!text, "createdAt": &*!at})'
 
 := reply_refs (root : created_reply) (parent : created_reply) : json =
@@ -418,11 +418,11 @@ test wire static =
     $'serde_json::json\!({"root": !up, "parent": !back})'
 
 := reply_record (w : bluesky_writer) (text : string) (refs : json) : json =
-    := key, kind, at = record_type_key (), post_collection (), w.at
+    := key, kind, at = record_type_key (), post_collection (), w::at
     $'serde_json::json\!({(&*!key): &*!kind, "text": &*!text, "createdAt": &*!at, "reply": !refs})'
 
 := record_of (w : bluesky_writer) (record : json) : string =
-    := repo, kind = w.repo, post_collection ()
+    := repo, kind = w::repo, post_collection ()
     $'Rc::<str>::from(serde_json::json\!({"repo": &*!repo, "collection": &*!kind, "record": !record}).to_string())'
 
 := post_write (w : bluesky_writer) (text : string) : verb = Write (record_of w (post_record w text))
@@ -430,13 +430,13 @@ test wire static =
 := reply_write (w : bluesky_writer) (text : string) (root : created_reply) (parent : created_reply) : verb =
     Write (record_of w (reply_record w text (reply_refs root parent)))
 
-:= rkey_of (uri : string) : string = rest_from (sm'.last_index_of "/" uri + 1i32) uri
+:= rkey_of (uri : string) : string = rest_from (sm'::last_index_of "/" uri + 1i32) uri
 
 := delete_body (repo : string) (kind : string) (key : string) : string =
     $'Rc::<str>::from(serde_json::json\!({"repo": &*!repo, "collection": &*!kind, "rkey": &*!key}).to_string())'
 
 := delete_write (w : bluesky_writer) (uri : string) : verb =
-    Write (delete_body w.repo (post_collection ()) (rkey_of uri))
+    Write (delete_body w::repo (post_collection ()) (rkey_of uri))
 
 := record_path (o : outgoing) : string =
     ?= o ?|
@@ -493,7 +493,7 @@ test wire static =
 := session_of (doc : json) : session = { token = at_key "accessJwt" doc; account = at_key "did" doc }
 
 := clipped (n : i32) (text : string) : string =
-    ? sm'.length text <= n ?> text |: sm'.slice 0i32 (n - 1i32) text ++# "..."
+    ? sm'::length text <= n ?> text |: sm'::slice 0i32 (n - 1i32) text ++# "..."
 
 := distinct_parts (title : string) (detail : string) : bool = title <> "" && detail <> "" && title <> detail
 
@@ -509,21 +509,21 @@ test wire static =
 
 := accepted (status : i32) : bool = status >= 200i32 && status < 300i32
 
-:= ids_of (l : list post) : post_ids = l |> each (\ (p : post) => p.id)
+:= ids_of (l : list post) : post_ids = l |> each (\ (p : post) => p::id)
 
-:= refs_of (l : list post) : post_ids = l |> spread (\ (p : post) => p.refs |> each (\ (r : reference) => r.id))
+:= refs_of (l : list post) : post_ids = l |> spread (\ (p : post) => p::refs |> each (\ (r : reference) => r::id))
 
 := distinct (l : list string) : list string =
-    listm.fold (\ acc x => ? has ((=) x) acc ?> acc |: listm.append acc [ x ]) Nil l
+    listm::fold (\ acc x => ? has ((=) x) acc ?> acc |: listm::append acc [ x ]) Nil l
 
 := distinct_posts (l : post_ids) : post_ids =
-    listm.fold (\ acc x => ? has (same_post x) acc ?> acc |: listm.append acc [ x ]) Nil l
+    listm::fold (\ acc x => ? has (same_post x) acc ?> acc |: listm::append acc [ x ]) Nil l
 
 := without_ids (ids : post_ids) (l : list post) : list post =
-    l |> keep (\ (p : post) => not (has (same_post p.id) ids))
+    l |> keep (\ (p : post) => not (has (same_post p::id) ids))
 
 := absorb (old : pool) (fresh : pool) : pool =
-    merge_pools fresh { old ?| posts = without_ids (ids_of fresh.posts) old.posts }
+    merge_pools fresh { old ?| posts = without_ids (ids_of fresh::posts) old::posts }
 
 := wanted_of (c : following_cap) : i32 =
     ?= c ?|
@@ -533,7 +533,7 @@ test wire static =
 := page_size (remaining : i32) : i32 = ? remaining < 1000i32 ?> remaining |: 1000i32
 
 := answered (status : i32) (resource : string) (detail : string) : string =
-    "X API answered " ++# sm'.obj_to_string status ++# " for " ++# resource ++# ": " ++# detail
+    "X API answered " ++# sm'::obj_to_string status ++# " for " ++# resource ++# ": " ++# detail
 
 := unreached (resource : string) (detail : string) : string =
     "could not reach the X API for " ++# resource ++# ": " ++# detail
@@ -552,14 +552,14 @@ test wire static =
 :~ classified (resource : string) (status : i32) (body : string) : result string string =
     ? accepted status ?> decodable resource body |: Error (refusal resource status body)
 
-:= pages_text (s : cursor_stop) : string = sm'.obj_to_string s.pages ++# " pages"
+:= pages_text (s : cursor_stop) : string = sm'::obj_to_string s::pages ++# " pages"
 
 := cursor_halt_text (h : cursor_halt) : string =
     ?= h ?|
-    | CursorRepeated s => "the API repeated cursor " ++# s.token ++# " after " ++# pages_text s
+    | CursorRepeated s => "the API repeated cursor " ++# s::token ++# " after " ++# pages_text s
     | CursorBudget s => "stopped after " ++# pages_text s ++# " (page budget)"
 
-:= cursor_text (x : halted_cursor) : string = x.resource ++# ": " ++# cursor_halt_text x.halt
+:= cursor_text (x : halted_cursor) : string = x::resource ++# ": " ++# cursor_halt_text x::halt
 
 := other_failure (f : failure) : string =
     ?= f ?|
@@ -685,37 +685,40 @@ test the_app_token_cannot_write fails "Expected: api user_context" =
 
 := member (k : string) (v : string) : string = quoted_text k ++# ":" ++# v
 
-:= object (l : list string) : string = "{" ++# sm'.concat_list "," l ++# "}"
+:= object (l : list string) : string = "{" ++# sm'::concat_list "," l ++# "}"
 
-:= items (l : list string) : string = "[" ++# sm'.concat_list "," l ++# "]"
+:= items (l : list string) : string = "[" ++# sm'::concat_list "," l ++# "]"
 
 := metrics_json () : string = object [ member "reply_count" "2"; member "repost_count" "1"; member "like_count" "14" ]
 
 := quote_json () : string = items [ object [ member "type" (quoted_text "quoted"); member "id" (quoted_text "2") ] ]
 
+:= post_named () : list string =
+    [ member "id" (quoted_text "1"); member "author_id" (quoted_text "7"); member "text" (quoted_text "hi") ]
+
 := post_json () : string =
-    := named = [ member "id" (quoted_text "1"); member "author_id" (quoted_text "7"); member "text" (quoted_text "hi") ]
-    object (listm.append named [ member "public_metrics" (metrics_json ()); member "referenced_posts" (quote_json ()) ])
+    := linked = [ member "public_metrics" (metrics_json ()); member "referenced_posts" (quote_json ()) ]
+    object (listm::append (post_named ()) linked)
 
 := posts_doc () : json = parse_json (object [ member "data" (items [ post_json () ]) ])
 
 := post_summary (p : post) : string =
-    := refs = refs_text p.refs
-    post_text p.id
+    := refs = refs_text p::refs
+    post_text p::id
     ++# " "
-    ++# p.author_username
+    ++# p::author_username
     ++# " "
-    ++# sm'.obj_to_string p.public_metrics.like_count
+    ++# sm'::obj_to_string p::public_metrics::like_count
     ++# " "
     ++# refs
 
 ///> rust -d serde_json
 test posts_decode_ids_counts_and_references =
     ?= posts_of_doc "erin" (posts_doc ()) ?|
-    | posts_reply { primary } => primary |> each post_summary |> sm'.concat_list "|" |> _assert_eq "1 erin 14 quoted:2"
+    | posts_reply { primary } => primary |> each post_summary |> sm'::concat_list "|" |> _assert_eq "1 erin 14 quoted:2"
 
 := account_names (l : accounts) : string =
-    l |> each (\ (a : account) => user_text a.id ++# ":" ++# a.username) |> sm'.concat_list ","
+    l |> each (\ (a : account) => user_text a::id ++# ":" ++# a::username) |> sm'::concat_list ","
 
 := ghost_error () : string = object [ member "value" (quoted_text "ghost") ]
 
@@ -732,7 +735,7 @@ test posts_decode_ids_counts_and_references =
 test users_lookup_names_found_and_unknown =
     ?= users_of_doc (users_doc ()) ?|
     | users_reply { found unknown } =>
-        account_names found ++# " " ++# sm'.concat_list "," unknown |> _assert_eq "9:bob ghost"
+        account_names found ++# " " ++# sm'::concat_list "," unknown |> _assert_eq "9:bob ghost"
 
 := next_page_doc () : json =
     parse_json (object [ member "data" (items []); member "meta" (object [ member "next_token" (quoted_text "n2") ]) ])
@@ -810,7 +813,7 @@ test a_bluesky_post_is_typed_as_a_feed_post =
 test a_session_names_its_token_and_account =
     := ~doc = "{\"accessJwt\":\"t1\",\"did\":\"did:plc:e2e\"}"
     := s = session_of (parse_json doc)
-    (s.token, s.account) |> _assert_eq ("t1", "did:plc:e2e")
+    (s::token, s::account) |> _assert_eq ("t1", "did:plc:e2e")
 
 ///> rust -d serde_json
 test a_session_request_names_the_account =

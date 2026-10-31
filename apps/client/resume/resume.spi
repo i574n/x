@@ -18,14 +18,14 @@ test resume static =
 := resume_end (k : i32) (planned : list string) (found : list string) : resume_plan =
     ?= found ?|
     | Nil => ResumeAfter { posted = k; remaining = planned }
-    | _ => MorePostedThanPlanned (k + (listm.length found : i32))
+    | _ => MorePostedThanPlanned (k + (listm::length found : i32))
 
 :~ ^ resume_from (k : i32) (planned : list string) (found : list string) : resume_plan =
     ?= planned, found ?|
     | (p :: ps), (f :: fs) => ? p = f ?> resume_from (k + 1i32) ps fs |: differing k p f
     | _ => resume_end k planned found
 
-:= resume_count (n : i32) : string = sm'.obj_to_string n
+:= resume_count (n : i32) : string = sm'::obj_to_string n
 
 := differs_head (at : i32) : string =
     := n = resume_count at
@@ -39,7 +39,7 @@ test resume static =
 
 := resume_refusal (plan : resume_plan) : string =
     ?= plan ?|
-    | PostDiffers d => differs_text d.at d.found d.planned
+    | PostDiffers d => differs_text d::at d::found d::planned
     | MorePostedThanPlanned n => longer_text n
     | ResumeAfter _ => "no posted thread found before the resume point; nothing posted"
 
@@ -49,7 +49,7 @@ test resume static =
 
 := plan_reply (p : resume_plan) : i32 * i32 * string =
     ?= p ?|
-    | ResumeAfter r ?& r.posted > 0i32 => 0i32, r.posted, strings_json r.remaining
+    | ResumeAfter r ?& r::posted > 0i32 => 0i32, r::posted, strings_json r::remaining
     | refused => 4i32, 0i32, resume_refusal refused
 
 :~ resume_plan_of (payload : string) : i32 * i32 * string =
@@ -58,8 +58,8 @@ test resume static =
 
 := plan_text (p : resume_plan) : string =
     ?= p ?|
-    | ResumeAfter r ?& r.posted > 0i32 =>
-        "after " ++# resume_count r.posted ++# ": " ++# sm'.concat_list "|" r.remaining
+    | ResumeAfter r ?& r::posted > 0i32 =>
+        "after " ++# resume_count r::posted ++# ": " ++# sm'::concat_list "|" r::remaining
     | refused => resume_refusal refused
 
 test a_half_posted_thread_resumes_after_its_last_post =

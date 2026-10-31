@@ -269,36 +269,36 @@ xc: 2 API requests
 ///- --test static
 :< testing
 :< sm'_operators
-:= each \* a b. (f : a -> b) (l : list a) : list b = listm.foldBack (\ x acc => f x :: acc) l Nil
-:= keep \* t. (ok : t -> bool) (l : list t) : list t = listm'.filter ok l
-:= spread \* a b. (f : a -> list b) (l : list a) : list b = listm'.collect f l
-:= first_where \* t. (ok : t -> bool) (l : list t) : option t = listm'.try_find_ ok l
-:= has \* t. (ok : t -> bool) (l : list t) : bool = listm'.exists' ok l
-:= take_first \* t. (n : i32) (l : list t) : list t = listm'.take_ n l
-:= then_ok \* a b e. (f : a -> result b e) (r : result a e) : result b e = resultm.bind f r
+:= each \* a b. (f : a -> b) (l : list a) : list b = listm::foldBack (\ x acc => f x :: acc) l Nil
+:= keep \* t. (ok : t -> bool) (l : list t) : list t = listm'::filter ok l
+:= spread \* a b. (f : a -> list b) (l : list a) : list b = listm'::collect f l
+:= first_where \* t. (ok : t -> bool) (l : list t) : option t = listm'::try_find_ ok l
+:= has \* t. (ok : t -> bool) (l : list t) : bool = listm'::exists' ok l
+:= take_first \* t. (n : i32) (l : list t) : list t = listm'::take_ n l
+:= then_ok \* a b e. (f : a -> result b e) (r : result a e) : result b e = resultm::bind f r
 := map_ok \* a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
-:= cut (start : i32) (len : i32) (s : string) : string = sm'.substring start len s
-:= split_on (sep : string) (s : string) : list string = sm'.split_list sep s
+:= cut (start : i32) (len : i32) (s : string) : string = sm'::substring start len s
+:= split_on (sep : string) (s : string) : list string = sm'::split_list sep s
 := pieces (sep : string) (s : string) : list string = ? s = "" ?> Nil |: split_on sep s
-:~ delimited (sep : string) (l : list string) : string = sm'.concat_list sep l
-:= rest_from (i : i32) (s : string) : string = cut i (sm'.length s - i) s
+:~ delimited (sep : string) (l : list string) : string = sm'::concat_list sep l
+:= rest_from (i : i32) (s : string) : string = cut i (sm'::length s - i) s
 := first_line (text : string) : string =
-    := i : i32 = sm'.index_of "\n" text
+    := i : i32 = sm'::index_of "\n" text
     ? i < 0i32 ?> text |: cut 0i32 i text
 := starts_at (prefix : string) (s : string) (i : i32) : bool =
-    ? i < 0i32 || i > sm'.length s ?> !- |: sm'.starts_with prefix (rest_from i s)
-:= digit_first (rest : string) : bool = has (\ d => sm'.starts_with (sm'.obj_to_string d) rest) (listm.init 10i32 id)
+    ? i < 0i32 || i > sm'::length s ?> !- |: sm'::starts_with prefix (rest_from i s)
+:= digit_first (rest : string) : bool = has (\ d => sm'::starts_with (sm'::obj_to_string d) rest) (listm::init 10i32 id)
 :~ ^ digits_end (s : string) (i : i32) : i32 =
-    ? i < sm'.length s && digit_first (rest_from i s) ?> digits_end s (i + 1i32) |: i
+    ? i < sm'::length s && digit_first (rest_from i s) ?> digits_end s (i + 1i32) |: i
 := digit_at (i : i32) (text : string) : i32 =
-    "0123456789" |> sm'.index_of (sm'.slice i i text)
+    "0123456789" |> sm'::index_of (sm'::slice i i text)
 :~ ^ digits (text : string) (i : i32) (n : i32) : option i32 =
-    ? i >= sm'.length text ?> Some n
+    ? i >= sm'::length text ?> Some n
     |:
         := d = digit_at i text
         ? d < 0 || n > 100000000 ?> None |: digits text (i + 1) (n * 10 + d)
 := without_digits (text : string) : string =
-    listm.init 10i32 id |> listm.fold (\ t d => sm'.replace (sm'.obj_to_string d) "" t) text
+    listm::init 10i32 id |> listm::fold (\ t d => sm'::replace (sm'::obj_to_string d) "" t) text
 :~ count_of_text (text : string) : option i32 =
     ? text = "" || without_digits text <> "" ?> None |: digits text 0 0
 ```
@@ -485,7 +485,7 @@ c9 1/1
 On a one-line file, only the domain dot and the mention get the space; `listm.foldBack` and `x.io` stay as written:
 
 ```powershell
-xc post-thread --dry-run e2e/links.txt
+xc post-thread --dry-run e2e/links.md
 ```
 
 ```text
@@ -609,7 +609,7 @@ xc: post 2 of the thread differs from post 2 of the file (found 'c2 1/1', planne
 - `xc delete-thread` and `xc post-thread --resume` find the thread's posts through X's API, so with another `XC_SITE` they exit 2 instead of reading X for posts that live elsewhere; `xc post` and `xc delete` work on every site.
 - Any other `XC_SITE` value exits 2.
 
-The tests post to local stand-ins for both sites (`e2e/social_stub.py`), so they cost nothing and need no account.
+The tests post to local stand-ins for both sites (`e2e/social_stub.ps1`), so they cost nothing and need no account.
 ### Renewing the OAuth 2.0 token
 
 An OAuth 2.0 access token lasts 2 hours. `xc refresh FILE` trades `X_OAUTH2_REFRESH_TOKEN` for a new access token and a new refresh token (X accepts each refresh token once) and rewrites those two lines of the env file in place, keeping every other line; nothing secret is printed:

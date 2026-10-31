@@ -1,0 +1,15 @@
+///- --package .. --timeout 600000
+///> gleam
+test xsim_events static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< events
+
+///> _
+:= main () : i32 =
+    export "decoded_stream" ((\ text => decoded_stream text) : string -> result (list delivery) string)
+    export "stream" ((\ l => stream l) : list delivery -> string)
+    0i32

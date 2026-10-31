@@ -7,11 +7,11 @@ test select static =
 :< prelude
 :< posts
 
-:= pool_lines (text : string) : list string = pieces "\n" text |> keep (sm'.starts_with "r\t")
+:= pool_lines (text : string) : list string = pieces "\n" text |> keep (sm'::starts_with "r\t")
 
 :~ selected_text (text : string) (limit : i32) (per_author : i32) : string =
-    := kept = (digest_of text).primary |> selected { limit per_author } |> each (entry_line "p")
-    listm.append kept (pool_lines text) |> sm'.concat_list "\n"
+    := kept = (digest_of text)::primary |> selected { limit per_author } |> each (entry_line "p")
+    listm::append kept (pool_lines text) |> sm'::concat_list "\n"
 
 := quoting_line (role : string) : string = role ++# "\t1\terin\t\tquoted:2\thi\t2\t1\t14"
 

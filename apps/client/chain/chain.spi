@@ -18,28 +18,28 @@ test chain static =
     | ChainMissing
 
 := replies_under (posts : list framed) (at : framed) : list framed =
-    posts |> keep \ (f : framed) => ?= f.parent ?| Some p => same_post p at.id | None => !-
+    posts |> keep \ (f : framed) => ?= f::parent ?| Some p => same_post p at::id | None => !-
 
 := outside (posts : list framed) (f : framed) : bool =
-    ?= f.parent ?|
-    | Some p => not (has (\ (g : framed) => same_post g.id p) posts)
+    ?= f::parent ?|
+    | Some p => not (has (\ (g : framed) => same_post g::id p) posts)
     | None => !+
 
-:= branched (at : framed) : chain_reading = ChainBranches (post_text at.id)
+:= branched (at : framed) : chain_reading = ChainBranches (post_text at::id)
 
 :~ ^ chain_from (all : list framed) (at : framed) (acc : list framed) : chain_reading =
     ?= replies_under all at ?|
-    | Nil => ChainRead (listm.rev acc)
+    | Nil => ChainRead (listm::rev acc)
     | next :: Nil => chain_from all next (next :: acc)
     | _ => branched at
 
 := orphan (posts : list framed) (f : framed) : bool =
-    ?= f.parent ?|
-    | Some p => not (has (\ (g : framed) => same_post g.id p) posts)
+    ?= f::parent ?|
+    | Some p => not (has (\ (g : framed) => same_post g::id p) posts)
     | None => !-
 
 := second_root (posts : list framed) (a : framed) (b : framed) : chain_reading =
-    ChainRoots (post_text (? orphan posts a ?> a |: b).id)
+    ChainRoots (post_text (? orphan posts a ?> a |: b)::id)
 
 := chain_of (posts : list framed) : chain_reading =
     ?= keep (outside posts) posts ?|
@@ -48,7 +48,7 @@ test chain static =
     | Nil => ChainMissing
 
 := framed_json (f : framed) : string =
-    object [ member "id" (quoted_text (post_text f.id)); member "text" (json_string f.text) ]
+    object [ member "id" (quoted_text (post_text f::id)); member "text" (json_string f::text) ]
 
 := chain_json (l : list framed) : string = items (l |> each framed_json)
 
@@ -73,7 +73,7 @@ test chain static =
 := post_of (id : string) (parent : string) (text : string) : framed =
     { id = post_id id; text; history = [ post_id id ]; urls = Nil; parent = optional_post parent }
 
-:= ids_listed (l : list framed) : string = l |> each (\ (f : framed) => post_text f.id) |> delimited ","
+:= ids_listed (l : list framed) : string = l |> each (\ (f : framed) => post_text f::id) |> delimited ","
 
 := chain_listed (posts : list framed) : string =
     ?= chain_of posts ?|

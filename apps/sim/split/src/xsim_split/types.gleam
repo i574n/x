@@ -1,6 +1,6 @@
-pub type Uh0 {
-    Uh0Nil
-    Uh0Cons(String, Uh0)
+pub type ListString {
+    ListStringNil
+    ListStringCons(String, ListString)
 }
 
 pub type Us0 {
@@ -11,7 +11,7 @@ pub type Us0 {
 
 pub type Uh1 {
     Uh1Nil
-    Uh1Cons(String, Uh0, Uh1)
+    Uh1Cons(String, ListString, Uh1)
 }
 
 pub type Us1 {
@@ -31,5 +31,5 @@ pub type Uh3 {
 
 pub type Uh4 {
     Uh4Nil
-    Uh4Cons(Uh0, Uh4)
+    Uh4Cons(ListString, Uh4)
 }

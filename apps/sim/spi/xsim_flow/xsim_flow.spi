@@ -1,0 +1,78 @@
+///- --package .. --timeout 600000
+///> gleam
+test xsim_flow static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< splitter
+:< schedule
+:< scenario
+:< personas
+:< remote_chunks
+
+:== staged_cells = string * i32 * i32 * i32 * string * i32 * bool
+
+:= staged_stream (x : staged_cells) : string =
+    := cells, seed, users, edits, personas, permille, framed = x
+    := g = { seed users edits personas permille framed chunking = remote_split }
+    scenario_stream g (split_all (char_of 0i32) cells)
+
+:= staged_final (x : staged_cells) : string =
+    := cells, seed, users, edits, personas, permille, framed = x
+    := g = { seed users edits personas permille framed chunking = remote_split }
+    scenario_final g (split_all (char_of 0i32) cells)
+
+:== run_cells = string * i32 * i32 * i32 * i32 * i32 * string * bool * i32 * i32
+
+:= run_cast (x : run_cells) : casting =
+    := _, seed, users, edits, breaking, churn, personas, _, _, _ = x
+    := c = plain_casting seed
+    { c ?| users = users; edits = edits; breaking = breaking; churn = churn; personas = parsed_personas personas }
+
+:= run_ask_of (x : run_cells) : run_ask =
+    := _, _, _, _, _, _, _, framed, schedule, permille = x
+    { cast = run_cast x; framed; schedule; permille; chunking = remote_split }
+
+:= staged_run (x : run_cells) : string * i32 * i32 * string =
+    := threads, _, _, _, _, _, _, _, _, _ = x
+    := text, posts, events, broken = corpus_run (run_ask_of x) (threads_of threads)
+    text, posts, events, delimited (char_of 0i32) broken
+
+:= joined_broken (r : string * list string) : string * string =
+    := text, broken = r
+    text, delimited (char_of 0i32) broken
+
+:= corpus_raw (x : run_cells) : string * string =
+    := threads, _, _, _, _, _, _, _, _, _ = x
+    from_corpus (run_cast x) (threads_of threads) |> raw_scenario |> joined_broken
+
+:= cells_raw (x : run_cells) : string * string =
+    := cells, _, _, _, _, _, _, _, _, _ = x
+    from_cells (run_cast x) "" (pieces (char_of 0i32) cells) |> raw_scenario |> joined_broken
+
+:== pacing_cells = string * i32 * i32 * i32
+
+:= paced (x : pacing_cells) : string =
+    := text, seed, permille, window = x
+    rescheduled text seed { permille window }
+
+:= stream_exports () : () =
+    export "scenario_stream" ((\ x => staged_stream x) : staged_cells -> string)
+    export "scenario_final" ((\ x => staged_final x) : staged_cells -> string)
+
+:= run_export () : () = export "corpus_run" ((\ x => staged_run x) : run_cells -> string * i32 * i32 * string)
+
+:= raw_exports () : () =
+    export "corpus_raw" ((\ x => corpus_raw x) : run_cells -> string * string)
+    export "cells_raw" ((\ x => cells_raw x) : run_cells -> string * string)
+
+///> _
+:= main () : i32 =
+    stream_exports ()
+    run_export ()
+    raw_exports ()
+    export "rescheduled" ((\ x => paced x) : pacing_cells -> string)
+    export "break_source" ((\ s => break_source s) : string -> string)
+    0i32

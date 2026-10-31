@@ -134,7 +134,7 @@ try {
 
     $mastodonPort, $mastodonLog = (Join-Path $WorkDir "mastodon.port"), (Join-Path $WorkDir "mastodon.jsonl")
     Remove-Item $mastodonPort, $mastodonLog -ErrorAction Ignore
-    $social = Start-Process $python -ArgumentList "-I", (Join-Path $PSScriptRoot "social_stub.py"), "mastodon", $mastodonPort, $mastodonLog -PassThru -NoNewWindow
+    $social = Start-Process pwsh -ArgumentList "-NoProfile", "-File", (Join-Path $PSScriptRoot "social_stub.ps1"), "mastodon", $mastodonPort, $mastodonLog -PassThru -NoNewWindow
     try {
         $deadline = (Get-Date).AddSeconds(60)
         while (!(Test-Path $mastodonPort) -or !(Get-Content $mastodonPort -ErrorAction Ignore)) {
@@ -163,7 +163,7 @@ try {
 
     $blueskyPort, $blueskyLog = (Join-Path $WorkDir "bluesky.port"), (Join-Path $WorkDir "bluesky.jsonl")
     Remove-Item $blueskyPort, $blueskyLog -ErrorAction Ignore
-    $sky = Start-Process $python -ArgumentList "-I", (Join-Path $PSScriptRoot "social_stub.py"), "bluesky", $blueskyPort, $blueskyLog -PassThru -NoNewWindow
+    $sky = Start-Process pwsh -ArgumentList "-NoProfile", "-File", (Join-Path $PSScriptRoot "social_stub.ps1"), "bluesky", $blueskyPort, $blueskyLog -PassThru -NoNewWindow
     try {
         $deadline = (Get-Date).AddSeconds(60)
         while (!(Test-Path $blueskyPort) -or !(Get-Content $blueskyPort -ErrorAction Ignore)) {

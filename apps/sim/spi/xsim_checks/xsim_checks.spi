@@ -1,0 +1,19 @@
+///- --package .. --timeout 600000
+///> gleam
+test xsim_checks static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< invariants
+
+:= check_exports () : () =
+    export "checked_text" ((\ t => checked_text t) : string -> string)
+    export "commute_text" ((\ (a, b) => commute_text a b) : string * string -> string)
+
+///> _
+:= main () : i32 =
+    check_exports ()
+    export "breaking_text" ((\ t => breaking_text t) : string -> string)
+    export "masked_text" ((\ t => masked_text t) : string -> string)
+    0i32

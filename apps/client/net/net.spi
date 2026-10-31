@@ -70,22 +70,13 @@ test net static =
 
 := open_post_builder (url : string) : bodied = $'ureq::post(&*!url).header("Content-Type", "application/json")'
 
-:= post_builder_for (url : string) (auth : string) : bodied =
-    ? auth = "" ?> open_post_builder url |: post_builder url auth
-
 := posted (url : string) (auth : string) (body : string) : http_reply =
-    send_reply (post_builder_for url auth |> patient_bodied) body
+    ? auth = "" ?> send_reply (open_post_builder url |> patient_bodied) body
+    |: send_reply (post_builder url auth |> patient_bodied) body
 
-:= request_counter () : () =
-    global "static XC_REQUESTS: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);"
+:= request_counted () : () = process_counter_add "xc_requests" 1u64 |> ignore
 
-:= request_counted () : () =
-    request_counter ()
-    ($'XC_REQUESTS.fetch_add(1, std::sync::atomic::Ordering::Relaxed)' : u32) |> ignore
-
-:= requests_made () : i32 =
-    request_counter ()
-    ($'XC_REQUESTS.load(std::sync::atomic::Ordering::Relaxed)' : u32) |> conv
+:= requests_made () : i32 = process_counter_value "xc_requests" |> conv
 
 :~ exchange (method : string) (url : string) (auth : string) (body : string) : i32 * string =
     request_counted ()

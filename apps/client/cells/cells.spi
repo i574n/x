@@ -9,7 +9,7 @@ test cells static =
 
 := cell_json (cell : string) : string = $'Rc::<str>::from(serde_json::Value::from(&*!cell).to_string())'
 
-:~ cells_json (text : string) : string = "[" ++# (file_cells text |> each cell_json |> sm'.concat_list ",") ++# "]"
+:~ cells_json (text : string) : string = "[" ++# (file_cells text |> each cell_json |> sm'::concat_list ",") ++# "]"
 
 test cells_travel_as_a_json_array =
     := ~text = "a\n\nb \"c\"\n"

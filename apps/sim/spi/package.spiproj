@@ -18,6 +18,7 @@ modules:
     runner_checks
     scenario_checks
     tree_memory
+    memory_watch
     sim_report
     sim_args
     sim_run
@@ -25,9 +26,17 @@ modules:
     cells_executor
     runner_guard
     runner_shell
-    memory_watch
     xsim_shell_entry
+    remote_chunks
     xsim_split/
         xsim_split
+    xsim_checks/
+        xsim_checks
+    xsim_world/
+        xsim_world
+    xsim_flow/
+        xsim_flow
+    xsim_events/
+        xsim_events
     simframes/
         simframes

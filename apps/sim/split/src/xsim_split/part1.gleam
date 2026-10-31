@@ -6,7 +6,7 @@ import gleam/list
 import gleam/option
 import gleam/result
 import gleam/string
-import xsim_split/types.{type Uh0, type Uh1, Uh0Cons, Uh0Nil, Uh1Cons, Uh1Nil}
+import xsim_split/types.{type ListString, type Uh1, ListStringCons, ListStringNil, Uh1Cons, Uh1Nil}
 
 @ external(erlang, "unicode", "characters_to_binary")
 pub fn unicode_erlang_characters_to_binary(chars: List(Int)) -> String
@@ -638,59 +638,59 @@ pub fn run_glyph_4(v0: String) -> Bool {
     }
 }
 
-pub fn method10(v0: Uh0, v1: Uh0) -> Uh0 {
+pub fn method10(v0: ListString, v1: ListString) -> ListString {
     case v0  {
-        Uh0Cons(v2, v3) -> {
-            let v4 = Uh0Cons(v2, v1)
+        ListStringCons(v2, v3) -> {
+            let v4 = ListStringCons(v2, v1)
             method10(v3, v4)
         }
-        Uh0Nil -> {
+        ListStringNil -> {
             v1
         }
     }
 }
 
-pub fn run_of_9(v0: Uh0, v1: Uh0) -> #(Uh0, Uh0) {
+pub fn run_of_9(v0: ListString, v1: ListString) -> #(ListString, ListString) {
     case v0  {
-        Uh0Cons(v2, v3) -> {
+        ListStringCons(v2, v3) -> {
             let v4 = run_glyph_4(v2)
             case v4 {
                 True -> {
-                    let v5 = Uh0Cons(v2, v1)
+                    let v5 = ListStringCons(v2, v1)
                     run_of_9(v3, v5)
                 }
                 False -> {
-                    let v8 = Uh0Nil
+                    let v8 = ListStringNil
                     let v9 = method10(v1, v8)
                     #(v9, v0)
                 }
             }
         }
         _ -> {
-            let v12 = Uh0Nil
+            let v12 = ListStringNil
             let v13 = method10(v1, v12)
             #(v13, v0)
         }
     }
 }
 
-pub fn method12(v0: Uh0, v1: String) -> String {
+pub fn method12(v0: ListString, v1: String) -> String {
     case v0  {
-        Uh0Cons(v2, v3) -> {
+        ListStringCons(v2, v3) -> {
             method12(v3, v2)
         }
-        Uh0Nil -> {
+        ListStringNil -> {
             v1
         }
     }
 }
 
-pub fn last_or_11(v0: String, v1: Uh0) -> String {
+pub fn last_or_11(v0: String, v1: ListString) -> String {
     method12(v1, v0)
 }
 
-pub fn run_piece_8(v0: String, v1: Uh0) -> #(String, Uh0, String, Uh0) {
-    let v2 = Uh0Nil
+pub fn run_piece_8(v0: String, v1: ListString) -> #(String, ListString, String, ListString) {
+    let v2 = ListStringNil
     let #(v3, v4) = run_of_9(v1, v2)
     let v5 = last_or_11(v0, v3)
     #(v5, v4, v0, v3)
@@ -708,9 +708,9 @@ pub fn method13(v0: Uh1, v1: Uh1) -> Uh1 {
     }
 }
 
-pub fn pieces_from_3(v0: String, v1: Uh0, v2: Uh1) -> Uh1 {
+pub fn pieces_from_3(v0: String, v1: ListString, v2: Uh1) -> Uh1 {
     case v1  {
-        Uh0Cons(v3, v4) -> {
+        ListStringCons(v3, v4) -> {
             let v5 = run_glyph_4(v3)
             case v5 {
                 True -> {
@@ -719,14 +719,14 @@ pub fn pieces_from_3(v0: String, v1: Uh0, v2: Uh1) -> Uh1 {
                     pieces_from_3(v6, v7, v10)
                 }
                 False -> {
-                    let v12 = Uh0Nil
-                    let v13 = Uh0Cons(v3, v12)
+                    let v12 = ListStringNil
+                    let v13 = ListStringCons(v3, v12)
                     let v14 = Uh1Cons(v0, v13, v2)
                     pieces_from_3(v3, v4, v14)
                 }
             }
         }
-        Uh0Nil -> {
+        ListStringNil -> {
             let v17 = Uh1Nil
             method13(v2, v17)
         }
@@ -757,73 +757,73 @@ pub fn blocks_domain_16(v0: String) -> Bool {
     }
 }
 
-pub fn after_label_19(v0: Uh0) -> Bool {
+pub fn after_label_19(v0: ListString) -> Bool {
     case v0  {
-        Uh0Cons(v1, v2) -> {
+        ListStringCons(v1, v2) -> {
             label_glyph_5(v1)
         }
-        Uh0Nil -> {
+        ListStringNil -> {
             False
         }
     }
 }
 
-pub fn concat_pass_23(v0: String, v1: Uh0, v2: Uh0) -> Uh0 {
+pub fn concat_pass_23(v0: String, v1: ListString, v2: ListString) -> ListString {
     case v1  {
-        Uh0Cons(v3, v4) -> {
+        ListStringCons(v3, v4) -> {
             case v4  {
-                Uh0Cons(v5, v6) -> {
+                ListStringCons(v5, v6) -> {
                     let v7 = v3 <> v0 
                     let v8 = v7 <> v5 
-                    let v9 = Uh0Cons(v8, v2)
+                    let v9 = ListStringCons(v8, v2)
                     concat_pass_23(v0, v6, v9)
                 }
-                Uh0Nil -> {
-                    let v11 = Uh0Nil
-                    let v12 = Uh0Cons(v3, v11)
+                ListStringNil -> {
+                    let v11 = ListStringNil
+                    let v12 = ListStringCons(v3, v11)
                     method10(v2, v12)
                 }
             }
         }
-        Uh0Nil -> {
-            let v16 = Uh0Nil
+        ListStringNil -> {
+            let v16 = ListStringNil
             method10(v2, v16)
         }
     }
 }
 
-pub fn concat_balanced_22(v0: String, v1: Uh0) -> String {
+pub fn concat_balanced_22(v0: String, v1: ListString) -> String {
     case v1  {
-        Uh0Cons(v3, v4) -> {
+        ListStringCons(v3, v4) -> {
             case v4  {
-                Uh0Nil -> {
+                ListStringNil -> {
                     v3
                 }
                 _ -> {
-                    let v5 = Uh0Nil
+                    let v5 = ListStringNil
                     let v6 = concat_pass_23(v0, v1, v5)
                     concat_balanced_22(v0, v6)
                 }
             }
         }
-        Uh0Nil -> {
+        ListStringNil -> {
             let v2 = ""
             v2
         }
     }
 }
 
-pub fn letters_after_21(v0: Uh0, v1: Uh0) -> #(String, Bool) {
+pub fn letters_after_21(v0: ListString, v1: ListString) -> #(String, Bool) {
     case v0  {
-        Uh0Cons(v2, v3) -> {
+        ListStringCons(v2, v3) -> {
             let v4 = ascii_letter_6(v2)
             case v4 {
                 True -> {
-                    let v5 = Uh0Cons(v2, v1)
+                    let v5 = ListStringCons(v2, v1)
                     letters_after_21(v3, v5)
                 }
                 False -> {
-                    let v8 = Uh0Nil
+                    let v8 = ListStringNil
                     let v9 = method10(v1, v8)
                     let v10 = ""
                     let v11 = concat_balanced_22(v10, v9)
@@ -832,8 +832,8 @@ pub fn letters_after_21(v0: Uh0, v1: Uh0) -> #(String, Bool) {
                 }
             }
         }
-        Uh0Nil -> {
-            let v15 = Uh0Nil
+        ListStringNil -> {
+            let v15 = ListStringNil
             let v16 = method10(v1, v15)
             let v17 = ""
             let v18 = concat_balanced_22(v17, v16)
@@ -842,13 +842,13 @@ pub fn letters_after_21(v0: Uh0, v1: Uh0) -> #(String, Bool) {
     }
 }
 
-pub fn label_before_24(v0: Uh0, v1: Uh0) -> String {
+pub fn label_before_24(v0: ListString, v1: ListString) -> String {
     case v0  {
-        Uh0Cons(v2, v3) -> {
+        ListStringCons(v2, v3) -> {
             let v4 = label_glyph_5(v2)
             case v4 {
                 True -> {
-                    let v5 = Uh0Cons(v2, v1)
+                    let v5 = ListStringCons(v2, v1)
                     label_before_24(v3, v5)
                 }
                 False -> {
@@ -906,10 +906,10 @@ pub fn tld_ok_25(v0: fn(String) -> Bool, v1: String, v2: String) -> Bool {
     }
 }
 
-pub fn linked_dot_20(v0: fn(String) -> Bool, v1: Uh0, v2: Uh0) -> Bool {
-    let v3 = Uh0Nil
+pub fn linked_dot_20(v0: fn(String) -> Bool, v1: ListString, v2: ListString) -> Bool {
+    let v3 = ListStringNil
     let #(v4, v5) = letters_after_21(v2, v3)
-    let v6 = Uh0Nil
+    let v6 = ListStringNil
     let v7 = label_before_24(v1, v6)
     case v5 {
         True -> {
@@ -938,7 +938,7 @@ pub fn linked_dot_20(v0: fn(String) -> Bool, v1: Uh0, v2: Uh0) -> Bool {
     }
 }
 
-pub fn defusable_18(v0: fn(String) -> Bool, v1: Uh0, v2: String, v3: Uh0) -> Bool {
+pub fn defusable_18(v0: fn(String) -> Bool, v1: ListString, v2: String, v3: ListString) -> Bool {
     let v4 = v2 == "."
     let v6 =
         case v4 {

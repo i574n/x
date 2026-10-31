@@ -11,7 +11,8 @@ test transport static =
 := net_send (m : string) (u : string) (a : string) (b : string) : i32 * string =
     $'xc_net::xc_send(&*!m, &*!u, &*!a, &*!b)'
 
-:= keys_of (o : oauth1) : string * string * string * string = o.consumer_key, o.consumer_secret, o.token, o.token_secret
+:= keys_of (o : oauth1) : string * string * string * string =
+    o::consumer_key, o::consumer_secret, o::token, o::token_secret
 
 := net_header (o : oauth1) (m : string) (u : string) (nonce : string) (stamp : string) : string =
     := ck, cs, t, ts = keys_of o
@@ -33,9 +34,9 @@ test transport static =
     ? code = 0i32 ?> Ok (parse_json text, text) |: Error (Reported text)
 
 :~ raw_reply \* c. (e : endpoint c) (v : verb) (resource : string) : got fetched =
-    := url = e.base ++# resource
+    := url = e::base ++# resource
     := m = method_of v
-    := status, body = net_send m url (header_for e.auth m url) (body_of_verb v)
+    := status, body = net_send m url (header_for e::auth m url) (body_of_verb v)
     kept resource status body
 
 := bearer_of \* c. (a : authorizer c) : string =
@@ -45,8 +46,8 @@ test transport static =
     | Anonymous => ""
 
 :~ app_reply (e : endpoint app_context) (resource : string) : got fetched =
-    := url = e.base ++# resource
-    := status, body = net_send "GET" url (bearer_of e.auth) ""
+    := url = e::base ++# resource
+    := status, body = net_send "GET" url (bearer_of e::auth) ""
     kept resource status body
 
 := get_raw (a : app) (resource : string) : got fetched =
@@ -54,13 +55,16 @@ test transport static =
     | api e => app_reply e resource
 
 
-:= account_line (a : account) : string = user_text a.id ++# ":" ++# a.username
+:= account_line (a : account) : string = user_text a::id ++# ":" ++# a::username
 
-:= account_lines (l : accounts) : string = l |> each account_line |> sm'.concat_list "\n"
+:= account_lines (l : accounts) : string = l |> each account_line |> sm'::concat_list "\n"
 
 := account_of_line (line : string) : account =
-    := i : i32 = sm'.index_of ":" line
-    { id = user_id (sm'.substring 0i32 i line); username = sm'.substring (i + 1i32) (sm'.length line - i - 1i32) line }
+    := i : i32 = sm'::index_of ":" line
+    {
+        id = user_id (sm'::substring 0i32 i line)
+        username = sm'::substring (i + 1i32) (sm'::length line - i - 1i32) line
+    }
 
 := accounts_of_lines (s : string) : accounts = pieces "\n" s |> each account_of_line
 
@@ -76,4 +80,4 @@ test account_lines_round_trip =
 ///> zig
 test pieces_of_nothing_are_none =
     := ~s = ""
-    pieces "," s |> listm.length |> _assert_eq 0i32
+    pieces "," s |> listm::length |> _assert_eq 0i32

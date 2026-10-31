@@ -14,52 +14,56 @@ test sim_report static =
 
 :== run_shape = { seed : i32; schedule : i32; posts : i32; events : i32; deliveries : i32; ms : i32; beam_mb : i32 }
 
-:= summed (d : dictm.dict string i32) : i32 = dictm.fold (\ total _ n => total + n) 0i32 d
+:= summed (d : dictm::dict string i32) : i32 = dictm::fold (\ total _ n => total + n) 0i32 d
 
-:= field_text (name : string) (value : i32) : string = name ++# "=" ++# sm'.obj_to_string value
+:= field_text (name : string) (value : i32) : string = name ++# "=" ++# sm'::obj_to_string value
 
 := shape_fields (r : run_shape) : list string =
     [
-        field_text "seed" r.seed
-        field_text "schedule" r.schedule
-        field_text "posts" r.posts
-        field_text "events" r.events
-        field_text "deliveries" r.deliveries
+        field_text "seed" r::seed
+        field_text "schedule" r::schedule
+        field_text "posts" r::posts
+        field_text "events" r::events
+        field_text "deliveries" r::deliveries
     ]
 
 := world_fields (t : tallies) : list string =
     [
-        field_text "duplicates" t.duplicates
-        field_text "buffered" t.buffered
-        field_text "framed" t.framed
-        field_text "framed_edits" t.framed_edits
+        field_text "duplicates" t::duplicates
+        field_text "buffered" t::buffered
+        field_text "framed" t::framed
+        field_text "framed_edits" t::framed_edits
     ]
 
 := start_fields (s : scheduler) : list string =
     [
-        field_text "starts" (summed s.run_counts.starts)
-        field_text "prefixes" (dictm.size s.task_work.results)
-        field_text "peak_results" s.run_counts.peak_results
+        field_text "starts" (summed s::run_counts::starts)
+        field_text "prefixes" (dictm::size s::task_work::results)
+        field_text "peak_results" s::run_counts::peak_results
     ]
 
 := lapse_fields (c : run_counts) : list string =
-    [ field_text "evictions" (summed c.evicted); field_text "rescues" c.rescues; field_text "recomputes" c.recomputes ]
+    [
+        field_text "evictions" (summed c::evicted)
+        field_text "rescues" c::rescues
+        field_text "recomputes" c::recomputes
+    ]
 
 := view_fields (s : scheduler) : list string =
     [
-        field_text "cancels" s.run_counts.cancels
-        field_text "visible" (dictm.size s.visible_map)
-        field_text "peak_inflight" s.run_counts.peak_inflight
+        field_text "cancels" s::run_counts::cancels
+        field_text "visible" (dictm::size s::visible_map)
+        field_text "peak_inflight" s::run_counts::peak_inflight
     ]
 
 := run_fields (s : scheduler) : list string =
-    listm.append (start_fields s) (listm.append (lapse_fields s.run_counts) (view_fields s))
+    listm::append (start_fields s) (listm::append (lapse_fields s::run_counts) (view_fields s))
 
-:= tail_fields (r : run_shape) : list string = [ field_text "peak_beam_mb" r.beam_mb; field_text "ms" r.ms ]
+:= tail_fields (r : run_shape) : list string = [ field_text "peak_beam_mb" r::beam_mb; field_text "ms" r::ms ]
 
 := line_fields (r : run_shape) (s : scheduler) : list string =
-    := rest = listm.append (run_fields s) (tail_fields r)
-    listm.append (shape_fields r) (listm.append (world_fields s.in_box.tallies) rest)
+    := rest = listm::append (run_fields s) (tail_fields r)
+    listm::append (shape_fields r) (listm::append (world_fields s::in_box::tallies) rest)
 
 := summary_line (r : run_shape) (s : scheduler) (findings : list finding) : string =
     "XSIM " ++# delimited " " (line_fields r s) ++# " " ++# findings_text findings
@@ -73,7 +77,7 @@ test sim_report static =
     | _ => Held
 
 := findings_held (l : list finding) : bool =
-    l |> has (\ (f : finding) => ?= f.verdict ?| Held => !- | _ => !+) |> not
+    l |> has (\ (f : finding) => ?= f::verdict ?| Held => !- | _ => !+) |> not
 
 := all_held (all_findings : list (list finding)) : bool = has (\ l => not (findings_held l)) all_findings |> not
 

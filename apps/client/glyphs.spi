@@ -7,26 +7,26 @@ test glyphs static =
 :< sm'_operators
 :< prelude
 
-:= char_of (n : i32) : string = unicode.char_of n
+:= char_of (n : i32) : string = unicode::char_of n
 
 := zero_width_space () : string = char_of 8203i32
 
 := defused_dot () : string = zero_width_space () ++# "."
 
-:= graphemes (s : string) : list string = unicode.graphemes s
+:= graphemes (s : string) : list string = unicode::graphemes s
 
 := light (c : i32) : bool =
     c <= 4351i32 || (c >= 8192i32 && c <= 8205i32) || (c >= 8208i32 && c <= 8223i32) || (c >= 8242i32 && c <= 8247i32)
 
 := code_point_weight (c : i32) : i32 = ? light c ?> 1i32 |: 2i32
 
-:= plain_weight (s : string) : i32 = unicode.code_points s |> listm.fold (\ sum c => sum + code_point_weight c) 0i32
+:= plain_weight (s : string) : i32 = unicode::code_points s |> listm::fold (\ sum c => sum + code_point_weight c) 0i32
 
-:= first_code_point (s : string) : i32 = unicode.first_code_point s
+:= first_code_point (s : string) : i32 = unicode::first_code_point s
 
-:= code_point_count (s : string) : i32 = unicode.code_point_count s
+:= code_point_count (s : string) : i32 = unicode::code_point_count s
 
-:= holds_code_point (n : i32) (s : string) : bool = sm'.index_of (char_of n) s >= 0i32
+:= holds_code_point (n : i32) (s : string) : bool = sm'::index_of (char_of n) s >= 0i32
 
 := pictograph_led (first : i32) : bool = first >= 126976i32
 
@@ -51,28 +51,28 @@ test glyphs static =
 
 := glyph_weight (g : string) : i32 = ? emoji_entity g ?> 2i32 |: plain_weight g
 
-:= nfc (s : string) : string = unicode.nfc s
+:= nfc (s : string) : string = unicode::nfc s
 
 := ascii_letters () : string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-:= one_of (chars : string) (g : string) : bool = sm'.length g = 1i32 && sm'.index_of g chars >= 0i32
+:= one_of (chars : string) (g : string) : bool = sm'::length g = 1i32 && sm'::index_of g chars >= 0i32
 
 := letter (g : string) : bool = one_of (ascii_letters ()) g
 
 := label_char (g : string) : bool = one_of (ascii_letters () ++# "0123456789_-") g
 
-:= blank (s : string) : bool = unicode.code_points s |> has (\ c => not (unicode.is_white_space c)) |> not
+:= blank (s : string) : bool = unicode::code_points s |> has (\ c => not (unicode::is_white_space c)) |> not
 
-:= split_all (sep : string) (s : string) : list string = sm'.split_list sep s
+:= split_all (sep : string) (s : string) : list string = sm'::split_list sep s
 
 := all_pieces (sep : string) (s : string) : list string = ? s = "" ?> Nil |: split_all sep s
 
 :~ ^ blank_tail_length (l : list string) (n : i32) : i32 =
     ?= l ?|
-    | g :: rest ?& blank g => blank_tail_length rest (n + sm'.length g)
+    | g :: rest ?& blank g => blank_tail_length rest (n + sm'::length g)
     | _ => n
 
-:= trimmed_end (s : string) : string = cut 0i32 (sm'.length s - blank_tail_length (graphemes s |> listm.rev) 0i32) s
+:= trimmed_end (s : string) : string = cut 0i32 (sm'::length s - blank_tail_length (graphemes s |> listm::rev) 0i32) s
 
 := thumb () : string = char_of 128077i32 ++# char_of 127997i32
 
@@ -80,14 +80,14 @@ test glyphs static =
 
 test graphemes_hold_clusters =
     := ~s = "a" ++# accented () ++# " " ++# thumb () ++# "."
-    graphemes s |> listm.length |> _assert_eq 5i32
-    graphemes "" |> listm.length |> _assert_eq 0i32
+    graphemes s |> listm::length |> _assert_eq 5i32
+    graphemes "" |> listm::length |> _assert_eq 0i32
 
 := crlf () : string = char_of 13i32 ++# char_of 10i32
 
 test a_line_break_pair_is_one_grapheme =
     := ~s = "a" ++# crlf () ++# "b"
-    graphemes s |> listm.length |> _assert_eq 3i32
+    graphemes s |> listm::length |> _assert_eq 3i32
 
 test weights_follow_x =
     := ~s = "abc"
@@ -115,12 +115,12 @@ test weights_follow_x =
 
 test emoji_entities_weigh_two =
     := ~g = thumb ()
-    [ g; family (); red_heart (); keycap_one (); japan () ] |> listm.map glyph_weight
+    [ g; family (); red_heart (); keycap_one (); japan () ] |> listm::map glyph_weight
     |> _assert_eq [ 2i32; 2i32; 2i32; 2i32; 2i32 ]
 
 test other_clusters_keep_code_point_weights =
     := ~g = accented ()
-    [ g; letter_vs16 (); char_of 26085i32; char_of 169i32; "a" ] |> listm.map glyph_weight
+    [ g; letter_vs16 (); char_of 26085i32; char_of 169i32; "a" ] |> listm::map glyph_weight
     |> _assert_eq [ 2i32; 3i32; 2i32; 1i32; 1i32 ]
 
 test blanks_and_tails =
@@ -130,12 +130,12 @@ test blanks_and_tails =
     blank (zero_width_space ()) |> _assert_eq !-
     trimmed_end ("a" ++# char_of 160i32) |> _assert_eq "a"
 
-:= rejoined (sep : string) (s : string) : string = split_all sep s |> sm'.concat_list "|"
+:= rejoined (sep : string) (s : string) : string = split_all sep s |> sm'::concat_list "|"
 
 test split_all_keeps_empty_pieces =
     := ~s = "a\n" ++# char_of 26085i32 ++# "\n\nb\n"
     rejoined "\n" s |> _assert_eq ("a|" ++# char_of 26085i32 ++# "||b|")
-    all_pieces "\n" "" |> listm.length |> _assert_eq 0i32
+    all_pieces "\n" "" |> listm::length |> _assert_eq 0i32
     rejoined "," "x" |> _assert_eq "x"
 
 test nfc_composes =

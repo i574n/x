@@ -11,7 +11,7 @@ if ($Compiler) {
     Assert-SpiralBeside
     $Compiler = (Resolve-Path $Compiler).Path
     $bundle = Join-Path $SpiralRoot 'apps/compiler/tmp'
-    $toolchain = & { . (Join-Path $bundle 'scripts/env.ps1'); [pscustomobject]@{ PackageDir = Get-SpiralPackageDir; Dotnet = Resolve-SpiralDotnet } }
+    $toolchain = & { . (Join-Path $SpiralRoot 'apps/compiler/scripts/env.ps1'); [pscustomobject]@{ PackageDir = Get-SpiralPackageDir; Dotnet = Resolve-SpiralDotnet } }
     $env:SPIRAL_COMPILER_PACKAGE_DIR = $toolchain.PackageDir
     $candidates = Get-XTargetDir 'gate-candidate'
     Write-Output "gate / candidate compiler $Compiler ($((Get-Item $Compiler).LastWriteTime.ToString('yyyy-MM-dd HH:mm')))"

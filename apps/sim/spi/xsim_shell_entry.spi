@@ -46,26 +46,26 @@ test xsim_shell_entry static =
     | Ok deliveries => settled_in_shell limit deliveries
 
 := shell_line (s : scheduler) : string =
-    := visible = sm'.obj_to_string (dictm.size s.visible_map)
-    "XSHELL visible=" ++# visible ++# " results=" ++# sm'.obj_to_string (dictm.size s.task_work.results)
+    := visible = sm'::obj_to_string (dictm::size s::visible_map)
+    "XSHELL visible=" ++# visible ++# " results=" ++# sm'::obj_to_string (dictm::size s::task_work::results)
 
 := reported_settled (s : scheduler) : i32 =
-    console.write_line (shell_line s)
+    console::write_line (shell_line s)
     0i32
 
 := reported_failure (why : string) : i32 =
-    console.write_error_line ("xsim-shell: " ++# why)
+    console::write_error_line ("xsim-shell: " ++# why)
     1i32
 
 := replay_reported (r : shell_run) : i32 =
-    ?= replayed r.limit (file_system.read_all_text r.stream_path) ?|
+    ?= replayed r::limit (file_system::read_all_text r::stream_path) ?|
     | Ok s => reported_settled s
     | Error why => reported_failure why
 
 := shell_entry (args : list string) : i32 =
     ?= shell_run_of args ?|
     | Error why =>
-        console.write_error_line why
+        console::write_error_line why
         2i32
     | Ok r => replay_reported r
 
@@ -80,10 +80,10 @@ test xsim_shell_entry static =
 test a_replayed_stream_settles_in_the_shell =
     := ~limit = 1i32
     ?= replayed limit (stream (entry_two_posts ())) ?|
-    | Ok s => shell_line s |> sm'.starts_with "XSHELL visible=2 results=" |> _assert_eq !+
+    | Ok s => shell_line s |> sm'::starts_with "XSHELL visible=2 results=" |> _assert_eq !+
     | Error why => failwith why
 
-:= limit_of (r : result shell_run string) : i32 = ?= r ?| Ok run => run.limit | Error _ => 0i32
+:= limit_of (r : result shell_run string) : i32 = ?= r ?| Ok run => run::limit | Error _ => 0i32
 
 := refusal_of (r : result shell_run string) : string = ?= r ?| Ok _ => "" | Error why => why
 
@@ -94,8 +94,8 @@ test shell_arguments_are_checked =
 
 := shell_arguments () : list string =
     :~ ^ from (i : i32) (acc : list string) : list string =
-        ? i < 0i32 ?> acc |: from (i - 1i32) (env.command_line_argument i :: acc)
-    from (env.command_line_argument_count () - 1i32) Nil
+        ? i < 0i32 ?> acc |: from (i - 1i32) (env::command_line_argument i :: acc)
+    from (env::command_line_argument_count () - 1i32) Nil
 
 ///> _
 := main () : i32 = shell_entry (shell_arguments ())

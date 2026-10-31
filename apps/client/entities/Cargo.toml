@@ -13,5 +13,4 @@ name = "xc_entities"
 path = "entities.rs"
 
 [dependencies]
-unicode-normalization = "0.1"
 unicode-segmentation = "1.13"

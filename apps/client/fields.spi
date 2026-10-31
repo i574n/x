@@ -1,11 +1,16 @@
+///- --package .
+///> rust
+test fields static =
+    :< testing
+
 :< sm'_operators
 :< prelude
 :< cli
 
 := process_args () : list string =
     :~ ^ from (i : i32) (acc : list string) : list string =
-        ? i < 0i32 ?> acc |: from (i - 1) (env.command_line_argument i :: acc)
-    from (env.command_line_argument_count () - 1) Nil
+        ? i < 0i32 ?> acc |: from (i - 1) (env::command_line_argument i :: acc)
+    from (env::command_line_argument_count () - 1) Nil
 
 :== selection_fields =
     {
@@ -51,31 +56,31 @@
 
 := source_selection (s : source) (sel : selection_fields) : selection_fields =
     ?= s ?|
-    | Accounts hs => { sel ?| following = !-; usernames = sm'.concat_list "," hs }
+    | Accounts hs => { sel ?| following = !-; usernames = sm'::concat_list "," hs }
     | FollowingOf h => { sel ?| following = !+; usernames = h }
 
 := source_fields (s : source) (f : command_fields) : command_fields =
-    { f ?| selection = source_selection s f.selection }
+    { f ?| selection = source_selection s f::selection }
 
 := counted_selection (r : request) (sel : selection_fields) : selection_fields =
-    { sel ?| max_results = r.per_account; limit = r.limit; per_author = r.per_author; cap = cap_number r.cap }
+    { sel ?| max_results = r::per_account; limit = r::limit; per_author = r::per_author; cap = cap_number r::cap }
 
 := counts_fields (r : request) (f : command_fields) : command_fields =
-    { f ?| kind = 0i32; selection = counted_selection r f.selection }
+    { f ?| kind = 0i32; selection = counted_selection r f::selection }
 
 := filtered_window (r : request) (w : window_fields) : window_fields =
-    := x = r.filters
-    { w ?| since = x.start_time; until = x.end_time; no_replies = x.no_replies; no_reposts = x.no_reposts;
-        depth = r.depth; hints = r.hints }
+    := x = r::filters
+    { w ?| since = x::start_time; until = x::end_time; no_replies = x::no_replies; no_reposts = x::no_reposts;
+        depth = r::depth; hints = r::hints }
 
-:= filter_fields (r : request) (f : command_fields) : command_fields = { f ?| window = filtered_window r f.window }
+:= filter_fields (r : request) (f : command_fields) : command_fields = { f ?| window = filtered_window r f::window }
 
-:= output_window (r : request) (w : window_fields) : window_fields = { w ?| json = r.json }
+:= output_window (r : request) (w : window_fields) : window_fields = { w ?| json = r::json }
 
-:= output_fields (r : request) (f : command_fields) : command_fields = { f ?| window = output_window r f.window }
+:= output_fields (r : request) (f : command_fields) : command_fields = { f ?| window = output_window r f::window }
 
 := request_fields (r : request) : command_fields =
-    blank () |> counts_fields r |> filter_fields r |> output_fields r |> source_fields r.source
+    blank () |> counts_fields r |> filter_fields r |> output_fields r |> source_fields r::source
 
 := with_payload (kind : i32) (payload : string) : command_fields =
     := z = blank ()
@@ -117,7 +122,7 @@
 
 := seeded_draft () : draft =
     := d = initial_draft ()
-    := f = d.filters
+    := f = d::filters
     { d ?| filters = { f ?| start_time = runtime_empty (); end_time = runtime_empty () } }
 
 := external_count (t : string) : option i32 =
@@ -129,3 +134,12 @@
 := external_checks () : checks =
     { count = external_count; instant = \ t => external_text $'xc_checks::xc_date(&*!t)'
         username = \ t => external_text $'xc_checks::xc_username(&*!t)' }
+
+///> rust
+test a_payload_keeps_the_blank_defaults =
+    := f = with_payload 6i32 "3000001"
+    (f::kind, f::payload, f::selection::max_results, f::window::json) |> _assert_eq (6i32, "3000001", 5i32, !-)
+
+///> rust
+test empty_external_text_is_none =
+    (external_text "", external_text "x") |> _assert_eq (None, Some "x")

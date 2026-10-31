@@ -24,14 +24,15 @@ test an_accepted_reply_keeps_its_body =
     classified_reply "/2/users/7" 200i32 body |> _assert_eq (0i32, body)
 
 := returned_posts (doc : json) : i32 =
-    (listm.length (doc |> field "data" |> collect id) : i32)
-    + (listm.length (doc |> field "includes" |> field "posts" |> collect id) : i32)
+    (listm::length (doc |> field "data" |> collect id) : i32)
+    + (listm::length (doc |> field "includes" |> field "posts" |> collect id) : i32)
 
 := billed_posts (e : json) : i32 =
     := role = at_key "role" e
     ? role = "primary" || role = "lookup" ?> returned_posts (e |> field "doc") |: 0i32
 
-:~ posts_read (bundle : string) : i32 = parse_json bundle |> collect id |> listm.fold (\ n e => n + billed_posts e) 0i32
+:~ posts_read (bundle : string) : i32 =
+    parse_json bundle |> collect id |> listm::fold (\ n e => n + billed_posts e) 0i32
 
 test posts_read_counts_what_x_returned =
     := ~bundle =

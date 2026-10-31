@@ -10,11 +10,11 @@ test weights static =
 :< protocol
 
 := unit_json (u : weighed) : string =
-    := g, w = u.glyph, u.weight
+    := g, w = u::glyph, u::weight
     $'Rc::<str>::from(serde_json::json\!({"glyph": &*!g, "weight": !w}).to_string())'
 
 :~ units_json (name : string) (s : string) : string =
-    "[" ++# (weighed_on (platform_named name) (nfc s) |> each unit_json |> sm'.concat_list ",") ++# "]"
+    "[" ++# (weighed_on (platform_named name) (nfc s) |> each unit_json |> sm'::concat_list ",") ++# "]"
 
 :~ weight_named (name : string) (t : string) : i32 = weight_on (platform_named name) t
 

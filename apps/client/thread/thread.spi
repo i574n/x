@@ -19,7 +19,7 @@ test thread static =
     }
 
 := halted_in (s : thread_search) (h : cursor_halt) : failure =
-    CursorHalted { resource = "conversation " ++# conversation_text s.conversation_id; halt = h }
+    CursorHalted { resource = "conversation " ++# conversation_text s::conversation_id; halt = h }
 
 := absent (id : post_id) (missing : string) : failure = Reported (answered 404i32 (root_path id) missing)
 
@@ -34,7 +34,7 @@ test thread static =
 
 :~ rooted (a : app) (id : post_id) (r : root_reply) : got (list string) =
     := s = search_of r
-    ? conversation_text s.conversation_id <> ""
+    ? conversation_text s::conversation_id <> ""
     ?> all_pages (halted_in s) (pager_of a s)
     |: Error (absent id (missing_of r))
 
@@ -57,7 +57,7 @@ test thread static =
 
 := framed_page (body : string) : list framed = parse_json body |> field "data" |> collect framed_of
 
-:= latest_ids (body : string) : list string = framed_page body |> keep latest |> each (\ f => post_text f.id)
+:= latest_ids (body : string) : list string = framed_page body |> keep latest |> each (\ f => post_text f::id)
 
 := ids_text (bodies : list string) : string = bodies |> spread latest_ids |> delimited "\n"
 

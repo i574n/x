@@ -28,6 +28,11 @@ defmodule Xsim.Spiral do
     {text, posts, events, broken |> String.split(<<0>>, trim: true) |> MapSet.new()}
   end
 
+  def simulated_lines(args, threads, root) do
+    joined = threads |> Enum.map(&Enum.join(&1, <<0>>)) |> Enum.join(<<1>>)
+    call(:simulated_lines, [Enum.join(args, <<0>>), joined, root]) |> String.split("\n")
+  end
+
   def world_files(cells, opts) do
     args = [opts[:seed] || 1, opts[:edits] || 0, opts[:personas] || "", opts[:id_base] || 3_000_000, opts[:lost] || 0, opts[:lost_cells] || 0]
     call(:world_files, [Enum.join(cells, <<0>>) | args] ++ [opts[:base_time] || "2026-10-18T08:00:00Z", opts[:user_id] || "500", opts[:username] || "spiralposts"])

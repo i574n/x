@@ -52,8 +52,8 @@ test exsss static =
     xor64 (xor64 b s0) (xor64 (shr64 b 11i32) (shr64 s0 41i32))
 
 :~ stepped (st : exsss) : u64 * exsss =
-    := s0 = and64 st.tail (word_mask ())
-    scrambled s0, { head = s0; tail = xorshifted s0 st.head }
+    := s0 = and64 st::tail (word_mask ())
+    scrambled s0, { head = s0; tail = xorshifted s0 st::head }
 
 := two_58 () : u64 = shl64 1u64 58i32
 
@@ -72,20 +72,21 @@ test exsss static =
     seeded (conv a1 : u64) (conv a2 : u64) (conv a3 : u64)
 
 :~ ^ rolls (range : i32) (n : i32) (st : exsss) (acc : list i32) : list i32 * exsss =
-    ? n <= 0i32 ?> listm.rev acc, st
+    ? n <= 0i32 ?> listm::rev acc, st
     |: rolled range st |> \ (v, next) => rolls range (n - 1i32) next (v :: acc)
 
-:= rolls_text (l : list i32) : string = l |> each sm'.obj_to_string |> delimited ","
+:= rolls_text (l : list i32) : string = l |> each sm'::obj_to_string |> delimited ","
 
 test splitmix_matches_erlang =
     := ~x = 0u64
     := z, next = splitmix x
-    sm'.obj_to_string z ++# " " ++# sm'.obj_to_string next |> _assert_eq "16294208416658607535 11400714819323198485"
+    sm'::obj_to_string z ++# " " ++# sm'::obj_to_string next |> _assert_eq "16294208416658607535 11400714819323198485"
 
 test seeds_match_erlang =
     := ~a = 1i32
     := st = seeded_i32 a 8i32 16i32
-    sm'.obj_to_string st.head ++# "|" ++# sm'.obj_to_string st.tail |> _assert_eq "12818512559991394|13862513069590033"
+    sm'::obj_to_string st::head ++# "|" ++# sm'::obj_to_string st::tail
+    |> _assert_eq "12818512559991394|13862513069590033"
 
 test rolls_match_erlang =
     := ~a = 1i32
@@ -98,7 +99,7 @@ test rolls_match_erlang =
     := a, st = uniform range (after_ten ())
     := b, st = uniform 1099511627776u64 st
     := c, _ = uniform 2u64 st
-    sm'.obj_to_string a ++# " " ++# sm'.obj_to_string b ++# " " ++# sm'.obj_to_string c
+    sm'::obj_to_string a ++# " " ++# sm'::obj_to_string b ++# " " ++# sm'::obj_to_string c
 
 test wide_ranges_match_erlang =
     := ~range = 1000u64
@@ -108,4 +109,4 @@ test another_seed_matches_erlang =
     := ~a = 1i32
     := e, st = rolled 6i32 (seeded_i32 a 36i32 28i32)
     := g, _ = rolled 1000i32 st
-    sm'.obj_to_string e ++# " " ++# sm'.obj_to_string g |> _assert_eq "2 170"
+    sm'::obj_to_string e ++# " " ++# sm'::obj_to_string g |> _assert_eq "2 170"

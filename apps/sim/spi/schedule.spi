@@ -24,10 +24,10 @@ test schedule static =
 
 := numbered_part (n : i32) (acc : list frame_part * i32) (body : string) : list frame_part * i32 =
     := l, k = acc
-    listm.append l [ { k n body } ], k + 1i32
+    listm::append l [ { k n body } ], k + 1i32
 
 := numbered_parts (chunks : list string) : list frame_part =
-    := parts, _ = chunks |> listm.fold (numbered_part (listm.length chunks)) (Nil, 1i32)
+    := parts, _ = chunks |> listm::fold (numbered_part (listm::length chunks)) (Nil, 1i32)
     parts
 
 := parts_of (chunking : cell_chunker) (limit : i32) (post_id : string) (source : string) : list frame_part =
@@ -36,20 +36,20 @@ test schedule static =
     | chunks => numbered_parts chunks
 
 := framed_post (chunking : cell_chunker) (limit : i32) (r : rooted) : flow =
-    parts_of chunking limit r.post_id r.source
-    |> each \ part => Content (Framed { post_id = r.post_id; parent = r.parent; part })
+    parts_of chunking limit r::post_id r::source
+    |> each \ part => Content (Framed { post_id = r::post_id; parent = r::parent; part })
 
 := framed_edit (chunking : cell_chunker) (limit : i32) (rev : i32) (s : sourced) : flow =
-    parts_of chunking limit s.post_id s.source
-    |> each (\ part => Revision (FrameEdited { post_id = s.post_id; rev; part }))
+    parts_of chunking limit s::post_id s::source
+    |> each (\ part => Revision (FrameEdited { post_id = s::post_id; rev; part }))
 
 :== exploding = { out : flow; revs : revisions }
 
-:= appended (x : exploding) (l : flow) : exploding = { x ?| out = l |> listm.fold (\ acc e => e :: acc) x.out }
+:= appended (x : exploding) (l : flow) : exploding = { x ?| out = l |> listm::fold (\ acc e => e :: acc) x::out }
 
 := revised_in (chunking : cell_chunker) (limit : i32) (x : exploding) (s : sourced) : exploding =
-    := rev = revision_of x.revs s.post_id + 1i32
-    appended { x ?| revs = (s.post_id, rev) :: x.revs } (framed_edit chunking limit rev s)
+    := rev = revision_of x::revs s::post_id + 1i32
+    appended { x ?| revs = (s::post_id, rev) :: x::revs } (framed_edit chunking limit rev s)
 
 := exploded_one (chunking : cell_chunker) (limit : i32) (x : exploding) (e : event) : exploding =
     ?= e ?|
@@ -58,12 +58,12 @@ test schedule static =
     | _ => appended x [ e ]
 
 :~ exploded (chunking : cell_chunker) (limit : i32) (l : flow) : flow =
-    listm.rev (l |> listm.fold (exploded_one chunking limit) { out = Nil; revs = Nil }).out
+    listm::rev (l |> listm::fold (exploded_one chunking limit) { out = Nil; revs = Nil })::out
 
 
 :== keyed = { time : i32; index : i32; event : event }
 
-:= before (a : keyed) (b : keyed) : bool = a.time < b.time || (a.time = b.time && a.index <= b.index)
+:= before (a : keyed) (b : keyed) : bool = a::time < b::time || (a::time = b::time && a::index <= b::index)
 
 :~ ^ merged_keyed (a : list keyed) (b : list keyed) : list keyed =
     ?= a, b ?|
@@ -84,88 +84,88 @@ test schedule static =
 :== scheduling = { keyed : list keyed; rng : exsss; i : i32 }
 
 := copies_of (i : i32) (jitter : i32) (copies : i32) (e : event) : list keyed =
-    listm.init copies (\ c => { time = i + jitter + c + 1i32; index = i; event = e })
+    listm::init copies (\ c => { time = i + jitter + c + 1i32; index = i; event = e })
 
 :== pacing = { permille : i32; window : i32 }
 
 := drawn_copies (p : pacing) (st : exsss) : i32 * i32 * exsss =
-    := jitter, st = rolled p.window st
+    := jitter, st = rolled p::window st
     := roll, rng = rolled 1000i32 st
-    jitter, (? roll <= p.permille ?> 2i32 |: 1i32), rng
+    jitter, (? roll <= p::permille ?> 2i32 |: 1i32), rng
 
 := scheduled (p : pacing) (s : scheduling) (e : event) : scheduling =
-    := jitter, copies, rng = drawn_copies p s.rng
-    { keyed = listm.append (copies_of s.i jitter copies e) s.keyed; rng; i = s.i + 1i32 }
+    := jitter, copies, rng = drawn_copies p s::rng
+    { keyed = listm::append (copies_of s::i jitter copies e) s::keyed; rng; i = s::i + 1i32 }
 
 := schedule_seed (seed : i32) : exsss = seeded_i32 seed (seed * 31i32 + 5i32) (seed * 17i32 + 11i32)
 
 :~ deliveries (l : flow) (seed : i32) (p : pacing) : list delivery =
-    := s = l |> listm.fold (scheduled p) { keyed = Nil; rng = schedule_seed seed; i = 0i32 }
-    sorted_keyed s.keyed |> each (\ (k : keyed) => { at = k.index; event = k.event })
+    := s = l |> listm::fold (scheduled p) { keyed = Nil; rng = schedule_seed seed; i = 0i32 }
+    sorted_keyed s::keyed |> each (\ (k : keyed) => { at = k::index; event = k::event })
 
 :== staging =
     { seed : i32; users : i32; edits : i32; personas : string; permille : i32; framed : bool; chunking : cell_chunker }
 
 := casting_of (g : staging) : casting =
-    := c = plain_casting g.seed
-    { c ?| users = g.users; edits = g.edits; personas = parsed_personas g.personas }
+    := c = plain_casting g::seed
+    { c ?| users = g::users; edits = g::edits; personas = parsed_personas g::personas }
 
 := staged_flow (g : staging) (s : scenario) : flow =
-    ? g.framed ?> exploded g.chunking (post_limit ()) s.all_events |: s.all_events
+    ? g::framed ?> exploded g::chunking (post_limit ()) s::all_events |: s::all_events
 
 :~ scenario_stream (g : staging) (cells : list string) : string =
     := s = from_cells (casting_of g) "" cells
-    deliveries (staged_flow g s) 1i32 { permille = g.permille; window = 6i32 } |> stream
+    deliveries (staged_flow g s) 1i32 { permille = g::permille; window = 6i32 } |> stream
 
 :~ scenario_final (g : staging) (cells : list string) : string =
     := s = from_cells (casting_of g) "" cells
-    final_replay s.all_events |> final_json
+    final_replay s::all_events |> final_json
 
 :== run_ask = { cast : casting; framed : bool; schedule : i32; permille : i32; chunking : cell_chunker }
 
 := run_events (a : run_ask) (s : scenario) : flow =
-    ? a.framed ?> exploded a.chunking (post_limit ()) s.all_events |: s.all_events
+    ? a::framed ?> exploded a::chunking (post_limit ()) s::all_events |: s::all_events
 
 :== run_reply = string * i32 * i32 * list string
 
-:= corpus_pacing (a : run_ask) : pacing = { permille = a.permille; window = 6i32 }
+:= corpus_pacing (a : run_ask) : pacing = { permille = a::permille; window = 6i32 }
 
 :~ corpus_run (a : run_ask) (threads : list (list string)) : run_reply =
-    := s = from_corpus a.cast threads
+    := s = from_corpus a::cast threads
     := l = run_events a s
-    deliveries l a.schedule (corpus_pacing a) |> stream,
-    listm.length s.posts,
-    listm.length l,
-    s.broken
+    deliveries l a::schedule (corpus_pacing a) |> stream,
+    listm::length s::posts,
+    listm::length l,
+    s::broken
 
 := numbered_one (acc : list delivery * i32) (e : event) : list delivery * i32 =
     := l, i = acc
     { at = i; event = e } :: l, i + 1i32
 
 := numbered_flow (l : flow) : list delivery =
-    := numbered, _ = l |> listm.fold numbered_one (Nil, 0i32)
-    listm.rev numbered
+    := numbered, _ = l |> listm::fold numbered_one (Nil, 0i32)
+    listm::rev numbered
 
 :~ rescheduled (text : string) (seed : i32) (p : pacing) : string =
     ?= decoded_stream text ?|
-    | Ok l => deliveries (l |> each (\ (d : delivery) => d.event)) seed p |> stream
+    | Ok l => deliveries (l |> each (\ (d : delivery) => d::event)) seed p |> stream
     | Error why => why
 
-:~ raw_scenario (s : scenario) : string * list string = s.all_events |> numbered_flow |> stream, s.broken
+:~ raw_scenario (s : scenario) : string * list string = s::all_events |> numbered_flow |> stream, s::broken
 
 := small_flow () : flow = [ Revision (Deleted "a"); Revision (Deleted "b") ]
 
 test deliveries_keep_every_event_at_least_once =
     := ~seed = 1i32
     := l = deliveries (small_flow ()) seed { permille = 1000i32; window = 6i32 }
-    (listm.length l : i32) |> _assert_eq 4i32
+    (listm::length l : i32) |> _assert_eq 4i32
 
-:= keyed_at (time : i32) (index : i32) : keyed = { time index event = Revision (Deleted (sm'.obj_to_string index)) }
+:= keyed_at (time : i32) (index : i32) : keyed = { time index event = Revision (Deleted (sm'::obj_to_string index)) }
 
 test deliveries_sort_by_time_then_index =
     := ~late = keyed_at 5i32 1i32
     sorted_keyed [ late; keyed_at 2i32 3i32; keyed_at 2i32 0i32 ]
-    |> each (\ (k : keyed) => k.index)
-    |> each sm'.obj_to_string
+    |> each (\ (k : keyed) => k::index)
+    |> each sm'::obj_to_string
     |> delimited ","
     |> _assert_eq "0,3,1"

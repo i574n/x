@@ -185,17 +185,18 @@ test tlds static =
     |> spread id
 
 :~ is_tld (label : string) : bool =
-    := key = "|" ++# sm'.to_lower label ++# "|"
-    tld_chunks () |> has (\ c => sm'.contains key c)
+    := key = "|" ++# sm'::to_lower label ++# "|"
+    tld_chunks () |> has (\ c => sm'::contains key c)
 
 test common_and_generic_tlds_are_known =
     := ~label = "map"
     (is_tld label, is_tld "IO", is_tld "post", is_tld "head", is_tld "") |> _assert_eq (!+, !+, !+, !-, !-)
 
-:= listed_tlds () : string = tld_chunks () |> each (\ c => sm'.trim_with [ '|' ] c) |> delimited "|"
+:= listed_tlds () : string = tld_chunks () |> each (\ c => sm'::trim_with [ '|' ] c) |> delimited "|"
 
-:= file_tlds (text : string) : string = pieces "\n" (sm'.replace "\r" "" text) |> keep (\ l => l <> "") |> delimited "|"
+:= file_tlds (text : string) : string =
+    pieces "\n" (sm'::replace "\r" "" text) |> keep (\ l => l <> "") |> delimited "|"
 
 ///> rust
 test the_list_is_postability_tlds_txt =
-    file_system.read_all_text "../../postability/tlds.txt" |> file_tlds |> _assert_eq (listed_tlds ())
+    file_system::read_all_text "../../postability/tlds.txt" |> file_tlds |> _assert_eq (listed_tlds ())

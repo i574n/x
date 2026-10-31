@@ -4,7 +4,7 @@ import gleam/option
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_split/types.{type Uh0, type Us0, type Uh4, Uh0Cons, Uh0Nil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Us0OnBluesky, Us0OnMastodon, Us0OnX, Us1None, Us1Some}
+import xsim_split/types.{type ListString, type Us0, type Uh4, ListStringCons, ListStringNil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Us0OnBluesky, Us0OnMastodon, Us0OnX, Us1None, Us1Some}
 import xsim_split/part1.{closure1, concat_balanced_22, method10, spiral_string_length, spiral_string_slice, spiral_wrap_signed, unicode_erlang_characters_to_binary}
 import xsim_split/part2.{closure3, defused_dots_by_2, defused_entities_27, method26}
 import xsim_split/part3.{closure0, delimited_66, method53, method54, method65, split_cell_0, split_cell_on_45}
@@ -18,7 +18,7 @@ pub fn closure11(capt: Nil) -> fn(#(String, Int, String)) -> String {
     }
 }
 
-pub fn split_list_68(v0: String, v1: String) -> Uh0 {
+pub fn split_list_68(v0: String, v1: String) -> ListString {
     let v2 = v0 == ""
     let v12 =
         case v2 {
@@ -56,8 +56,8 @@ pub fn split_list_68(v0: String, v1: String) -> Uh0 {
         }
     case v16 {
         True -> {
-            let v17 = Uh0Nil
-            Uh0Cons(v1, v17)
+            let v17 = ListStringNil
+            ListStringCons(v1, v17)
         }
         False -> {
             let v19 = spiral_wrap_signed(v12 - 1, 32)
@@ -70,14 +70,14 @@ pub fn split_list_68(v0: String, v1: String) -> Uh0 {
             let v26 = spiral_wrap_signed(v25 - 1, 32)
             let v27 = spiral_string_slice(v1, v21, v26)
             let v28 = split_list_68(v0, v27)
-            Uh0Cons(v20, v28)
+            ListStringCons(v20, v28)
         }
     }
 }
 
-pub fn blank_tail_length_71(v0: Uh0, v1: Int) -> Int {
+pub fn blank_tail_length_71(v0: ListString, v1: Int) -> Int {
     case v0  {
-        Uh0Cons(v2, v3) -> {
+        ListStringCons(v2, v3) -> {
             let v4 = string.to_utf_codepoints(v2)
             let v5 = v4 |> list.reverse
             let v6 = Uh3Nil
@@ -109,7 +109,7 @@ pub fn blank_tail_length_71(v0: Uh0, v1: Int) -> Int {
     }
 }
 
-pub fn with_blanks_72(v0: Int, v1: Uh0) -> Uh0 {
+pub fn with_blanks_72(v0: Int, v1: ListString) -> ListString {
     let v2 = v0 <= 0
     case v2 {
         True -> {
@@ -118,13 +118,13 @@ pub fn with_blanks_72(v0: Int, v1: Uh0) -> Uh0 {
         False -> {
             let v3 = spiral_wrap_signed(v0 - 1, 32)
             let v4 = ""
-            let v5 = Uh0Cons(v4, v1)
+            let v5 = ListStringCons(v4, v1)
             with_blanks_72(v3, v5)
         }
     }
 }
 
-pub fn step_70(v0: Uh0, v1: Uh0, v2: Int, v3: Bool, v4: String) -> #(Uh0, Uh0, Int, Bool) {
+pub fn step_70(v0: ListString, v1: ListString, v2: Int, v3: Bool, v4: String) -> #(ListString, ListString, Int, Bool) {
     let v5 = v4 == ""
     let #(v46, v47, v48, v49) =
         case v5 {
@@ -161,22 +161,22 @@ pub fn step_70(v0: Uh0, v1: Uh0, v2: Int, v3: Bool, v4: String) -> #(Uh0, Uh0, I
                 let #(v42, v43, v44, v45) =
                     case v15 {
                         True -> {
-                            let v16 = Uh0Nil
+                            let v16 = ListStringNil
                             let v17 = method10(v1, v16)
                             let v18 = "\n"
                             let v19 = concat_balanced_22(v18, v17)
                             let v20 = spiral_string_length(v19)
                             let v21 = string.to_graphemes(v19)
                             let v22 = v21 |> list.reverse
-                            let v23 = Uh0Nil
+                            let v23 = ListStringNil
                             let listm_fold = v22 |> list.fold (v23, fn (acc, x) {
                             let v24 = x
                             let v25 = acc
-                            let v26 = Uh0Cons(v24, v25)
+                            let v26 = ListStringCons(v24, v25)
                             v26
                             })
                             let v27 = listm_fold
-                            let v28 = Uh0Nil
+                            let v28 = ListStringNil
                             let v29 = method10(v27, v28)
                             let v30 = 0
                             let v31 = blank_tail_length_71(v29, v30)
@@ -184,15 +184,15 @@ pub fn step_70(v0: Uh0, v1: Uh0, v2: Int, v3: Bool, v4: String) -> #(Uh0, Uh0, I
                             let v33 = spiral_wrap_signed(v32 - 1, 32)
                             let v34 = spiral_string_slice(v19, 0, v33)
                             let v35 = spiral_wrap_signed(v2 - 1, 32)
-                            let v36 = Uh0Nil
+                            let v36 = ListStringNil
                             let v37 = with_blanks_72(v35, v36)
-                            let v38 = Uh0Cons(v34, v0)
-                            let v39 = Uh0Cons(v4, v37)
+                            let v38 = ListStringCons(v34, v0)
+                            let v39 = ListStringCons(v4, v37)
                             #(v38, v39, 0, True)
                         }
                         False -> {
                             let v40 = with_blanks_72(v2, v1)
-                            let v41 = Uh0Cons(v4, v40)
+                            let v41 = ListStringCons(v4, v40)
                             #(v0, v41, 0, True)
                         }
                     }
@@ -202,17 +202,17 @@ pub fn step_70(v0: Uh0, v1: Uh0, v2: Int, v3: Bool, v4: String) -> #(Uh0, Uh0, I
     #(v46, v47, v48, v49)
 }
 
-pub fn method69(v0: Uh0, v1: Uh0, v2: Uh0, v3: Int, v4: Bool) -> #(Uh0, Uh0, Int, Bool) {
+pub fn method69(v0: ListString, v1: ListString, v2: ListString, v3: Int, v4: Bool) -> #(ListString, ListString, Int, Bool) {
     let #(v19, v20, v21, v22) =
         case v0  {
-            Uh0Cons(v5, v6) -> {
+            ListStringCons(v5, v6) -> {
                 let #(v7, v8, v9, v10) = step_70(v1, v2, v3, v4, v5)
                 method69(v6, v7, v8, v9, v10)
             }
             _ -> {
                 let #(v15, v16, v17, v18) =
                     case v0  {
-                        Uh0Nil -> {
+                        ListStringNil -> {
                             #(v1, v2, v3, v4)
                         }
                         _ -> panic as "spiral: union case ruled out by partial evaluation"
@@ -223,7 +223,7 @@ pub fn method69(v0: Uh0, v1: Uh0, v2: Uh0, v3: Int, v4: Bool) -> #(Uh0, Uh0, Int
     #(v19, v20, v21, v22)
 }
 
-pub fn file_cells_67(v0: String) -> Uh0 {
+pub fn file_cells_67(v0: String) -> ListString {
     let v1 = "\r\n"
     let v2 = "\n"
     let v3 = v0 |> string.replace(v1, v2)
@@ -244,51 +244,51 @@ pub fn file_cells_67(v0: String) -> Uh0 {
     let v10 = v9 == ""
     case v10 {
         True -> {
-            Uh0Nil
+            ListStringNil
         }
         False -> {
             let v12 = split_list_68(v2, v9)
-            let v13 = Uh0Nil
-            let v14 = Uh0Nil
+            let v13 = ListStringNil
+            let v14 = ListStringNil
             let v15 = 0
             let v16 = False
             let #(v17, v18, v19, _v20) = method69(v12, v13, v14, v15, v16)
             let v21 = with_blanks_72(v19, v18)
-            let v22 = Uh0Nil
+            let v22 = ListStringNil
             let v23 = method10(v21, v22)
             let v24 = concat_balanced_22(v2, v23)
             let v25 = spiral_string_length(v24)
             let v26 = string.to_graphemes(v24)
             let v27 = v26 |> list.reverse
-            let v28 = Uh0Nil
+            let v28 = ListStringNil
             let listm_fold = v27 |> list.fold (v28, fn (acc, x) {
             let v29 = x
             let v30 = acc
-            let v31 = Uh0Cons(v29, v30)
+            let v31 = ListStringCons(v29, v30)
             v31
             })
             let v32 = listm_fold
-            let v33 = Uh0Nil
+            let v33 = ListStringNil
             let v34 = method10(v32, v33)
             let v35 = 0
             let v36 = blank_tail_length_71(v34, v35)
             let v37 = spiral_wrap_signed(v25 - v36, 32)
             let v38 = spiral_wrap_signed(v37 - 1, 32)
             let v39 = spiral_string_slice(v24, 0, v38)
-            let v40 = Uh0Nil
-            let v41 = Uh0Cons(v39, v40)
+            let v40 = ListStringNil
+            let v41 = ListStringCons(v39, v40)
             method10(v17, v41)
         }
     }
 }
 
-pub fn closure12(capt: Nil) -> fn(String) -> Uh0 {
+pub fn closure12(capt: Nil) -> fn(String) -> ListString {
     fn (v0) {
         file_cells_67(v0)
     }
 }
 
-pub fn closure15(capt: #(Us0, Int)) -> fn(String) -> Uh0 {
+pub fn closure15(capt: #(Us0, Int)) -> fn(String) -> ListString {
     fn (v2) {
         let #(v0, v1) = capt
         let v10 =
@@ -324,16 +324,16 @@ pub fn closure15(capt: #(Us0, Int)) -> fn(String) -> Uh0 {
     }
 }
 
-pub fn closure14(capt: #(Us0)) -> fn(Int) -> fn(String) -> Uh0 {
+pub fn closure14(capt: #(Us0)) -> fn(Int) -> fn(String) -> ListString {
     fn (v1) {
         let #(v0) = capt
         closure15(#(v0, v1))
     }
 }
 
-pub fn numbered_77(v0: String, v1: Int, v2: Int, v3: Uh0, v4: Uh0) -> Uh0 {
+pub fn numbered_77(v0: String, v1: Int, v2: Int, v3: ListString, v4: ListString) -> ListString {
     case v3  {
-        Uh0Cons(v7, v8) -> {
+        ListStringCons(v7, v8) -> {
             let v9 = spiral_wrap_signed(v2 + 1, 32)
             let v10 = " "
             let v11 = v0 <> v10 
@@ -349,40 +349,40 @@ pub fn numbered_77(v0: String, v1: Int, v2: Int, v3: Uh0, v4: Uh0) -> Uh0 {
             let v21 = spiral_string_length(v20)
             let v22 = string.to_graphemes(v20)
             let v23 = v22 |> list.reverse
-            let v24 = Uh0Nil
+            let v24 = ListStringNil
             let listm_fold = v23 |> list.fold (v24, fn (acc, x) {
             let v25 = x
             let v26 = acc
-            let v27 = Uh0Cons(v25, v26)
+            let v27 = ListStringCons(v25, v26)
             v27
             })
             let v28 = listm_fold
-            let v29 = Uh0Nil
+            let v29 = ListStringNil
             let v30 = method10(v28, v29)
             let v31 = 0
             let v32 = blank_tail_length_71(v30, v31)
             let v33 = spiral_wrap_signed(v21 - v32, 32)
             let v34 = spiral_wrap_signed(v33 - 1, 32)
             let v35 = spiral_string_slice(v20, 0, v34)
-            let v36 = Uh0Cons(v35, v4)
+            let v36 = ListStringCons(v35, v4)
             numbered_77(v0, v1, v9, v8, v36)
         }
-        Uh0Nil -> {
-            let v5 = Uh0Nil
+        ListStringNil -> {
+            let v5 = ListStringNil
             method10(v4, v5)
         }
     }
 }
 
-pub fn cell_posts_by_76(v0: fn(Int) -> fn(String) -> Uh0, v1: Int, v2: String) -> Uh0 {
+pub fn cell_posts_by_76(v0: fn(Int) -> fn(String) -> ListString, v1: Int, v2: String) -> ListString {
     let v3 = v0(v1)
     let v4 = v3(v2)
     let v8 =
         case v4  {
-            Uh0Nil -> {
+            ListStringNil -> {
                 let v5 = ""
-                let v6 = Uh0Nil
-                Uh0Cons(v5, v6)
+                let v6 = ListStringNil
+                ListStringCons(v5, v6)
             }
             _ -> {
                 v4
@@ -394,7 +394,7 @@ pub fn cell_posts_by_76(v0: fn(Int) -> fn(String) -> Uh0, v1: Int, v2: String) -
     let v12 = 0
     let v13 = method65(v8, v12)
     let v14 = 1
-    let v15 = Uh0Nil
+    let v15 = ListStringNil
     numbered_77(v11, v13, v14, v8, v15)
 }
 
@@ -410,7 +410,7 @@ pub fn method78(v0: Uh4, v1: Uh4) -> Uh4 {
     }
 }
 
-pub fn method79(v0: Uh4, v1: Uh0) -> Uh0 {
+pub fn method79(v0: Uh4, v1: ListString) -> ListString {
     case v0  {
         Uh4Cons(v2, v3) -> {
             let v4 = method79(v3, v1)
@@ -422,34 +422,34 @@ pub fn method79(v0: Uh4, v1: Uh0) -> Uh0 {
     }
 }
 
-pub fn thread_by_75(v0: fn(Int) -> fn(String) -> Uh0, v1: Int, v2: Uh0, v3: Uh4) -> Uh0 {
+pub fn thread_by_75(v0: fn(Int) -> fn(String) -> ListString, v1: Int, v2: ListString, v3: Uh4) -> ListString {
     case v2  {
-        Uh0Cons(v8, v9) -> {
+        ListStringCons(v8, v9) -> {
             let v10 = spiral_wrap_signed(v1 + 1, 32)
             let v11 = cell_posts_by_76(v0, v1, v8)
             let v12 = Uh4Cons(v11, v3)
             thread_by_75(v0, v10, v9, v12)
         }
-        Uh0Nil -> {
+        ListStringNil -> {
             let v4 = Uh4Nil
             let v5 = method78(v3, v4)
-            let v6 = Uh0Nil
+            let v6 = ListStringNil
             method79(v5, v6)
         }
     }
 }
 
-pub fn thread_on_74(v0: Us0, v1: Int, v2: Uh0, v3: Uh4) -> Uh0 {
+pub fn thread_on_74(v0: Us0, v1: Int, v2: ListString, v3: Uh4) -> ListString {
     let v4 = closure14(#(v0))
     thread_by_75(v4, v1, v2, v3)
 }
 
-pub fn thread_of_73(v0: Int, v1: Uh0, v2: Uh4) -> Uh0 {
+pub fn thread_of_73(v0: Int, v1: ListString, v2: Uh4) -> ListString {
     let v3 = Us0OnX
     thread_on_74(v3, v0, v1, v2)
 }
 
-pub fn closure13(capt: Nil) -> fn(String) -> Uh0 {
+pub fn closure13(capt: Nil) -> fn(String) -> ListString {
     fn (v0) {
         let v1 = 1
         let v2 = file_cells_67(v0)

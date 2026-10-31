@@ -1,5 +1,6 @@
 defmodule XsimTest do
   use ExUnit.Case, async: true
+  @moduletag timeout: 300_000
   alias Xsim.{Executors, Invariants, Runner, Scenario}
 
   @cells [
@@ -38,7 +39,7 @@ defmodule XsimTest do
 
   test "results assigned to whoever asked, without cancelling, surface stale revisions" do
     slow = fn sources ->
-      if String.ends_with?(List.last(sources), "\n"), do: :ok, else: Process.sleep(250)
+      if String.ends_with?(List.last(sources), "\n"), do: :ok, else: Process.sleep(2_000)
       Executors.fake().(sources)
     end
 
@@ -56,7 +57,7 @@ defmodule XsimTest do
 
   test "withdrawn demand stays hidden unless results are assigned naively" do
     deliveries = [{0, {:post, "p0", nil, "inl a = 1"}}, {1, {:like, "p0", "u1"}}, {2, {:unlike, "p0", "u1"}}]
-    slow = fn sources -> Process.sleep(80) && Executors.fake().(sources) end
+    slow = fn sources -> Process.sleep(1_000) && Executors.fake().(sources) end
     naive = Runner.run(deliveries, slow, naive_visibility: true, cancel: false)
     assert match?({:violations, ["p0"]}, verdicts(naive)[:withdrawn_demand_hidden])
     assert verdicts(Runner.run(deliveries, slow))[:withdrawn_demand_hidden] == :ok

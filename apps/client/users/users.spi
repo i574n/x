@@ -18,7 +18,7 @@ test users static =
 
 := found_lookup (doc : json) : lookup_reply =
     ?= users_of_doc doc ?|
-    | users_reply { found unknown } => 0i32, account_lines found, sm'.concat_list "," unknown, ""
+    | users_reply { found unknown } => 0i32, account_lines found, sm'::concat_list "," unknown, ""
 
 :~ named (base : string) (bearer : string) (hs : string) : lookup_reply =
     ?= get_raw (app_api base bearer) (read_path (Users (Named (pieces "," hs)))) ?|
@@ -28,11 +28,11 @@ test users static =
 := grown (wanted : i32) (acc : accounts) (doc : json) : accounts * string =
     ?= page_of_doc doc ?|
     | page_reply { page next_token } =>
-        := acc = listm.append acc page
-        acc, (? listm.length acc >= wanted ?> "" |: next_token)
+        := acc = listm::append acc page
+        acc, (? listm::length acc >= wanted ?> "" |: next_token)
 
 := page_path (id : user_id) (n : i32) (cursor : string) (acc : accounts) =
-    read_path (FollowedBy { follower = id; size = page_size (n - listm.length acc); pagination_token = cursor })
+    read_path (FollowedBy { follower = id; size = page_size (n - listm::length acc); pagination_token = cursor })
 
 := page_of (a : app) (id : user_id) (n : i32) (cursor : string) (acc : accounts) : got fetched =
     get_raw a (page_path id n cursor acc)
@@ -51,12 +51,12 @@ test users static =
 
 := too_wide () : string =
     "--max-following all would read more than "
-    ++# sm'.obj_to_string (following_read_limit ())
+    ++# sm'::obj_to_string (following_read_limit ())
     ++# " timelines; pass a number to confirm"
 
 := capped_listing (r : got accounts) : listed =
     ?= r ?|
-    | Ok l ?& (listm.length l : i32) > following_read_limit () => 4i32, "", too_wide ()
+    | Ok l ?& (listm::length l : i32) > following_read_limit () => 4i32, "", too_wide ()
     | _ => listed_of r
 
 := following_wanted (cap : i32) : i32 = ? cap < 0i32 ?> following_read_limit () + 1i32 |: cap
@@ -73,14 +73,14 @@ test users static =
         member "errors" (items (bodies |> spread (listed_items "errors")))
     ]
 
-:= ids_chunks (ids : string) : list (list user_id) = listm'.chunks_ (lookup_limit ()) (pieces "," ids |> each user_id)
+:= ids_chunks (ids : string) : list (list user_id) = listm'::chunks_ (lookup_limit ()) (pieces "," ids |> each user_id)
 
 test user_ids_chunk_to_the_lookup_limit =
     := ~n = 250i32
-    listm.init n (\ i => sm'.obj_to_string i)
+    listm::init n (\ i => sm'::obj_to_string i)
     |> delimited ","
     |> ids_chunks
-    |> each (\ c => listm.length c : i32)
+    |> each (\ c => listm::length c : i32)
     |> _assert_eq [ 100i32; 100i32; 50i32 ]
 
 := users_listed (r : got (list (json * string))) : listed =
@@ -90,7 +90,7 @@ test user_ids_chunk_to_the_lookup_limit =
 
 :~ by_ids (base : string) (bearer : string) (ids : string) : listed =
     := a = app_api base bearer
-    users_listed (ids_chunks ids |> each (\ c => get_raw a (read_path (Users (Ids c)))) |> resultm.collect_list)
+    users_listed (ids_chunks ids |> each (\ c => get_raw a (read_path (Users (Ids c)))) |> resultm::collect_list)
 
 := account_doc (id : string) (username : string) : string =
     object [ member "id" (quoted_text id); member "username" (quoted_text username) ]
@@ -103,7 +103,7 @@ test user_ids_chunk_to_the_lookup_limit =
 
 := grown_text (wanted : i32) : string =
     := l, more = grown wanted Nil (parse_json (two_accounts ()))
-    sm'.obj_to_string (listm.length l : i32) ++# "|" ++# more
+    sm'::obj_to_string (listm::length l : i32) ++# "|" ++# more
 
 test following_pages_stop_once_enough_accounts_are_found =
     := ~wanted = 2i32

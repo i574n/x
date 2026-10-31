@@ -1,0 +1,31 @@
+///- --package .. --timeout 600000
+///> gleam
+test xsim_world static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< splitter
+:< world
+:< remote_chunks
+
+:== world_cells = string * i32 * i32 * string * i32 * i32 * i32 * string * string * string
+
+:= view_of (x : world_cells) : losses * account_view =
+    := _, _, _, _, _, lost, lost_cells, _, user_id, username = x
+    { lost lost_cells }, { user_id username }
+
+:= ask_of (x : world_cells) : world_ask =
+    := _, seed, edits, personas, id_base, _, _, base_time, _, _ = x
+    := losses, account = view_of x
+    { seed edits personas id_base losses base_time account chunking = remote_split }
+
+:= staged_world (x : world_cells) : string * string =
+    := cells, _, _, _, _, _, _, _, _, _ = x
+    world_files (ask_of x) (split_all (char_of 0i32) cells)
+
+///> _
+:= main () : i32 =
+    export "world_files" ((\ x => staged_world x) : world_cells -> string * string)
+    0i32

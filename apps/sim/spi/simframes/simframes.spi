@@ -101,6 +101,31 @@ test threads_of_splits_threads_then_cells =
     export "corpus_raw" ((\ x => corpus_raw x) : run_cells -> string * string)
     export "cells_raw" ((\ x => cells_raw x) : run_cells -> string * string)
 
+:== simulate_cells = string * string * string
+
+:== beam = sim_run::beam_executors
+
+:= with_tally (root : string) (b : beam) : beam =
+    := tally = cells_executor::memo_tally ()
+    := run = \ (memo : bool) => cells_executor::cells_counted root memo tally
+    { b ?| cells = run; memo_counts = \ () => cells_executor::memo_counts tally }
+
+:= with_vm (root : string) (b : beam) : beam =
+    := baseline = cells_executor::cells_executor root
+    { b ?| cells_baseline = baseline; leak = cells_executor::shared_leak; beam_mb = cells_executor::beam_mb }
+
+:= with_daemon (b : beam) : beam = { b ?| daemon_watch = cells_executor::daemon_watch }
+
+:= with_async (b : beam) : beam = { b ?| async_run = cells_executor::async_run_with }
+
+:= beam_for (root : string) : beam =
+    sim_run::idle_beam () |> with_tally root |> with_vm root |> with_daemon |> with_async
+
+:= simulated_lines (x : simulate_cells) : string =
+    := args, threads, root = x
+    sim_run::simulated_text (beam_for root) (pieces (char_of 0i32) args) (threads_of threads)
+
+
 := facade_exports () : () =
     raw_exports ()
     export "rescheduled" ((\ x => paced x) : pacing_cells -> string)
@@ -122,4 +147,5 @@ test threads_of_splits_threads_then_cells =
     run_export ()
     world_export ()
     stream_export ()
+    export "simulated_lines" ((\ x => simulated_lines x) : simulate_cells -> string)
     0i32

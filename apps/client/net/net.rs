@@ -575,7 +575,7 @@ fn form_exchange_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc
     let v4: u32 = XC_REQUESTS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
     let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v1, v5)), v2));
-    let v8: Rc<str> = Rc::<str>::from(base64::Engine::encode(&base64::engine::general_purpose::STANDARD, (v7).as_bytes()));
+    let v8: Rc<str> = Rc::<str>::from(base64::Engine::encode(&base64::prelude::BASE64_STANDARD, (v7).as_bytes()));
     let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Basic "); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v8));
     let mut v11: ureq::RequestBuilder<ureq::typestate::WithBody> = ureq::post(&*v0).header("Authorization", &*v10).header("Content-Type", "application/x-www-form-urlencoded");
@@ -600,6 +600,26 @@ fn closure3() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>)
         form_exchange_8(v0.clone(), v1.clone(), v2.clone(), v3.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
+fn go_9(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> Rc<str> {
+    loop {
+        let v4: bool = v2 >= v1;
+        if v4 {
+            return v3.clone();
+        } else {
+            let mut v5: i32 = v2.wrapping_add(1i32);
+            let v6: u8 = v0.clone().borrow()[v2 as usize].clone();
+            let mut v7: u8 = v6.wrapping_shr((4i32) as u32);
+            let v8: i32 = (v7 as i32);
+            let mut v9: u8 = v6 & 15u8;
+            let v10: i32 = (v9 as i32);
+            let mut v11: Rc<str> = string_slice(&{ thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0123456789abcdef"); } LIT.with(|lit| lit.clone()) }, v8 as i64, v8 as i64);
+            let v12: Rc<str> = string_slice(&{ thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0123456789abcdef"); } LIT.with(|lit| lit.clone()) }, v10 as i64, v10 as i64);
+            let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v3, Rc::<str>::from(format!("{}{}", v11, v12))));
+            (v0, v1, v2, v3) = (v0.clone(), v1, v5, v14.clone());
+            continue;
+        }
+    }
+}
 fn closure4() -> Rc<dyn Fn() -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn() -> Rc<str>> = Rc::new(move || -> Rc<str> {
         let mut v0: std::time::SystemTime = std::time::SystemTime::now();
@@ -614,8 +634,11 @@ fn closure4() -> Rc<dyn Fn() -> Rc<str>> {
         let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
         let v10: u32 = std::process::id();
         let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v9, Rc::<str>::from(format!("{:?}", v10))));
-        let mut v13: Rc<str> = Rc::<str>::from(<sha1::Sha1 as sha1::Digest>::digest(v12.as_bytes()).iter().map(|b| format!("{:02x}", b)).collect::<String>());
-        v13.clone()
+        let mut v13: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(<sha1::Sha1 as sha1::Digest>::digest(v12.as_bytes()).to_vec()));
+        let v14: i32 = (v13.clone().borrow().len() as i32);
+        let mut v15: i32 = 0i32;
+        let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        go_9(v13.clone(), v14, v15, v16.clone())
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure5() -> Rc<dyn Fn() -> Rc<str>> {

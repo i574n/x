@@ -4,6 +4,8 @@ defmodule Mix.Tasks.Xsim.Run do
   @shortdoc "Replay a seeded X-like scenario built from a .spi against an executor and check Cells' invariants"
 
   @impl Mix.Task
+  def run(["--engine", "spiral" | args]), do: run_spiral(args)
+
   def run(args) do
     Mix.Task.run("app.start")
 
@@ -58,6 +60,23 @@ defmodule Mix.Tasks.Xsim.Run do
     IO.puts("XSIM commute=#{verdict_text(commute)} result=#{if failed, do: "fail", else: "pass"}")
     if failed, do: exit({:shutdown, 1})
   end
+
+  defp run_spiral(args) do
+    Mix.Task.run("app.start")
+    {opts, _, _} = OptionParser.parse(args, switches: [spi: :string, spi_file: :string, cells: :integer])
+
+    files =
+      if opts[:spi_file],
+        do: opts[:spi_file] |> File.read!() |> String.split(["\r\n", "\n"], trim: true),
+        else: String.split(opts[:spi] || Mix.raise("missing --spi or --spi-file"), [",", "+"], trim: true)
+
+    threads = Enum.map(files, &cells_of(&1, opts[:cells]))
+    lines = Xsim.Spiral.simulated_lines(args, threads, Path.dirname(Path.expand(hd(files))))
+    Enum.each(lines, &IO.puts/1)
+    if Enum.any?(lines, &failed_line?/1), do: exit({:shutdown, 1})
+  end
+
+  defp failed_line?(line), do: String.starts_with?(line, "XSIM rejected") or String.ends_with?(line, "result=fail")
 
   defp cells_of(spi, limit) do
     spir = Path.rootname(spi) <> "_real.spir"

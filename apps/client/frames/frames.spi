@@ -28,7 +28,7 @@ test frames static =
     $'Rc::<str>::from(serde_json::json\!({"text": &*!t, "weight": !w}).to_string())'
 
 :~ framed_by (chunked : chunker) (weigh : string -> i32) (cells : list string) : string =
-    "[" ++# (thread_by chunked 1i32 cells [] |> each (post_json weigh) |> sm'.concat_list ",") ++# "]"
+    "[" ++# (thread_by chunked 1i32 cells [] |> each (post_json weigh) |> sm'::concat_list ",") ++# "]"
 
 := framed_json (name : string) (text : string) : string =
     framed_by (remote_chunks name) (remote_weight name) (cells_of text)

@@ -56,17 +56,17 @@ test protocol static =
     | MissingFrames : { cell : cell_id; missing : list i32; part_count : i32 }
     | ReplyGap : { cell : cell_id; parent : post_id }
 
-:= cell_label (cell : i32) : cell_id = cell_id ("c" ++# sm'.obj_to_string cell)
+:= cell_label (cell : i32) : cell_id = cell_id ("c" ++# sm'::obj_to_string cell)
 
 := rendered (h : frame_header) : string =
-    cell_text h.cell ++# " " ++# sm'.obj_to_string h.part ++# "/" ++# sm'.obj_to_string h.part_count
+    cell_text h::cell ++# " " ++# sm'::obj_to_string h::part ++# "/" ++# sm'::obj_to_string h::part_count
 
 :== header_reading = result frame_header header_rejection
 
 := header_in (cell : cell_id) (part : i32) (part_count : i32) : header_reading =
     ? part >= 1i32 && part <= part_count ?> Ok { cell part part_count } |: Error PartOutOfRange
 
-:= rest_after (at : i32) (text : string) : string = cut (at + 1i32) (sm'.length text - at - 1i32) text
+:= rest_after (at : i32) (text : string) : string = cut (at + 1i32) (sm'::length text - at - 1i32) text
 
 := counted_after (cell : cell_id) (part : i32) (rest : string) : header_reading =
     ?= count_of_text rest ?|
@@ -79,22 +79,22 @@ test protocol static =
     | None => Error NotAFraction
 
 :~ fraction_of (cell : cell_id) (fraction : string) : header_reading =
-    := slash = sm'.index_of "/" fraction
+    := slash = sm'::index_of "/" fraction
     ? slash > 0i32 ?> split_fraction cell slash fraction |: Error NotAFraction
 
 := second_word (space : i32) (line : string) : string = ? space > 0i32 ?> rest_after space line |: ""
 
 :~ parsed (line : string) : header_reading =
-    := space = sm'.index_of " " line
+    := space = sm'::index_of " " line
     := fraction = second_word space line
-    ? space <= 0i32 || sm'.index_of " " fraction >= 0i32
+    ? space <= 0i32 || sm'::index_of " " fraction >= 0i32
     ?> Error NotTwoWords
     |: fraction_of (cell_id (cut 0i32 space line)) fraction
 
-:= listed (l : list i32) : string = l |> each sm'.obj_to_string |> delimited ", "
+:= listed (l : list i32) : string = l |> each sm'::obj_to_string |> delimited ", "
 
 := missing_note (cell : cell_id) (missing : list i32) (part_count : i32) : string =
-    "cell " ++# cell_text cell ++# " is missing frame " ++# listed missing ++# " of " ++# sm'.obj_to_string part_count
+    "cell " ++# cell_text cell ++# " is missing frame " ++# listed missing ++# " of " ++# sm'::obj_to_string part_count
 
 := gap_note (cell : cell_id) (parent : post_id) : string =
     "cell "
@@ -113,11 +113,11 @@ test protocol static =
     | Nil => 0i32
     | _ => 4i32
 
-:= packed (h : frame_header) : i32 = h.part * 100i32 + h.part_count
+:= packed (h : frame_header) : i32 = h::part * 100i32 + h::part_count
 
 := read_back (r : header_reading) : string =
     ?= r ?|
-    | Ok h => cell_text h.cell ++# sm'.obj_to_string (packed h)
+    | Ok h => cell_text h::cell ++# sm'::obj_to_string (packed h)
     | Error _ => "rejected"
 
 test headers_round_trip =

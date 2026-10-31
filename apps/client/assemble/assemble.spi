@@ -29,20 +29,20 @@ test assemble static =
     |> reply_of
 
 := place_doc (cell : string) (k : i32) (n : i32) : list string =
-    [ member "cell" (quoted_text cell); member "k" (sm'.obj_to_string k); member "n" (sm'.obj_to_string n) ]
+    [ member "cell" (quoted_text cell); member "k" (sm'::obj_to_string k); member "n" (sm'::obj_to_string n) ]
 
 := frame_members (body : string) : list string =
     [ member "body" (json_string body); member "original" (quoted_text "5"); member "parent" (quoted_text "") ]
 
 := frame_doc (cell : string) (k : i32) (n : i32) (body : string) : string =
-    object (listm.append (place_doc cell k n) (frame_members body))
+    object (listm::append (place_doc cell k n) (frame_members body))
 
 := located_of (frames : list string) : string =
     object [ member "frames" (items frames); member "known" (items [ quoted_text "5" ]) ]
 
 := reply_text (r : assembled_reply) : string =
     := code, sources, notes = r
-    sm'.obj_to_string code ++# "|" ++# sources ++# "|" ++# notes
+    sm'::obj_to_string code ++# "|" ++# sources ++# "|" ++# notes
 
 test frames_in_any_order_join_their_cell =
     := ~body = "inl a"

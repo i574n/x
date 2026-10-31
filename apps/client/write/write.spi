@@ -18,13 +18,13 @@ test write static =
     := base, _, _, _, _, _, _, _, _, _, _ = x
     base
 
-:= nonce_at (nonce : string) (k : i32) : string = ? k = 0i32 ?> nonce |: nonce ++# sm'.obj_to_string k
+:= nonce_at (nonce : string) (k : i32) : string = ? k = 0i32 ?> nonce |: nonce ++# sm'::obj_to_string k
 
 := keys_json (x : write_args) : json =
     := _, _, ck, cs, t, ts, _, _, _, _, _ = x
     $'serde_json::json\!({"ck": &*!ck, "cs": &*!cs, "t": &*!t, "ts": &*!ts})'
 
-:= seconds_at (stamp : string) (k : i32) : string = sm'.obj_to_string (convert.convert_i32 stamp + k)
+:= seconds_at (stamp : string) (k : i32) : string = sm'::obj_to_string (convert::convert_i32 stamp + k)
 
 := clock_json (x : write_args) (k : i32) : json =
     := _, _, _, _, _, _, nonce, stamp, _, _, _ = x
@@ -32,7 +32,7 @@ test write static =
     $'serde_json::json\!({"nonce": &*!nonce_k, "stamp": &*!stamp, "seconds": &*!seconds})'
 
 := account_json (x : write_args) (a : account) : json =
-    := base, name, token, repo = base_of_args x, a.name, a.token, a.repo
+    := base, name, token, repo = base_of_args x, a::name, a::token, a::repo
     $'serde_json::json\!({"base": &*!base, "name": &*!name, "token": &*!token, "repo": &*!repo})'
 
 := site_json (x : write_args) (a : account) (k : i32) : string =
@@ -111,29 +111,30 @@ test write static =
 :== posting = { first : chain; last : chain; lines : list string; ids : list string; resumed : bool }
 
 := first_or (p : posting) (r : created_reply) : chain =
-    ?= p.first ?|
+    ?= p::first ?|
     | Unstarted => After r
-    | _ => p.first
+    | _ => p::first
 
 := continue_hint (p : posting) : string =
-    ?= listm.rev p.ids ?|
-    | _ ?& p.resumed => "; continue with the same --resume command"
+    ?= listm::rev p::ids ?|
+    | _ ?& p::resumed => "; continue with the same --resume command"
     | root :: _ => "; continue with: xc post-thread --resume " ++# root ++# " FILE"
     | [] => ""
 
 := stopped (p : posting) (f : string) : i32 * string =
-    := before = ? listm.length p.ids = 0i32 ?> "" |: "; posted before it: " ++# sm'.concat_list " " (listm.rev p.ids)
+    := before =
+        ? listm::length p::ids = 0i32 ?> "" |: "; posted before it: " ++# sm'::concat_list " " (listm::rev p::ids)
     4i32, f ++# before ++# continue_hint p
 
 := advanced (p : posting) (r : created_reply) (text : string) : posting =
     := id = id_of r
     := line = "posted " ++# id ++# " " ++# first_line text
-    { p ?| first = first_or p r; last = After r; lines = line :: p.lines; ids = id :: p.ids }
+    { p ?| first = first_or p r; last = After r; lines = line :: p::lines; ids = id :: p::ids }
 
 := sent (s : side) (p : posting) (text : string) : result created_reply string =
-    remote_create (s (listm.length p.ids + 1i32)) (next_ask p.first p.last text) |> created_of_out
+    remote_create (s (listm::length p::ids + 1i32)) (next_ask p::first p::last text) |> created_of_out
 
-:= all_posted (p : posting) : i32 * string = 0i32, sm'.concat_list "\n" (listm.rev p.lines)
+:= all_posted (p : posting) : i32 * string = 0i32, sm'::concat_list "\n" (listm::rev p::lines)
 
 :~ ^ chained (s : side) (l : list string) (p : posting) : i32 * string =
     ?= l ?|
@@ -147,21 +148,22 @@ test write static =
 
 := with_line (acc : removal) (line : result string string) : removal =
     ?= line ?|
-    | Ok text => { acc ?| lines = text :: acc.lines }
-    | Error message => { lines = message :: acc.lines; failed = !+ }
+    | Ok text => { acc ?| lines = text :: acc::lines }
+    | Error message => { lines = message :: acc::lines; failed = !+ }
 
 := removed_one (s : side) (acc : removal) (id : string) : removal =
-    remote_delete (s (listm.length acc.lines + 1i32)) (removal_ask id) |> removal_line id |> with_line acc
+    remote_delete (s (listm::length acc::lines + 1i32)) (removal_ask id) |> removal_line id |> with_line acc
 
-:= removal_reply (r : removal) : i32 * string = (? r.failed ?> 4i32 |: 0i32), sm'.concat_list "\n" (listm.rev r.lines)
+:= removal_reply (r : removal) : i32 * string =
+    (? r::failed ?> 4i32 |: 0i32), sm'::concat_list "\n" (listm::rev r::lines)
 
 :~ removed_all (s : side) (ids : list string) : i32 * string =
-    listm.fold (removed_one s) { lines = []; failed = !- } ids |> removal_reply
+    listm::fold (removed_one s) { lines = []; failed = !- } ids |> removal_reply
 
 := first_posting () : posting = { first = Unstarted; last = Unstarted; lines = []; ids = []; resumed = !- }
 
 := resumed_line (posted : i32) (total : i32) : string =
-    "resumed after post " ++# sm'.obj_to_string posted ++# " of " ++# sm'.obj_to_string total
+    "resumed after post " ++# sm'::obj_to_string posted ++# " of " ++# sm'::obj_to_string total
 
 := resumed_posting (last : string) (posted : i32) (total : i32) : posting =
     := parent = created_reply { id = post_id last; text = ""; cid = "" }
@@ -171,17 +173,17 @@ test write static =
 
 := resumed_rest (s : side) (last : string) (posted : i32) (text : string) : i32 * string =
     := remaining = parse_json text |> collect text_of
-    chained s remaining (resumed_posting last posted (posted + listm.length remaining))
+    chained s remaining (resumed_posting last posted (posted + listm::length remaining))
 
 :~ resume_written (s : side) (last : string) (payload : string) : i32 * string =
     := code, posted, text = resume_plan_of payload
     ? code <> 0i32 ?> 4i32, text |: resumed_rest s last posted text
 
-:= last_found (l : list string) : string = listm.fold (\ _ s => s) "" l
+:= last_found (l : list string) : string = listm::fold (\ _ s => s) "" l
 
 := last_id_in (found : json) : string = found |> collect (at_key "id") |> last_found
 
-:= env_text (name : string) : string = env.get_environment_variable name |> sm'.trim
+:= env_text (name : string) : string = env::get_environment_variable name |> sm'::trim
 
 := texts_of (payload : string) : list string = parse_json payload |> collect (at_key "text")
 
@@ -217,11 +219,11 @@ test write static =
     | Error f => 4i32, f
 
 := removal_of (l : list (result string string)) : i32 * string =
-    l |> listm.fold with_line { lines = []; failed = !- } |> removal_reply
+    l |> listm::fold with_line { lines = []; failed = !- } |> removal_reply
 
 := removal_text (r : i32 * string) : string =
     := code, text = r
-    sm'.obj_to_string code ++# "|" ++# text
+    sm'::obj_to_string code ++# "|" ++# text
 
 test a_failed_delete_still_reports_every_post =
     := ~gone = "deleted 1"
@@ -250,14 +252,14 @@ test a_stopped_thread_names_its_resume_command =
     := ~root = "1"
     := p = first_posting ()
     stop_text { p ?| ids = [ "2"; root ] }
-    |> sm'.ends_with "; continue with: xc post-thread --resume 1 FILE"
+    |> sm'::ends_with "; continue with: xc post-thread --resume 1 FILE"
     |> _assert_eq !+
 
 test a_stopped_resume_says_to_repeat_it =
     := ~id = "2"
     := p = first_posting ()
     := r = stop_text { p ?| ids = [ id ]; resumed = !+ }
-    (sm'.ends_with "same --resume command" r, sm'.contains "continue" (stop_text p)) |> _assert_eq (!+, !-)
+    (sm'::ends_with "same --resume command" r, sm'::contains "continue" (stop_text p)) |> _assert_eq (!+, !-)
 
 ///> _
 := main () : i32 =

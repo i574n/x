@@ -35,20 +35,20 @@ test requests static =
     := m, d = day_parts doe yoe
     yoe + era * 400i32 + (? m <= 2i32 ?> 1i32 |: 0i32), m, d
 
-:= two (n : i32) : string = ? n < 10i32 ?> "0" ++# sm'.obj_to_string n |: sm'.obj_to_string n
+:= two (n : i32) : string = ? n < 10i32 ?> "0" ++# sm'::obj_to_string n |: sm'::obj_to_string n
 
 := clock_of (s : i32) : string = two (s / 3600i32) ++# ":" ++# two (s % 3600i32 / 60i32) ++# ":" ++# two (s % 60i32)
 
 :~ iso_of (seconds : i32) : string =
     := y, m, d = civil_of (seconds / 86400i32)
-    sm'.obj_to_string y ++# "-" ++# two m ++# "-" ++# two d ++# "T" ++# clock_of (seconds % 86400i32) ++# "Z"
+    sm'::obj_to_string y ++# "-" ++# two m ++# "-" ++# two d ++# "T" ++# clock_of (seconds % 86400i32) ++# "Z"
 
 := oauth_in (keys : json) : oauth1 =
     := ck, cs, t, ts = at_key "ck" keys, at_key "cs" keys, at_key "t" keys, at_key "ts" keys
     { consumer_key = ck; consumer_secret = cs; token = t; token_secret = ts }
 
 := bluesky_target (who : json) (clock : json) : target =
-    := writer = { repo = at_key "repo" who; at = iso_of (convert.convert_i32 (at_key "seconds" clock)) }
+    := writer = { repo = at_key "repo" who; at = iso_of (convert::convert_i32 (at_key "seconds" clock)) }
     { on = OnBluesky writer; via = user_api (at_key "base" who) (at_key "token" who) }
 
 := signed_api_in (who : json) (keys : json) (clock : json) : api user_context =
@@ -62,7 +62,7 @@ test requests static =
     := who, clock = field "who" site, field "clock" site
     ? at_key "name" who = "bluesky" ?> bluesky_target who clock |: signed_target who (field "keys" site) clock
 
-:= platform_in (site : string) : platform = target_in (parse_json site) |> \ (t : target) => t.on
+:= platform_in (site : string) : platform = target_in (parse_json site) |> \ (t : target) => t::on
 
 := ref_in (r : json) : created_reply = created_reply { id = post_id (at_key "id" r); text = ""; cid = at_key "cid" r }
 
@@ -75,8 +75,8 @@ test requests static =
 :~ answered_on (site : string) (ask : string) : platform * got fetched =
     := t = target_in (parse_json site)
     := o = outgoing_in (parse_json ask)
-    ?= t.via ?|
-    | api e => t.on, raw_reply e (outgoing_verb t.on o) (outgoing_path t.on o)
+    ?= t::via ?|
+    | api e => t::on, raw_reply e (outgoing_verb t::on o) (outgoing_path t::on o)
 
 := created_fields (c : created_reply) : created_out = 0i32, ref_uri c, ref_cid c, ""
 
@@ -94,7 +94,7 @@ test requests static =
 
 := deleted (site : string) (ask : string) : deleted_out = answered_on site ask |> \ (p, r) => deleted_out_of p r
 
-:= session_fields (s : session) : session_out = 0i32, s.token, s.account, ""
+:= session_fields (s : session) : session_out = 0i32, s::token, s::account, ""
 
 := session_out_of (r : got fetched) : session_out =
     ?= r ?|
@@ -122,7 +122,7 @@ test an_answer_names_root_and_parent =
 
 := writer_of (p : platform) : string * string =
     ?= p ?|
-    | OnBluesky w => w.repo, w.at
+    | OnBluesky w => w::repo, w::at
     | _ => "", ""
 
 ///> rust -d serde_json

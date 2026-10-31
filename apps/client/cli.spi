@@ -145,15 +145,15 @@ test cli static =
     |? text = "--originals" ?> Switched Originals
     |: output_kind text
 
-:= char_at (i : i32) (text : string) : string = sm'.slice i i text
+:= char_at (i : i32) (text : string) : string = sm'::slice i i text
 
 := fits_at (pattern : string) (text : string) (i : i32) : bool =
     ? char_at i pattern = "9" ?> digit_at i text >= 0 |: char_at i pattern = char_at i text
 
 := shaped (pattern : string) (text : string) : bool =
-    := n : i32 = sm'.length pattern
+    := n : i32 = sm'::length pattern
     :~ ^ go (i : i32) : bool = i >= n || fits_at pattern text i && go (i + 1)
-    sm'.length text = n && go 0
+    sm'::length text = n && go 0
 
 := date_of_text (text : string) : option string =
     ? shaped "9999-99-99" text ?> Some (text ++# "T00:00:00Z")
@@ -164,11 +164,11 @@ test cli static =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
 
 := without_at (text : string) : string =
-    ? sm'.starts_with "@" text ?> rest_from 1i32 text |: text
+    ? sm'::starts_with "@" text ?> rest_from 1i32 text |: text
 
 :~ username_chars (h : string) : bool =
-    := len : i32 = sm'.length h
-    :~ ^ ok (i : i32) : bool = i >= len || (username_alphabet () |> sm'.contains (char_at i h)) && ok (i + 1)
+    := len : i32 = sm'::length h
+    :~ ^ ok (i : i32) : bool = i >= len || (username_alphabet () |> sm'::contains (char_at i h)) && ok (i + 1)
     len >= 1 && len <= 15 && ok 0
 
 := username_of_text (text : string) : option string =
@@ -186,7 +186,7 @@ test cli static =
 := pure_checks () : checks = { count = count_of_text; instant = date_of_text; username = username_of_text }
 
 := out_of_range (name : string) (low : i32) (high : i32) (text : string) : string =
-    := range = sm'.obj_to_string low ++# " to " ++# sm'.obj_to_string high
+    := range = sm'::obj_to_string low ++# " to " ++# sm'::obj_to_string high
     name ++# " expects a number from " ++# range ++# ", got '" ++# text ++# "'"
 
 := with_count (f : flag) (d : draft) (n : i32) : draft =
@@ -199,14 +199,14 @@ test cli static =
 
 :~ bounded (c : checks) (f : flag) (name : string) (text : string) (d : draft) : step =
     := low, high = range_of f
-    ?= c.count text ?|
+    ?= c::count text ?|
     | Some n ?& n >= low && n <= high => Ok (with_count f d n)
     | _ => Error (out_of_range name low high text)
 
 := not_a_username (text : string) : string = "not an X username: '" ++# text ++# "'"
 
 :~ with_following (c : checks) (value : string) (d : draft) : step =
-    ?= c.username value, d.following ?|
+    ?= c::username value, d::following ?|
     | None, _ => Error (not_a_username value)
     | Some _, Some _ => Error "--following given twice"
     | Some h, None => Ok { d ?| following = Some h }
@@ -222,9 +222,9 @@ test cli static =
     | _ => { f ?| end_time = at }
 
 :~ with_date (c : checks) (g : flag) (name : string) (value : string) (d : draft) : step =
-    ?= c.instant value ?|
+    ?= c::instant value ?|
     | None => Error (date_expected name value)
-    | Some at => Ok (with_filters d (dated g at d.filters))
+    | Some at => Ok (with_filters d (dated g at d::filters))
 
 := uncapped (d : draft) : step = Ok { d ?| cap = AllFollowing }
 
@@ -245,14 +245,14 @@ test cli static =
     ?= s ?|
     | Hints => Ok { d ?| hints = !+ }
     | Json => Ok { d ?| json = !+ }
-    | _ => Ok (with_filters d (switched s d.filters))
+    | _ => Ok (with_filters d (switched s d::filters))
 
 := unknown_option (arg : string) : string = "unknown option " ++# arg
 
 :~ with_username (c : checks) (arg : string) (d : draft) : step =
-    ?= c.username arg ?|
-    | _ ?& sm'.starts_with "-" arg => Error (unknown_option arg)
-    | Some h => Ok { d ?| usernames = h :: d.usernames }
+    ?= c::username arg ?|
+    | _ ?& sm'::starts_with "-" arg => Error (unknown_option arg)
+    | Some h => Ok { d ?| usernames = h :: d::usernames }
     | None => Error (not_a_username arg)
 
 := request_of (d : draft) (s : source) : command =
@@ -263,19 +263,19 @@ test cli static =
 
 := nothing_named () : string = "name at least one account, or --following USERNAME"
 
-:= usernames_in (d : draft) : list string = listm.rev d.usernames
+:= usernames_in (d : draft) : list string = listm::rev d::usernames
 
 :~ finish (d : draft) : command =
-    ?= d.following, usernames_in d ?|
+    ?= d::following, usernames_in d ?|
     | Some h, Nil => request_of d (FollowingOf h)
     | Some _, _ => Rejected (following_alone ())
     | None, Nil => Rejected (nothing_named ())
     | None, hs => request_of d (Accounts hs)
 
-:= too_many () : string = "at most " ++# sm'.obj_to_string (lookup_limit ()) ++# " accounts per run"
+:= too_many () : string = "at most " ++# sm'::obj_to_string (lookup_limit ()) ++# " accounts per run"
 
 :~ capped (d : draft) : command =
-    ? listm.length d.usernames > lookup_limit () ?> Rejected (too_many ()) |: finish d
+    ? listm::length d::usernames > lookup_limit () ?> Rejected (too_many ()) |: finish d
 
 := is_help (arg : string) : bool = arg = "--help" || arg = "-h" || arg = "help"
 
@@ -309,7 +309,7 @@ test cli static =
 
 := unknown_command (arg : string) : string = "unknown command " ++# arg ++# "; try: xc timeline"
 
-:= wants_help (args : list string) : bool = listm.fold (\ seen a => seen || is_help a) !- args
+:= wants_help (args : list string) : bool = listm::fold (\ seen a => seen || is_help a) !- args
 
 :~ one_value (name : string) (args : list string) (make : string -> command) : command =
     ?= args ?|
@@ -363,31 +363,31 @@ test cli static =
 
 := cap_text (c : following_cap) : string =
     ?= c ?|
-    | AtMost n => sm'.obj_to_string n
+    | AtMost n => sm'::obj_to_string n
     | AllFollowing => "all"
 
 := source_text (s : source) : string =
     ?= s ?|
-    | Accounts hs => "accounts " ++# sm'.concat_list "," hs
+    | Accounts hs => "accounts " ++# sm'::concat_list "," hs
     | FollowingOf h => "following-of " ++# h
 
 := dates_text (f : filters) : string =
-    (? f.start_time = "" ?> "" |: " start_time=" ++# f.start_time)
-    ++# (? f.end_time = "" ?> "" |: " end_time=" ++# f.end_time)
+    (? f::start_time = "" ?> "" |: " start_time=" ++# f::start_time)
+    ++# (? f::end_time = "" ?> "" |: " end_time=" ++# f::end_time)
 
 := flags_text (f : filters) : string =
-    dates_text f ++# (? f.no_replies ?> " no-replies" |: "") ++# (? f.no_reposts ?> " no-reposts" |: "")
+    dates_text f ++# (? f::no_replies ?> " no-replies" |: "") ++# (? f::no_reposts ?> " no-reposts" |: "")
 
 := counts_text (r : request) : string =
-    " per=" ++# sm'.obj_to_string r.per_account ++# " limit=" ++# sm'.obj_to_string r.limit
+    " per=" ++# sm'::obj_to_string r::per_account ++# " limit=" ++# sm'::obj_to_string r::limit
 
 := views_text (r : request) : string =
-    := view = " author=" ++# sm'.obj_to_string r.per_author ++# " depth=" ++# sm'.obj_to_string r.depth
-    view ++# " cap=" ++# cap_text r.cap
+    := view = " author=" ++# sm'::obj_to_string r::per_author ++# " depth=" ++# sm'::obj_to_string r::depth
+    view ++# " cap=" ++# cap_text r::cap
 
 :~ request_text (r : request) : string =
-    := hints = (? r.hints ?> " hints" |: "") ++# (? r.json ?> " json" |: "")
-    source_text r.source ++# counts_text r ++# views_text r ++# flags_text r.filters ++# hints
+    := hints = (? r::hints ?> " hints" |: "") ++# (? r::json ?> " json" |: "")
+    source_text r::source ++# counts_text r ++# views_text r ++# flags_text r::filters ++# hints
 
 := thread_batch_text (t : thread_op) : string =
     ?= t ?|

@@ -1,7 +1,7 @@
 defmodule Mix.Tasks.Xsim.Parity do
   use Mix.Task
 
-  @shortdoc "Writes what the Elixir World, Runner and Invariants make of a recorded event stream, one labelled line per expectation, for the Spiral parity tests"
+  @shortdoc "Writes what the Elixir World, Runner and Invariants make of a recorded event stream as JSON, for the Spiral parity tests"
 
   @impl Mix.Task
   def run(args) do
@@ -14,29 +14,25 @@ defmodule Mix.Tasks.Xsim.Parity do
     wanted = Xsim.World.wanted(world)
     wrong = fn _ -> %{status: :ok, out: "other"} end
 
-    lines = [
-      {"tallies", "framed=#{world.framed} edits=#{world.framed_edits} dups=#{world.duplicates} buffered=#{world.buffered}"},
-      {"keys", pairs(world.keys, & &1)},
-      {"wanted", pairs(wanted, & &1)},
-      {"wanted_count", "#{map_size(wanted)}"},
-      {"visible", pairs(state.visible, fn {key, r} -> "#{key}:#{r.out}" end)},
-      {"visible_count", "#{map_size(state.visible)}"},
-      {"checks_fake", findings(state, Xsim.Executors.fake())},
-      {"checks_wrong", findings(state, wrong)}
-    ]
+    report = %{
+      "tallies" => %{"framed" => world.framed, "edits" => world.framed_edits, "dups" => world.duplicates, "buffered" => world.buffered},
+      "keys" => strings(world.keys, & &1),
+      "wanted" => strings(wanted, & &1),
+      "visible" => strings(state.visible, fn {key, r} -> %{"key" => key, "out" => r.out} end),
+      "checks_fake" => findings(state, Xsim.Executors.fake()),
+      "checks_wrong" => findings(state, wrong)
+    }
 
-    File.write!(out, Enum.map_join(lines, "", fn {label, value} -> "#{label} #{value}\n" end))
+    File.write!(out, Xsim.Json.json(report) <> "\n")
     IO.puts("xsim.parity deliveries=#{length(deliveries)} posts=#{map_size(world.keys)} visible=#{map_size(state.visible)}")
   end
 
-  defp pairs(map, f), do: map |> Map.keys() |> Enum.sort() |> Enum.map_join(";", &"#{&1}=#{f.(map[&1])}")
+  defp strings(map, f), do: Map.new(map, fn {k, v} -> {to_string(k), f.(v)} end)
 
   defp findings(state, baseline) do
-    state
-    |> Xsim.Invariants.check(baseline)
-    |> Enum.map_join(" ", fn
-      {rule, :ok} -> "#{rule}=ok"
-      {rule, {:violations, ids}} -> "#{rule}=FAIL[#{Enum.join(ids, ",")}]"
+    Map.new(Xsim.Invariants.check(state, baseline), fn
+      {rule, :ok} -> {to_string(rule), "ok"}
+      {rule, {:violations, ids}} -> {to_string(rule), ids}
     end)
   end
 end

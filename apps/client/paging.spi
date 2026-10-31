@@ -15,10 +15,10 @@ test paging static =
 := page_budget () : i32 = 500i32
 
 := all_pages \* e. (halted : cursor_halt -> e) (fetch : pager e) : result (list string) e =
-    cursor_walk.all_pages { halted budget = page_budget (); fetch }
+    cursor_walk::all_pages { halted budget = page_budget (); fetch }
 
 := whole_second (created_at : string) : string =
-    ? sm'.length created_at < 19i32 ?> created_at |: cut 0i32 19i32 created_at ++# "Z"
+    ? sm'::length created_at < 19i32 ?> created_at |: cut 0i32 19i32 created_at ++# "Z"
 
 := two_pages (token : string) : result page string =
     ? token = "" ?> Ok { next_token = "t2"; body = "a" }
@@ -32,11 +32,11 @@ test paging static =
 
 := halt_text (h : cursor_halt) : string =
     ?= h ?|
-    | CursorRepeated s => "repeated " ++# s.token ++# " after " ++# sm'.obj_to_string s.pages
-    | CursorBudget s => "budget at " ++# sm'.obj_to_string s.pages
+    | CursorRepeated s => "repeated " ++# s::token ++# " after " ++# sm'::obj_to_string s::pages
+    | CursorBudget s => "budget at " ++# sm'::obj_to_string s::pages
 
 := walk_with (budget : i32) (fetch : pager string) (first : string) : result (list string) string =
-    cursor_walk.walked_from { halted = halt_text; budget; fetch } first { seen = []; pages = 0i32; bodies = [] }
+    cursor_walk::walked_from { halted = halt_text; budget; fetch } first { seen = []; pages = 0i32; bodies = [] }
 
 test pages_follow_next_tokens =
     := ~first = ""

@@ -1,0 +1,22 @@
+///- --package .
+///> gleam
+test remote_chunks static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+
+:= joined_chunks (name : string) (limit : i32) (source : string) : string =
+    global "import xsim_split"
+    $'xsim_split.split_cell_joined(!name, !limit, !source)'
+
+:= remote_split (label : string) (limit : i32) (source : string) : list string =
+    := joined = joined_chunks label limit source
+    ? joined = "" ?> [] |: split_all (char_of 0i32) joined
+
+:= threads_of (text : string) : list (list string) = split_all (char_of 1i32) text |> each (split_all (char_of 0i32))
+
+test threads_of_splits_threads_then_cells =
+    := ~s = "a" ++# char_of 0i32 ++# "b" ++# char_of 1i32 ++# "c"
+    threads_of s |> each (delimited ",") |> delimited "|" |> _assert_eq "a,b|c"

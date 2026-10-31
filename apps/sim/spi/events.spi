@@ -42,7 +42,7 @@ test events static =
 
 := stream_header () : string = "{\"format\":\"xsim-events\",\"version\":1}"
 
-:= hex_digit (d : i32) : string = sm'.slice d d "0123456789abcdef"
+:= hex_digit (d : i32) : string = sm'::slice d d "0123456789abcdef"
 
 := unicode_escape (c : i32) : string = "\\u00" ++# hex_digit (c / 16i32) ++# hex_digit (c % 16i32)
 
@@ -55,22 +55,24 @@ test events static =
     | Some e => e
     | None => unicode_escape c
 
-:~ without_controls (s : string) : string =
-    listm.init 32i32 id |> listm.fold (\ t c => sm'.replace (char_of c) (control_escape c) t) s
+:~ ^ controls_from (c : i32) (t : string) : string =
+    ? c >= 32i32 ?> t |: controls_from (c + 1i32) (sm'::replace (char_of c) (control_escape c) t)
+
+:~ without_controls (s : string) : string = controls_from 0i32 s
 
 :~ quoted (s : string) : string =
-    "\"" ++# (s |> sm'.replace "\\" "\\\\" |> sm'.replace "\"" "\\\"" |> without_controls) ++# "\""
+    "\"" ++# (s |> sm'::replace "\\" "\\\\" |> sm'::replace "\"" "\\\"" |> without_controls) ++# "\""
 
-:= field (key : string) (value : string) : string = quoted key ++# ":" ++# value
+:~ field (key : string) (value : string) : string = quoted key ++# ":" ++# value
 
-:= number (n : i32) : string = sm'.obj_to_string n
+:= number (n : i32) : string = sm'::obj_to_string n
 
 := parent_of (p : option string) : string =
     ?= p ?|
     | Some id => quoted id
     | None => "null"
 
-:= object (fields : list string) : string = "{" ++# sm'.concat_list "," fields ++# "}"
+:= object (fields : list string) : string = "{" ++# sm'::concat_list "," fields ++# "}"
 
 := content_kind (c : content) : string =
     ?= c ?|
@@ -101,23 +103,23 @@ test events static =
 := framed_fields (at : i32) (e : event) (part : frame_part) : list string =
     [
         field "at" (number at)
-        field "body" (quoted part.body)
-        field "k" (number part.k)
+        field "body" (quoted part::body)
+        field "k" (number part::k)
         kind_field e
-        field "n" (number part.n)
+        field "n" (number part::n)
     ]
 
 := owned (post_id : string) : string = field "post" (quoted post_id)
 
 := rooted_fields (at : i32) (e : event) (r : rooted) : list string =
-    listm.append (opening at e) [
-        field "parent" (parent_of r.parent)
-        owned r.post_id
-        field "source" (quoted r.source)
+    listm::append (opening at e) [
+        field "parent" (parent_of r::parent)
+        owned r::post_id
+        field "source" (quoted r::source)
     ]
 
 := placed_fields (at : i32) (e : event) (p : placed) : list string =
-    listm.append (framed_fields at e p.part) [ field "parent" (parent_of p.parent); owned p.post_id ]
+    listm::append (framed_fields at e p::part) [ field "parent" (parent_of p::parent); owned p::post_id ]
 
 := content_fields (at : i32) (e : event) (c : content) : list string =
     ?= c ?|
@@ -125,19 +127,19 @@ test events static =
     | Framed p => placed_fields at e p
 
 := revised_fields (at : i32) (e : event) (r : revised) : list string =
-    listm.append (framed_fields at e r.part) [ owned r.post_id; field "rev" (number r.rev) ]
+    listm::append (framed_fields at e r::part) [ owned r::post_id; field "rev" (number r::rev) ]
 
 := sourced_fields (at : i32) (e : event) (s : sourced) : list string =
-    listm.append (opening at e) [ owned s.post_id; field "source" (quoted s.source) ]
+    listm::append (opening at e) [ owned s::post_id; field "source" (quoted s::source) ]
 
 := revision_fields (at : i32) (e : event) (r : revision) : list string =
     ?= r ?|
     | Edited s => sourced_fields at e s
     | FrameEdited v => revised_fields at e v
-    | Deleted post_id => listm.append (opening at e) [ owned post_id ]
+    | Deleted post_id => listm::append (opening at e) [ owned post_id ]
 
 := social_fields (at : i32) (e : event) (s : social) : list string =
-    listm.append (opening at e) [ owned s.post_id; field "user" (quoted s.user) ]
+    listm::append (opening at e) [ owned s::post_id; field "user" (quoted s::user) ]
 
 := reaction_fields (at : i32) (e : event) (r : reaction) : list string =
     ?= r ?|
@@ -150,9 +152,10 @@ test events static =
     | Revision r => revision_fields at e r
     | Reaction r => reaction_fields at e r
 
-:~ encoded (d : delivery) : string = object (fields_of d.at d.event)
+:~ encoded (d : delivery) : string = object (fields_of d::at d::event)
 
-:~ stream (l : list delivery) : string = stream_header () :: each encoded l |> sm'.concat_list "\n" |> \ t => t ++# "\n"
+:~ stream (l : list delivery) : string =
+    stream_header () :: each encoded l |> sm'::concat_list "\n" |> \ t => t ++# "\n"
 
 :| json_value =
     | Text : string
@@ -169,8 +172,8 @@ test events static =
     ? c = "n" ?> "\n" |? c = "t" ?> "\t" |? c = "r" ?> "\r"
     |? c = "b" ?> char_of 8i32 |? c = "f" ?> char_of 12i32 |: c
 
-:= hex_at (s : string) (i : i32) : i32 =
-    := d = sm'.index_of (cut i 1i32 s) "0123456789abcdefABCDEF"
+:~ hex_at (s : string) (i : i32) : i32 =
+    := d = sm'::index_of (cut i 1i32 s) "0123456789abcdefABCDEF"
     ? d < 16i32 ?> d |: d - 6i32
 
 := code_at (s : string) (i : i32) : i32 =
@@ -189,7 +192,7 @@ test events static =
 := closed_at (s : string) (i : i32) (q : i32) (acc : string) : scanned =
     ? q < 0i32 ?> { text = acc; resume_at = -1i32 } |: { text = acc ++# cut i q s; resume_at = i + q + 1i32 }
 
-:= marks (s : string) (i : i32) : i32 * i32 = sm'.index_of "\"" (rest_from i s), sm'.index_of "\\" (rest_from i s)
+:= marks (s : string) (i : i32) : i32 * i32 = sm'::index_of "\"" (rest_from i s), sm'::index_of "\\" (rest_from i s)
 
 :~ ^ string_from (s : string) (i : i32) (acc : string) : scanned =
     := q, b = marks s i
@@ -202,36 +205,36 @@ test events static =
     | Some n => Whole n, e
     | None => Null, -1i32
 
-:= text_value (r : scanned) : json_value * i32 = Text r.text, r.resume_at
+:= text_value (r : scanned) : json_value * i32 = Text r::text, r::resume_at
 
 := value_from (s : string) (i : i32) : json_value * i32 =
     ? starts_at "\"" s i ?> text_value (string_from s (i + 1i32) "")
     |? starts_at "null" s i ?> Null, i + 4i32
-    |? i >= 0i32 && i < sm'.length s ?> number_from s i
+    |? i >= 0i32 && i < sm'::length s ?> number_from s i
     |: Null, -1i32
 
 := field_from (s : string) (i : i32) : json_field * i32 =
     := k = string_from s (i + 1i32) ""
-    := v, next = ? starts_at ":" s k.resume_at ?> value_from s (k.resume_at + 1i32) |: Null, -1i32
-    { key = k.text; value = v }, next
+    := v, next = ? starts_at ":" s k::resume_at ?> value_from s (k::resume_at + 1i32) |: Null, -1i32
+    { key = k::text; value = v }, next
 
 := no_field () : json_field * i32 = { key = ""; value = Null }, -1i32
 
 := field_at (s : string) (i : i32) : json_field * i32 = ? starts_at "\"" s i ?> field_from s i |: no_field ()
 
-:= closes (s : string) (i : i32) : bool = starts_at "}" s i && i + 1i32 = sm'.length s
+:= closes (s : string) (i : i32) : bool = starts_at "}" s i && i + 1i32 = sm'::length s
 
 :~ ^ fields_from (s : string) (i : i32) (acc : fields) : option fields =
     := f, next = field_at s i
     ? starts_at "," s next ?> fields_from s (next + 1i32) (f :: acc)
-    |? closes s next ?> Some (listm.rev ((f :: acc)))
+    |? closes s next ?> Some (listm::rev ((f :: acc)))
     |: None
 
 := fields_of_line (line : string) : option fields = ? starts_at "{" line 0i32 ?> fields_from line 1i32 Nil |: None
 
 :~ value_of (key : string) (l : fields) : json_value =
-    ?= first_where (\ (f : json_field) => f.key = key) l ?|
-    | Some f => f.value
+    ?= first_where (\ (f : json_field) => f::key = key) l ?|
+    | Some f => f::value
     | None => Null
 
 :~ text_at (key : string) (l : fields) : string =
@@ -298,11 +301,11 @@ test events static =
 
 :~ ^ all_decoded (l : list string) (acc : list delivery) : result (list delivery) string =
     ?= l ?|
-    | Nil => Ok (listm.rev acc)
+    | Nil => Ok (listm::rev acc)
     | line :: rest => decoded line |> then_ok \ d => all_decoded rest (d :: acc)
 
 :~ decoded_stream (text : string) : result (list delivery) string =
-    ?= all_pieces "\n" text |> each sm'.trim |> keep (\ l => l <> "") ?|
+    ?= all_pieces "\n" text |> each sm'::trim |> keep (\ l => l <> "") ?|
     | head :: lines ?& header_ok head => all_decoded lines Nil
     | _ => Error "not an xsim-events v1 stream"
 
@@ -375,7 +378,7 @@ test fixture_lines_keep_their_escapes =
 
 := verdict (r : result (list delivery) string) : string =
     ?= r ?|
-    | Ok l => sm'.obj_to_string (listm.length l : i32)
+    | Ok l => sm'::obj_to_string (listm::length l : i32)
     | Error e => e
 
 test foreign_streams_are_refused =

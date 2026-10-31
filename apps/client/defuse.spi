@@ -11,7 +11,7 @@ test defuse static =
 
 :== tld_check = string -> bool
 
-:~ ascii_of (g : string) : i32 = ? g = "" ?> 0i32 |? sm'.length g = 1i32 ?> first_code_point g |: 256i32
+:~ ascii_of (g : string) : i32 = ? g = "" ?> 0i32 |? sm'::length g = 1i32 ?> first_code_point g |: 256i32
 
 := in_range (low : i32) (high : i32) (c : i32) : bool = c >= low && c <= high
 
@@ -28,22 +28,22 @@ test defuse static =
 :~ ^ run_of (l : list string) (acc : list string) : list string * list string =
     ?= l ?|
     | g :: rest ?& run_glyph g => run_of rest (g :: acc)
-    | _ => listm.rev acc, l
+    | _ => listm::rev acc, l
 
 :~ ^ label_before (l : list string) (acc : list string) : string =
     ?= l ?|
     | g :: rest ?& label_glyph g => label_before rest (g :: acc)
-    | _ => sm'.concat_list "" acc
+    | _ => sm'::concat_list "" acc
 
 :~ ^ letters_after (l : list string) (acc : list string) : string * bool =
     ?= l ?|
     | g :: rest ?& ascii_letter g => letters_after rest (g :: acc)
-    | g :: _ => sm'.concat_list "" (listm.rev acc), g = "."
-    | [] => sm'.concat_list "" (listm.rev acc), !+
+    | g :: _ => sm'::concat_list "" (listm::rev acc), g = "."
+    | [] => sm'::concat_list "" (listm::rev acc), !+
 
 :~ tld_ok (known : tld_check) (label : string) (tld : string) : bool =
-    := n = sm'.length tld
-    n >= 2i32 && n <= 63i32 && known tld && (n <> 2i32 || sm'.length label > 2i32)
+    := n = sm'::length tld
+    n >= 2i32 && n <= 63i32 && known tld && (n <> 2i32 || sm'::length label > 2i32)
 
 :~ linked_dot (known : tld_check) (before : list string) (after : list string) : bool =
     := tld, ends = letters_after after []
@@ -63,9 +63,9 @@ test defuse static =
 :~ ^ defused_run (known : tld_check) (b : list string) (l : list string) (acc : list string) : list string =
     ?= l ?|
     | g :: r => defused_run known (g :: b) r (g :: spaced_before (defusable known b g r) acc)
-    | [] => listm.rev acc
+    | [] => listm::rev acc
 
-:~ last_or (fallback : string) (l : list string) : string = listm.fold (\ _ g => g) fallback l
+:~ last_or (fallback : string) (l : list string) : string = listm::fold (\ _ g => g) fallback l
 
 :~ run_text (known : tld_check) (prev : string) (run : list string) : list string =
     ? blocks_domain prev ?> run |: defused_run known [] run []
@@ -80,14 +80,14 @@ test defuse static =
     ?= l ?|
     | g :: _ ?& run_glyph g => run_piece p l |> \ (z, r, x) => pieces_from z r (x :: acc)
     | g :: r => pieces_from g r ((p, [ g ]) :: acc)
-    | [] => listm.rev acc
+    | [] => listm::rev acc
 
 :~ defused_dots_by (known : tld_check) (s : string) : string =
-    pieces_from "" (graphemes s) [] |> spread (\ (p, run) => run_text known p run) |> sm'.concat_list ""
+    pieces_from "" (graphemes s) [] |> spread (\ (p, run) => run_text known p run) |> sm'::concat_list ""
 
 := defused_dots (s : string) : string = defused_dots_by is_tld s
 
-:= zw (s : string) : string = sm'.replace "|" (zero_width_space ()) s
+:= zw (s : string) : string = sm'::replace "|" (zero_width_space ()) s
 
 test only_dots_before_a_known_tld_are_defused =
     := ~s = "listm.map.foo head.zzz x.io a.b.post"
@@ -165,9 +165,9 @@ test blocked_runs_and_numbers_stay_plain =
     ?= l ?|
     | g :: r ?& tags p acc g r => entities_from g r (zero_width_space () :: g :: acc)
     | g :: r => entities_from g r (g :: acc)
-    | [] => listm.rev acc
+    | [] => listm::rev acc
 
-:~ defused_entities (s : string) : string = entities_from "" (graphemes s) [] |> sm'.concat_list ""
+:~ defused_entities (s : string) : string = entities_from "" (graphemes s) [] |> sm'::concat_list ""
 
 test entity_sigils_get_a_zero_width_space =
     := ~at, hash, cash = "@", "#", "$"
@@ -190,10 +190,10 @@ test a_link_and_a_mention_at_the_start_are_defused =
     (defused_dots "cell.app x", defused_entities (at ++# "bob hi"))
     |> _assert_eq (zw "cell|.app x", at ++# zw "|bob hi")
 
-:= sigil_restored (sigil : string) (s : string) : string = sm'.replace (sigil ++# zero_width_space ()) sigil s
+:= sigil_restored (sigil : string) (s : string) : string = sm'::replace (sigil ++# zero_width_space ()) sigil s
 
 :~ restored_text (s : string) : string =
-    sm'.replace (defused_dot ()) "." s |> sigil_restored "@" |> sigil_restored "#" |> sigil_restored "$"
+    sm'::replace (defused_dot ()) "." s |> sigil_restored "@" |> sigil_restored "#" |> sigil_restored "$"
 
 test restoring_undoes_both_defusings =
     := ~at, hash = "@", "#"

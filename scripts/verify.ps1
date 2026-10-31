@@ -38,22 +38,24 @@ function Invoke-ParallelNotebooks([string] $AppDir, [string[]] $Modules, [int] $
 }
 
 function Invoke-NotebookBench([string[]] $Modules, [int] $Parallel, [int] $Rounds) {
-    $reference, $ratios = $null, @()
+    $reference, $ratios, $drifted = $null, @(), 0
     foreach ($round in 1..$Rounds) {
-        $arms = if ($round % 2) { @(1, $Parallel) } else { @($Parallel, 1) }
-        $seconds = @{}
-        foreach ($throttle in $arms) {
+        $seconds = @()
+        foreach ($throttle in 1, $Parallel, 1) {
             $cpu = [int](Get-CimInstance Win32_Processor | Measure-Object LoadPercentage -Average).Average
             $run = Invoke-ParallelNotebooks $client $Modules $throttle
             if ($null -eq $reference) { $reference = $run.Totals }
-            elseif ($run.Totals -ne $reference) { throw "x verify / bench round $round at parallelism ${throttle}: totals differ from round 1's sequential arm" }
-            $seconds[$throttle] = $run.Seconds
+            elseif ($run.Totals -ne $reference) { throw "x verify / bench round $round at parallelism ${throttle}: totals differ from round 1's first sequential arm" }
+            $seconds += $run.Seconds
             "x verify / bench round $round / parallelism $throttle / $($run.Seconds) s / cpu $cpu% at start"
         }
-        $ratios += $seconds[$Parallel] / [double] $seconds[1]
-        "x verify / bench round $round / ratio $([math]::Round($ratios[-1], 3))"
+        $aa = $seconds[2] / [double] $seconds[0]
+        if ([math]::Abs($aa - 1) -gt 0.15) { $drifted++ }
+        $ratios += $seconds[1] / (($seconds[0] + $seconds[2]) / 2.0)
+        "x verify / bench round $round / ratio $([math]::Round($ratios[-1], 3)) / A/A $([math]::Round($aa, 3))"
     }
     $median = ($ratios | Sort-Object)[[int][math]::Floor($ratios.Count / 2)]
+    if ($drifted) { "x verify / bench VOID: $drifted of $Rounds rounds had an A/A outside 0.85-1.15, so load drift exceeds the effect being measured"; return }
     "x verify / bench median ratio $([math]::Round($median, 3)) over $Rounds rounds at parallelism $Parallel (adopt if <= 0.6)"
 }
 
@@ -81,6 +83,14 @@ if ($Part -eq 'regen') {
     exit $failed
 }
 
+if ($BenchRounds -gt 0) {
+    if ($ParallelNotebooks -lt 2) { throw 'x verify / -BenchRounds needs -ParallelNotebooks 2 or more' }
+    $env:SPIRAL_CELLS_MEMO = '0'
+    $benched = if ($Notebooks) { $Notebooks } else { Get-NotebookList (Join-Path $client 'build.ps1') }
+    Invoke-NotebookBench $benched $ParallelNotebooks $BenchRounds
+    exit 0
+}
+
 if ($Notebooks) {
     $modules = ($Notebooks | ForEach-Object { "'$_'" }) -join ', '
     $run = ". '$PSScriptRoot/common.ps1'; . '$SpiralRoot/scripts/core.ps1'; . '$SpiralRoot/lib/spiral/lib.ps1'; Invoke-SpiralTests '$client' @($modules)"
@@ -88,13 +98,6 @@ if ($Notebooks) {
     $lines | Where-Object { $_ -match '^spiral-tests |ETY-|FatalError' }
     Assert-SpiralTotals $lines
     return
-}
-
-if ($BenchRounds -gt 0) {
-    if ($ParallelNotebooks -lt 2) { throw 'x verify / -BenchRounds needs -ParallelNotebooks 2 or more' }
-    $env:SPIRAL_CELLS_MEMO = '0'
-    Invoke-NotebookBench (Get-NotebookList (Join-Path $client 'build.ps1')) $ParallelNotebooks $BenchRounds
-    exit 0
 }
 
 $withClient = $Part -ne 'sim'

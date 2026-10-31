@@ -12,7 +12,7 @@ Set-Location $PSScriptRoot
 
 $bundle = Join-Path $SpiralRoot 'apps/compiler/tmp'
 $toolchain = & {
-    . (Join-Path $bundle 'scripts/env.ps1')
+    . (Join-Path $SpiralRoot 'apps/compiler/scripts/env.ps1')
     [pscustomobject]@{ PackageDir = Get-SpiralPackageDir; Dotnet = Resolve-SpiralDotnet; Dll = Get-SpiralCompilerDll 'single-flight' }
 }
 $env:SPIRAL_COMPILER_PACKAGE_DIR = $toolchain.PackageDir
@@ -23,6 +23,7 @@ $scoopErlang = Join-Path $HOME 'scoop/apps/erlang/current/bin'
 if (Test-Path $scoopErlang) { $env:PATH = "$scoopErlang$([IO.Path]::PathSeparator)$env:PATH" }
 $crashDumps = Join-Path ($env:LOCALAPPDATA ?? $HOME) 'spiral-bin/crash-dumps'
 New-Item -ItemType Directory -Force $crashDumps | Out-Null
+$daemonPort = [string](20000 + $PID % 20000)
 $env:ERL_CRASH_DUMP = Join-Path $crashDumps "erl_crash-xsim-$(Get-Date -Format yyyyMMdd-HHmmss)-$PID.dump"
 
 $client = Join-Path $XRoot 'apps/client'
@@ -43,7 +44,7 @@ if ($Ladder) {
     if ($Ladder | Where-Object { $_ -notmatch '^\d+:\d+:\d+$' }) { throw "xsim / ladder rungs are notebooks:cells:concurrency, got $($Ladder -join ' ')" }
     if ($LadderMemoDir -and $Ladder.Count -ne 1) { throw "xsim / -LadderMemoDir resumes one rung's scenario, so pass exactly one rung" }
     $pureNotebooks = @('math', 'date_time', "sm'", 'json', 'seq', "listm'", 'stream', 'parsing', 'base', "optionm'", 'crypto', "am'", 'reflection', 'physics')
-    $env:SPIRAL_CELLS_COMPILER_PORT = '13954'
+    $env:SPIRAL_CELLS_COMPILER_PORT = $daemonPort
     $failedRungs = 0
     foreach ($rung in $Ladder) {
         $notebooks, $cells, $concurrency = $rung -split ':' | ForEach-Object { [int] $_ }
@@ -58,10 +59,10 @@ if ($Ladder) {
             $code = $LASTEXITCODE
         } finally {
             if ($IsWindows) {
-                $daemon = Get-NetTCPConnection -LocalPort 13954 -State Listen -ErrorAction Ignore | Select-Object -ExpandProperty OwningProcess -Unique
+                $daemon = Get-NetTCPConnection -LocalPort $daemonPort -State Listen -ErrorAction Ignore | Select-Object -ExpandProperty OwningProcess -Unique
                 foreach ($id in $daemon) { Get-CimInstance Win32_Process -Filter "ParentProcessId=$id" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction Ignore }; Stop-Process -Id $id -Force -ErrorAction Ignore }
             } elseif (Get-Command fuser -ErrorAction Ignore) {
-                fuser -k 13954/tcp 2>$null
+                fuser -k "$daemonPort/tcp" 2>$null
             }
             Remove-Item $list -ErrorAction Ignore
         }
@@ -103,10 +104,10 @@ $streams = Join-Path $PSScriptRoot 'fixtures'
 $argv = @('xsim.events', '--spi', (Join-Path $client 'prelude.spi'), '--seed', '3', '--users', '3', '--edits', '2', '--personas', 'fickle=1+editor=1', '--frames', '--out', (Join-Path $fresh 'prelude.events.jsonl'), '--expected', (Join-Path $fresh 'prelude.final.json'))
 & mix @argv
 if ($LASTEXITCODE -ne 0) { throw "mix xsim.events / exit $LASTEXITCODE" }
-$argv = @('xsim.parity', '--events', (Join-Path $fresh 'prelude.events.jsonl'), '--out', (Join-Path $fresh 'prelude.parity.txt'))
+$argv = @('xsim.parity', '--events', (Join-Path $fresh 'prelude.events.jsonl'), '--out', (Join-Path $fresh 'prelude.parity.json'))
 & mix @argv
 if ($LASTEXITCODE -ne 0) { throw "mix xsim.parity / exit $LASTEXITCODE" }
-foreach ($name in 'prelude.events.jsonl', 'prelude.final.json', 'prelude.parity.txt') { Confirm-Fixture $name $streams }
+foreach ($name in 'prelude.events.jsonl', 'prelude.final.json', 'prelude.parity.json') { Confirm-Fixture $name $streams }
 { mix test } | Invoke-Block
 
 $spi = Join-Path $PSScriptRoot 'spi'
@@ -132,7 +133,7 @@ $corpusWall = ((Get-Date) - $corpusStarted).TotalSeconds
 Write-Output ("xsim / corpus files={0} schedules=2 wall_s={1} per_schedule_s={2}" -f $corpus.Count, [int]$corpusWall, [int]($corpusWall / 2))
 
 if (!$fast) {
-    $env:SPIRAL_CELLS_COMPILER_PORT = '13950'
+    $env:SPIRAL_CELLS_COMPILER_PORT = $daemonPort
     try {
         { mix xsim.run --spi (Join-Path $lib 'math.spi') --cells 3 --users 2 --edits 0 --schedules 1 --executor cells --max-concurrency 2 } | Invoke-Block
         { mix xsim.thread_run --file (Join-Path $client 'oauth1.spi') --expected (Join-Path $fixtures 'thread-oauth1.expected.json') } | Invoke-Block
@@ -146,10 +147,10 @@ if (!$fast) {
         Write-Output "xsim / thread_run rejects a tampered thread"
     } finally {
         if ($IsWindows) {
-            $daemon = Get-NetTCPConnection -LocalPort 13950 -State Listen -ErrorAction Ignore | Select-Object -ExpandProperty OwningProcess -Unique
+            $daemon = Get-NetTCPConnection -LocalPort $daemonPort -State Listen -ErrorAction Ignore | Select-Object -ExpandProperty OwningProcess -Unique
             foreach ($id in $daemon) { Get-CimInstance Win32_Process -Filter "ParentProcessId=$id" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction Ignore }; Stop-Process -Id $id -Force -ErrorAction Ignore }
         } elseif (Get-Command fuser -ErrorAction Ignore) {
-            fuser -k 13950/tcp 2>$null
+            fuser -k "$daemonPort/tcp" 2>$null
         }
         $env:SPIRAL_CELLS_COMPILER_PORT = $null
     }

@@ -22,7 +22,7 @@ test chunks static =
 
 :~ chunks_by (weigh : string -> i32) (all : units) (p : platform) (i : i32) : string =
     := f = { limit = limit_on p; label = cell_label i; weigh }
-    "[" ++# (split_units f all |> each chunk_json |> sm'.concat_list ",") ++# "]"
+    "[" ++# (split_units f all |> each chunk_json |> sm'::concat_list ",") ++# "]"
 
 :~ chunks_json (name : string) (i : i32) (posted : string) : string =
     chunks_by (remote_weight name) (remote_units name posted) (platform_named name) i

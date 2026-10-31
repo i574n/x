@@ -760,7 +760,6 @@ version = "0.0.1"
 name = "xc_entities"
 version = "0.0.1"
 dependencies = [
- "unicode-normalization",
  "unicode-segmentation",
 ]
 
@@ -816,7 +815,6 @@ dependencies = [
 name = "xc_posted"
 version = "0.0.1"
 dependencies = [
- "unicode-normalization",
  "unicode-segmentation",
  "xc_domains",
  "xc_entities",

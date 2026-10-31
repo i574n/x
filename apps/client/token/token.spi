@@ -53,7 +53,7 @@ test token static =
 :== tokens = { access_token : string; refresh_token : string; expires_in : string }
 
 := tokens_of (doc : json) : tokens =
-    := expires_in = sm'.obj_to_string (doc |> field "expires_in" |> number_of)
+    := expires_in = sm'::obj_to_string (doc |> field "expires_in" |> number_of)
     { access_token = at_key "access_token" doc; refresh_token = at_key "refresh_token" doc; expires_in }
 
 := token_form (client_id : string) (refresh_token : string) : string =
@@ -71,38 +71,38 @@ test token static =
 
 := refusal (status : i32) (body : string) : string =
     := detail = refusal_detail body
-    "X API answered " ++# sm'.obj_to_string status ++# " for " ++# token_path () ++# ": " ++# detail
+    "X API answered " ++# sm'::obj_to_string status ++# " for " ++# token_path () ++# ": " ++# detail
 
 := key_line (key : string) (value : string) (line : string) : string =
-    := cr = ? sm'.ends_with "\r" line ?> "\r" |: ""
-    ? sm'.starts_with (key ++# "=") line ?> key ++# "=" ++# value ++# cr |: line
+    := cr = ? sm'::ends_with "\r" line ?> "\r" |: ""
+    ? sm'::starts_with (key ++# "=") line ?> key ++# "=" ++# value ++# cr |: line
 
-:= has_key (key : string) (lines : list string) : bool = has (sm'.starts_with (key ++# "=")) lines
+:= has_key (key : string) (lines : list string) : bool = has (sm'::starts_with (key ++# "=")) lines
 
-:= line_end (lines : list string) : string = ? has (sm'.ends_with "\r") lines ?> "\r" |: ""
+:= line_end (lines : list string) : string = ? has (sm'::ends_with "\r") lines ?> "\r" |: ""
 
 := with_key (key : string) (value : string) (lines : list string) : list string =
     ? has_key key lines
     ?> lines |> each (key_line key value)
-    |: listm.append lines [ key ++# "=" ++# value ++# line_end lines ]
+    |: listm::append lines [ key ++# "=" ++# value ++# line_end lines ]
 
 := trailing (lines : list string) : list string =
-    ?= listm.rev lines ?|
-    | "" :: rest => listm.rev rest
+    ?= listm::rev lines ?|
+    | "" :: rest => listm::rev rest
     | _ => lines
 
 := with_tokens (t : tokens) (lines : list string) : list string =
-    lines |> with_key "X_OAUTH2_ACCESS_TOKEN" t.access_token |> with_key "X_OAUTH2_REFRESH_TOKEN" t.refresh_token
+    lines |> with_key "X_OAUTH2_ACCESS_TOKEN" t::access_token |> with_key "X_OAUTH2_REFRESH_TOKEN" t::refresh_token
 
 :~ rewritten (text : string) (t : tokens) : string =
     := lines = split_on "\n" text |> trailing |> with_tokens t
-    sm'.concat_list "\n" lines ++# "\n"
+    sm'::concat_list "\n" lines ++# "\n"
 
 := renewed (path : string) (t : tokens) : string =
     "renewed X_OAUTH2_ACCESS_TOKEN and X_OAUTH2_REFRESH_TOKEN in "
     ++# path
     ++# "; the access token expires in "
-    ++# t.expires_in
+    ++# t::expires_in
     ++# " s"
 
 := no_tokens () : string = "the token reply had no access_token or refresh_token"
@@ -119,7 +119,7 @@ test token static =
     4i32, (? synced_write (aside_of path) text ?> set_aside path |: token_lost path)
 
 := saved (path : string) (text : string) (t : tokens) : i32 * string =
-    ? t.access_token = "" || t.refresh_token = "" ?> 4i32, no_tokens ()
+    ? t::access_token = "" || t::refresh_token = "" ?> 4i32, no_tokens ()
     |? file_replaced path (rewritten text t) ?> 0i32, renewed path t
     |: kept_aside path (rewritten text t)
 
@@ -137,8 +137,8 @@ test token static =
 :== client = { base : string; client_id : string; client_secret : string }
 
 := exchanged (c : client) (refresh_token : string) (path : string) (text : string) : i32 * string =
-    := form = token_form c.client_id refresh_token
-    post_form (c.base ++# token_path ()) c.client_id c.client_secret form |> answered path text
+    := form = token_form c::client_id refresh_token
+    post_form (c::base ++# token_path ()) c::client_id c::client_secret form |> answered path text
 
 := unread (path : string) : i32 * string = 3i32, "cannot read " ++# path
 
@@ -150,7 +150,7 @@ test token static =
 
 := renewed_tokens () : tokens = { access_token = "new"; refresh_token = "r2"; expires_in = "7200" }
 
-:= shown_cr (s : string) : string = sm'.replace "\r" "~" s
+:= shown_cr (s : string) : string = sm'::replace "\r" "~" s
 
 test renewal_replaces_and_appends_keys =
     := ~text = "X_BEARER_TOKEN=kept\r\nX_OAUTH2_ACCESS_TOKEN=old\r\n"

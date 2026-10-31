@@ -30,7 +30,7 @@ test splitter static =
     ?= l ?|
     | z :: g :: rest ?& z = zero_width_space () => glued rest ((z ++# g) :: acc)
     | g :: rest => glued rest (g :: acc)
-    | [] => listm.rev acc
+    | [] => listm::rev acc
 
 := posted_glyphs (p : platform) (s : string) : list string =
     ?= p ?|
@@ -39,7 +39,7 @@ test splitter static =
     | OnBluesky _ => graphemes s
 
 := byte_weight (g : string) : i32 =
-    := tenths = (sm'.length g + 9i32) / 10i32
+    := tenths = (sm'::length g + 9i32) / 10i32
     ? tenths < 1i32 ?> 1i32 |: tenths
 
 := unit_on (p : platform) (g : string) : weighed =
@@ -48,7 +48,7 @@ test splitter static =
     | OnMastodon => { glyph = g; weight = 1i32 }
     | OnBluesky _ => { glyph = g; weight = byte_weight g }
 
-:~ units_on (p : platform) (s : string) : units = posted_glyphs p s |> listm.map (unit_on p)
+:~ units_on (p : platform) (s : string) : units = posted_glyphs p s |> listm::map (unit_on p)
 
 :~ units_of (s : string) : units = units_on OnX s
 
@@ -60,44 +60,44 @@ test splitter static =
 :~ ^ taken_while (ok : weighed -> bool) (l : units) (acc : units) : units * units =
     ?= l ?|
     | u :: rest ?& ok u => taken_while ok rest (u :: acc)
-    | _ => listm.rev acc, l
+    | _ => listm::rev acc, l
 
 := word_reach () : i32 = 60i32
 
-:= spaced (u : weighed) : bool = blank u.glyph
+:= spaced (u : weighed) : bool = blank u::glyph
 
 := space_carried (current : units) : units * units =
     := space, kept = taken_while spaced current Nil
     ? has_units kept ?> space, kept |: Nil, current
 
 := reachable (word : units) (space : units) (kept : units) : bool =
-    has_units kept && listm.length word + listm.length space <= word_reach ()
+    has_units kept && listm::length word + listm::length space <= word_reach ()
 
 :~ split_point (current : units) : units * units =
     := word, rest = taken_while (\ u => not (spaced u)) current Nil
     := space, kept = taken_while spaced rest Nil
-    ? reachable word space kept ?> listm.append word space, kept |: space_carried current
+    ? reachable word space kept ?> listm::append word space, kept |: space_carried current
 
 := flushed (current : units) (acc : list string) : list string =
     ?= current ?|
     | Nil => acc
-    | _ => (current |> listm.rev |> each (\ u => u.glyph) |> sm'.concat_list "") :: acc
+    | _ => (current |> listm::rev |> each (\ u => u::glyph) |> sm'::concat_list "") :: acc
 
 :== pending = { current : units; used : i32; posts : list string }
 
 := fresh (posts : list string) : pending = { current = Nil; used = 0i32; posts }
 
-:= fits (budget : i32) (u : weighed) (p : pending) : bool = p.used + u.weight <= budget || not (has_units p.current)
+:= fits (budget : i32) (u : weighed) (p : pending) : bool = p::used + u::weight <= budget || not (has_units p::current)
 
-:= grown (u : weighed) (p : pending) : pending = { p ?| current = u :: p.current; used = p.used + u.weight }
+:= grown (u : weighed) (p : pending) : pending = { p ?| current = u :: p::current; used = p::used + u::weight }
 
 := restarted (p : pending) (rest : units) : units * pending =
-    := carried, kept = split_point p.current
-    listm.append (listm.rev carried) rest, fresh (flushed kept p.posts)
+    := carried, kept = split_point p::current
+    listm::append (listm::rev carried) rest, fresh (flushed kept p::posts)
 
 :~ ^ chunk (b : i32) (rest : units) (p : pending) : list string =
     ?= rest ?|
-    | Nil => listm.rev (flushed p.current p.posts)
+    | Nil => listm::rev (flushed p::current p::posts)
     | u :: more ?& fits b u p => chunk b more (grown u p)
     | _ => restarted p rest |> \ (us, q) => chunk b us q
 
@@ -112,22 +112,22 @@ test splitter static =
 := header (label : cell_id) (part : i32) (part_count : i32) : string =
     rendered { cell = label; part part_count } ++# "\n"
 
-:= digit_count (n : i32) : i32 = sm'.length (sm'.obj_to_string n)
+:= digit_count (n : i32) : i32 = sm'::length (sm'::obj_to_string n)
 
 :== framing = { limit : i32; label : cell_id; weigh : string -> i32 }
 
-:= budget_for (f : framing) (assumed : i32) : i32 = f.limit - f.weigh (header f.label assumed assumed)
+:= budget_for (f : framing) (assumed : i32) : i32 = f::limit - f::weigh (header f::label assumed assumed)
 
 :~ ^ chunks_of (f : framing) (all : units) (assumed : i32) : list string =
     := chunks = chunk (budget_for f assumed) all (fresh Nil)
-    := posts = listm.length chunks
+    := posts = listm::length chunks
     ? digit_count posts > digit_count assumed ?> chunks_of f all posts |: chunks
 
 := mastodon_link_weight () : i32 = 23i32
 
 :~ ^ prefix_text (n : i32) (l : units) (acc : string) : string =
     ?= l ?|
-    | u :: rest ?& n > 0i32 => prefix_text (n - 1i32) rest (acc ++# u.glyph)
+    | u :: rest ?& n > 0i32 => prefix_text (n - 1i32) rest (acc ++# u::glyph)
     | _ => acc
 
 := starts_link (l : units) : bool = prefix_text 7i32 l "" = "http://" || prefix_text 8i32 l "" = "https://"
@@ -139,11 +139,11 @@ test splitter static =
 
 := padded_link (u : weighed) (length : i32) : weighed =
     := short = mastodon_link_weight () - length
-    ? short > 0i32 ?> { u ?| weight = u.weight + short } |: u
+    ? short > 0i32 ?> { u ?| weight = u::weight + short } |: u
 
 :~ ^ linked (l : units) (acc : units) : units =
     ?= l ?|
-    | Nil => listm.rev acc
+    | Nil => listm::rev acc
     | u :: rest ?& starts_link l => linked rest (padded_link u (link_length l 0i32) :: acc)
     | u :: rest => linked rest (u :: acc)
 
@@ -154,7 +154,7 @@ test splitter static =
     | OnBluesky _ => units_on p s
 
 := weight_on (p : platform) (t : string) : i32 =
-    weighed_on p t |> listm.fold (\ sum (u : weighed) => sum + u.weight) 0i32
+    weighed_on p t |> listm::fold (\ sum (u : weighed) => sum + u::weight) 0i32
 
 :~ split_units (f : framing) (all : units) : list string = chunks_of f all 9i32
 
@@ -168,36 +168,36 @@ test splitter static =
 
 := split_named (label : string) (limit : i32) (source : string) : list string = split_cell (cell_id label) limit source
 
-:= indented (line : string) : bool = sm'.starts_with " " line || sm'.starts_with "\t" line
+:= indented (line : string) : bool = sm'::starts_with " " line || sm'::starts_with "\t" line
 
 :~ ^ with_blanks (n : i32) (acc : list string) : list string = ? n <= 0i32 ?> acc |: with_blanks (n - 1i32) ("" :: acc)
 
 :== cutting = { cells : list string; current : list string; blanks : i32; seen : bool }
 
-:= finished (c : cutting) : list string = (c.current |> listm.rev |> sm'.concat_list "\n" |> trimmed_end) :: c.cells
+:= finished (c : cutting) : list string = (c::current |> listm::rev |> sm'::concat_list "\n" |> trimmed_end) :: c::cells
 
 := opened (c : cutting) (line : string) : cutting =
-    { cells = finished c; current = line :: with_blanks (c.blanks - 1i32) Nil; blanks = 0i32; seen = !+ }
+    { cells = finished c; current = line :: with_blanks (c::blanks - 1i32) Nil; blanks = 0i32; seen = !+ }
 
 := continued (c : cutting) (line : string) : cutting =
-    { c ?| current = line :: with_blanks c.blanks c.current; blanks = 0i32; seen = !+ }
+    { c ?| current = line :: with_blanks c::blanks c::current; blanks = 0i32; seen = !+ }
 
-:= starts_cell (c : cutting) (line : string) : bool = c.blanks > 0i32 && c.seen && not (indented line)
+:= starts_cell (c : cutting) (line : string) : bool = c::blanks > 0i32 && c::seen && not (indented line)
 
 :~ step (c : cutting) (line : string) : cutting =
-    ? line = "" ?> { c ?| blanks = c.blanks + 1i32 }
+    ? line = "" ?> { c ?| blanks = c::blanks + 1i32 }
     |? starts_cell c line ?> opened c line
     |: continued c line
 
-:= without_final_newline (t : string) : string = ? sm'.ends_with "\n" t ?> cut 0i32 (sm'.length t - 1i32) t |: t
+:= without_final_newline (t : string) : string = ? sm'::ends_with "\n" t ?> cut 0i32 (sm'::length t - 1i32) t |: t
 
 := uncut () : cutting = { cells = Nil; current = Nil; blanks = 0i32; seen = !- }
 
-:= closed (c : cutting) : list string = listm.rev (finished { c ?| current = with_blanks c.blanks c.current })
+:= closed (c : cutting) : list string = listm::rev (finished { c ?| current = with_blanks c::blanks c::current })
 
 :~ file_cells (text : string) : list string =
-    := plain = sm'.replace "\r\n" "\n" text |> without_final_newline
-    ? plain = "" ?> Nil |: split_on "\n" plain |> listm.fold step (uncut ()) |> closed
+    := plain = sm'::replace "\r\n" "\n" text |> without_final_newline
+    ? plain = "" ?> Nil |: split_on "\n" plain |> listm::fold step (uncut ()) |> closed
 
 := frames_or_empty (chunks : list string) : list string =
     ?= chunks ?|
@@ -206,14 +206,14 @@ test splitter static =
 
 :~ ^ numbered (label : cell_id) (n : i32) (k : i32) (l : list string) (acc : list string) : list string =
     ?= l ?|
-    | Nil => listm.rev acc
+    | Nil => listm::rev acc
     | body :: rest => numbered label n (k + 1i32) rest (trimmed_end (header label k n ++# body) :: acc)
 
 :== chunker = i32 -> string -> list string
 
 :~ cell_posts_by (chunked : chunker) (i : i32) (cell : string) : list string =
     := chunks = chunked i cell |> frames_or_empty
-    numbered (cell_label i) (listm.length chunks) 1i32 chunks []
+    numbered (cell_label i) (listm::length chunks) 1i32 chunks []
 
 := posted_chunks (p : platform) (i : i32) (posted : string) : list string =
     split_cell_on p (cell_label i) (limit_on p) posted
@@ -226,7 +226,7 @@ test splitter static =
 
 :~ ^ thread_by (chunked : chunker) (i : i32) (cells : list string) (acc : list (list string)) : list string =
     ?= cells ?|
-    | [] => acc |> listm.rev |> spread id
+    | [] => acc |> listm::rev |> spread id
     | cell :: rest => thread_by chunked (i + 1i32) rest (cell_posts_by chunked i cell :: acc)
 
 :~ thread_on (p : platform) (i : i32) (cells : list string) (acc : list (list string)) : list string =
@@ -234,29 +234,29 @@ test splitter static =
 
 :~ thread_of (i : i32) (cells : list string) (acc : list (list string)) : list string = thread_on OnX i cells acc
 
-:= x_weight (t : string) : i32 = units_of t |> listm.fold (\ sum (u : weighed) => sum + u.weight) 0i32
+:= x_weight (t : string) : i32 = units_of t |> listm::fold (\ sum (u : weighed) => sum + u::weight) 0i32
 
 := posts_of (text : string) : list string = thread_of 1i32 (file_cells text) Nil
 
 :~ ^ repeated (n : i32) (s : string) (acc : string) : string = ? n <= 0i32 ?> acc |: repeated (n - 1i32) s (acc ++# s)
 
-:= heaviest (posts : list string) : i32 = posts |> listm.fold (\ top t => ? x_weight t > top ?> x_weight t |: top) 0i32
+:= heaviest (posts : list string) : i32 = posts |> listm::fold (\ top t => ? x_weight t > top ?> x_weight t |: top) 0i32
 
 test cells_start_at_column_zero =
     := ~text = "a\n\nb\n  c\n\n\nd\n"
     := cells = file_cells text
-    cells |> listm.length |> _assert_eq 3i32
-    cells |> sm'.concat_list "|" |> _assert_eq "a|b\n  c|\nd"
+    cells |> listm::length |> _assert_eq 3i32
+    cells |> sm'::concat_list "|" |> _assert_eq "a|b\n  c|\nd"
 
 test a_short_cell_is_one_post =
     := ~cell = "inl x = 1"
-    cell_posts 4i32 cell |> sm'.concat_list "|" |> _assert_eq "c4 1/1\ninl x = 1"
-    posts_of "" |> listm.length |> _assert_eq 0i32
+    cell_posts 4i32 cell |> sm'::concat_list "|" |> _assert_eq "c4 1/1\ninl x = 1"
+    posts_of "" |> listm::length |> _assert_eq 0i32
 
 test mastodon_keeps_dots_in_one_long_post =
     := ~cell = "go x.io " ++# repeated 300i32 "b" ""
     := posts = cell_posts_on OnMastodon 1i32 cell
-    (listm.length posts, sm'.contains (defused_dot ()) (sm'.concat_list "" posts)) |> _assert_eq (1i32, !-)
+    (listm::length posts, sm'::contains (defused_dot ()) (sm'::concat_list "" posts)) |> _assert_eq (1i32, !-)
 
 test mastodon_weighs_a_glyph_one =
     := ~g = "e"
@@ -277,28 +277,28 @@ test long_plain_text_is_not_a_link =
 
 test dots_that_x_would_link_are_defused =
     := ~cell = "go x.com now"
-    cell_posts 1i32 cell |> sm'.concat_list "|" |> _assert_eq ("c1 1/1\ngo x" ++# defused_dot () ++# "com now")
+    cell_posts 1i32 cell |> sm'::concat_list "|" |> _assert_eq ("c1 1/1\ngo x" ++# defused_dot () ++# "com now")
 
 test split_cell_posts_before_splitting =
     := ~cell = "cell.app"
-    split_cell (cell_id "c1") 280i32 cell |> sm'.concat_list "|" |> _assert_eq ("cell" ++# defused_dot () ++# "app")
+    split_cell (cell_id "c1") 280i32 cell |> sm'::concat_list "|" |> _assert_eq ("cell" ++# defused_dot () ++# "app")
 
 test short_labels_before_two_letter_tlds_stay_plain =
     := ~cell = "go x.io now"
-    cell_posts 1i32 cell |> sm'.concat_list "|" |> _assert_eq "c1 1/1\ngo x.io now"
+    cell_posts 1i32 cell |> sm'::concat_list "|" |> _assert_eq "c1 1/1\ngo x.io now"
 
 test a_mention_sigil_keeps_its_zero_width_space_in_one_unit =
     := ~cell = "@" ++# "bob"
-    units_of (posted_on OnX cell) |> listm.length |> _assert_eq 4i32
-    cell_posts 1i32 "1.5" |> sm'.concat_list "|" |> _assert_eq "c1 1/1\n1.5"
+    units_of (posted_on OnX cell) |> listm::length |> _assert_eq 4i32
+    cell_posts 1i32 "1.5" |> sm'::concat_list "|" |> _assert_eq "c1 1/1\n1.5"
 
 test long_cells_split_between_words =
     := ~word = "ab "
     := posts = cell_posts 2i32 (repeated 120i32 word "")
-    posts |> listm.length |> _assert_eq 2i32
+    posts |> listm::length |> _assert_eq 2i32
     (heaviest posts <= post_limit ()) |> _assert_eq !+
 
-:= post_count (cell : string) : i32 = cell_posts 1i32 cell |> listm.length
+:= post_count (cell : string) : i32 = cell_posts 1i32 cell |> listm::length
 
 test one_post_cells_budget_a_one_digit_header =
     := ~cell = repeated 273i32 "a" ""
@@ -308,5 +308,5 @@ test one_post_cells_budget_a_one_digit_header =
 test ten_posts_widen_the_header =
     := ~glyphs = 3000i32
     := posts = cell_posts 1i32 (repeated glyphs "a" "")
-    posts |> listm.length |> _assert_eq 12i32
+    posts |> listm::length |> _assert_eq 12i32
     (heaviest posts <= post_limit ()) |> _assert_eq !+

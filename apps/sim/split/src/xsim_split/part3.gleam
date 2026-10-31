@@ -4,13 +4,13 @@ import gleam/option
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_split/types.{type Uh0, type Us0, type Uh2, type Uh3, Uh0Cons, Uh0Nil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Us0OnBluesky, Us0OnMastodon, Us0OnX, Us1None, Us1Some}
+import xsim_split/types.{type ListString, type Us0, type Uh2, type Uh3, ListStringCons, ListStringNil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Us0OnBluesky, Us0OnMastodon, Us0OnX, Us1None, Us1Some}
 import xsim_split/part1.{closure1, closure2, concat_balanced_22, method10, spiral_string_length, spiral_wrap_signed, unicode_erlang_characters_to_binary, unicode_erlang_nfc}
 import xsim_split/part2.{closure3, defused_dots_by_2, defused_entities_27, glued_47, method49}
 
-pub fn method48(v0: Us0, v1: Uh0, v2: Uh2) -> Uh2 {
+pub fn method48(v0: Us0, v1: ListString, v2: Uh2) -> Uh2 {
     case v1  {
-        Uh0Cons(v3, v4) -> {
+        ListStringCons(v3, v4) -> {
             let v5 = method48(v0, v4, v2)
             let #(v88, v89) =
                 case v0  {
@@ -265,7 +265,7 @@ pub fn method48(v0: Us0, v1: Uh0, v2: Uh2) -> Uh2 {
                 }
             Uh2Cons(v88, v89, v5)
         }
-        Uh0Nil -> {
+        ListStringNil -> {
             v2
         }
     }
@@ -277,11 +277,11 @@ pub fn units_on_46(v0: Us0, v1: String) -> Uh2 {
             Us0OnBluesky(v18, v19) -> {
                 let v20 = string.to_graphemes(v1)
                 let v21 = v20 |> list.reverse
-                let v22 = Uh0Nil
+                let v22 = ListStringNil
                 let listm_fold = v21 |> list.fold (v22, fn (acc, x) {
                 let v23 = x
                 let v24 = acc
-                let v25 = Uh0Cons(v23, v24)
+                let v25 = ListStringCons(v23, v24)
                 v25
                 })
                 let v26 = listm_fold
@@ -290,11 +290,11 @@ pub fn units_on_46(v0: Us0, v1: String) -> Uh2 {
             Us0OnMastodon -> {
                 let v11 = string.to_graphemes(v1)
                 let v12 = v11 |> list.reverse
-                let v13 = Uh0Nil
+                let v13 = ListStringNil
                 let listm_fold = v12 |> list.fold (v13, fn (acc, x) {
                 let v14 = x
                 let v15 = acc
-                let v16 = Uh0Cons(v14, v15)
+                let v16 = ListStringCons(v14, v15)
                 v16
                 })
                 let v17 = listm_fold
@@ -303,15 +303,15 @@ pub fn units_on_46(v0: Us0, v1: String) -> Uh2 {
             Us0OnX -> {
                 let v2 = string.to_graphemes(v1)
                 let v3 = v2 |> list.reverse
-                let v4 = Uh0Nil
+                let v4 = ListStringNil
                 let listm_fold = v3 |> list.fold (v4, fn (acc, x) {
                 let v5 = x
                 let v6 = acc
-                let v7 = Uh0Cons(v5, v6)
+                let v7 = ListStringCons(v5, v6)
                 v7
                 })
                 let v8 = listm_fold
-                let v9 = Uh0Nil
+                let v9 = ListStringNil
                 glued_47(v8, v9)
             }
         }
@@ -775,11 +775,11 @@ pub fn split_point_60(v0: Uh2) -> #(Uh2, Uh2) {
     }
 }
 
-pub fn method64(v0: Uh2, v1: Uh0) -> Uh0 {
+pub fn method64(v0: Uh2, v1: ListString) -> ListString {
     case v0  {
         Uh2Cons(v2, v3, v4) -> {
             let v5 = method64(v4, v1)
-            Uh0Cons(v2, v5)
+            ListStringCons(v2, v5)
         }
         Uh2Nil -> {
             v1
@@ -787,7 +787,7 @@ pub fn method64(v0: Uh2, v1: Uh0) -> Uh0 {
     }
 }
 
-pub fn chunk_59(v0: Int, v1: Uh2, v2: Uh2, v3: Int, v4: Uh0) -> Uh0 {
+pub fn chunk_59(v0: Int, v1: Uh2, v2: Uh2, v3: Int, v4: ListString) -> ListString {
     case v1  {
         Uh2Cons(v15, v16, v17) -> {
             let v18 = spiral_wrap_signed(v3 + v16, 32)
@@ -829,11 +829,11 @@ pub fn chunk_59(v0: Int, v1: Uh2, v2: Uh2, v3: Int, v4: Uh0) -> Uh0 {
                             _ -> {
                                 let v30 = Uh2Nil
                                 let v31 = method55(v26, v30)
-                                let v32 = Uh0Nil
+                                let v32 = ListStringNil
                                 let v33 = method64(v31, v32)
                                 let v34 = ""
                                 let v35 = concat_balanced_22(v34, v33)
-                                Uh0Cons(v35, v4)
+                                ListStringCons(v35, v4)
                             }
                         }
                     let v38 = Uh2Nil
@@ -851,32 +851,32 @@ pub fn chunk_59(v0: Int, v1: Uh2, v2: Uh2, v3: Int, v4: Uh0) -> Uh0 {
                     _ -> {
                         let v5 = Uh2Nil
                         let v6 = method55(v2, v5)
-                        let v7 = Uh0Nil
+                        let v7 = ListStringNil
                         let v8 = method64(v6, v7)
                         let v9 = ""
                         let v10 = concat_balanced_22(v9, v8)
-                        Uh0Cons(v10, v4)
+                        ListStringCons(v10, v4)
                     }
                 }
-            let v13 = Uh0Nil
+            let v13 = ListStringNil
             method10(v12, v13)
         }
     }
 }
 
-pub fn method65(v0: Uh0, v1: Int) -> Int {
+pub fn method65(v0: ListString, v1: Int) -> Int {
     case v0  {
-        Uh0Cons(v2, v3) -> {
+        ListStringCons(v2, v3) -> {
             let v4 = spiral_wrap_signed(v1 + 1, 32)
             method65(v3, v4)
         }
-        Uh0Nil -> {
+        ListStringNil -> {
             v1
         }
     }
 }
 
-pub fn chunks_of_58(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh2, v4: Int) -> Uh0 {
+pub fn chunks_of_58(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh2, v4: Int) -> ListString {
     let v5 = " "
     let v6 = v1 <> v5 
     let v7 = string.inspect(v4)
@@ -891,7 +891,7 @@ pub fn chunks_of_58(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh2, v4: Int
     let v16 = spiral_wrap_signed(v0 - v15, 32)
     let v17 = Uh2Nil
     let v18 = 0
-    let v19 = Uh0Nil
+    let v19 = ListStringNil
     let v20 = chunk_59(v16, v3, v17, v18, v19)
     let v21 = 0
     let v22 = method65(v20, v21)
@@ -910,12 +910,12 @@ pub fn chunks_of_58(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh2, v4: Int
     }
 }
 
-pub fn split_units_57(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh2) -> Uh0 {
+pub fn split_units_57(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh2) -> ListString {
     let v4 = 9
     chunks_of_58(v0, v1, v2, v3, v4)
 }
 
-pub fn split_cell_on_45(v0: Us0, v1: String, v2: Int, v3: String) -> Uh0 {
+pub fn split_cell_on_45(v0: Us0, v1: String, v2: Int, v3: String) -> ListString {
     let v4 = closure7(#(v0))
     let v5 = unicode_erlang_nfc(v3)
     let v17 =
@@ -937,7 +937,7 @@ pub fn split_cell_on_45(v0: Us0, v1: String, v2: Int, v3: String) -> Uh0 {
     split_units_57(v2, v1, v4, v17)
 }
 
-pub fn split_cell_0(v0: String, v1: Int, v2: String) -> Uh0 {
+pub fn split_cell_0(v0: String, v1: Int, v2: String) -> ListString {
     let v3 = Us0OnX
     let v4 = closure1(Nil)
     let v5 = defused_dots_by_2(v4, v2)
@@ -945,13 +945,13 @@ pub fn split_cell_0(v0: String, v1: Int, v2: String) -> Uh0 {
     split_cell_on_45(v3, v0, v1, v6)
 }
 
-pub fn closure0(capt: Nil) -> fn(#(String, Int, String)) -> Uh0 {
+pub fn closure0(capt: Nil) -> fn(#(String, Int, String)) -> ListString {
     fn (dom) {
         let #(v0, v1, v2) = dom
         split_cell_0(v0, v1, v2)
     }
 }
 
-pub fn delimited_66(v0: String, v1: Uh0) -> String {
+pub fn delimited_66(v0: String, v1: ListString) -> String {
     concat_balanced_22(v0, v1)
 }

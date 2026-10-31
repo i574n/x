@@ -15,12 +15,12 @@ $items = [Collections.Generic.List[object]]::new()
 $attributes = [Collections.Generic.List[string]]::new()
 $current = $null
 foreach ($line in $lines) {
-    if ($line -match '^@\s?\w') { if ($current) { $items.Add($current); $current = $null }; $attributes.Add($line); continue }
+    if ($line -match '^@\s?\w' -and $line -notmatch '^@.*\)\s*(pub )?fn \w+\(') { if ($current) { $items.Add($current); $current = $null }; $attributes.Add($line); continue }
     $kind = $null; $name = $null
     if ($line -match '^import ') { $kind = 'import' }
     elseif ($line -match '^(pub )?(opaque )?type (\w+)') { $kind = 'type'; $name = $Matches[3] }
     elseif ($line -match '^(pub )?const (\w+)') { $kind = 'const'; $name = $Matches[2] }
-    elseif ($line -match '^(pub )?fn (\w+)\(') { $kind = 'fn'; $name = $Matches[2] }
+    elseif ($line -match '^(?:@.*\)\s*)?(pub )?fn (\w+)\(') { $kind = 'fn'; $name = $Matches[2] }
     if ($kind) {
         if ($current) { $items.Add($current) }
         $current = [pscustomobject]@{ Kind = $kind; Name = $name; Lines = [Collections.Generic.List[string]]::new() }
@@ -97,7 +97,7 @@ $placement = @{}
 for ($k = 0; $k -lt $parts.Count; $k++) { foreach ($m in $parts[$k]) { $placement[$m] = "$module/part$($k + 1)" } }
 foreach ($m in $top) { $placement[$m] = $module }
 
-function Publish([string] $text) { [regex]::Replace($text, '(?m)^(?!pub )((opaque )?type |const |fn )', 'pub $1') }
+function Publish([string] $text) { [regex]::Replace($text, '(?m)^((?:@[^\n]*?\)\s*)?)(?!pub )((opaque )?type |const |fn )', '$1pub $2') }
 function Get-UsedImports([string] $text) {
     @($imports | Where-Object {
         $path, $names = ($_ -replace '^import\s+', '') -split '\.\{', 2
