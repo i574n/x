@@ -22,6 +22,25 @@ function Get-XCiZigPin {
     if ($ci -match 'setup-zig@\S+\s+with:(?:\s+(?!version:)[\w-]+:[^\r\n]*)*\s+version:\s*"?([^"\s]+)"?') { $Matches[1] }
 }
 
+function Assert-CellBudget([Parameter(Mandatory)] [string] $Path, [Parameter(Mandatory)] [string] $Label) {
+    $target = (Resolve-Path $Path).Path
+    $scoopErlang = Join-Path $HOME 'scoop/apps/erlang/current/bin'
+    $savedPath, $savedBuild = $env:PATH, $env:MIX_BUILD_PATH
+    if (Test-Path $scoopErlang) { $env:PATH = "$scoopErlang$([IO.Path]::PathSeparator)$env:PATH" }
+    $env:MIX_BUILD_PATH = Get-XTargetDir 'sim-cells'
+    Push-Location (Join-Path $SpiralRoot 'apps/cells')
+    try {
+        $deps = @(mix deps.get 2>&1 | ForEach-Object { "$_" })
+        if ($LASTEXITCODE) { $deps | Select-Object -Last 10 | Write-Host; throw "CELL-BUDGET $Label / mix deps.get failed in spiral/apps/cells" }
+        $report = @(mix spiral.cell_budget --check $target 2>&1 | ForEach-Object { "$_" })
+        $code = $LASTEXITCODE
+    } finally { Pop-Location; $env:PATH, $env:MIX_BUILD_PATH = $savedPath, $savedBuild }
+    $report | ForEach-Object { "$Label / $_" } | Write-Host
+    $counted = $report | Select-String -Pattern 'cell-budget report: (\d+) finding' | Select-Object -Last 1
+    if (!$counted) { throw "CELL-BUDGET $Label / no report line from Cells' cell-budget check (exit $code)" }
+    if ($code -ne 0 -or [int] $counted.Matches[0].Groups[1].Value -gt 0) { throw "CELL-BUDGET $Label / findings (exit $code), see the report above" }
+}
+
 function Assert-SpiralTotals([Parameter(Mandatory)] [AllowEmptyCollection()] [AllowEmptyString()] [string[]] $Lines) {
     $totals = @($Lines | Select-String -Pattern '^spiral-tests total (\{.*\})$' | ForEach-Object { $_.Matches[0].Groups[1].Value | ConvertFrom-Json })
     if (!$totals) { throw 'x/scripts/common.ps1 / no spiral-tests total line: the notebooks did not run' }

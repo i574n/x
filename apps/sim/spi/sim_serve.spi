@@ -885,30 +885,42 @@ test sim_serve static =
     ? r::method = "POST" && r::path = "/2/tweets" ?> new_post w r
     |: ?= delete_target r ?| Some id => removed w id | None => kept w 404i32 (no_route r::path)
 
+:~ user_write \* c. (w : api_world) (r : request) (who : caller c) : string * api_world =
+    ?= who ?|
+    | UserBearer => post_or_delete w r UserBearer
+    | OAuth1User => post_or_delete w r OAuth1User
+    | _ => kept w 403i32 (user_context_only ())
+
 :~ change_reply \* c. (w : api_world) (r : request) (who : caller c) : string * api_world =
     ?= who ?|
     | Unauthenticated => kept w 401i32 (unauthorized ())
     | ClientBasic ?& r::method = "POST" => renewed w r
-    | UserBearer => post_or_delete w r UserBearer
-    | OAuth1User => post_or_delete w r OAuth1User
-    | _ => kept w 403i32 (user_context_only ())
+    | _ => user_write w r who
 
 := noted (r : request) : () =
     := line = str ("xsim serve / answered " ++# r::method ++# " " ++# r::path ++# "\n")
     call "io" "put_chars" [ atom "standard_error"; line ] |> ignore
 
-:~ caller_reply \* c. (w : api_world) (log : string) (r : request) (who : caller c) : string * api_world =
+:~ reply_as \* c. (w : api_world) (log : string) (r : request) (who : caller c) : string * api_world =
     logged log r (caller_word who)
     noted r
     ? r::method = "GET" ?> (answer w r who, w) |: change_reply w r who
 
+:~ signed_reply (w : api_world) (log : string) (r : request) (auth : string) : string * api_world =
+    ? is_oauth1 w r auth ?> reply_as w log r OAuth1User |: reply_as w log r Unauthenticated
+
+:~ keyed_reply (w : api_world) (log : string) (r : request) (auth : string) : string * api_world =
+    ? is_client w r auth ?> reply_as w log r ClientBasic |: signed_reply w log r auth
+
+:= bearer (token : string) (auth : string) : bool = auth = "Bearer " ++# token
+
+:~ bearer_reply (w : api_world) (log : string) (r : request) (auth : string) : string * api_world =
+    ? bearer w::token auth ?> reply_as w log r AppBearer
+    |? bearer w::user_token auth ?> reply_as w log r UserBearer |: keyed_reply w log r auth
+
 :~ replied (w : api_world) (log : string) (raw : string) : string * api_world =
     := r = request_of raw
-    := auth = header_value "authorization" r::head
-    ? auth = "Bearer " ++# w::token ?> caller_reply w log r AppBearer
-    |? auth = "Bearer " ++# w::user_token ?> caller_reply w log r UserBearer
-    |? is_client w r auth ?> caller_reply w log r ClientBasic
-    |? is_oauth1 w r auth ?> caller_reply w log r OAuth1User |: caller_reply w log r Unauthenticated
+    bearer_reply w log r (header_value "authorization" r::head)
 
 :~ handled (w : api_world) (log : string) (sock : term) : api_world =
     := reply, next = replied w log (received sock "")

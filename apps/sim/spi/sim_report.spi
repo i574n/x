@@ -68,6 +68,25 @@ test sim_report static =
 := summary_line (r : run_shape) (s : scheduler) (findings : list finding) : string =
     "XSIM " ++# delimited " " (line_fields r s) ++# " " ++# findings_text findings
 
+:! per_second = ()
+
+:== metric_row = { name : string; labels : list (string * string); value : i32 }
+
+:! metric u = metric_row
+
+:= label_text (labels : list (string * string)) : string =
+    labels |> each (\ (k, v) => k ++# "=\"" ++# v ++# "\"") |> delimited ","
+
+:= exposition \* u. (metric m : metric u) : string =
+    m::name ++# "{" ++# label_text m::labels ++# "} " ++# sm'::obj_to_string m::value
+
+:= run_labels (r : run_shape) : list (string * string) =
+    [ ("seed", sm'::obj_to_string r::seed); ("schedule", sm'::obj_to_string r::schedule) ]
+
+:= deliveries_rate (r : run_shape) : metric per_second =
+    := ms = ? r::ms > 0i32 ?> r::ms |: 1i32
+    metric { name = "x_sim_deliveries_per_second"; labels = run_labels r; value = r::deliveries * 1000i32 / ms }
+
 :~ ^ commuted_runs (runs : list scheduler) : verdict =
     ?= runs ?|
     | a :: b :: rest =>
@@ -109,6 +128,10 @@ test the_summary_line_has_the_elixir_field_order =
     := ~seed = 1i32
     := s = one_post_run seed
     summary_line (shape_of 2i32) s (runner_checks s fake_baseline) |> _assert_eq (expected_head () ++# expected_tail ())
+
+test the_delivery_rate_is_an_integer_per_second_row =
+    exposition (deliveries_rate (shape_of 2i32))
+    |> _assert_eq "x_sim_deliveries_per_second{seed=\"1\",schedule=\"1\"} 285"
 
 := pass_then_fail (a : scheduler) : string * string =
     := ok = runner_checks a fake_baseline

@@ -129,5 +129,7 @@ $report = @(for ($k = 0; $k -lt $parts.Count; $k++) { Write-Module "$module/part
 $report += Write-Module $module @($fns | Where-Object { $top.Contains($_.Name) } | ForEach-Object Name)
 $report += [pscustomobject]@{ Module = "$module/types"; Functions = 0; Lines = [IO.File]::ReadAllLines((Join-Path $partsDir 'types.gleam')).Count }
 $over = @($report | Where-Object Lines -gt $Limit)
-Write-Output "gleam-modules / $module / $($lines.Count) generated lines -> $($report.Count) modules (largest $(($report | Measure-Object Lines -Maximum).Maximum) lines, $($exports.Count) exports kept in $module)"
+$largest = ($report | Measure-Object Lines -Maximum).Maximum
+Write-Output "gleam-modules / $module / $($lines.Count) generated lines -> $($report.Count) modules (largest $largest lines, $($exports.Count) exports kept in $module)"
+Write-Output "x_gleam_part_lines_max{package=`"$module`",limit=`"$Limit`"} $largest"
 if ($over) { throw "gleam-modules / $(($over | ForEach-Object { "$($_.Module) $($_.Lines)" }) -join ', ') over $Limit lines" }

@@ -85,6 +85,9 @@ test cells_executor static =
     := total = erlang_term::apply "erlang" "memory" [ erlang_term::atom "total" ]
     erlang_term::apply "erlang" "div" [ total; erlang_term::of 1048576i32 ] |> erlang_term::cast
 
+:= clock_ms () : i32 =
+    erlang_term::apply "erlang" "monotonic_time" [ erlang_term::atom "millisecond" ] |> erlang_term::cast
+
 := memo_counts (tally : term) : i32 * i32 = counter_at tally 1i32, counter_at tally 2i32
 
 := cells_counted (root : string) (memo : bool) (tally : term) : executor =

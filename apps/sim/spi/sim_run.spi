@@ -65,16 +65,16 @@ test sim_run static =
 
 :== beam_executors =
     { cells : bool -> cells_run; cells_baseline : cells_run; leak : string -> cells_run; memo_counts : () -> i32 * i32;
-        beam_mb : () -> i32; daemon_watch : () -> i32 -> list string; async_run : schedule_fn }
+        beam_mb : () -> i32; clock_ms : () -> i32; daemon_watch : () -> i32 -> list string; async_run : schedule_fn }
 
 :== executor_pair =
     { run : cells_run; baseline : cells_run; judges_breaking : bool; notes : i32 -> list string; memory_mb : () -> i32;
-        scheduled_by : schedule_fn }
+        clock_ms : () -> i32; scheduled_by : schedule_fn }
 
 := fake_pair () : executor_pair =
     := quiet = \ () => 0i32
     { run = fake_result; baseline = fake_baseline; judges_breaking = !-; notes = \ _ => Nil; memory_mb = quiet
-        scheduled_by = unmeasured }
+        clock_ms = quiet; scheduled_by = unmeasured }
 
 := fake_async (b : beam_executors) : executor_pair =
     := p = fake_pair ()
@@ -89,10 +89,15 @@ test sim_run static =
     := leak_run, leak_base = b::leak "xsim_leak_run", b::leak "xsim_leak_baseline"
     { p ?| run = leak_run; baseline = leak_base; scheduled_by = b::async_run }
 
+:= no_reading () : i32 = 0i32
+
+:= no_counts () : i32 * i32 = 0i32, 0i32
+
+:= unwatched () (_ : i32) : list string = Nil
+
 := idle_beam () : beam_executors =
-    { cells = \ _ => fake_result; cells_baseline = fake_result; leak = \ _ => fake_result
-        memo_counts = \ () => (0i32, 0i32); beam_mb = \ () => 0i32; daemon_watch = \ () => \ _ => Nil
-        async_run = unmeasured }
+    { cells = \ _ => fake_result; cells_baseline = fake_result; leak = \ _ => fake_result; memo_counts = no_counts
+        beam_mb = no_reading; clock_ms = no_reading; daemon_watch = unwatched; async_run = unmeasured }
 
 := counts_text (hits : i32) (misses : i32) : string =
     "hits=" ++# sm'::obj_to_string hits ++# " misses=" ++# sm'::obj_to_string misses
@@ -117,7 +122,7 @@ test sim_run static =
 
 := executor_pair_of (b : beam_executors) (o : run_options) : executor_pair =
     := p = picked_pair b o
-    { p ?| notes = notes_for b o; memory_mb = b::beam_mb }
+    { p ?| notes = notes_for b o; memory_mb = b::beam_mb; clock_ms = b::clock_ms }
 
 := broken_set (s : scenario) : dictm::set string =
     listm::fold (\ acc k => dictm::set_add k acc) (dictm::set_empty ()) s::broken
@@ -148,7 +153,7 @@ test sim_run static =
     ? x::judges_breaking ?> listm::append found [ breaking_finding s sched ] |: found
 
 := outcome_of (found : list finding) (shape : run_shape) (sched : scheduler) : schedule_outcome =
-    { line = summary_line shape sched found; sched; found }
+    { line = summary_line shape sched found ++# "\n" ++# exposition (deliveries_rate shape); sched; found }
 
 := size \* t. (l : list t) : i32 = listm::length l
 
@@ -201,19 +206,26 @@ test sim_run static =
 
 := peak_mb (before : i32) (after : i32) : i32 = ? after > before ?> after |: before
 
-:= peak_scheduled (x : executor_pair) (o : run_options) (l : list delivery) : scheduler * i32 =
-    := before = x::memory_mb ()
-    := sched, during = x::scheduled_by o::runner::pace_ms x::run (faults_for o) l
-    sched, peak_mb (peak_mb before during) (x::memory_mb ())
+:== measured = { sched : scheduler; mb : i32; took : i32 }
 
-:= measured_shape (o : run_options) (s : scenario) (f : flow) (k : i32) (l : list delivery) (mb : i32) : run_shape =
+:= timed (x : executor_pair) (o : run_options) (l : list delivery) : (scheduler * i32) * i32 =
+    := started = x::clock_ms ()
+    := result = x::scheduled_by o::runner::pace_ms x::run (faults_for o) l
+    result, x::clock_ms () - started
+
+:= peak_scheduled (x : executor_pair) (o : run_options) (l : list delivery) : measured =
+    := before = x::memory_mb ()
+    := (sched, during), took = timed x o l
+    { sched; mb = peak_mb (peak_mb before during) (x::memory_mb ()); took }
+
+:= measured_shape (o : run_options) (s : scenario) (f : flow) (k : i32) (l : list delivery) (m : measured) : run_shape =
     := counted = counted_shape o s f k l
-    { counted ?| beam_mb = mb }
+    { counted ?| beam_mb = m::mb; ms = m::took }
 
 := schedule_run_of (x : executor_pair) (o : run_options) (s : scenario) (f : flow) (k : i32) : schedule_outcome =
     := l = deliveries_for o f k
-    := sched, mb = peak_scheduled x o l
-    judged_outcome x s (measured_shape o s f k l mb) sched |> reported x k
+    := m = peak_scheduled x o l
+    judged_outcome x s (measured_shape o s f k l m) m::sched |> reported x k
 
 :== run_outcomes = list schedule_outcome
 

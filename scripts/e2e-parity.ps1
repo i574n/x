@@ -7,8 +7,9 @@ function Invoke-E2e([string] $Server) {
     $dir = Join-Path $WorkDir $Server
     New-Item -ItemType Directory -Force $dir | Out-Null
     $env:XSIM_SERVER = if ($Server -eq 'sim') { 'sim' } else { '' }
+    $started = Get-Date
     $out = @(pwsh -NoProfile -File $e2e -Exe $Exe -WorkDir $dir 2>&1 | ForEach-Object { "$_" })
-    [pscustomobject]@{ Exit = $LASTEXITCODE; Rows = @(Get-Content (Join-Path $dir 'requests.jsonl') -ErrorAction Ignore | Where-Object { $_ } | ForEach-Object { $_ | ConvertFrom-Json }); Tail = @($out | Select-Object -Last 4) }
+    [pscustomobject]@{ Exit = $LASTEXITCODE; Seconds = [int]((Get-Date) - $started).TotalSeconds; Rows = @(Get-Content (Join-Path $dir 'requests.jsonl') -ErrorAction Ignore | Where-Object { $_ } | ForEach-Object { $_ | ConvertFrom-Json }); Tail = @($out | Select-Object -Last 4) }
 }
 
 function Get-Row($Row) { ($fields | ForEach-Object { "$_=$(if ($null -eq $Row.$_) { '' } else { $Row.$_ })" }) -join ' | ' }
@@ -27,5 +28,8 @@ for ($i = 0; $i -lt [Math]::Max($stub.Rows.Count, $sim.Rows.Count); $i++) {
     }
 }
 "e2e-parity / $differences differing row(s)"
+"x_e2e_wall_seconds{server=`"stub`"} $($stub.Seconds)"
+"x_e2e_wall_seconds{server=`"sim`"} $($sim.Seconds)"
+"x_e2e_parity_differing_rows $differences"
 if ($stub.Exit -or $sim.Exit) { 'e2e-parity / an e2e run failed; its last lines:'; $stub.Tail + $sim.Tail | ForEach-Object { "  $_" } }
 exit ([int]($differences -gt 0 -or $stub.Exit -ne 0 -or $sim.Exit -ne 0))

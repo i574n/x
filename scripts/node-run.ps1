@@ -23,15 +23,9 @@ if ($Mode -eq 'verify') {
     $out = Join-Path $machine.stage (($Label -replace '^x-verify', 'xv') + '-out')
     $land = @('-LandRepos', 'x,spiral')
     $command = @'
-$spiralBin = Join-Path $env:LOCALAPPDATA 'spiral-bin'
-$dotnet = Join-Path $spiralBin 'toolchains\dotnet\dotnet.exe'
-$dll = Join-Path $spiralBin 'bin\single-flight\SpiralCompiler\Release\net11.0\SpiralCompiler.dll'
+. '{mirror}\x\scripts\common.ps1'
 foreach ($tree in '{mirror}\x\apps\client', '{mirror}\x\apps\sim\spi') {
-    $found = @(& $dotnet $dll --x-compat $tree 2>&1 | ForEach-Object { "$_" })
-    $code = $LASTEXITCODE
-    'x-compat ' + $tree + ' exit ' + $code
-    $found | Select-Object -Last 4
-    if ($code -or -not ($found -match '^x-compat report: 0 finding\(s\) in [1-9]\d* file\(s\)$')) { 'x-compat RED or unattested, verify not started'; exit 1 }
+    try { Assert-CellBudget $tree $tree 6>&1 | Select-Object -Last 3 } catch { "$_"; 'cell-budget RED or unattested, verify not started'; exit 1 }
 }
 pwsh -NoProfile -File {mirror}\x\scripts\verify.ps1 -Part PART ACCEPT -Out OUTDIR
 $code = $LASTEXITCODE
@@ -43,6 +37,7 @@ exit $code
 $x = '{mirror}\x'
 pwsh -NoProfile -File "$x\apps\sim\build.ps1" -Ladder '1:1:1' *> '{mirror}\e2e-sim-build.log'
 'x node-run / sim build exit ' + $LASTEXITCODE
+Get-Content '{mirror}\e2e-sim-build.log' | Select-String -Pattern '^x_\w+\{' | ForEach-Object { $_.Line }
 if ($LASTEXITCODE) { Get-Content '{mirror}\e2e-sim-build.log' | Select-String -Pattern 'Error|error' -Context 0,3 | Select-Object -First 6; exit 1 }
 pwsh -NoProfile -File "$x\apps\client\build.ps1" -fast 1 *> '{mirror}\e2e-client-build.log'
 'x node-run / client build exit ' + $LASTEXITCODE
@@ -52,7 +47,7 @@ $exe = Join-Path (Get-XCargoTargetDir) 'release/xc.exe'
 if ('MODE' -eq 'parity') {
     $o = @(pwsh -NoProfile -File "$x\scripts\e2e-parity.ps1" -Exe $exe -WorkDir '{mirror}\e2e-parity' 2>&1 | ForEach-Object { "$_" })
     $code = $LASTEXITCODE
-    $o | Where-Object { $_ -match '^e2e-parity /|^  ' } | Select-Object -Last 40
+    $o | Where-Object { $_ -match '^e2e-parity /|^  |^x_\w+' } | Select-Object -Last 40
 } else {
     $env:XSIM_SERVER = 'sim'
     $o = @(pwsh -NoProfile -File "$x\apps\client\e2e\e2e.ps1" -Exe $exe -WorkDir '{mirror}\e2e-sim' 2>&1 | ForEach-Object { "$_" })
