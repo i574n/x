@@ -1,6 +1,6 @@
 ///- --package .. --timeout 600000
 ///> gleam
-test simframes static =
+:# simframes static =
     :< testing
 
 :< sm'_operators
@@ -59,7 +59,7 @@ test simframes static =
 
 := threads_of (text : string) : list (list string) = split_all (char_of 1i32) text |> each (split_all (char_of 0i32))
 
-test threads_of_splits_threads_then_cells =
+:# threads_of_splits_threads_then_cells =
     := ~s = "a" ++# char_of 0i32 ++# "b" ++# char_of 1i32 ++# "c"
     threads_of s |> each (delimited ",") |> delimited "|" |> _assert_eq "a,b|c"
 
@@ -206,12 +206,12 @@ test threads_of_splits_threads_then_cells =
 := cli_threads (limit : i32) (files : list string) : list (list string) * string =
     ?= files ?|
     | first :: _ => files |> each (run_cells limit), dir_of first
-    | Nil => Nil, "."
+    | [] => [], "."
 
 := cli_input (argv : list string) : list (list string) * string =
     ?= sim_args::parsed_corpus argv ?|
     | Some c => cli_threads c::cells (spi_files c)
-    | None => Nil, "."
+    | None => [], "."
 
 := failed_line (l : string) : bool = sm'::starts_with "XSIM rejected" l || sm'::ends_with "result=fail" l
 
@@ -232,12 +232,12 @@ test threads_of_splits_threads_then_cells =
 
 := json_list (items : list string) : string =
     ?= items ?|
-    | Nil => "[]"
+    | [] => "[]"
     | _ => "[\n        " ++# delimited ",\n        " (items |> each json_quoted) ++# "\n    ]"
 
 := program_lines (text : string) : list string =
     := program = file_cells text |> each nfc |> delimited "\n\n"
-    ? program = "" ?> Nil |: pieces "\n" program
+    ? program = "" ?> [] |: pieces "\n" program
 
 := frames_json (posts : list string) (lines : list string) : string =
     "{\n    \"posts\": " ++# json_list posts ++# ",\n    \"program\": " ++# json_list lines ++# "\n}\n"
@@ -296,7 +296,7 @@ test threads_of_splits_threads_then_cells =
 
 := same_rows (a : list string) (b : list string) : bool = delimited "\n" a = delimited "\n" b
 
-:= has_rows (v : verdict) : bool = ?= v::rows ?| _ :: _ => !+ | Nil => !-
+:= has_rows (v : verdict) : bool = ?= v::rows ?| _ :: _ => !+ | [] => !-
 
 := agreed (same : bool) (want : verdict) (got : verdict) : bool =
     same && want::ok = got::ok && same_rows want::rows got::rows && has_rows want && want::ok
@@ -316,7 +316,7 @@ test threads_of_splits_threads_then_cells =
     ?= w, g ?|
     | (a :: ra), (b :: rb) ?& a = b => paired_rows ra rb
     | (a :: ra), (b :: rb) => ("  file=" ++# a ++# "\n  thread=" ++# b) :: paired_rows ra rb
-    | _ => Nil
+    | _ => []
 
 := differing_rows (want : verdict) (got : verdict) : list string = paired_rows want::rows got::rows
 
@@ -342,7 +342,7 @@ test threads_of_splits_threads_then_cells =
     | Ok o => thread_ran o
     | Error why => "XSIM rejected thread_run: " ++# why
 
-:= shown (t : erlang_term::term) : string = cells_executor::elixir_inspect t Nil
+:= shown (t : erlang_term::term) : string = cells_executor::elixir_inspect t []
 
 := shown_long (t : erlang_term::term) : string =
     cells_executor::elixir_inspect t [ cells_executor::option_pair "printable_limit" (erlang_term::of 600i32) ]
@@ -384,7 +384,7 @@ test threads_of_splits_threads_then_cells =
     | Ok o => diff_ran o
     | Error why => "XSIM rejected diff: " ++# why
 
-:= command_args () : list string = ?= plain_args () ?| _ :: rest => rest | Nil => Nil
+:= command_args () : list string = ?= plain_args () ?| _ :: rest => rest | [] => []
 
 := cli_run (_ : string) : i32 =
     cells_executor::cli_vm_started () |> ignore

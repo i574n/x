@@ -1,7 +1,7 @@
 ///- --package . --timeout 600000
 ///> rust -d sha2
 ///> gleam
-test sim_args static =
+:# sim_args static =
     :< testing
 
 :< sm'_operators
@@ -32,7 +32,7 @@ test sim_args static =
     | RunRejected : string
 
 := default_corpus () : corpus_options =
-    { spi = Nil; spi_file = ""; cells = -1i32; breaking = 0i32; churn = 0i32; personas = ""; frames = !- }
+    { spi = []; spi_file = ""; cells = -1i32; breaking = 0i32; churn = 0i32; personas = ""; frames = !- }
 
 := default_schedule () : schedule_options =
     { seed = 1i32; users = 8i32; edits = 3i32; schedules = 2i32; duplicates_permille = 100i32; replay = ""; save = "" }
@@ -58,8 +58,8 @@ test sim_args static =
 
 := permille_of (text : string) : option i32 =
     ?= pieces "." text ?|
-    | whole :: Nil => whole_permille whole
-    | whole :: fraction :: Nil => fraction_permille whole fraction
+    | whole :: [] => whole_permille whole
+    | whole :: fraction :: [] => fraction_permille whole fraction
     | _ => None
 
 := executor_of (name : string) : option executor_kind =
@@ -213,7 +213,7 @@ test sim_args static =
 
 :~ ^ flags_parsed \* o. (rules : flag_rules o) (o : o) (args : list string) : result o string =
     ?= args ?|
-    | Nil => Ok o
+    | [] => Ok o
     | arg :: rest ?& flag_name arg = "" => Error ("unexpected argument '" ++# arg ++# "'")
     | arg :: rest => arg_parsed rules o arg rest
 
@@ -225,7 +225,7 @@ test sim_args static =
 :& :~ valued_then \* o. (rules : flag_rules o) (o : o) (arg : string) (rest : list string) : result o string =
     ?= rest ?|
     | value :: more => continued rules (rules::valued o (flag_name arg) value) more
-    | Nil => Error (needs_value arg)
+    | [] => Error (needs_value arg)
 
 :& :~ continued \* o. (rules : flag_rules o) (r : result o string) (more : list string) : result o string =
     ?= r ?|
@@ -460,7 +460,7 @@ test sim_args static =
 := run_flags (spi : string) : list string =
     [ "--spi"; spi; "--seed"; "7"; "--duplicates"; "0.25"; "--evict-grace"; "3"; "--evict"; "--frames" ]
 
-test run_options_follow_xsim_run =
+:# run_options_follow_xsim_run =
     := ~spi = "a.spi,b.spi+c.spi"
     run_args (default_run ()) (run_flags spi) |> run_text
     |> _assert_eq "a.spi+b.spi+c.spi seed=7 schedules=2 dup=250 evict=after 3 frames=yes"
@@ -478,7 +478,7 @@ test run_options_follow_xsim_run =
 := bad_shape_texts () : string * string =
     "rejected: missing --spi or --spi-file", "rejected: --duplicates takes a decimal like 0.1, got '0.1234'"
 
-test bad_run_options_are_named =
+:# bad_run_options_are_named =
     := ~spi = "a.spi"
     (bad_values spi, bad_shapes spi) |> _assert_eq (bad_value_texts (), bad_shape_texts ())
 
@@ -511,7 +511,7 @@ test bad_run_options_are_named =
     "a.spi seed=1 users=3 dup=200 frames=yes out=s.jsonl expected=f.json", "rejected: missing --expected",
     "rejected: --users takes a whole number, got 'two'"
 
-test events_options_follow_xsim_events =
+:# events_options_follow_xsim_events =
     := ~spi = "a.spi"
     events_cases spi |> _assert_eq (events_expected ())
 
@@ -528,6 +528,6 @@ test events_options_follow_xsim_events =
     world_args [ "--spi"; spi; "--out"; "w.json"; "--expected"; "p.txt"; "--lost"; "2" ] |> world_text,
     world_args [ "--spi"; spi; "--out"; "w.json"; "--expected"; "p.txt"; "--frames" ] |> world_text
 
-test world_options_follow_xsim_world =
+:# world_options_follow_xsim_world =
     := ~spi = "a.spi"
     world_cases spi |> _assert_eq ("a.spi id=3000000 lost=2 user=spiralposts", "rejected: --frames needs a value")

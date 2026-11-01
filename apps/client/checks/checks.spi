@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust
-test checks static =
+:# checks static =
     :< testing
 
 :< sm'_operators
@@ -24,7 +24,7 @@ test checks static =
 
 := username_or_empty (t : string) : string = username_of_text t |> text_or_empty
 
-test counts_and_usernames_have_empty_answers =
+:# counts_and_usernames_have_empty_answers =
     := ~t = "12"
     count_or_none t |> _assert_eq 12i32
     (count_or_none "1x" < 0i32) |> _assert_eq !+

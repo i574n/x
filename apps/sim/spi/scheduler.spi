@@ -1,7 +1,7 @@
 ///- --package .
 ///> rust -d sha2
 ///> gleam
-test scheduler static =
+:# scheduler static =
     :< testing
 
 :< sm'_operators
@@ -56,7 +56,7 @@ test scheduler static =
     { starts = dictm::empty (); cancelled = dictm::empty (); evicted = dictm::empty (); cancels = 0i32; rescues = 0i32
         recomputes = 0i32; peak_inflight = 0i32; peak_results = 0i32 }
 
-:= no_work () : task_work = { running = dictm::empty (); queue = Nil; results = dictm::empty () }
+:= no_work () : task_work = { running = dictm::empty (); queue = []; results = dictm::empty () }
 
 := no_owners () : owner_map = { refs = dictm::empty (); post_key = dictm::empty (); owner = dictm::empty () }
 
@@ -64,7 +64,7 @@ test scheduler static =
 
 := new_scheduler (f : fault_set) : scheduler =
     { in_box = new_inbox (); task_work = no_work (); owner_map = no_owners (); life_cycle = no_life ()
-        run_counts = no_counts (); visible_map = dictm::empty (); faults = f; out_commands = Nil }
+        run_counts = no_counts (); visible_map = dictm::empty (); faults = f; out_commands = [] }
 
 := counted_with (bump : run_counts -> run_counts) (s : scheduler) : scheduler =
     { s ?| run_counts = bump s::run_counts }
@@ -248,7 +248,7 @@ test scheduler static =
     |: { s ?| visible_map = wanted_keys s::in_box |> dictm::fold (result_shown s) (dictm::empty ()) }
 
 := commands_taken (s : scheduler) : list task_command * scheduler =
-    listm::rev s::out_commands, { s ?| out_commands = Nil }
+    listm::rev s::out_commands, { s ?| out_commands = [] }
 
 := fake_out (l : list string) : string = cut 0i32 12i32 (crypto::hash_text (delimited (char_of 0i32) l))
 
@@ -264,7 +264,7 @@ test scheduler static =
 :~ ^ executed_all_by (exec : list string -> task_result) (s : scheduler) : scheduler =
     := cmds, s = commands_taken s
     ?= cmds ?|
-    | Nil => s
+    | [] => s
     | _ => cmds |> listm::fold (executed_by exec) s |> drained |> executed_all_by exec
 
 := executed_all (s : scheduler) : scheduler = executed_all_by fake_result s
@@ -298,12 +298,12 @@ test scheduler static =
 := computed_once_shape (id : string) (s : scheduler) : i32 * string * i32 =
     dictm::size s::run_counts::starts, visible_out s id, sm'::length (visible_out s id)
 
-test a_liked_post_is_computed_once =
+:# a_liked_post_is_computed_once =
     := ~id = "p0"
     sync_run (plain_faults ()) (liked_post id) |> computed_once_shape id
     |> _assert_eq (1i32, fake_out [ "inl a = 1" ], 12i32)
 
-test withdrawn_demand_cancels_the_running_task =
+:# withdrawn_demand_cancels_the_running_task =
     := ~id = "p0"
     := s = deferred_run (plain_faults ()) [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u" ]
     (s::run_counts::cancels, dictm::size s::visible_map) |> _assert_eq (1i32, 0i32)
@@ -311,7 +311,7 @@ test withdrawn_demand_cancels_the_running_task =
 := same_source_roots (a : string) : list delivery =
     [ post_at 0i32 a None "x"; post_at 1i32 "b" None "x"; like_at 2i32 a "u"; like_at 3i32 "b" "u" ]
 
-test same_source_roots_share_one_task =
+:# same_source_roots_share_one_task =
     := ~a = "a"
     := s = sync_run (plain_faults ()) (same_source_roots a)
     (dictm::size s::run_counts::starts, visible_out s a = visible_out s "b") |> _assert_eq (1i32, !+)
@@ -326,7 +326,7 @@ test same_source_roots_share_one_task =
 := recompute_shape (id : string) (s : scheduler) : i32 * i32 =
     s::run_counts::recomputes, dictm::present (dictm::present id s::owner_map::post_key) s::run_counts::evicted
 
-test eviction_then_relike_recomputes =
+:# eviction_then_relike_recomputes =
     := ~id = "p0"
     sync_run (evict_now ()) (relike_stream id) |> recompute_shape id |> _assert_eq (1i32, 1i32)
 
@@ -350,7 +350,7 @@ test eviction_then_relike_recomputes =
         | _ => "not a crash"
     | None => "-"
 
-test a_crashed_task_is_a_visible_crash_result =
+:# a_crashed_task_is_a_visible_crash_result =
     := ~id = "p0"
     := s = crashed_run id
     (crash_out s id, dictm::size s::run_counts::starts) |> _assert_eq ("boom", 1i32)

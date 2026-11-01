@@ -1,7 +1,7 @@
 ///- --package .
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
-test schedule static =
+:# schedule static =
     :< testing
 
 :< sm'_operators
@@ -27,12 +27,12 @@ test schedule static =
     listm::append l [ { k n body } ], k + 1i32
 
 := numbered_parts (chunks : list string) : list frame_part =
-    := parts, _ = chunks |> listm::fold (numbered_part (listm::length chunks)) (Nil, 1i32)
+    := parts, _ = chunks |> listm::fold (numbered_part (listm::length chunks)) ([], 1i32)
     parts
 
 := parts_of (chunking : cell_chunker) (limit : i32) (post_id : string) (source : string) : list frame_part =
     ?= chunking post_id limit source ?|
-    | Nil => [ { k = 1i32; n = 1i32; body = "" } ]
+    | [] => [ { k = 1i32; n = 1i32; body = "" } ]
     | chunks => numbered_parts chunks
 
 := framed_post (chunking : cell_chunker) (limit : i32) (r : rooted) : flow =
@@ -58,7 +58,7 @@ test schedule static =
     | _ => appended x [ e ]
 
 :~ exploded (chunking : cell_chunker) (limit : i32) (l : flow) : flow =
-    listm::rev (l |> listm::fold (exploded_one chunking limit) { out = Nil; revs = Nil })::out
+    listm::rev (l |> listm::fold (exploded_one chunking limit) { out = []; revs = [] })::out
 
 
 :== keyed = { time : i32; index : i32; event : event }
@@ -67,18 +67,18 @@ test schedule static =
 
 :~ ^ merged_keyed (a : list keyed) (b : list keyed) : list keyed =
     ?= a, b ?|
-    | Nil, _ => b
-    | _, Nil => a
+    | ([]), _ => b
+    | _, ([]) => a
     | (x :: xs), (y :: ys) => ? before x y ?> x :: merged_keyed xs b |: y :: merged_keyed a ys
 
 :~ ^ halved_keyed (l : list keyed) : list keyed * list keyed =
     ?= l ?|
     | x :: y :: rest => halved_keyed rest |> \ (left, right) => x :: left, y :: right
-    | _ => l, Nil
+    | _ => l, []
 
 :~ ^ sorted_keyed (l : list keyed) : list keyed =
     ?= l ?|
-    | Nil | (_ :: Nil) => l
+    | [] | (_ :: []) => l
     | _ => halved_keyed l |> \ (left, right) => merged_keyed (sorted_keyed left) (sorted_keyed right)
 
 :== scheduling = { keyed : list keyed; rng : exsss; i : i32 }
@@ -100,7 +100,7 @@ test schedule static =
 := schedule_seed (seed : i32) : exsss = seeded_i32 seed (seed * 31i32 + 5i32) (seed * 17i32 + 11i32)
 
 :~ deliveries (l : flow) (seed : i32) (p : pacing) : list delivery =
-    := s = l |> listm::fold (scheduled p) { keyed = Nil; rng = schedule_seed seed; i = 0i32 }
+    := s = l |> listm::fold (scheduled p) { keyed = []; rng = schedule_seed seed; i = 0i32 }
     sorted_keyed s::keyed |> each (\ (k : keyed) => { at = k::index; event = k::event })
 
 :== staging =
@@ -143,7 +143,7 @@ test schedule static =
     { at = i; event = e } :: l, i + 1i32
 
 := numbered_flow (l : flow) : list delivery =
-    := numbered, _ = l |> listm::fold numbered_one (Nil, 0i32)
+    := numbered, _ = l |> listm::fold numbered_one ([], 0i32)
     listm::rev numbered
 
 :~ rescheduled (text : string) (seed : i32) (p : pacing) : string =
@@ -155,14 +155,14 @@ test schedule static =
 
 := small_flow () : flow = [ Revision (Deleted "a"); Revision (Deleted "b") ]
 
-test deliveries_keep_every_event_at_least_once =
+:# deliveries_keep_every_event_at_least_once =
     := ~seed = 1i32
     := l = deliveries (small_flow ()) seed { permille = 1000i32; window = 6i32 }
     (listm::length l : i32) |> _assert_eq 4i32
 
 := keyed_at (time : i32) (index : i32) : keyed = { time index event = Revision (Deleted (sm'::obj_to_string index)) }
 
-test deliveries_sort_by_time_then_index =
+:# deliveries_sort_by_time_then_index =
     := ~late = keyed_at 5i32 1i32
     sorted_keyed [ late; keyed_at 2i32 3i32; keyed_at 2i32 0i32 ]
     |> each (\ (k : keyed) => k::index)

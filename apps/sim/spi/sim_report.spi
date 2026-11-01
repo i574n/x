@@ -1,7 +1,7 @@
 ///- --package . --timeout 600000
 ///> rust -d sha2
 ///> gleam
-test sim_report static =
+:# sim_report static =
     :< testing
 
 :< sm'_operators
@@ -68,7 +68,9 @@ test sim_report static =
 := summary_line (r : run_shape) (s : scheduler) (findings : list finding) : string =
     "XSIM " ++# delimited " " (line_fields r s) ++# " " ++# findings_text findings
 
-:! per_second = ()
+:! milliseconds = ()
+
+:! count = ()
 
 :== metric_row = { name : string; labels : list (string * string); value : i32 }
 
@@ -83,9 +85,12 @@ test sim_report static =
 := run_labels (r : run_shape) : list (string * string) =
     [ ("seed", sm'::obj_to_string r::seed); ("schedule", sm'::obj_to_string r::schedule) ]
 
-:= deliveries_rate (r : run_shape) : metric per_second =
-    := ms = ? r::ms > 0i32 ?> r::ms |: 1i32
-    metric { name = "x_sim_deliveries_per_second"; labels = run_labels r; value = r::deliveries * 1000i32 / ms }
+:= run_ms (r : run_shape) : metric milliseconds = metric { name = "x_sim_run_ms"; labels = run_labels r; value = r::ms }
+
+:= deliveries_total (r : run_shape) : metric count =
+    metric { name = "x_sim_deliveries_total"; labels = run_labels r; value = r::deliveries }
+
+:= metric_rows (r : run_shape) : string = exposition (run_ms r) ++# "\n" ++# exposition (deliveries_total r)
 
 :~ ^ commuted_runs (runs : list scheduler) : verdict =
     ?= runs ?|
@@ -124,19 +129,19 @@ test sim_report static =
     "peak_inflight=1 peak_beam_mb=0 ms=7 sequential_equivalence=ok no_stale_results=ok "
     ++# "one_compile_per_prefix=ok withdrawn_demand_hidden=ok"
 
-test the_summary_line_has_the_elixir_field_order =
+:# the_summary_line_has_the_elixir_field_order =
     := ~seed = 1i32
     := s = one_post_run seed
     summary_line (shape_of 2i32) s (runner_checks s fake_baseline) |> _assert_eq (expected_head () ++# expected_tail ())
 
-test the_delivery_rate_is_an_integer_per_second_row =
-    exposition (deliveries_rate (shape_of 2i32))
-    |> _assert_eq "x_sim_deliveries_per_second{seed=\"1\",schedule=\"1\"} 285"
+:# a_run_reports_its_milliseconds_and_deliveries_as_exact_rows =
+    metric_rows (shape_of 2i32)
+    |> _assert_eq "x_sim_run_ms{seed=\"1\",schedule=\"1\"} 7\nx_sim_deliveries_total{seed=\"1\",schedule=\"1\"} 2"
 
 := pass_then_fail (a : scheduler) : string * string =
     := ok = runner_checks a fake_baseline
     verdict_line [ a; a ] [ ok; ok ], verdict_line [ a; a ] [ ok; runner_checks a wrong_baseline ]
 
-test equal_runs_pass_and_a_failed_finding_fails =
+:# equal_runs_pass_and_a_failed_finding_fails =
     := ~seed = 1i32
     one_post_run seed |> pass_then_fail |> _assert_eq ("XSIM commute=ok result=pass", "XSIM commute=ok result=fail")

@@ -1,6 +1,6 @@
 ///- --package .
 ///> gleam
-test xsim_shell_entry static =
+:# xsim_shell_entry static =
     :< testing
 
 :< sm'_operators
@@ -22,8 +22,8 @@ test xsim_shell_entry static =
 
 := replay_rest (path : string) (rest : list string) : result shell_run string =
     ?= rest ?|
-    | Nil => Ok { stream_path = path; limit = 4i32 }
-    | cap :: n :: Nil ?& cap = "--max-concurrency" => capped_run path n
+    | [] => Ok { stream_path = path; limit = 4i32 }
+    | cap :: n :: [] ?& cap = "--max-concurrency" => capped_run path n
     | _ => Error (shell_usage ())
 
 := shell_run_of (args : list string) : result shell_run string =
@@ -77,7 +77,7 @@ test xsim_shell_entry static =
         like_at 3i32 "p1" "v"
     ]
 
-test a_replayed_stream_settles_in_the_shell =
+:# a_replayed_stream_settles_in_the_shell =
     := ~limit = 1i32
     ?= replayed limit (stream (entry_two_posts ())) ?|
     | Ok s => shell_line s |> sm'::starts_with "XSHELL visible=2 results=" |> _assert_eq !+
@@ -87,7 +87,7 @@ test a_replayed_stream_settles_in_the_shell =
 
 := refusal_of (r : result shell_run string) : string = ?= r ?| Ok _ => "" | Error why => why
 
-test shell_arguments_are_checked =
+:# shell_arguments_are_checked =
     := ~path = "s.jsonl"
     (limit_of (shell_run_of [ "--replay"; path; "--max-concurrency"; "2" ]), refusal_of (shell_run_of [ "--replay" ]))
     |> _assert_eq (2i32, shell_usage ())
@@ -95,7 +95,7 @@ test shell_arguments_are_checked =
 := shell_arguments () : list string =
     :~ ^ from (i : i32) (acc : list string) : list string =
         ? i < 0i32 ?> acc |: from (i - 1i32) (env::command_line_argument i :: acc)
-    from (env::command_line_argument_count () - 1i32) Nil
+    from (env::command_line_argument_count () - 1i32) []
 
 ///> _
 := main () : i32 = shell_entry (shell_arguments ())

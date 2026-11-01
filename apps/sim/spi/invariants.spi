@@ -1,7 +1,7 @@
 ///- --package . --timeout 600000
 ///> rust
 ///> gleam
-test invariants static =
+:# invariants static =
     :< testing
 
 :< sm'_operators
@@ -89,7 +89,7 @@ test invariants static =
 
 := verdict_of (bad : list string) : verdict =
     ?= bad ?|
-    | Nil => Held
+    | [] => Held
     | _ => Broken (take_first 5i32 bad)
 
 := wants (s : snapshot) (v : shown) : bool = has (\ (d : demand) => d::id = v::id && d::key = v::key) s::wanted
@@ -144,7 +144,7 @@ test invariants static =
 := commute (a : snapshot) (b : snapshot) : verdict =
     ?= a |> ids_where \ v => not (seen_in b v) ?|
     | Held ?& same_size a b => Held
-    | Held => Broken Nil
+    | Held => Broken []
     | broken => broken
 
 := demand_rule_name (r : rule) : string =
@@ -174,7 +174,7 @@ test invariants static =
 := one_shown (id : string) (key : string) (out : string) : shown = { id key result = passed out }
 
 := quiet () : snapshot =
-    { visible = Nil; wanted = Nil; starts = Nil; cancelled = Nil; evicted = Nil; results = Nil; evicting = !+ }
+    { visible = []; wanted = []; starts = []; cancelled = []; evicted = []; results = []; evicting = !+ }
 
 := settled () : snapshot =
     := q = quiet ()
@@ -296,7 +296,7 @@ test invariants static =
 
 := quiet_reading () : reading =
     := q = quiet ()
-    { snap = { q ?| evicting = !- }; baselines = Nil; broken_ids = Nil; strays = Nil }
+    { snap = { q ?| evicting = !- }; baselines = []; broken_ids = []; strays = [] }
 
 := stray_text (r : reading) : string = "unknown_rows=" ++# delimited "," (listm::rev r::strays)
 
@@ -328,7 +328,7 @@ test invariants static =
     "sequential_equivalence=ok no_stale_results=ok one_compile_per_prefix=ok withdrawn_demand_hidden=ok "
     ^^ "unwanted_results_freed=ok"
 
-test a_settled_snapshot_holds_every_rule =
+:# a_settled_snapshot_holds_every_rule =
     := ~s = settled ()
     checked s same_as_shown |> findings_text |> _assert_eq (all_held ())
 
@@ -338,7 +338,7 @@ test a_settled_snapshot_holds_every_rule =
 
 := drifted () : snapshot = with_visible [ one_shown "1" "k0" "a"; one_shown "2" "k2" "b" ]
 
-test stale_and_withdrawn_results_are_named =
+:# stale_and_withdrawn_results_are_named =
     := ~s = drifted ()
     no_stale s |> verdict_text |> _assert_eq "FAIL[1,2]"
     withdrawn_hidden s |> verdict_text |> _assert_eq "FAIL[2]"
@@ -349,19 +349,19 @@ test stale_and_withdrawn_results_are_named =
     := s = settled ()
     { s ?| starts = k1_count 3i32; cancelled = k1_count cancelled; evicted = k1_count evicted }
 
-test a_second_live_compile_breaks_one_per_prefix =
+:# a_second_live_compile_breaks_one_per_prefix =
     := ~cancelled = 1i32
     restarted cancelled 0i32 |> one_compile |> verdict_text |> _assert_eq "FAIL[k1]"
     restarted cancelled 1i32 |> one_compile |> verdict_text |> _assert_eq "ok"
 
 := masked (out : string) : string = (comparable (passed out))::out
 
-test run_dirs_are_masked =
+:# run_dirs_are_masked =
     := ~out = "at spiral_cells\\12-34\\a.rs and spiral_cells/5-6"
     masked out |> _assert_eq "at spiral_cells/_\\a.rs and spiral_cells/_"
     masked "spiral_cells/12 x" |> _assert_eq "spiral_cells/12 x"
 
-test thread_numbers_are_masked =
+:# thread_numbers_are_masked =
     := ~out = "thread 'main' (4242) panicked at x"
     masked out |> _assert_eq "thread 'main' (_) panicked at x"
     masked "thread 'a' (b) panicked" |> _assert_eq "thread 'a' (b) panicked"
@@ -370,20 +370,20 @@ test thread_numbers_are_masked =
 
 := ran_elsewhere () : snapshot = with_visible [ one_shown "1" "k1" "at spiral_cells/1-2" ]
 
-test sequential_equivalence_compares_masked_outcomes =
+:# sequential_equivalence_compares_masked_outcomes =
     := ~s = ran_elsewhere ()
     sequential_equivalence s elsewhere |> verdict_text |> _assert_eq "ok"
     sequential_equivalence (settled ()) elsewhere |> verdict_text |> _assert_eq "FAIL[1]"
 
 := commuted (a : snapshot) (b : snapshot) : string = commute a b |> verdict_text
 
-test schedules_commute_only_with_equal_results =
+:# schedules_commute_only_with_equal_results =
     := ~a = settled ()
     commuted a a |> _assert_eq "ok"
     commuted a (with_visible [ one_shown "1" "k1" "z" ]) |> _assert_eq "FAIL[1]"
     commuted a (quiet ()) |> _assert_eq "FAIL[1]"
 
-test extra_results_break_commuting_without_ids =
+:# extra_results_break_commuting_without_ids =
     := ~a = settled ()
     commuted a (drifted ()) |> _assert_eq "FAIL[]"
     commuted (quiet ()) a |> _assert_eq "FAIL[]"
@@ -392,6 +392,6 @@ test extra_results_break_commuting_without_ids =
     := q = quiet ()
     { q ?| visible = listm::init 7i32 (\ i => one_shown (sm'::obj_to_string i) "k" "a") }
 
-test verdicts_name_at_most_five =
+:# verdicts_name_at_most_five =
     := ~s = crowd ()
     withdrawn_hidden s |> verdict_text |> _assert_eq "FAIL[0,1,2,3,4]"

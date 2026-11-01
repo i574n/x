@@ -411,7 +411,7 @@ fn method12(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
     }
 }
 fn method13(mut v0: i32, mut v1: Rc<RefCell<Mut0>>) -> bool {
-    let v2: i32 = v1.borrow().l0.clone();
+    let v2: i32 = v1.borrow().l0;
     let v3: bool = v2 < v0;
     v3
 }
@@ -427,7 +427,7 @@ fn split_list_11(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<UH1> {
         let v8: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
         let mut v9: Rc<RefCell<Mut0>> = Rc::new(RefCell::new(Mut0 { l0: 0i32, l1: v8.clone() }));
         while method13(v7, v9.clone()) {
-            let v11: i32 = v9.borrow().l0.clone();
+            let v11: i32 = v9.borrow().l0;
             let v12: Rc<UH1> = v9.borrow().l1.clone();
             let v13: Rc<str> = v6.clone().borrow()[v11 as usize].clone();
             let v14: i32 = v11.wrapping_add(1i32);

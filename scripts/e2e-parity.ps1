@@ -6,7 +6,7 @@ $fields = 'method', 'path', 'query', 'authorized', 'context', 'body'
 function Invoke-E2e([string] $Server) {
     $dir = Join-Path $WorkDir $Server
     New-Item -ItemType Directory -Force $dir | Out-Null
-    $env:XSIM_SERVER = if ($Server -eq 'sim') { 'sim' } else { '' }
+    $env:XSIM_SERVER = $Server
     $started = Get-Date
     $out = @(pwsh -NoProfile -File $e2e -Exe $Exe -WorkDir $dir 2>&1 | ForEach-Object { "$_" })
     [pscustomobject]@{ Exit = $LASTEXITCODE; Seconds = [int]((Get-Date) - $started).TotalSeconds; Rows = @(Get-Content (Join-Path $dir 'requests.jsonl') -ErrorAction Ignore | Where-Object { $_ } | ForEach-Object { $_ | ConvertFrom-Json }); Tail = @($out | Select-Object -Last 4) }

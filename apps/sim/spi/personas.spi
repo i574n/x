@@ -1,7 +1,7 @@
 ///- --package . --timeout 600000
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
-test personas static =
+:# personas static =
     :< testing
 
 :< sm'_operators
@@ -32,12 +32,12 @@ test personas static =
 := named_count (name : string) (count : string) : list persona =
     ?= persona_of name, count_of_text count ?|
     | Some p, Some n => repeated_persona p n
-    | _ => Nil
+    | _ => []
 
 := entry_personas (entry : string) : list persona =
     ?= split_on "=" (sm'::trim entry) ?|
-    | name :: count :: Nil => named_count name count
-    | _ => Nil
+    | name :: count :: [] => named_count name count
+    | _ => []
 
 := parsed_personas (text : string) : list persona =
     pieces "+" (sm'::replace "," "+" text) |> keep (\ e => e <> "") |> spread entry_personas
@@ -87,7 +87,7 @@ test personas static =
 :~ ^ picked \* t. (i : i32) (l : list t) : option t =
     ?= l ?|
     | x :: rest => ? i <= 0i32 ?> Some x |: picked (i - 1i32) rest
-    | Nil => None
+    | [] => None
 
 := liked_by (user : string) (r : rooted) : event = Reaction (Liked { post_id = r::post_id; user })
 
@@ -97,7 +97,7 @@ test personas static =
 
 :== acted = { act_events : list event; broken : list string; rng : exsss }
 
-:= quiet_act (st : exsss) : acted = { act_events = Nil; broken = Nil; rng = st }
+:= quiet_act (st : exsss) : acted = { act_events = []; broken = []; rng = st }
 
 := lurked (user : string) (acc : list event * exsss) (r : rooted) : list event * exsss =
     := l, st = acc
@@ -105,8 +105,8 @@ test personas static =
     (? roll = 1i32 ?> listm::append l [ liked_by user r ] |: l), st
 
 := lurker_act (user : string) (posts : list rooted) (st : exsss) : acted =
-    := act_events, rng = posts |> listm::fold (lurked user) (Nil, st)
-    { act_events broken = Nil; rng }
+    := act_events, rng = posts |> listm::fold (lurked user) ([], st)
+    { act_events broken = []; rng }
 
 := toggled (user : string) (r : rooted) (k : i32) : event = ? k % 2i32 = 0i32 ?> liked_by user r |: unliked_by user r
 
@@ -116,12 +116,12 @@ test personas static =
 
 := toggle_drawn (user : string) (posts : list rooted) (st : exsss) : acted =
     ?= drawn_from posts st ?|
-    | Some r, rng => { act_events = listm::init 5i32 (toggled user r); broken = Nil; rng }
+    | Some r, rng => { act_events = listm::init 5i32 (toggled user r); broken = []; rng }
     | None, _ => quiet_act st
 
 := fickle_act (user : string) (posts : list rooted) (st : exsss) : acted =
     ?= posts ?|
-    | Nil => quiet_act st
+    | [] => quiet_act st
     | _ => toggle_drawn user posts st
 
 := rewritten (user : string) (r : rooted) : list event =
@@ -130,12 +130,12 @@ test personas static =
 
 := rewrite_drawn (user : string) (pool : list rooted) (st : exsss) : acted =
     ?= drawn_from pool st ?|
-    | Some r, rng => { act_events = rewritten user r; broken = Nil; rng }
+    | Some r, rng => { act_events = rewritten user r; broken = []; rng }
     | None, _ => quiet_act st
 
 := editor_act (user : string) (posts : list rooted) (st : exsss) : acted =
     ?= posts |> keep (\ (r : rooted) => not (test_cell r::source)) ?|
-    | Nil => quiet_act st
+    | [] => quiet_act st
     | pool => rewrite_drawn user pool st
 
 := broken_by (user : string) (r : rooted) : list event =
@@ -148,7 +148,7 @@ test personas static =
 
 := breaker_act (user : string) (posts : list rooted) (st : exsss) : acted =
     ?= posts |> keep (\ (r : rooted) => breakable r::source) ?|
-    | Nil => quiet_act st
+    | [] => quiet_act st
     | pool => break_drawn user pool st
 
 := act (p : persona) (user : string) (posts : list rooted) (st : exsss) : acted =
@@ -161,13 +161,13 @@ test personas static =
 := rest_of (l : list event) : list event =
     ?= l ?|
     | _ :: rest => rest
-    | Nil => Nil
+    | [] => []
 
 := live_streams (streams : list (list event)) : list (list event) = streams |> keep (\ l => listm::length l > 0i32)
 
 :~ ^ round_robin (streams : list (list event)) (acc : list event) : list event =
     ?= live_streams streams ?|
-    | Nil => acc
+    | [] => acc
     | live => round_robin (live |> each rest_of) (listm::append acc (live |> spread (take_first 1i32)))
 
 :== cast = { streams : list (list event); broken : list string; rng : exsss; n : i32 }
@@ -179,19 +179,19 @@ test personas static =
     { streams = listm::append c::streams [ a::act_events ]; broken = listm::append c::broken a::broken; rng = a::rng;
         n = c::n + 1i32 }
 
-:= fresh_cast (st : exsss) : cast = { streams = Nil; broken = Nil; rng = st; n = 1i32 }
+:= fresh_cast (st : exsss) : cast = { streams = []; broken = []; rng = st; n = 1i32 }
 
 :~ persona_events (posts : list rooted) (personas : list persona) (st : exsss) : acted =
     := c = personas |> listm::fold (acted_in posts) (fresh_cast st)
-    { act_events = round_robin c::streams Nil; broken = c::broken; rng = c::rng }
+    { act_events = round_robin c::streams []; broken = c::broken; rng = c::rng }
 
-test numbers_at_the_end_are_broken =
+:# numbers_at_the_end_are_broken =
     := ~s = "///- --test\n1 + 1 |> _assert_eq 2  \n"
     break_source s |> _assert_eq "///- --test\n1 + 1 |> _assert_eq 3  \n"
     break_source "x 1.50" |> _assert_eq "x 2.50"
     break_source "x 099" |> _assert_eq "x 100"
 
-test numbers_after_a_dot_or_none_stay =
+:# numbers_after_a_dot_or_none_stay =
     := ~s = "v1.2.3"
     break_source s |> _assert_eq "v1.2.3"
     break_source "x .5" |> _assert_eq "x .5"
@@ -199,7 +199,7 @@ test numbers_after_a_dot_or_none_stay =
 
 := persona_text (l : list persona) : string = l |> each persona_name |> delimited ","
 
-test persona_lists_parse_like_the_simulator =
+:# persona_lists_parse_like_the_simulator =
     := ~text = "fickle=1+editor=2"
     parsed_personas text |> persona_text |> _assert_eq "fickle,editor,editor"
     parsed_personas "lurker=0, breaker=1" |> persona_text |> _assert_eq "breaker"

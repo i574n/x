@@ -28,13 +28,18 @@ function Assert-CellBudget([Parameter(Mandatory)] [string] $Path, [Parameter(Man
     $savedPath, $savedBuild = $env:PATH, $env:MIX_BUILD_PATH
     if (Test-Path $scoopErlang) { $env:PATH = "$scoopErlang$([IO.Path]::PathSeparator)$env:PATH" }
     $env:MIX_BUILD_PATH = Get-XTargetDir 'sim-cells'
+    $guard = $null
+    if ($IsWindows) { . (Join-Path $SpiralRoot 'apps/cells/spi/erl_memory_limit.ps1'); $guard = Start-ErlMemoryLimit }
     Push-Location (Join-Path $SpiralRoot 'apps/cells')
     try {
         $deps = @(mix deps.get 2>&1 | ForEach-Object { "$_" })
         if ($LASTEXITCODE) { $deps | Select-Object -Last 10 | Write-Host; throw "CELL-BUDGET $Label / mix deps.get failed in spiral/apps/cells" }
         $report = @(mix spiral.cell_budget --check $target 2>&1 | ForEach-Object { "$_" })
         $code = $LASTEXITCODE
-    } finally { Pop-Location; $env:PATH, $env:MIX_BUILD_PATH = $savedPath, $savedBuild }
+    } finally {
+        Pop-Location; $env:PATH, $env:MIX_BUILD_PATH = $savedPath, $savedBuild
+        if ($guard) { $guard.Stop() }
+    }
     $report | ForEach-Object { "$Label / $_" } | Write-Host
     $counted = $report | Select-String -Pattern 'cell-budget report: (\d+) finding' | Select-Object -Last 1
     if (!$counted) { throw "CELL-BUDGET $Label / no report line from Cells' cell-budget check (exit $code)" }
@@ -66,8 +71,11 @@ function Invoke-SpiralTests([Parameter(Mandatory)] [string] $AppDir, [Parameter(
     try {
         foreach ($module in $Modules) {
             $runner = Join-Path $SpiralRoot 'apps/cells/spi/run_notebook.ps1'
-            pwsh -NoProfile -File $runner --path (Join-Path $AppDir "$module.spi") --output-path (Join-Path $notebooks "$module.spi.ipynb") --no-html
-            $passed = $LASTEXITCODE -eq 0
+            $runArgs = @('-NoProfile', '-File', $runner, '--path', (Join-Path $AppDir "$module.spi"), '--output-path', (Join-Path $notebooks "$module.spi.ipynb"), '--no-html')
+            $run = Start-Process pwsh -ArgumentList $runArgs -NoNewWindow -PassThru
+            Write-Host "x/scripts/common.ps1 / notebook $module runner pid $($run.Id) at $(Get-Date -Format 'HH:mm:ss')"
+            $run.WaitForExit()
+            $passed = $run.ExitCode -eq 0
             if (!$passed) { $failed.Add($module) }
             Write-Host "x/scripts/common.ps1 / notebook $module $(if ($passed) { 'passed' } else { 'FAILED' })"
         }

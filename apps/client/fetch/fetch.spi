@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d serde_json
-test fetch static =
+:# fetch static =
     :< testing
 
 :< sm'_operators
@@ -62,7 +62,7 @@ test fetch static =
 := with_data (w : account) (doc : json) (data : list slim) (g : gathered) : gathered =
     := skipped = first_error doc
     ?= data ?|
-    | Nil ?& skipped <> "" => note_skip w skipped g
+    | [] ?& skipped <> "" => note_skip w skipped g
     | _ => absorb_doc doc { g ?| primary = listm::append data g::primary }
 
 :~ add_primary (w : account) (keep : i32) (doc : json) (body : string) (g : gathered) : gathered =
@@ -80,7 +80,7 @@ test fetch static =
 
 :~ ^ gather (a : app) (q : query) (l : accounts) (g : gathered) : gathered =
     ?= l ?|
-    | Nil => g
+    | [] => g
     | w :: rest =>
         ?= gathered_one a q w g ?|
         | Ok g => gather a q rest g
@@ -90,7 +90,7 @@ test fetch static =
 
 :== fetch_reply = string * string * string * string * string * string
 
-:= empty_gathered () : gathered = { primary = Nil; extra = Nil; named = Nil; notes = Nil; failure = ""; bodies = Nil }
+:= empty_gathered () : gathered = { primary = []; extra = []; named = []; notes = []; failure = ""; bodies = [] }
 
 := ref_ids (g : gathered) : string = g::primary |> spread (\ (p : slim) => p::refs) |> csv
 
@@ -110,11 +110,11 @@ test fetch static =
         member "errors" (items [ object [ member "detail" (quoted_text "suspended") ] ])
     ]
 
-test references_feed_the_next_lookup =
+:# references_feed_the_next_lookup =
     := ~body = object [ member "data" (items [ post_json () ]) ]
     gathered_from body |> ref_ids |> _assert_eq "2"
 
-test an_account_without_posts_is_noted =
+:# an_account_without_posts_is_noted =
     := ~body = suspended_doc ()
     (gathered_from body)::notes |> delimited "|" |> _assert_eq ("skipped @" ++# "erin: suspended")
 

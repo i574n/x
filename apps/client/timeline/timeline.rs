@@ -134,7 +134,85 @@ fn closure3() -> Rc<dyn Fn(Rc<str>) -> US1> {
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn with_username_6(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<str>, mut v4: Rc<UH0>, mut v5: US1, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: US2, mut v10: Rc<str>, mut v11: Rc<str>, mut v12: bool, mut v13: bool, mut v14: i32, mut v15: bool, mut v16: bool) -> US6 {
+fn method7(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
+    loop {
+        match &*v0 {
+            UH0::UH0_Cons(v2, v3) => {
+                let mut v2: Rc<str> = v2.clone();
+                let v3: Rc<UH0> = v3.clone();
+                let v4: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v1.clone()));
+                (v0, v1) = (v3.clone(), v4.clone());
+                continue;
+            }
+            UH0::UH0_Nil => {
+                return v1.clone();
+            }
+        }
+    }
+}
+fn finish_6(mut v0: Rc<UH0>, mut v1: US1, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: US2, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: bool, mut v9: bool, mut v10: i32, mut v11: bool, mut v12: bool) -> US3 {
+    let v13: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+    let v14: Rc<UH0> = method7(v0, v13);
+    match &v1 {
+        US1::US1_None => {
+            match &*v14 {
+                UH0::UH0_Nil => {
+                    let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("name at least one account, or --following USERNAME"); } LIT.with(|lit| lit.clone()) };
+                    US3::US3_Rejected(v21)
+                }
+                _ => {
+                    let v23: US4 = US4::US4_Accounts(v14.clone());
+                    US3::US3_ShowTimeline(v23, v2, v3, v4, v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11, v12)
+                }
+            }
+        }
+        US1::US1_Some(v15) => {
+            let v15: Rc<str> = v15.clone();
+            match &*v14 {
+                UH0::UH0_Nil => {
+                    let v16: US4 = US4::US4_FollowingOf(v15);
+                    US3::US3_ShowTimeline(v16, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
+                }
+                _ => {
+                    let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--following takes one account and no other usernames"); } LIT.with(|lit| lit.clone()) };
+                    US3::US3_Rejected(v18)
+                }
+            }
+        }
+    }
+}
+fn method8(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
+    loop {
+        match &*v0 {
+            UH0::UH0_Cons(v2, v3) => {
+                let mut v2: Rc<str> = v2.clone();
+                let v3: Rc<UH0> = v3.clone();
+                let v4: i32 = v1.wrapping_add(1i32);
+                (v0, v1) = (v3.clone(), v4);
+                continue;
+            }
+            UH0::UH0_Nil => {
+                return v1;
+            }
+        }
+    }
+}
+fn capped_5(mut v0: Rc<UH0>, mut v1: US1, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: US2, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: bool, mut v9: bool, mut v10: i32, mut v11: bool, mut v12: bool) -> US3 {
+    let v13: i32 = 0i32;
+    let v14: i32 = method8(v0.clone(), v13);
+    let v15: bool = v14 > 100i32;
+    if v15 {
+        let v16: Rc<str> = Rc::<str>::from(format!("{:?}", 100i32));
+        let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("at most "); } LIT.with(|lit| lit.clone()) };
+        let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v16));
+        let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" accounts per run"); } LIT.with(|lit| lit.clone()) };
+        let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v19));
+        US3::US3_Rejected(v20)
+    } else {
+        finish_6(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
+    }
+}
+fn with_username_10(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<str>, mut v4: Rc<UH0>, mut v5: US1, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: US2, mut v10: Rc<str>, mut v11: Rc<str>, mut v12: bool, mut v13: bool, mut v14: i32, mut v15: bool, mut v16: bool) -> US6 {
     let v17: US1 = v2(v3.clone());
     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
     let v19: bool = v3.starts_with(&*v18);
@@ -159,7 +237,7 @@ fn with_username_6(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>
         }
     }
 }
-fn apply_switch_7(mut v0: US8, mut v1: Rc<UH0>, mut v2: US1, mut v3: i32, mut v4: i32, mut v5: i32, mut v6: US2, mut v7: Rc<str>, mut v8: Rc<str>, mut v9: bool, mut v10: bool, mut v11: i32, mut v12: bool, mut v13: bool) -> US6 {
+fn apply_switch_11(mut v0: US8, mut v1: Rc<UH0>, mut v2: US1, mut v3: i32, mut v4: i32, mut v5: i32, mut v6: US2, mut v7: Rc<str>, mut v8: Rc<str>, mut v9: bool, mut v10: bool, mut v11: i32, mut v12: bool, mut v13: bool) -> US6 {
     match &v0 {
         US8::US8_Hints => {
             US6::US6_Ok(v1.clone(), v2.clone(), v3, v4, v5, v6.clone(), v7.clone(), v8.clone(), v9, v10, v11, true, v13)
@@ -188,7 +266,7 @@ fn apply_switch_7(mut v0: US8, mut v1: Rc<UH0>, mut v2: US1, mut v3: i32, mut v4
         }
     }
 }
-fn with_date_10(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US9, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool, mut v18: bool) -> US6 {
+fn with_date_14(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US9, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool, mut v18: bool) -> US6 {
     let v19: US1 = v1(v5.clone());
     match &v19 {
         US1::US1_None => {
@@ -212,10 +290,10 @@ fn with_date_10(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -
         }
     }
 }
-fn method9(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US9, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool, mut v18: bool) -> US6 {
-    with_date_10(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18)
+fn method13(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US9, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool, mut v18: bool) -> US6 {
+    with_date_14(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18)
 }
-fn with_following_11(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<str>, mut v4: Rc<UH0>, mut v5: US1, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: US2, mut v10: Rc<str>, mut v11: Rc<str>, mut v12: bool, mut v13: bool, mut v14: i32, mut v15: bool, mut v16: bool) -> US6 {
+fn with_following_15(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<str>, mut v4: Rc<UH0>, mut v5: US1, mut v6: i32, mut v7: i32, mut v8: i32, mut v9: US2, mut v10: Rc<str>, mut v11: Rc<str>, mut v12: bool, mut v13: bool, mut v14: i32, mut v15: bool, mut v16: bool) -> US6 {
     let v17: US1 = v2(v3.clone());
     match &v17 {
         US1::US1_None => {
@@ -241,7 +319,7 @@ fn with_following_11(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<st
         }
     }
 }
-fn bounded_12(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US9, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool, mut v18: bool) -> US6 {
+fn bounded_16(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US9, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool, mut v18: bool) -> US6 {
     let (mut v21, mut v22): (i32, i32) = match &v3 {
         US9::US9_Depth => {
             (0i32, 3i32)
@@ -328,13 +406,13 @@ fn bounded_12(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> 
         }
     }
 }
-fn apply_flag_8(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US9, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool, mut v18: bool) -> US6 {
+fn apply_flag_12(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: US9, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<UH0>, mut v7: US1, mut v8: i32, mut v9: i32, mut v10: i32, mut v11: US2, mut v12: Rc<str>, mut v13: Rc<str>, mut v14: bool, mut v15: bool, mut v16: i32, mut v17: bool, mut v18: bool) -> US6 {
     match &v3 {
         US9::US9_EndTime => {
-            method9(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17, v18)
+            method13(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17, v18)
         }
         US9::US9_Following => {
-            with_following_11(v0.clone(), v1.clone(), v2.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17, v18)
+            with_following_15(v0.clone(), v1.clone(), v2.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17, v18)
         }
         US9::US9_MaxFollowing => {
             let v22: bool = &*v5 == "all";
@@ -342,18 +420,18 @@ fn apply_flag_8(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -
                 let v23: US2 = US2::US2_AllFollowing;
                 US6::US6_Ok(v6.clone(), v7.clone(), v8, v9, v10, v23, v12.clone(), v13.clone(), v14, v15, v16, v17, v18)
             } else {
-                bounded_12(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17, v18)
+                bounded_16(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17, v18)
             }
         }
         US9::US9_StartTime => {
-            method9(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17, v18)
+            method13(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11.clone(), v12.clone(), v13.clone(), v14, v15, v16, v17, v18)
         }
         _ => {
-            bounded_12(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18)
+            bounded_16(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18)
         }
     }
 }
-fn advance_5(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<UH0>, mut v4: US1, mut v5: i32, mut v6: i32, mut v7: i32, mut v8: US2, mut v9: Rc<str>, mut v10: Rc<str>, mut v11: bool, mut v12: bool, mut v13: i32, mut v14: bool, mut v15: bool, mut v16: Rc<str>, mut v17: Rc<UH0>) -> (US6, Rc<UH0>) {
+fn advance_9(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<UH0>, mut v4: US1, mut v5: i32, mut v6: i32, mut v7: i32, mut v8: US2, mut v9: Rc<str>, mut v10: Rc<str>, mut v11: bool, mut v12: bool, mut v13: i32, mut v14: bool, mut v15: bool, mut v16: Rc<str>, mut v17: Rc<UH0>) -> (US6, Rc<UH0>) {
     let v18: bool = &*v16 == "--no-replies";
     let v70: US7 = if v18 {
         let v19: US8 = US8::US8_NoReplies;
@@ -435,12 +513,12 @@ fn advance_5(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
     };
     match &v70 {
         US7::US7_Plain => {
-            let v85: US6 = with_username_6(v0.clone(), v1.clone(), v2.clone(), v16.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15);
+            let v85: US6 = with_username_10(v0.clone(), v1.clone(), v2.clone(), v16.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15);
             (v85, v17.clone())
         }
         US7::US7_Switched(v71) => {
             let v71: US8 = v71.clone();
-            let v72: US6 = apply_switch_7(v71, v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15);
+            let v72: US6 = apply_switch_11(v71, v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15);
             (v72, v17.clone())
         }
         US7::US7_Valued(v73) => {
@@ -449,7 +527,7 @@ fn advance_5(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
                 UH0::UH0_Cons(v78, v79) => {
                     let v78: Rc<str> = v78.clone();
                     let v79: Rc<UH0> = v79.clone();
-                    let v80: US6 = apply_flag_8(v0, v1, v2, v73, v16.clone(), v78, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
+                    let v80: US6 = apply_flag_12(v0, v1, v2, v73, v16.clone(), v78, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
                     (v80, v79)
                 }
                 UH0::UH0_Nil => {
@@ -463,91 +541,13 @@ fn advance_5(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
         }
     }
 }
-fn method15(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
-    loop {
-        match &*v0 {
-            UH0::UH0_Cons(v2, v3) => {
-                let mut v2: Rc<str> = v2.clone();
-                let v3: Rc<UH0> = v3.clone();
-                let v4: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v1.clone()));
-                (v0, v1) = (v3.clone(), v4.clone());
-                continue;
-            }
-            UH0::UH0_Nil => {
-                return v1.clone();
-            }
-        }
-    }
-}
-fn finish_14(mut v0: Rc<UH0>, mut v1: US1, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: US2, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: bool, mut v9: bool, mut v10: i32, mut v11: bool, mut v12: bool) -> US3 {
-    let v13: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let v14: Rc<UH0> = method15(v0, v13);
-    match &v1 {
-        US1::US1_None => {
-            match &*v14 {
-                UH0::UH0_Nil => {
-                    let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("name at least one account, or --following USERNAME"); } LIT.with(|lit| lit.clone()) };
-                    US3::US3_Rejected(v21)
-                }
-                _ => {
-                    let v23: US4 = US4::US4_Accounts(v14.clone());
-                    US3::US3_ShowTimeline(v23, v2, v3, v4, v5.clone(), v6.clone(), v7.clone(), v8, v9, v10, v11, v12)
-                }
-            }
-        }
-        US1::US1_Some(v15) => {
-            let v15: Rc<str> = v15.clone();
-            match &*v14 {
-                UH0::UH0_Nil => {
-                    let v16: US4 = US4::US4_FollowingOf(v15);
-                    US3::US3_ShowTimeline(v16, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
-                }
-                _ => {
-                    let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--following takes one account and no other usernames"); } LIT.with(|lit| lit.clone()) };
-                    US3::US3_Rejected(v18)
-                }
-            }
-        }
-    }
-}
-fn method16(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
-    loop {
-        match &*v0 {
-            UH0::UH0_Cons(v2, v3) => {
-                let mut v2: Rc<str> = v2.clone();
-                let v3: Rc<UH0> = v3.clone();
-                let v4: i32 = v1.wrapping_add(1i32);
-                (v0, v1) = (v3.clone(), v4);
-                continue;
-            }
-            UH0::UH0_Nil => {
-                return v1;
-            }
-        }
-    }
-}
-fn capped_13(mut v0: Rc<UH0>, mut v1: US1, mut v2: i32, mut v3: i32, mut v4: i32, mut v5: US2, mut v6: Rc<str>, mut v7: Rc<str>, mut v8: bool, mut v9: bool, mut v10: i32, mut v11: bool, mut v12: bool) -> US3 {
-    let v13: i32 = 0i32;
-    let v14: i32 = method16(v0.clone(), v13);
-    let v15: bool = v14 > 100i32;
-    if v15 {
-        let v16: Rc<str> = Rc::<str>::from(format!("{:?}", 100i32));
-        let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("at most "); } LIT.with(|lit| lit.clone()) };
-        let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v16));
-        let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" accounts per run"); } LIT.with(|lit| lit.clone()) };
-        let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v19));
-        US3::US3_Rejected(v20)
-    } else {
-        finish_14(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
-    }
-}
 fn parse_from_4(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> US1>, mut v2: Rc<dyn Fn(Rc<str>) -> US1>, mut v3: Rc<UH0>, mut v4: US1, mut v5: i32, mut v6: i32, mut v7: i32, mut v8: US2, mut v9: Rc<str>, mut v10: Rc<str>, mut v11: bool, mut v12: bool, mut v13: i32, mut v14: bool, mut v15: bool, mut v16: Rc<UH0>) -> US3 {
     loop {
         match &*v16 {
             UH0::UH0_Cons(v18, v19) => {
                 let v18: Rc<str> = v18.clone();
                 let v19: Rc<UH0> = v19.clone();
-                let (mut v20, mut v21): (US6, Rc<UH0>) = advance_5(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15, v18.clone(), v19.clone());
+                let (mut v20, mut v21): (US6, Rc<UH0>) = advance_9(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15, v18.clone(), v19.clone());
                 match &v20 {
                     US6::US6_Error(v36) => {
                         let v36: Rc<str> = v36.clone();
@@ -573,7 +573,7 @@ fn parse_from_4(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -
                 }
             }
             UH0::UH0_Nil => {
-                return capped_13(v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15);
+                return capped_5(v3.clone(), v4.clone(), v5, v6, v7, v8.clone(), v9.clone(), v10.clone(), v11, v12, v13, v14, v15);
             }
         }
     }

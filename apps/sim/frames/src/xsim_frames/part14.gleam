@@ -8,9 +8,22 @@ import gleam/string
 import xsim_frames/types.{type Uh3, type Us45, type Uh29, type Us68, type Us70, type Us71, Uh29Cons, Uh29Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us45Crashed, Us45Done, Us68Swap, Us70Peak, Us70Tick, Us71FreshLine, Us71GrowingText, Us72None, Us72Some, Us73None, Us73Some}
 import xsim_frames/part1.{count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, method4, spiral_sm_coerce, spiral_sm_find_trailing, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, unicode_erlang_characters_to_binary}
 import xsim_frames/part10.{hash_text_240}
-import xsim_frames/part13.{closure74, method300}
+import xsim_frames/part13.{method301}
 import xsim_frames/part2.{delimited_21}
 import xsim_frames/part3.{method56, method57}
+
+pub fn closure74(capt: #(String)) -> fn(Us68) -> actor.Next(String, Us68) {
+    fn (v1) {
+        let #(v0) = capt
+        case v1  {
+            Us68Swap(v2, v3) -> {
+                process.send(v3, v0)
+                let v4 = actor.continue(v2)
+                v4
+            }
+        }
+    }
+}
 
 pub fn closure73(capt: Nil) -> fn(String) -> fn(Us68) -> actor.Next(String, Us68) {
     fn (v0) {
@@ -105,10 +118,10 @@ pub fn closure80(capt: Nil) -> fn(Int) -> Uh3 {
     }
 }
 
-pub fn method301(v0: Uh3, v1: Uh29) -> Uh29 {
+pub fn method302(v0: Uh3, v1: Uh29) -> Uh29 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method301(v3, v1)
+            let v4 = method302(v3, v1)
             let v5 = erlang_term_coerce(v2)
             let v6 = "unicode"
             let v7 = atom.create(v6)
@@ -129,7 +142,7 @@ pub fn keep_c83(capt: Nil) -> fn(Dynamic) -> Dynamic {
     }
 }
 
-pub fn gleam_collected_302(v0: process.Selector(Dynamic), v1: String) -> #(Int, String) {
+pub fn gleam_collected_303(v0: process.Selector(Dynamic), v1: String) -> #(Int, String) {
     let v2 = process.selector_receive(v0, 86400000)
     let v3 = "none"
     let v4 = atom.create(v3)
@@ -170,7 +183,7 @@ pub fn gleam_collected_302(v0: process.Selector(Dynamic), v1: String) -> #(Int, 
             let v37 = erlang_term_apply(v32, v33, v36)
             let v38 = erlang_term_coerce(v37)
             let v39 = v1 <> v38 
-            gleam_collected_302(v0, v39)
+            gleam_collected_303(v0, v39)
         }
         False -> {
             let v42 = v29 == "exit_status"
@@ -186,7 +199,7 @@ pub fn gleam_collected_302(v0: process.Selector(Dynamic), v1: String) -> #(Int, 
                     let v50 = erlang_term_coerce(v49)
                     #(v50, v1)
                 }
-                False -> gleam_collected_302(v0, v1)
+                False -> gleam_collected_303(v0, v1)
             }
         }
     }
@@ -477,9 +490,9 @@ pub fn closure82(capt: #(String)) -> fn(Nil) -> String {
                             let v224 = Uh3Nil
                             let v225 = method4(v223, v224)
                             let v226 = Uh29Nil
-                            let v227 = method301(v225, v226)
+                            let v227 = method302(v225, v226)
                             let v228 = []
-                            let v229 = method300(v227, v228)
+                            let v229 = method301(v227, v228)
                             let v230 = erlang_term_coerce(v229)
                             let v231 = []
                             let v232 = [v230, ..v231]
@@ -521,7 +534,7 @@ pub fn closure82(capt: #(String)) -> fn(Nil) -> String {
                             let v268 = keep_c83(Nil)
                             let v269 = process.select_record(process.new_selector(), v267, 1, v268)
                             let v270 = ""
-                            let #(v271, v272) = gleam_collected_302(v269, v270)
+                            let #(v271, v272) = gleam_collected_303(v269, v270)
                             #(True, v271, v272)
                         }
                     }
@@ -559,7 +572,7 @@ pub fn closure81(capt: #(String)) -> fn(process.Subject(Us70)) -> #(Int, Int, In
     }
 }
 
-pub fn method303(v0: Uh3, v1: Int, v2: Int, v3: Int, v4: Int) -> #(Int, Int, Int, Int) {
+pub fn method304(v0: Uh3, v1: Int, v2: Int, v3: Int, v4: Int) -> #(Int, Int, Int, Int) {
     let #(v62, v63, v64, v65) =
         case v0  {
             Uh3Cons(v5, v6) -> {
@@ -634,7 +647,7 @@ pub fn method303(v0: Uh3, v1: Int, v2: Int, v3: Int, v4: Int) -> #(Int, Int, Int
                             #(v46, v47, v48, v49)
                         }
                     }
-                method303(v6, v50, v51, v52, v53)
+                method304(v6, v50, v51, v52, v53)
             }
             _ -> {
                 let #(v58, v59, v60, v61) =
@@ -707,7 +720,7 @@ pub fn closure85(capt: #(Int, Int, Int, Int, Int, Us71, Int, process.Subject(Us7
                                     True -> Uh3Nil
                                     False -> split_list_2(v20, v33)
                                 }
-                            let #(v38, v39, v40, v41) = method303(v37, v0, v1, v2, v3)
+                            let #(v38, v39, v40, v41) = method304(v37, v0, v1, v2, v3)
                             let v42 = spiral_string_length(v33)
                             let v43 = spiral_wrap_signed(v15 + v42, 32)
                             #(v38, v39, v40, v41, v43, v5, v6, v7)
@@ -726,7 +739,7 @@ pub fn closure85(capt: #(Int, Int, Int, Int, Int, Us71, Int, process.Subject(Us7
                                                     split_list_2(v48, v45)
                                                 }
                                             }
-                                        let #(v51, v52, v53, v54) = method303(v50, v0, v1, v2, v3)
+                                        let #(v51, v52, v53, v54) = method304(v50, v0, v1, v2, v3)
                                         #(v51, v52, v53, v54, v4, v5, v6, v7)
                                     }
                                     _ -> panic as "spiral: union case ruled out by partial evaluation"

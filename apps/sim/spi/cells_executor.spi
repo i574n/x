@@ -1,6 +1,6 @@
 ///- --package .
 ///> gleam
-test cells_executor static =
+:# cells_executor static =
     :< testing
 
 :< sm'_operators
@@ -319,11 +319,11 @@ test cells_executor static =
     erlang_term::apply "application" "ensure_all_started" [ erlang_term::atom "spiral_cells" ] |> started_ok
 
 := cell_count (doc : term) : i32 =
-    := cells = at "cells" doc (erlang_term::list_term Nil)
+    := cells = at "cells" doc (erlang_term::list_term [])
     erlang_term::apply "erlang" "length" [ cells ] |> erlang_term::cast
 
 := last_source (doc : term) : string =
-    := cells = at "cells" doc (erlang_term::list_term Nil)
+    := cells = at "cells" doc (erlang_term::list_term [])
     := last = erlang_term::apply "lists" "last" [ cells ]
     at "source" last (erlang_term::of "") |> erlang_term::cast
 
@@ -335,7 +335,7 @@ test cells_executor static =
 := cell_source (cell : term) : string = at "source" cell (erlang_term::of "") |> erlang_term::cast
 
 := document_sources (doc : term) : list string =
-    := cells = at "cells" doc (erlang_term::list_term Nil)
+    := cells = at "cells" doc (erlang_term::list_term [])
     listm::init (term_length cells) (nth_cell cells) |> keep spiral_kind |> each cell_source
 
 := real_spir (spi : string) : string =
@@ -365,7 +365,7 @@ test cells_executor static =
     erlang_term::apply "maps" "get" [ erlang_term::of key; m; erlang_term::of "" ] |> erlang_term::inspect
 
 := list_at (key : string) (m : term) : term =
-    erlang_term::apply "maps" "get" [ erlang_term::of key; m; erlang_term::list_term Nil ]
+    erlang_term::apply "maps" "get" [ erlang_term::of key; m; erlang_term::list_term [] ]
 
 := target_text (t : term) : string = text_at "target" t ++# "=" ++# text_at "status" t
 
@@ -375,7 +375,7 @@ test cells_executor static =
     text_at "name" test ++# " " ++# text_at "status" test ++# " [" ++# shown ++# "]"
 
 := test_rows (result : term) : list string =
-    := tests = list_at "tests" (at "report" result (keyed Nil))
+    := tests = list_at "tests" (at "report" result (keyed []))
     listm::init (term_length tests) (nth_cell tests) |> each row_text
 
 := elixir_inspect (t : term) (opts : list term) : string =
@@ -389,7 +389,7 @@ test cells_executor static =
     erlang_term::apply "Elixir.Spiral.Cells.Notebook" "evaluate" [ cells_doc sources; rooted_plan root ]
 
 := indexed (key : string) (i : i32) (result : term) : term =
-    erlang_term::apply "maps" "get" [ erlang_term::of i; at key result (keyed Nil); erlang_term::atom "nil" ]
+    erlang_term::apply "maps" "get" [ erlang_term::of i; at key result (keyed []); erlang_term::atom "nil" ]
 
 := status_text (result : term) : string = at "status" result (erlang_term::atom "none") |> erlang_term::inspect
 
@@ -407,33 +407,33 @@ test cells_executor static =
 
 := cli_vm_started () : bool = app_started "crypto" && app_started "spiral_cells"
 
-test the_cells_document_holds_one_spiral_cell_per_source =
+:# the_cells_document_holds_one_spiral_cell_per_source =
     := ~sources = [ "inl a = 1"; "a |> _assert_eq 1" ]
     := doc = cells_doc sources
     (cell_count doc, last_source doc) |> _assert_eq (2i32, "a |> _assert_eq 1")
 
-test a_dictionary_leak_carries_the_previous_digest =
+:# a_dictionary_leak_carries_the_previous_digest =
     := ~a = [ "inl a = 1" ]
     := run = dictionary_leak "xsim_leak_test"
     := first, second = run a, run a
     (first::out, second::out) |> _assert_eq (fake_out a, fake_out a ++# fake_out a)
 
-test memo_flags_are_counted_per_kind =
+:# memo_flags_are_counted_per_kind =
     := flags = erlang_term::list_term [ erlang_term::atom "hit"; erlang_term::atom "miss"; erlang_term::atom "hit" ]
     (flag_count flags "hit", flag_count flags "miss") |> _assert_eq (2i32, 1i32)
 
-test the_daemon_line_matches_the_elixir_format =
+:# the_daemon_line_matches_the_elixir_format =
     daemon_line "42" (tree_memory::read_samples (tree_memory::no_reading ()) "3 120\n5 340\n") 2i32
     |> _assert_eq "  daemon pid=42 peak_mb=340 last_mb=340 procs=5 samples=2 cumulative_after_schedule=2"
 
 := inspected (t : term) : option string = ok_value t |> optionm::map erlang_term::inspect
 
-test only_an_ok_tuple_yields_its_value =
+:# only_an_ok_tuple_yields_its_value =
     := ok = erlang_term::tuple [ erlang_term::atom "ok"; erlang_term::of 7i32 ]
     (inspected ok, inspected (erlang_term::atom "error")) |> _assert_eq (Some "7", None)
 
 := script_shape (script : string) : bool * bool * i32 =
     sm'::starts_with "param([int]" script, sm'::index_of "%" script >= 0i32, listm::length (pieces "\n" script)
 
-test the_sampler_script_takes_a_root_and_prints_one_line =
+:# the_sampler_script_takes_a_root_and_prints_one_line =
     script_shape (sampler_script ()) |> _assert_eq (!+, !-, 15i32)

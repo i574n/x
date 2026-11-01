@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust
-test xc static =
+:# xc static =
     :< testing
 
 :< sm'_operators
@@ -417,12 +417,12 @@ test xc static =
 
 := two_unknown () : string = "no X account @" ++# "a\nno X account @" ++# "b"
 
-test unknown_accounts_get_one_note_each =
+:# unknown_accounts_get_one_note_each =
     := ~unknown = "a,b"
     unknown_notes unknown |> _assert_eq (two_unknown ())
     both_notes "" "x" |> _assert_eq "x"
 
-test doc_bundles_join_without_empty_parts =
+:# doc_bundles_join_without_empty_parts =
     := ~a = "x"
     joined_docs a "" |> _assert_eq "x"
     joined_docs a "y" |> _assert_eq "x,y"

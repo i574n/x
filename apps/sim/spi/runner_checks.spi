@@ -1,7 +1,7 @@
 ///- --package . --timeout 600000
 ///> rust -d sha2
 ///> gleam
-test runner_checks static =
+:# runner_checks static =
     :< testing
 
 :< sm'_operators
@@ -29,13 +29,13 @@ test runner_checks static =
     s::visible_map
     |> dictm::fold \ acc id (e : visible_entry) =>
             shown_inserted { id = id; key = e::key; result = outcome_of e::result } acc
-        Nil
+        []
 
 := tallies_of (d : dictm::dict string i32) : list tally =
-    d |> dictm::fold (\ acc key count => { key count } :: acc) Nil
+    d |> dictm::fold (\ acc key count => { key count } :: acc) []
 
 := demands_of (s : scheduler) : list demand =
-    wanted_keys s::in_box |> dictm::fold (\ acc id key => { id key } :: acc) Nil
+    wanted_keys s::in_box |> dictm::fold (\ acc id key => { id key } :: acc) []
 
 := evicting_on (f : fault_set) : bool =
     ?= f::eviction ?|
@@ -43,8 +43,8 @@ test runner_checks static =
     | _ => !+
 
 := base_snapshot (s : scheduler) : snapshot =
-    { visible = visible_of s; wanted = demands_of s; starts = Nil; cancelled = Nil
-        evicted = Nil; results = Nil; evicting = !- }
+    { visible = visible_of s; wanted = demands_of s; starts = []; cancelled = []
+        evicted = []; results = []; evicting = !- }
 
 := counted_snapshot (c : run_counts) (b : snapshot) : snapshot =
     { b ?| starts = tallies_of c::starts; cancelled = tallies_of c::cancelled; evicted = tallies_of c::evicted }
@@ -102,16 +102,16 @@ test runner_checks static =
 
 := liked_once (id : string) : list delivery = [ post_at 0i32 id None "x"; like_at 1i32 id "u" ]
 
-test a_sync_run_holds_every_rule =
+:# a_sync_run_holds_every_rule =
     := ~id = "p0"
     runner_checks (sync_run (plain_faults ()) (liked_pair id)) fake_baseline |> findings_text |> _assert_eq (all_ok ())
 
-test a_differing_baseline_names_the_post =
+:# a_differing_baseline_names_the_post =
     := ~id = "p0"
     runner_checks (sync_run (plain_faults ()) (liked_once id)) wrong_baseline |> verdict_where equivalence_rule
     |> _assert_eq "FAIL[p0]"
 
-test sync_and_deferred_runs_commute =
+:# sync_and_deferred_runs_commute =
     := ~id = "p0"
     := l = two_thread id
     runs_commute (sync_run (plain_faults ()) l) (deferred_run (plain_faults ()) l) |> verdict_text |> _assert_eq "ok"
@@ -121,7 +121,7 @@ test sync_and_deferred_runs_commute =
     breaking_failed s (dictm::set_empty ())
     |> verdict_text
 
-test a_broken_source_that_runs_ok_is_named =
+:# a_broken_source_that_runs_ok_is_named =
     := ~id = "p0"
     sync_run (plain_faults ()) (liked_once id) |> broken_pair |> _assert_eq ("FAIL[p0]", "ok")
 
@@ -143,12 +143,12 @@ test a_broken_source_that_runs_ok_is_named =
     =
     rule_under wanted (run (naive_faults ())) l, rule_under wanted (run (plain_faults ())) l
 
-test naive_visibility_without_cancelling_surfaces_a_stale_revision =
+:# naive_visibility_without_cancelling_surfaces_a_stale_revision =
     := ~id = "p0"
     := l = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u1"; edited_at 2i32 id "inl a = 1\n" ]
     naive_vs_plain stale_rule newest_first_run l |> _assert_eq ("FAIL[p0]", "ok")
 
-test withdrawn_demand_stays_hidden_unless_assigned_naively =
+:# withdrawn_demand_stays_hidden_unless_assigned_naively =
     := ~id = "p0"
     := l = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u1"; unlike_at 2i32 id "u1" ]
     naive_vs_plain withdrawn_rule deferred_run l |> _assert_eq ("FAIL[p0]", "ok")
@@ -173,7 +173,7 @@ test withdrawn_demand_stays_hidden_unless_assigned_naively =
     lapse_shape short, runs_commute short (relapsed (plain_faults ()) id)
     |> verdict_text, dictm::size (long_lapse id)::run_counts::evicted > 0i32
 
-test a_grace_window_keeps_a_result_through_a_short_lapse_and_frees_it_after =
+:# a_grace_window_keeps_a_result_through_a_short_lapse_and_frees_it_after =
     := ~id = "p0"
     grace_shape id |> _assert_eq ((1i32, 0i32, 0i32), "ok", !+)
 
@@ -182,7 +182,7 @@ test a_grace_window_keeps_a_result_through_a_short_lapse_and_frees_it_after =
     | Ok replay => runs_commute (sync_run (plain_faults ()) l) (sync_run (plain_faults ()) replay) |> verdict_text
     | Error why => why
 
-test a_saved_stream_replays_to_the_same_visible_results =
+:# a_saved_stream_replays_to_the_same_visible_results =
     := ~id = "p0"
     two_thread id |> replay_commutes |> _assert_eq "ok"
 
@@ -194,6 +194,6 @@ test a_saved_stream_replays_to_the_same_visible_results =
     rule_under prefix_rule (sync_run (rerun_faults ())) l
     |> sm'::starts_with "FAIL", rule_under prefix_rule (sync_run (plain_faults ())) l
 
-test rerunning_finished_results_recompiles_shared_prefixes =
+:# rerunning_finished_results_recompiles_shared_prefixes =
     := ~id = "p0"
     two_thread id |> rerun_pair |> _assert_eq (!+, "ok")

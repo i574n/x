@@ -1,6 +1,6 @@
 {
     "posts": [
-        "c1 1/1\n///- --package .\ntest oauth1 static =\n    :< testing",
+        "c1 1/1\n///- --package .\n:# oauth1 static =\n    :< testing",
         "c2 1/1\n:< sm'_operators",
         "c3 1/1\n:== oauth1 = oauth::oauth1_credentials",
         "c4 1/1\n:== pair = oauth::oauth1_pair",
@@ -16,11 +16,11 @@
         "c14 1/1\n:= unix_seconds () : string = since_epoch (system_now ()) |> whole_seconds |> sm'::obj_to_string",
         "c15 1/1\n:= fresh_nonce () : string = crypto::sha1_hex (clock_seed ())",
         "c16 1/1\n:~ oauth_header (o : oauth1) (method : string) (url : string) (nonce : string) (stamp : string) : string =\n    oauth::authorization_header o method url nonce stamp",
-        "c17 1/1\n///> rust -d sha1\ntest a_fresh_nonce_is_forty_hex_digits =\n    sm'::length (fresh_nonce ()) |> _assert_eq 40i32"
+        "c17 1/1\n///> rust -d sha1\n:# a_fresh_nonce_is_forty_hex_digits =\n    sm'::length (fresh_nonce ()) |> _assert_eq 40i32"
     ],
     "program": [
         "///- --package .",
-        "test oauth1 static =",
+        ":# oauth1 static =",
         "    :< testing",
         "",
         ":< sm'_operators",
@@ -58,7 +58,7 @@
         "    oauth::authorization_header o method url nonce stamp",
         "",
         "///> rust -d sha1",
-        "test a_fresh_nonce_is_forty_hex_digits =",
+        ":# a_fresh_nonce_is_forty_hex_digits =",
         "    sm'::length (fresh_nonce ()) |> _assert_eq 40i32"
     ]
 }

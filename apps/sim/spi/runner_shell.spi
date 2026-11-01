@@ -1,6 +1,6 @@
 ///- --package . --timeout 600000
 ///> gleam
-test runner_shell static =
+:# runner_shell static =
     :< testing
 
 :< sm'_operators
@@ -135,7 +135,7 @@ test runner_shell static =
 := settled_sizes (inbox : shell_inbox) (l : list delivery) : i32 * i32 =
     dictm::size (shell_settled inbox l)::visible_map, dictm::size (sync_run (plain_faults ()) l)::visible_map
 
-test the_otp_shell_settles_like_sync_run =
+:# the_otp_shell_settles_like_sync_run =
     := ~l = two_posts ()
     ?= shell_started (plain_faults ()) (fake_executor ()) ?|
     | Some inbox => settled_sizes inbox l |> _assert_eq (2i32, 2i32)
@@ -157,7 +157,7 @@ test the_otp_shell_settles_like_sync_run =
     | Some leak => leaky_in_shell leak l
     | None => "leak cell did not start"
 
-test a_leaking_executor_breaks_sequential_equivalence =
+:# a_leaking_executor_breaks_sequential_equivalence =
     := ~l = two_posts ()
     leaky_run l |> sm'::starts_with "FAIL" |> _assert_eq !+
 
@@ -175,7 +175,7 @@ test a_leaking_executor_breaks_sequential_equivalence =
 
 := withdrawn_demand () : list delivery = [ post_at 0i32 "p0" None "x"; like_at 1i32 "p0" "u"; unlike_at 2i32 "p0" "u" ]
 
-test a_withdrawn_demand_cancels_the_running_task_like_deferred_run =
+:# a_withdrawn_demand_cancels_the_running_task_like_deferred_run =
     := ~l = withdrawn_demand ()
     (shell_cancels l, deferred_run (plain_faults ()) l |> cancel_shape) |> _assert_eq ((1i32, 0i32), (1i32, 0i32))
 
@@ -200,7 +200,7 @@ test a_withdrawn_demand_cancels_the_running_task_like_deferred_run =
     | Some inbox => probe_after inbox probe l
     | None => failwith "runner shell did not start"
 
-test a_cancelled_worker_is_killed_before_it_finishes =
+:# a_cancelled_worker_is_killed_before_it_finishes =
     := ~l = [ post_at 0i32 "p0" None "x"; like_at 1i32 "p0" "u" ]
     (probe_reached (listm::append l [ unlike_at 2i32 "p0" "u" ]), probe_reached l) |> _assert_eq (!-, !+)
 
@@ -209,12 +209,12 @@ test a_cancelled_worker_is_killed_before_it_finishes =
 := guard_shape (own : handle) (st : shell_state) : bool * i32 * i32 =
     signalled_in 100i32 own, dictm::size st::guards, dictm::set_size st::early_cancels
 
-test a_cancel_before_its_guard_reaches_the_guard_on_adoption =
+:# a_cancel_before_its_guard_reaches_the_guard_on_adoption =
     := ~key = "k"
     := own : handle = erlang_process::new_subject ()
     adopted (cancelled (test_state ()) key) key own |> guard_shape own |> _assert_eq (!+, 0i32, 0i32)
 
-test a_cancel_after_adoption_signals_the_guard =
+:# a_cancel_after_adoption_signals_the_guard =
     := ~key = "k"
     := own : handle = erlang_process::new_subject ()
     cancelled (adopted (test_state ()) key own) key |> guard_shape own |> _assert_eq (!+, 0i32, 0i32)
@@ -246,6 +246,6 @@ test a_cancel_after_adoption_signals_the_guard =
     | Some paced => against_plain_shell paced l
     | None => failwith "paced runner shell did not start"
 
-test a_paced_run_waits_between_deliveries_and_ends_where_the_unpaced_run_ends =
+:# a_paced_run_waits_between_deliveries_and_ends_where_the_unpaced_run_ends =
     := ~l = fickle_churn ()
     paced_run_holds l |> _assert_eq (!+, "ok")

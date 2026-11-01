@@ -2,40 +2,40 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 #[derive(Clone)]
-enum UH0 {
-    UH0_Nil,
-    UH0_Cons(Rc<str>, Rc<UH0>),
-}
-#[derive(Clone)]
-enum US2 {
-    US2_CursorRepeated(Rc<str>, i32),
-    US2_CursorBudget(Rc<str>, i32),
+enum US0 {
+    US0_CursorRepeated(Rc<str>, i32),
+    US0_CursorBudget(Rc<str>, i32),
 }
 #[derive(Clone)]
 enum US1 {
     US1_Reported(Rc<str>),
     US1_NoSuchAccount(Rc<str>),
-    US1_CursorHalted(Rc<str>, US2),
+    US1_CursorHalted(Rc<str>, US0),
 }
 #[derive(Clone)]
-enum US0 {
-    US0_Ok(Rc<UH0>),
-    US0_Error(US1),
+enum US2 {
+    US2_Ok(Rc<str>, Rc<str>),
+    US2_Error(US1),
+}
+#[derive(Clone)]
+enum UH0 {
+    UH0_Nil,
+    UH0_Cons(Rc<str>, Rc<UH0>),
 }
 #[derive(Clone)]
 enum US3 {
-    US3_BearerToken(Rc<str>),
-    US3_Anonymous,
+    US3_Ok(Rc<UH0>),
+    US3_Error(US1),
 }
 #[derive(Clone)]
 enum US4 {
-    US4_Ok(Rc<str>, Rc<str>),
-    US4_Error(US1),
+    US4_CursorEnd(US3),
+    US4_CursorOn(Rc<str>, Rc<str>),
 }
 #[derive(Clone)]
 enum US5 {
-    US5_CursorEnd(US0),
-    US5_CursorOn(Rc<str>, Rc<str>),
+    US5_BearerToken(Rc<str>),
+    US5_Anonymous,
 }
 #[derive(Clone)]
 enum US6 {
@@ -113,23 +113,23 @@ fn method5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<dyn Fn(Rc<str>) -> bool>
         }
     }
 }
-fn walked_from_2(mut v0: Rc<dyn Fn(US2) -> US1>, mut v1: i32, mut v2: Rc<dyn Fn(Rc<str>) -> US4>, mut v3: Rc<str>, mut v4: Rc<UH0>, mut v5: i32, mut v6: Rc<UH0>) -> US0 {
+fn walked_from_2(mut v0: Rc<dyn Fn(US0) -> US1>, mut v1: i32, mut v2: Rc<dyn Fn(Rc<str>) -> US2>, mut v3: Rc<str>, mut v4: Rc<UH0>, mut v5: i32, mut v6: Rc<UH0>) -> US3 {
     loop {
         let mut v7: bool = v5 >= v1;
-        let v37: US5 = if v7 {
-            let v8: US2 = US2::US2_CursorBudget(v3.clone(), v5);
+        let v37: US4 = if v7 {
+            let v8: US0 = US0::US0_CursorBudget(v3.clone(), v5);
             let v9: US1 = v0(v8.clone());
-            let v10: US0 = US0::US0_Error(v9.clone());
-            US5::US5_CursorEnd(v10.clone())
+            let v10: US3 = US3::US3_Error(v9.clone());
+            US4::US4_CursorEnd(v10.clone())
         } else {
-            let v12: US4 = v2(v3.clone());
+            let v12: US2 = v2(v3.clone());
             match &v12 {
-                US4::US4_Error(v13) => {
+                US2::US2_Error(v13) => {
                     let v13: US1 = v13.clone();
-                    let v14: US0 = US0::US0_Error(v13.clone());
-                    US5::US5_CursorEnd(v14.clone())
+                    let v14: US3 = US3::US3_Error(v13.clone());
+                    US4::US4_CursorEnd(v14.clone())
                 }
-                US4::US4_Ok(v16, v17) => {
+                US2::US2_Ok(v16, v17) => {
                     let v16: Rc<str> = v16.clone();
                     let v17: Rc<str> = v17.clone();
                     let v18: bool = &*v16 == "";
@@ -137,30 +137,30 @@ fn walked_from_2(mut v0: Rc<dyn Fn(US2) -> US1>, mut v1: i32, mut v2: Rc<dyn Fn(
                         let v20: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
                         let v21: Rc<UH0> = Rc::new(UH0::UH0_Cons(v17.clone(), v20.clone()));
                         let v22: Rc<UH0> = method3(v6.clone(), v21.clone());
-                        let mut v23: US0 = US0::US0_Ok(v22.clone());
-                        US5::US5_CursorEnd(v23.clone())
+                        let mut v23: US3 = US3::US3_Ok(v22.clone());
+                        US4::US4_CursorEnd(v23.clone())
                     } else {
                         let v25: Rc<dyn Fn(Rc<str>) -> bool> = method4(v16.clone(), v17.clone());
                         let v26: bool = method5(v16.clone(), v17.clone(), v25.clone(), v4.clone());
                         if v26 {
                             let v27: i32 = v5.wrapping_add(1i32);
-                            let v28: US2 = US2::US2_CursorRepeated(v16.clone(), v27);
+                            let v28: US0 = US0::US0_CursorRepeated(v16.clone(), v27);
                             let v29: US1 = v0(v28.clone());
-                            let v30: US0 = US0::US0_Error(v29.clone());
-                            US5::US5_CursorEnd(v30.clone())
+                            let v30: US3 = US3::US3_Error(v29.clone());
+                            US4::US4_CursorEnd(v30.clone())
                         } else {
-                            US5::US5_CursorOn(v16.clone(), v17.clone())
+                            US4::US4_CursorOn(v16.clone(), v17.clone())
                         }
                     }
                 }
             }
         };
         match &v37 {
-            US5::US5_CursorEnd(v38) => {
-                let v38: US0 = v38.clone();
+            US4::US4_CursorEnd(v38) => {
+                let v38: US3 = v38.clone();
                 return v38.clone();
             }
-            US5::US5_CursorOn(v39, v40) => {
+            US4::US4_CursorOn(v39, v40) => {
                 let v39: Rc<str> = v39.clone();
                 let v40: Rc<str> = v40.clone();
                 let v41: i32 = v5.wrapping_add(1i32);
@@ -172,21 +172,21 @@ fn walked_from_2(mut v0: Rc<dyn Fn(US2) -> US1>, mut v1: i32, mut v2: Rc<dyn Fn(
         }
     }
 }
-fn closure2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<dyn Fn(US2) -> US1> {
-    Rc::new(move |mut v3: US2| -> US1 {
+fn closure2(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> Rc<dyn Fn(US0) -> US1> {
+    Rc::new(move |mut v3: US0| -> US1 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("conversation "); } LIT.with(|lit| lit.clone()) };
         let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v4, v0));
         US1::US1_CursorHalted(v5.clone(), v3.clone())
     })
 }
-fn app_reply_6(mut v0: Rc<str>, mut v1: US3, mut v2: Rc<str>) -> US6 {
+fn app_reply_6(mut v0: Rc<str>, mut v1: US5, mut v2: Rc<str>) -> US6 {
     let v3: Rc<str> = Rc::<str>::from(format!("{}{}", v0, v2));
     let v9: Rc<str> = match &v1 {
-        US3::US3_Anonymous => {
+        US5::US5_Anonymous => {
             let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
             v7
         }
-        US3::US3_BearerToken(v4) => {
+        US5::US5_BearerToken(v4) => {
             let v4: Rc<str> = v4.clone();
             let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Bearer "); } LIT.with(|lit| lit.clone()) };
             let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v4));
@@ -206,8 +206,8 @@ fn app_reply_6(mut v0: Rc<str>, mut v1: US3, mut v2: Rc<str>) -> US6 {
         US6::US6_Error(v19)
     }
 }
-fn closure3(mut v0: Rc<str>, mut v1: US3, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<dyn Fn(Rc<str>) -> US4> {
-    Rc::new(move |mut v5: Rc<str>| -> US4 {
+fn closure3(mut v0: Rc<str>, mut v1: US5, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>) -> Rc<dyn Fn(Rc<str>) -> US2> {
+    Rc::new(move |mut v5: Rc<str>| -> US2 {
         let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/2/tweets/search/all?query=conversation_id%3A"); } LIT.with(|lit| lit.clone()) };
         let mut v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v2));
         let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("%20from%3A"); } LIT.with(|lit| lit.clone()) };
@@ -228,7 +228,7 @@ fn closure3(mut v0: Rc<str>, mut v1: US3, mut v2: Rc<str>, mut v3: Rc<str>, mut 
         match &v21 {
             US6::US6_Error(v30) => {
                 let v30: US1 = v30.clone();
-                US4::US4_Error(v30.clone())
+                US2::US2_Error(v30.clone())
             }
             US6::US6_Ok(v22, v23) => {
                 let v22: serde_json::Value = v22.clone();
@@ -238,12 +238,12 @@ fn closure3(mut v0: Rc<str>, mut v1: US3, mut v2: Rc<str>, mut v3: Rc<str>, mut 
                 let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("next_token"); } LIT.with(|lit| lit.clone()) };
                 let v27: serde_json::Value = v25.get(&*v26).cloned().unwrap_or_default();
                 let v28: Rc<str> = Rc::<str>::from(v27.as_str().unwrap_or(""));
-                US4::US4_Ok(v28.clone(), v23.clone())
+                US2::US2_Ok(v28.clone(), v23.clone())
             }
         }
     })
 }
-fn rooted_1(mut v0: Rc<str>, mut v1: US3, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>) -> US0 {
+fn rooted_1(mut v0: Rc<str>, mut v1: US5, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>) -> US3 {
     let mut v7: i32 = (v5.clone().len() as i32);
     let v8: bool = v7 < 19i32;
     let v14: Rc<str> = if v8 {
@@ -258,9 +258,9 @@ fn rooted_1(mut v0: Rc<str>, mut v1: US3, mut v2: Rc<str>, mut v3: Rc<str>, mut 
     };
     let v15: bool = &*v3 != "";
     if v15 {
-        let v16: Rc<dyn Fn(US2) -> US1> = closure2(v3.clone(), v4.clone(), v14.clone());
+        let v16: Rc<dyn Fn(US0) -> US1> = closure2(v3.clone(), v4.clone(), v14.clone());
         let v17: i32 = 500i32;
-        let v18: Rc<dyn Fn(Rc<str>) -> US4> = closure3(v0, v1, v3, v4, v14);
+        let v18: Rc<dyn Fn(Rc<str>) -> US2> = closure3(v0, v1, v3, v4, v14);
         let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
         let v20: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
         let v21: i32 = 0i32;
@@ -279,10 +279,10 @@ fn rooted_1(mut v0: Rc<str>, mut v1: US3, mut v2: Rc<str>, mut v3: Rc<str>, mut 
         let mut v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
         let v36: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v33, v34)), v6));
         let v37: US1 = US1::US1_Reported(v36);
-        US0::US0_Error(v37)
+        US3::US3_Error(v37)
     }
 }
-fn thread_bodies_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
+fn thread_bodies_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US3 {
     let v3: i32 = (v0.clone().len() as i32);
     let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
     let v5: bool = v0.ends_with(&*v4);
@@ -299,7 +299,7 @@ fn thread_bodies_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
     let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v2));
     let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("?post.fields=conversation_id,author_id,created_at"); } LIT.with(|lit| lit.clone()) };
     let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v13));
-    let v15: US3 = US3::US3_BearerToken(v1.clone());
+    let v15: US5 = US5::US5_BearerToken(v1.clone());
     let v16: US6 = app_reply_6(v10.clone(), v15, v14);
     let v46: US7 = match &v16 {
         US6::US6_Error(v43) => {
@@ -339,11 +339,11 @@ fn thread_bodies_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>) -> US0 {
             US7::US7_Ok(v35, v38, v41, v32)
         }
     };
-    let v47: US3 = US3::US3_BearerToken(v1);
+    let v47: US5 = US5::US5_BearerToken(v1);
     match &v46 {
         US7::US7_Error(v53) => {
             let v53: US1 = v53.clone();
-            US0::US0_Error(v53)
+            US3::US3_Error(v53)
         }
         US7::US7_Ok(v48, v49, v50, v51) => {
             let v48: Rc<str> = v48.clone();
@@ -358,11 +358,11 @@ fn describe_failure_7(mut v0: US1) -> Rc<str> {
     match &v0 {
         US1::US1_CursorHalted(v5, v6) => {
             let v5: Rc<str> = v5.clone();
-            let v6: US2 = v6.clone();
+            let v6: US0 = v6.clone();
             let mut v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
             let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v7));
             let v29: Rc<str> = match &v6 {
-                US2::US2_CursorBudget(v19, v20) => {
+                US0::US0_CursorBudget(v19, v20) => {
                     let v19: Rc<str> = v19.clone();
                     let v20: i32 = *v20;
                     let v21: Rc<str> = Rc::<str>::from(format!("{:?}", v20));
@@ -374,7 +374,7 @@ fn describe_failure_7(mut v0: US1) -> Rc<str> {
                     let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v25, v26));
                     v27
                 }
-                US2::US2_CursorRepeated(v9, v10) => {
+                US0::US0_CursorRepeated(v9, v10) => {
                     let v9: Rc<str> = v9.clone();
                     let v10: i32 = *v10;
                     let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the API repeated cursor "); } LIT.with(|lit| lit.clone()) };
@@ -430,15 +430,15 @@ fn delimited_8(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<str> {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>, Rc<str>)> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>| -> (i32, Rc<str>, Rc<str>) {
-        let v3: US0 = thread_bodies_0(v0.clone(), v1.clone(), v2.clone());
+        let v3: US3 = thread_bodies_0(v0.clone(), v1.clone(), v2.clone());
         match &v3 {
-            US0::US0_Error(v12) => {
+            US3::US3_Error(v12) => {
                 let v12: US1 = v12.clone();
                 let v13: Rc<str> = describe_failure_7(v12.clone());
                 let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 (4i32, v14.clone(), v13.clone())
             }
-            US0::US0_Ok(v4) => {
+            US3::US3_Ok(v4) => {
                 let v4: Rc<UH0> = v4.clone();
                 let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                 let v6: Rc<str> = delimited_8(v5.clone(), v4.clone());
@@ -700,15 +700,15 @@ fn method10(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
 }
 fn closure4() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>, Rc<str>)> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>| -> (i32, Rc<str>, Rc<str>) {
-        let v3: US0 = thread_bodies_0(v0.clone(), v1.clone(), v2.clone());
+        let v3: US3 = thread_bodies_0(v0.clone(), v1.clone(), v2.clone());
         match &v3 {
-            US0::US0_Error(v10) => {
+            US3::US3_Error(v10) => {
                 let v10: US1 = v10.clone();
                 let v11: Rc<str> = describe_failure_7(v10.clone());
                 let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                 (4i32, v12.clone(), v11.clone())
             }
-            US0::US0_Ok(v4) => {
+            US3::US3_Ok(v4) => {
                 let v4: Rc<UH0> = v4.clone();
                 let v5: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
                 let v6: Rc<UH0> = method10(v4.clone(), v5.clone());

@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d base64=0.23 jiff=0.2.38
-test net static =
+:# net static =
     :< testing
 
 :< sm'_operators
@@ -175,11 +175,11 @@ test net static =
     export "xc_fresh_nonce" ((\ () => fresh_nonce ()) : () -> string)
     export "xc_unix_seconds" ((\ () => unix_seconds ()) : () -> string)
 
-test basic_auth_encodes_the_pair =
+:# basic_auth_encodes_the_pair =
     := ~user = "id"
     basic_auth user "secret" |> _assert_eq "Basic aWQ6c2VjcmV0"
 
-test unreadable_times_pass_through =
+:# unreadable_times_pass_through =
     := ~stamp = "not a time"
     local_minute stamp |> _assert_eq "not a time"
     local_midnight "2026-13-40" |> _assert_eq ""

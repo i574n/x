@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d serde_json
-test jsonl static =
+:# jsonl static =
     :< testing
 
 :< sm'_operators
@@ -41,12 +41,12 @@ test jsonl static =
     ++# "}"
 
 :~ ^ referenced_json (pool : list entry) (depth : i32) (level : i32) (e : entry) : list string =
-    ? level >= depth ?> Nil |: e::refs |> spread (reference_json pool depth level e)
+    ? level >= depth ?> [] |: e::refs |> spread (reference_json pool depth level e)
 
 :& :~ reference_json (pool : list entry) (depth : i32) (level : i32) (e : entry) (r : reference) : list string =
     ?= find_entry pool r::id ?|
     | Some q => entry_json (level + 1) (entry_id e) q :: referenced_json pool depth (level + 1) q
-    | None => Nil
+    | None => []
 
 := with_references (pool : list entry) (depth : i32) (e : entry) : list string =
     entry_json 0i32 "" e :: referenced_json pool depth 0i32 e
@@ -70,7 +70,7 @@ test jsonl static =
     := text, n = r
     text ++# "|" ++# sm'::obj_to_string n
 
-test entry_lines_become_json_lines =
+:# entry_lines_become_json_lines =
     := ~line = at "1" "b" "09:05" |> lone |> entry_line "p"
     rendered_json (digest_of line) 0i32 |> lines_text |> _assert_eq (quiet_entry () ++# "|1")
 

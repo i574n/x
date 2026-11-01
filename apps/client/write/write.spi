@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d serde_json
-test write static =
+:# write static =
     :< testing
 
 :< sm'_operators
@@ -225,7 +225,7 @@ test write static =
     := code, text = r
     sm'::obj_to_string code ++# "|" ++# text
 
-test a_failed_delete_still_reports_every_post =
+:# a_failed_delete_still_reports_every_post =
     := ~gone = "deleted 1"
     [ Ok gone; Error "not deleted 2"; Ok "deleted 3" ]
     |> removal_of
@@ -235,11 +235,11 @@ test a_failed_delete_still_reports_every_post =
 := ref_named (n : string) : created_reply = created_reply { id = post_id n; text = ""; cid = "c" ++# n }
 
 ///> rust -d serde_json
-test a_thread_reply_asks_with_root_and_parent =
+:# a_thread_reply_asks_with_root_and_parent =
     := ask = next_ask (After (ref_named "1")) (After (ref_named "2")) "hi" |> parse_json
     (ask |> field "root" |> at_key "cid", ask |> field "parent" |> at_key "id") |> _assert_eq ("c1", "2")
 
-test post_lines_name_only_the_header =
+:# post_lines_name_only_the_header =
     := ~text = "c1 1/2\ninl a = 1"
     first_line text |> _assert_eq "c1 1/2"
     first_line "c2 1/1" |> _assert_eq "c2 1/1"
@@ -248,14 +248,14 @@ test post_lines_name_only_the_header =
 
 := stop_text (p : posting) : string = stopped p (rate_limited ()) |> \ (_, text) => text
 
-test a_stopped_thread_names_its_resume_command =
+:# a_stopped_thread_names_its_resume_command =
     := ~root = "1"
     := p = first_posting ()
     stop_text { p ?| ids = [ "2"; root ] }
     |> sm'::ends_with "; continue with: xc post-thread --resume 1 FILE"
     |> _assert_eq !+
 
-test a_stopped_resume_says_to_repeat_it =
+:# a_stopped_resume_says_to_repeat_it =
     := ~id = "2"
     := p = first_posting ()
     := r = stop_text { p ?| ids = [ id ]; resumed = !+ }

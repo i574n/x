@@ -2,7 +2,7 @@
 ///> rust
 ///> gleam
 ///> zig
-test protocol static =
+:# protocol static =
     :< testing
 
 :< sm'_operators
@@ -110,7 +110,7 @@ test protocol static =
 
 := exit_code (flaws : list thread_flaw) : i32 =
     ?= flaws ?|
-    | Nil => 0i32
+    | [] => 0i32
     | _ => 4i32
 
 := packed (h : frame_header) : i32 = h::part * 100i32 + h::part_count
@@ -120,7 +120,7 @@ test protocol static =
     | Ok h => cell_text h::cell ++# sm'::obj_to_string (packed h)
     | Error _ => "rejected"
 
-test headers_round_trip =
+:# headers_round_trip =
     := ~cell = cell_label 12i32
     := h = { cell part = 3i32; part_count = 10i32 }
     rendered h |> _assert_eq "c12 3/10"
@@ -139,38 +139,38 @@ test headers_round_trip =
 
 := code_of (line : string) : i32 = parsed line |> rejection_code
 
-test parts_must_fall_inside_the_count =
+:# parts_must_fall_inside_the_count =
     := ~line = "c1 4/3"
     code_of line |> _assert_eq 3i32
     code_of "c1 0/3" |> _assert_eq 3i32
     code_of "c7 2/2" |> _assert_eq 0i32
     code_of "p2 1/6" |> _assert_eq 0i32
 
-test headers_are_two_words =
+:# headers_are_two_words =
     := ~line = "c1"
     code_of line |> _assert_eq 1i32
     code_of "c1  1/2" |> _assert_eq 1i32
     code_of " 1/2" |> _assert_eq 1i32
 
-test the_second_word_is_a_fraction =
+:# the_second_word_is_a_fraction =
     := ~line = "c1 1-2"
     code_of line |> _assert_eq 2i32
     code_of "c1 1/2/3" |> _assert_eq 2i32
     code_of "c1 a/2" |> _assert_eq 2i32
 
-test a_missing_frame_names_its_cell =
+:# a_missing_frame_names_its_cell =
     := ~cell = cell_id "c3"
     note_of (MissingFrames { cell missing = [ 2i32; 4 ]; part_count = 5i32 })
     |> _assert_eq "cell c3 is missing frame 2, 4 of 5"
-    exit_code Nil |> _assert_eq 0i32
+    exit_code [] |> _assert_eq 0i32
 
-test a_reply_gap_names_the_parent =
+:# a_reply_gap_names_the_parent =
     := ~cell = cell_id "p2"
     := gap = ReplyGap { cell parent = post_id "1900" }
     note_of gap |> _assert_eq "cell p2 replies to 1900, which is not in the thread: posts before it are missing"
     exit_code [ gap ] |> _assert_eq 4i32
 
-test words_beyond_ascii_are_no_header =
+:# words_beyond_ascii_are_no_header =
     := ~line = "c’est parti"
     code_of line |> _assert_eq 2i32
     code_of "c1 é/2" |> _assert_eq 2i32

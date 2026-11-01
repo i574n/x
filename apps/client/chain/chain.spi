@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d serde_json
-test chain static =
+:# chain static =
     :< testing
 
 :< sm'_operators
@@ -29,8 +29,8 @@ test chain static =
 
 :~ ^ chain_from (all : list framed) (at : framed) (acc : list framed) : chain_reading =
     ?= replies_under all at ?|
-    | Nil => ChainRead (listm::rev acc)
-    | next :: Nil => chain_from all next (next :: acc)
+    | [] => ChainRead (listm::rev acc)
+    | next :: [] => chain_from all next (next :: acc)
     | _ => branched at
 
 := orphan (posts : list framed) (f : framed) : bool =
@@ -43,9 +43,9 @@ test chain static =
 
 := chain_of (posts : list framed) : chain_reading =
     ?= keep (outside posts) posts ?|
-    | root :: Nil => chain_from posts root [ root ]
+    | root :: [] => chain_from posts root [ root ]
     | first :: second :: _ => second_root posts first second
-    | Nil => ChainMissing
+    | [] => ChainMissing
 
 := framed_json (f : framed) : string =
     object [ member "id" (quoted_text (post_text f::id)); member "text" (json_string f::text) ]
@@ -71,7 +71,7 @@ test chain static =
     | refused => 4i32, "", chain_refusal refused
 
 := post_of (id : string) (parent : string) (text : string) : framed =
-    { id = post_id id; text; history = [ post_id id ]; urls = Nil; parent = optional_post parent }
+    { id = post_id id; text; history = [ post_id id ]; urls = []; parent = optional_post parent }
 
 := ids_listed (l : list framed) : string = l |> each (\ (f : framed) => post_text f::id) |> delimited ","
 
@@ -84,15 +84,15 @@ test chain static =
 
 := three_posts () : list framed = [ post_of "3" "2" "c1 3/3"; post_of "1" "" "c1 1/3"; post_of "2" "1" "c1 2/3" ]
 
-test a_thread_chain_runs_from_its_root_to_the_last_reply =
+:# a_thread_chain_runs_from_its_root_to_the_last_reply =
     := ~posts = three_posts ()
-    (chain_listed posts, chain_listed Nil) |> _assert_eq ("1,2,3", "none")
+    (chain_listed posts, chain_listed []) |> _assert_eq ("1,2,3", "none")
 
-test a_chain_keeps_multiline_quoted_texts =
+:# a_chain_keeps_multiline_quoted_texts =
     := ~text = "c1 1/1\nsay \"hi\""
     [ post_of "1" "" text ] |> chain_json |> parse_json |> collect (at_key "text") |> _assert_eq [ text ]
 
-test a_branch_or_a_second_root_refuses =
+:# a_branch_or_a_second_root_refuses =
     := ~posts = three_posts ()
     (chain_listed (post_of "4" "1" "x" :: posts), chain_listed (post_of "5" "9" "y" :: posts))
         |> _assert_eq ("branches after 1", "second root 5")

@@ -1,7 +1,7 @@
 ///- --package . --timeout 600000
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
-test scenario static =
+:# scenario static =
     :< testing
 
 :< sm'_operators
@@ -23,7 +23,7 @@ test scenario static =
     }
 
 := plain_casting (seed : i32) : casting =
-    { seed users = 8i32; edits = 3i32; breaking = 0i32; churn = 0i32; personas = Nil; branch_tests = !- }
+    { seed users = 8i32; edits = 3i32; breaking = 0i32; churn = 0i32; personas = []; branch_tests = !- }
 
 :== scenario = { posts : list rooted; all_events : list event; broken : list string }
 
@@ -51,7 +51,7 @@ test scenario static =
     }
 
 := posts_of_cells (c : casting) (prefix : string) (cells : list string) : list rooted =
-    := t = cells |> listm::fold (grown_trunk c prefix) { chain = Nil; parent = None; n = 0i32 }
+    := t = cells |> listm::fold (grown_trunk c prefix) { chain = []; parent = None; n = 0i32 }
     listm::rev t::chain
 
 := user_name (u : i32) : string = "u" ++# sm'::obj_to_string u
@@ -77,8 +77,8 @@ test scenario static =
 
 := edits_among (pool : list rooted) (count : i32) (edit : rooted -> event) (st : exsss) : list event * exsss =
     ?= pool ?|
-    | Nil => Nil, st
-    | _ => listm::init count id |> listm::fold (edit_draw pool edit) (Nil, st)
+    | [] => [], st
+    | _ => listm::init count id |> listm::fold (edit_draw pool edit) ([], st)
 
 := appended_line (r : rooted) : event = edited_to (r::source ++# "\n") r
 
@@ -90,7 +90,7 @@ test scenario static =
 := churned (posts : list rooted) (count : i32) : list event =
     ?= posts ?|
     | root :: _ => listm::init count (churn_edit root)
-    | Nil => Nil
+    | [] => []
 
 := turns (step : i32) (i : i32) : bool = (i + 1i32) % step = 0i32
 
@@ -104,7 +104,7 @@ test scenario static =
 
 :~ ^ woven (w : weaving) (l : list event) (acc : list event) : list event =
     ?= l ?|
-    | Nil => listm::append (listm::rev acc) w::churn
+    | [] => listm::append (listm::rev acc) w::churn
     | e :: rest => taken w e acc |> \ (w, acc) => woven w rest acc
 
 := weave_step (events : list event) (churn : list event) : i32 =
@@ -113,8 +113,8 @@ test scenario static =
 
 := weave (events : list event) (churn : list event) : list event =
     ?= churn ?|
-    | Nil => events
-    | _ => woven { step = weave_step events churn; i = 0i32; churn } events Nil
+    | [] => events
+    | _ => woven { step = weave_step events churn; i = 0i32; churn } events []
 
 := liked_event (s : social) : event = Reaction (Liked s)
 
@@ -125,7 +125,7 @@ test scenario static =
 := scenario_seed (seed : i32) : exsss = seeded_i32 seed (seed * 7i32 + 1i32) (seed * 13i32 + 3i32)
 
 := liked_drafts (c : casting) (posts : list rooted) : list social * exsss =
-    := reversed, st = posts |> listm::fold (likes_for c::users) (Nil, scenario_seed c::seed)
+    := reversed, st = posts |> listm::fold (likes_for c::users) ([], scenario_seed c::seed)
     listm::rev reversed, st
 
 := editable_posts (posts : list rooted) : list rooted = posts |> keep (\ (r : rooted) => not (test_cell r::source))
@@ -139,7 +139,7 @@ test scenario static =
 
 := drafted (c : casting) (posts : list rooted) : drafts =
     := likes, st = liked_drafts c posts
-    := unlikes, st = likes |> listm::fold unliked_from (Nil, st)
+    := unlikes, st = likes |> listm::fold unliked_from ([], st)
     := edits, breaking, rng = edited c posts st
     { likes unlikes edits breaking rng }
 
@@ -150,7 +150,7 @@ test scenario static =
 := edited_source (e : event) : list string =
     ?= e ?|
     | Revision (Edited s) => [ s::source ]
-    | _ => Nil
+    | _ => []
 
 := broken_of (d : drafts) (acts : acted) : list string =
     listm::append (d::breaking |> spread edited_source) acts::broken
@@ -178,7 +178,7 @@ test scenario static =
 := merged_posts (l : list scenario) : list rooted = l |> spread \ (s : scenario) => s::posts
 
 := merged_scenarios (l : list scenario) : scenario =
-    := all_events = round_robin (l |> each (\ (s : scenario) => s::all_events)) Nil
+    := all_events = round_robin (l |> each (\ (s : scenario) => s::all_events)) []
     {
         posts = merged_posts l
         all_events
@@ -186,7 +186,7 @@ test scenario static =
     }
 
 :~ from_corpus (c : casting) (threads : list (list string)) : scenario =
-    := acc = threads |> listm::fold (next_thread c) { scenarios = Nil; k = 0i32 }
+    := acc = threads |> listm::fold (next_thread c) { scenarios = []; k = 0i32 }
     merged_scenarios acc::scenarios
 
 := parent_text (p : option string) : string =
@@ -197,7 +197,7 @@ test scenario static =
 := chain_text (s : scenario) : string =
     s::posts |> each (\ (r : rooted) => r::post_id ++# "<" ++# parent_text r::parent) |> delimited ","
 
-test posts_chain_their_parents =
+:# posts_chain_their_parents =
     := ~cells = [ "a"; "b" ]
     from_cells (plain_casting 1i32) "f0" cells |> chain_text |> _assert_eq "f0p0<-,f0p1<f0p0"
 
@@ -208,6 +208,6 @@ test posts_chain_their_parents =
 
 := deletions (l : list string) : list event = l |> each (\ id => Revision (Deleted id))
 
-test churn_lands_between_every_step =
+:# churn_lands_between_every_step =
     := ~churn = deletions [ "x"; "y" ]
     weave (deletions [ "1"; "2"; "3"; "4" ]) churn |> each deleted_id |> delimited "," |> _assert_eq "1,x,2,y,3,4"

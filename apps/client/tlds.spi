@@ -1,7 +1,7 @@
 ///- --package . --timeout 900000
 ///> rust
 ///> gleam
-test tlds static =
+:# tlds static =
     :< testing
 
 :< sm'_operators
@@ -188,7 +188,7 @@ test tlds static =
     := key = "|" ++# sm'::to_lower label ++# "|"
     tld_chunks () |> has (\ c => sm'::contains key c)
 
-test common_and_generic_tlds_are_known =
+:# common_and_generic_tlds_are_known =
     := ~label = "map"
     (is_tld label, is_tld "IO", is_tld "post", is_tld "head", is_tld "") |> _assert_eq (!+, !+, !+, !-, !-)
 
@@ -198,5 +198,5 @@ test common_and_generic_tlds_are_known =
     pieces "\n" (sm'::replace "\r" "" text) |> keep (\ l => l <> "") |> delimited "|"
 
 ///> rust
-test the_list_is_postability_tlds_txt =
+:# the_list_is_postability_tlds_txt =
     file_system::read_all_text "../../postability/tlds.txt" |> file_tlds |> _assert_eq (listed_tlds ())

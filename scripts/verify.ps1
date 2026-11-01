@@ -110,12 +110,12 @@ if ($Accept -and $withClient) {
     if (!(Test-Path $exe)) { throw "x verify / no xc binary at $exe to accept the e2e tutorial with" }
     $null = Invoke-Step 'e2e accept' { pwsh -NoProfile -File (Join-Path $client 'e2e/e2e.ps1') -Exe $exe -WorkDir (Join-Path (Get-XTargetDir client) 'e2e-accept') -Accept }
 }
+$simCode = if ($withSim) { Invoke-Step 'sim build' { pwsh -NoProfile -File (Join-Path $sim 'build.ps1') } } else { 0 }
 $clientFast = if ($ParallelNotebooks -gt 0) { @('-fast', '1') } else { @() }
 $clientCode = if ($withClient) { Invoke-Step 'client build' { pwsh -NoProfile -File (Join-Path $client 'build.ps1') @clientFast } } else { 0 }
 if ($withClient -and $ParallelNotebooks -gt 0 -and $clientCode -eq 0) {
     $null = Invoke-ParallelNotebooks $client (Get-NotebookList (Join-Path $client 'build.ps1')) $ParallelNotebooks
 }
-$simCode = if ($withSim) { Invoke-Step 'sim build' { pwsh -NoProfile -File (Join-Path $sim 'build.ps1') } } else { 0 }
 if ($Out) {
     New-Item -ItemType Directory -Force $Out | Out-Null
     robocopy (Join-Path $XRoot 'apps') (Join-Path $Out 'apps') *.rs *.gleam *.json *.jsonl *.txt README.md /S /XD target node_modules deps _build /NFL /NDL /NJH /NJS /NP | Out-Null

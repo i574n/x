@@ -1,5 +1,5 @@
 ///- --package .
-test oauth1 static =
+:# oauth1 static =
     :< testing
 
 :< sm'_operators
@@ -37,5 +37,5 @@ test oauth1 static =
     oauth::authorization_header o method url nonce stamp
 
 ///> rust -d sha1
-test a_fresh_nonce_is_forty_hex_digits =
+:# a_fresh_nonce_is_forty_hex_digits =
     sm'::length (fresh_nonce ()) |> _assert_eq 40i32

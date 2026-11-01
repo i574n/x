@@ -1,5 +1,5 @@
 ///- --package .
-test wire static =
+:# wire static =
     :< testing
 
 :< sm'_operators
@@ -166,13 +166,13 @@ test wire static =
     ? p::pagination_token = "" ?> first |: first ++# "&pagination_token=" ++# p::pagination_token
 
 := expansions_of (q : query) : list string =
-    listm::append (? q::depth > 0 ?> [ "referenced_posts"; "referenced_posts.author_id" ] |: Nil)
-        (? q::hints ?> [ "attachments.media_keys" ] |: Nil)
+    listm::append (? q::depth > 0 ?> [ "referenced_posts"; "referenced_posts.author_id" ] |: [])
+        (? q::hints ?> [ "attachments.media_keys" ] |: [])
 
 := expansion_params (q : query) : string =
     := media = ? q::hints ?> "&media.fields=type,alt_text" |: ""
     ?= expansions_of q ?|
-    | Nil => ""
+    | [] => ""
     | names => "&expansions=" ++# sm'::concat_list "," names ++# media
 
 := fields_params (q : query) : string =
@@ -270,7 +270,7 @@ test wire static =
 := collect \* t. (f : json -> t) (items : json) : list t =
     :~ ^ from (i : i32) (acc : list t) : list t =
         ? i < 0i32 ?> acc |: from (i - 1) (f (item i items) :: acc)
-    from (count_of items - 1) Nil
+    from (count_of items - 1) []
 
 := texts (items : json) : list string = items |> collect text_of
 
@@ -514,10 +514,10 @@ test wire static =
 := refs_of (l : list post) : post_ids = l |> spread (\ (p : post) => p::refs |> each (\ (r : reference) => r::id))
 
 := distinct (l : list string) : list string =
-    listm::fold (\ acc x => ? has ((=) x) acc ?> acc |: listm::append acc [ x ]) Nil l
+    listm::fold (\ acc x => ? has ((=) x) acc ?> acc |: listm::append acc [ x ]) [] l
 
 := distinct_posts (l : post_ids) : post_ids =
-    listm::fold (\ acc x => ? has (same_post x) acc ?> acc |: listm::append acc [ x ]) Nil l
+    listm::fold (\ acc x => ? has (same_post x) acc ?> acc |: listm::append acc [ x ]) [] l
 
 := without_ids (ids : post_ids) (l : list post) : list post =
     l |> keep (\ (p : post) => not (has (same_post p::id) ids))
@@ -584,30 +584,30 @@ test wire static =
     "&expansions=referenced_posts,referenced_posts.author_id,attachments.media_keys&media.fields=type,alt_text"
 
 ///> zig
-test users_lookup_path =
+:# users_lookup_path =
     := ~h = "alice"
     read_path (Users (Named [ h; "bob" ])) |> _assert_eq "/2/users/by?usernames=alice,bob"
 
 ///> zig
-test following_path_carries_the_token =
+:# following_path_carries_the_token =
     := ~pagination_token = "t1"
     read_path (FollowedBy { follower = user_id "42"; size = 2i32; pagination_token })
     |> _assert_eq "/2/users/42/following?max_results=2&pagination_token=t1"
 
 ///> zig
-test first_following_page_has_no_token =
+:# first_following_page_has_no_token =
     := ~size = 1000i32
     read_path (FollowedBy { follower = user_id "42"; size; pagination_token = "" })
     |> _assert_eq "/2/users/42/following?max_results=1000"
 
 ///> zig
-test plain_posts_path_asks_for_no_expansions =
+:# plain_posts_path_asks_for_no_expansions =
     := ~n = 5i32
     := q = plain_query ()
     read_path (PostsOf (erin (), { q ?| max_results = n })) |> _assert_eq (plain_posts ())
 
 ///> zig
-test posts_below_the_api_floor_ask_for_five =
+:# posts_below_the_api_floor_ask_for_five =
     := ~n = 1i32
     := q = plain_query ()
     read_path (PostsOf (erin (), { q ?| max_results = n })) |> _assert_eq (plain_posts ())
@@ -617,7 +617,7 @@ test posts_below_the_api_floor_ask_for_five =
     read_path (PostsOf (erin (), { q ?| filters = f }))
 
 ///> zig
-test start_time_is_sent =
+:# start_time_is_sent =
     := ~start_time = "2026-10-15T00:00:00Z"
     := f = no_filters ()
     filtered { f ?| start_time } |> _assert_eq (plain_posts () ++# "&start_time=" ++# start_time)
@@ -630,26 +630,26 @@ test start_time_is_sent =
     { conversation_id = conversation_id "7"; author_id = user_id "5"; start_time }
 
 ///> zig
-test thread_pages_search_the_archive_from_the_root =
+:# thread_pages_search_the_archive_from_the_root =
     := ~start_time = "2026-09-01T18:12:00Z"
     thread_path (ThreadPage (root_search start_time, "t2"))
     |> _assert_eq (archive_page start_time ++# "&next_token=t2")
 
 ///> zig
-test originals_exclude_replies_and_reposts =
+:# originals_exclude_replies_and_reposts =
     := ~on = !+
     := f = no_filters ()
     filtered { f ?| no_replies = on; no_reposts = on } |> _assert_eq (plain_posts () ++# "&exclude=replies,retweets")
 
 ///> zig
-test depth_and_hints_add_expansions =
+:# depth_and_hints_add_expansions =
     := ~depth = 1i32
     := q = plain_query ()
     read_path (PostsById ([ post_id "1"; post_id "2" ], { q ?| depth; hints = !+ }))
     |> _assert_eq ("/2/tweets?ids=1,2" ++# fields_query () ++# expansions_query ())
 
 ///> zig
-test writes_use_their_verbs_and_paths =
+:# writes_use_their_verbs_and_paths =
     := ~id = post_id "9"
     write_path (Removal id) |> _assert_eq "/2/tweets/9"
     ?= write_verb (Removal id) ?|
@@ -657,27 +657,27 @@ test writes_use_their_verbs_and_paths =
     | _ => _assert_eq "Remove" "other"
 
 ///> zig
-test endpoint_drops_a_trailing_slash =
+:# endpoint_drops_a_trailing_slash =
     := ~base = "http://127.0.0.1:9/"
     base_of (app_api base "k") |> _assert_eq "http://127.0.0.1:9"
 
 ///> zig
-test page_size_never_exceeds_the_api_maximum =
+:# page_size_never_exceeds_the_api_maximum =
     := ~remaining = 2147483647i32
     page_size remaining |> _assert_eq 1000i32
 
 ///> zig
-test a_users_lookup_is_not_a_posts_read fails "Expected: reads posts_reply" =
+:# a_users_lookup_is_not_a_posts_read fails "Expected: reads posts_reply" =
     := q : reads posts_reply = Users (Named [ "alice" ])
     read_path q |> ignore
 
 ///> zig
-test a_deletion_does_not_reply_with_a_created_post fails "Expected: writes created_reply" =
+:# a_deletion_does_not_reply_with_a_created_post fails "Expected: writes created_reply" =
     := q : writes created_reply = DeletePost (post_id "9")
     path_on OnX q |> ignore
 
 ///> zig
-test the_app_token_cannot_write fails "Expected: api user_context" =
+:# the_app_token_cannot_write fails "Expected: api user_context" =
     := a : api user_context = app_api "http://127.0.0.1:9" "k"
     a |> ignore
 
@@ -713,7 +713,7 @@ test the_app_token_cannot_write fails "Expected: api user_context" =
     ++# refs
 
 ///> rust -d serde_json
-test posts_decode_ids_counts_and_references =
+:# posts_decode_ids_counts_and_references =
     ?= posts_of_doc "erin" (posts_doc ()) ?|
     | posts_reply { primary } => primary |> each post_summary |> sm'::concat_list "|" |> _assert_eq "1 erin 14 quoted:2"
 
@@ -732,7 +732,7 @@ test posts_decode_ids_counts_and_references =
     )
 
 ///> rust -d serde_json
-test users_lookup_names_found_and_unknown =
+:# users_lookup_names_found_and_unknown =
     ?= users_of_doc (users_doc ()) ?|
     | users_reply { found unknown } =>
         account_names found ++# " " ++# sm'::concat_list "," unknown |> _assert_eq "9:bob ghost"
@@ -741,28 +741,28 @@ test users_lookup_names_found_and_unknown =
     parse_json (object [ member "data" (items []); member "meta" (object [ member "next_token" (quoted_text "n2") ]) ])
 
 ///> rust -d serde_json
-test a_page_carries_its_next_token =
+:# a_page_carries_its_next_token =
     ?= page_of_doc (next_page_doc ()) ?|
     | page_reply { next_token } => next_token |> _assert_eq "n2"
 
 ///> rust -d serde_json
-test errors_prefer_their_detail =
+:# errors_prefer_their_detail =
     := problem = object [ member "title" (quoted_text "T"); member "detail" (quoted_text "D") ]
     parse_json (object [ member "errors" (items [ problem ]) ]) |> first_error |> _assert_eq "D"
 
 ///> rust -d serde_json
-test text_comes_back_unescaped =
+:# text_comes_back_unescaped =
     := ~escaped = "a |&gt; b &amp;&amp; c &lt;d&gt; &amp;lt;"
     unescaped escaped |> _assert_eq "a |> b && c <d> &lt;"
 
 ///> zig
-test mastodon_writes_use_statuses =
+:# mastodon_writes_use_statuses =
     := ~id = post_id "9"
     (path_on OnMastodon (DeletePost id), path_on OnMastodon (CreatePost "hi"), path_on OnX (DeletePost id))
     |> _assert_eq ("/api/v1/statuses/9", "/api/v1/statuses", "/2/tweets/9")
 
 ///> rust -d serde_json
-test mastodon_replies_name_their_parent =
+:# mastodon_replies_name_their_parent =
     verb_on OnMastodon (ReplyPost ("hi", created_reply { id = post_id "7"; text = "c1 1/2"; cid = "" }))
     |> body_of_verb
     |> _assert_eq "{\"in_reply_to_id\":\"7\",\"status\":\"hi\"}"
@@ -774,7 +774,7 @@ test mastodon_replies_name_their_parent =
 := id_and_text (r : created_reply) : string * string = ref_uri r, reply_text r
 
 ///> rust -d serde_json
-test a_status_reads_back_as_a_post =
+:# a_status_reads_back_as_a_post =
     := ~doc = "{\"id\":\"11\",\"content\":\"hi\"}"
     decoded_on OnMastodon (CreatePost "hi") (parse_json doc) |> id_and_text |> _assert_eq ("11", "hi")
 
@@ -792,42 +792,42 @@ test a_status_reads_back_as_a_post =
     verb_on (OnBluesky (sample_writer ())) (CreatePost text) |> body_of_verb |> parse_json |> field "record"
 
 ///> rust -d serde_json
-test a_bluesky_reply_names_root_and_parent =
+:# a_bluesky_reply_names_root_and_parent =
     := ~n = "1"
     := r = sample_reply (sample_ref n)
     (r |> field "root" |> at_key "cid", r |> field "parent" |> at_key "cid") |> _assert_eq ("c1", "c2")
 
 ///> zig
-test a_bluesky_delete_names_the_record_key =
+:# a_bluesky_delete_names_the_record_key =
     := ~uri = "at://did:plc:e2e/app.bsky.feed.post/42"
     (rkey_of uri, record_path (Removal (post_id uri)))
     |> _assert_eq ("42", "/xrpc/com.atproto.repo.deleteRecord")
 
 ///> rust -d serde_json
-test a_bluesky_post_is_typed_as_a_feed_post =
+:# a_bluesky_post_is_typed_as_a_feed_post =
     := ~text = "hi"
     := record = sample_record text
     (record |> at_key (record_type_key ()), record |> at_key "text") |> _assert_eq ("app.bsky.feed.post", "hi")
 
 ///> rust -d serde_json
-test a_session_names_its_token_and_account =
+:# a_session_names_its_token_and_account =
     := ~doc = "{\"accessJwt\":\"t1\",\"did\":\"did:plc:e2e\"}"
     := s = session_of (parse_json doc)
     (s::token, s::account) |> _assert_eq ("t1", "did:plc:e2e")
 
 ///> rust -d serde_json
-test a_session_request_names_the_account =
+:# a_session_request_names_the_account =
     := ~who = "e2e.bsky.social"
     session_body who "pw" |> _assert_eq "{\"identifier\":\"e2e.bsky.social\",\"password\":\"pw\"}"
 
 ///> zig
-test an_anonymous_endpoint_sends_no_credentials =
+:# an_anonymous_endpoint_sends_no_credentials =
     := ~base = "http://127.0.0.1:9/"
     ?= anonymous_api base ?|
     | api { auth } => header_kind auth |> _assert_eq "none"
 
 ///> rust -d serde_json
-test replies_name_their_parent =
+:# replies_name_their_parent =
     verb_on OnX (ReplyPost ("hi", created_reply { id = post_id "7"; text = "c1 1/2"; cid = "" }))
     |> body_of_verb
     |> _assert_eq "{\"reply\":{\"in_reply_to_tweet_id\":\"7\"},\"text\":\"hi\"}"
@@ -835,12 +835,12 @@ test replies_name_their_parent =
 := blank_keys () : oauth1 = { consumer_key = ""; consumer_secret = ""; token = ""; token_secret = "" }
 
 ///> rust -d serde_json
-test only_a_user_context_is_signed =
+:# only_a_user_context_is_signed =
     := ~nonce = "n"
     ?= signed_api "https://api.x.com" (blank_keys ()) nonce "1" ?|
     | api { auth } => header_kind auth |> _assert_eq "signed"
 
 ///> rust -d serde_json
-test an_app_token_cannot_be_signed fails "Unification failure" =
+:# an_app_token_cannot_be_signed fails "Unification failure" =
     := a : authorizer app_context = Signed (blank_keys (), "n", "1")
     a

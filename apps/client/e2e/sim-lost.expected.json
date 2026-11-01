@@ -6,7 +6,7 @@
     "program": [
         "///- --package . --timeout 600000",
         "",
-        "///- --test static",
+        "///- --test static --symbol",
         "",
         ":< testing"
     ],

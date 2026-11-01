@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust
-test view static =
+:# view static =
     :< testing
 
 :< sm'_operators
@@ -27,7 +27,7 @@ test view static =
 
 := quiet_line () : string = "2026-10-15 09:05  @" ++# "b  t1  [0 replies, 0 reposts, 0 likes]|1"
 
-test entry_lines_render_as_the_timeline =
+:# entry_lines_render_as_the_timeline =
     := ~line = at "1" "b" "2026-10-15T09:05:00Z" |> lone |> entry_line "p"
     := d = digest_of line
     shown_lines d (utc_view ()) d::primary |> shown_text |> _assert_eq (quiet_line ())

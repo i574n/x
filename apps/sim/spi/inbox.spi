@@ -1,7 +1,7 @@
 ///- --package . --timeout 600000
 ///> rust -d sha2
 ///> gleam
-test inbox static =
+:# inbox static =
     :< testing
 
 :< sm'_operators
@@ -39,7 +39,7 @@ test inbox static =
 
 := no_tallies () : tallies = { framed = 0i32; framed_edits = 0i32; duplicates = 0i32; buffered = 0i32 }
 
-:= empty_intake () : intake = { seen = dictm::set_empty (); pending = Nil; frames = dictm::empty () }
+:= empty_intake () : intake = { seen = dictm::set_empty (); pending = []; frames = dictm::empty () }
 
 := empty_graph () : graph = { posts = dictm::empty (); keys = dictm::empty (); children = dictm::empty () }
 
@@ -92,7 +92,7 @@ test inbox static =
 
 := with_child (parent : option string) (id : string) (g : graph) : graph =
     ?= parent ?|
-    | Some p => { g ?| children = dictm::updated p Nil (\ l => id :: l) g::children }
+    | Some p => { g ?| children = dictm::updated p [] (\ l => id :: l) g::children }
     | None => g
 
 := new_post_state (r : rooted) (at : i32) : post_state =
@@ -231,7 +231,7 @@ test inbox static =
 
 :~ ^ drained_from (todo : list delivery) (w : inbox) : inbox =
     ?= todo ?|
-    | Nil => w
+    | [] => w
     | d :: rest =>
         ?= applied_event d::at d::event w ?|
         | Applied next => drained (unparked d::at next)
@@ -261,7 +261,7 @@ test inbox static =
         := p = dictm::present i w::graph::posts
         chain_sources w p::parent (latest_source p :: acc)
 
-:= sources (w : inbox) (id : string) : list string = chain_sources w (Some id) Nil
+:= sources (w : inbox) (id : string) : list string = chain_sources w (Some id) []
 
 := wanted_key (w : inbox) (id : string) : option string =
     ?= dictm::find id w::reactions::demand, dictm::find id w::graph::posts ?|
@@ -298,7 +298,7 @@ test inbox static =
 
 := run (l : list delivery) : inbox = l |> listm::fold delivered (new_inbox ())
 
-test duplicates_are_counted_once =
+:# duplicates_are_counted_once =
     := ~id = "p0"
     := w = run [ post_at 0i32 id None "inl a = 1"; post_at 0i32 id None "inl a = 1" ]
     (w::tallies::duplicates, dictm::size w::graph::posts) |> _assert_eq (1i32, 1i32)
@@ -306,17 +306,17 @@ test duplicates_are_counted_once =
 := waiting_shape (w : inbox) : i32 * i32 * i32 =
     w::tallies::buffered, dictm::size w::graph::posts, (listm::length w::intake::pending : i32)
 
-test a_child_before_its_parent_waits_then_lands =
+:# a_child_before_its_parent_waits_then_lands =
     := ~id = "c"
     run [ post_at 1i32 id (Some "p") "inl b = 2"; post_at 0i32 "p" None "inl a = 1" ] |> waiting_shape
     |> _assert_eq (1i32, 2i32, 0i32)
 
-test frames_in_any_order_rebuild_the_post =
+:# frames_in_any_order_rebuild_the_post =
     := ~id = "f"
     := w = run [ frame_delivery 2i32 id 2i32 2i32 "b"; frame_delivery 1i32 id 1i32 2i32 "a" ]
     (w::tallies::framed, sources w id) |> _assert_eq (1i32, [ "ab" ])
 
-test an_older_unlike_does_not_undo_a_newer_like =
+:# an_older_unlike_does_not_undo_a_newer_like =
     := ~id = "p0"
     := w = run [ post_at 0i32 id None "x"; like_at 5i32 id "u"; unlike_at 3i32 id "u" ]
     (?= wanted_key w id ?|
@@ -328,13 +328,13 @@ test an_older_unlike_does_not_undo_a_newer_like =
 := edited_to (id : string) (source : string) : delivery =
     { at = 2i32; event = Revision (Edited { post_id = id; source }) }
 
-test an_edit_rekeys_the_children =
+:# an_edit_rekeys_the_children =
     := ~id = "p"
     := w = run [ post_at 0i32 id None "a"; post_at 1i32 "c" (Some id) "b" ]
     := before = child_key w
     (child_key (delivered w (edited_to id "a2")) <> before, sm'::length before) |> _assert_eq (!+, 16i32)
 
-test keys_match_the_elixir_world =
+:# keys_match_the_elixir_world =
     := ~id = "p"
     := w = run [ post_at 0i32 id None "a"; post_at 1i32 "c" (Some id) "b" ]
     (dictm::present id w::graph::keys, dictm::present "c" w::graph::keys)

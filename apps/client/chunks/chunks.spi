@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d serde_json unicode-segmentation=1.13 unicode-normalization=0.1
-test chunks static =
+:# chunks static =
     :< testing
 
 :< sm'_operators
@@ -29,11 +29,11 @@ test chunks static =
 
 := local_json (i : i32) (posted : string) : string = chunks_by (weight_on OnX) (weighed_on OnX (nfc posted)) OnX i
 
-test a_short_cell_is_one_chunk =
+:# a_short_cell_is_one_chunk =
     := ~cell = "a"
     local_json 1i32 cell |> _assert_eq "[\"a\"]"
 
-test a_posted_dot_stays_glued_to_its_space =
+:# a_posted_dot_stays_glued_to_its_space =
     := ~cell = "go x" ++# defused_dot () ++# "io"
     local_json 1i32 cell |> _assert_eq ("[\"go x" ++# defused_dot () ++# "io\"]")
 

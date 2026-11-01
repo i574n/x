@@ -38,7 +38,24 @@ fn method2(mut v0: Rc<Vec<Rc<str>>>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) 
         }
     }
 }
-fn method8(mut v0: Option<char>) -> Option<char> {
+fn method4(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
+    loop {
+        match &*v0 {
+            UH1::UH1_Cons(v2, v3, v4) => {
+                let v2: Rc<str> = v2.clone();
+                let v3: Rc<UH0> = v3.clone();
+                let v4: Rc<UH1> = v4.clone();
+                let v5: Rc<UH1> = Rc::new(UH1::UH1_Cons(v2.clone(), v3.clone(), v1.clone()));
+                (v0, v1) = (v4.clone(), v5.clone());
+                continue;
+            }
+            UH1::UH1_Nil => {
+                return v1.clone();
+            }
+        }
+    }
+}
+fn method9(mut v0: Option<char>) -> Option<char> {
     v0
 }
 fn closure2() -> Rc<dyn Fn((char)) -> u32> {
@@ -48,7 +65,7 @@ fn closure2() -> Rc<dyn Fn((char)) -> u32> {
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn method9(mut v0: Option<u32>) -> Option<u32> {
+fn method10(mut v0: Option<u32>) -> Option<u32> {
     v0
 }
 fn closure3() -> Rc<dyn Fn((u32)) -> i32> {
@@ -58,7 +75,7 @@ fn closure3() -> Rc<dyn Fn((u32)) -> i32> {
         v2
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn ascii_of_7(mut v0: Rc<str>) -> i32 {
+fn ascii_of_8(mut v0: Rc<str>) -> i32 {
     let v1: bool = &*v0 == "";
     if v1 {
         0i32
@@ -67,10 +84,10 @@ fn ascii_of_7(mut v0: Rc<str>) -> i32 {
         let v3: bool = v2 == 1i32;
         if v3 {
             let v4: Option<char> = (&*v0).chars().next();
-            let v5: Option<char> = method8(v4.clone());
+            let v5: Option<char> = method9(v4.clone());
             let mut v6: Rc<dyn Fn((char)) -> u32> = closure2();
             let v7: Option<u32> = v5.map(|x| v6(x));
-            let v8: Option<u32> = method9(v7.clone());
+            let v8: Option<u32> = method10(v7.clone());
             let mut v9: Rc<dyn Fn((u32)) -> i32> = closure3();
             let mut v10: Option<i32> = v8.map(|x| v9(x));
             let v12: i32 = 0i32.clone();
@@ -81,8 +98,8 @@ fn ascii_of_7(mut v0: Rc<str>) -> i32 {
         }
     }
 }
-fn ascii_letter_6(mut v0: Rc<str>) -> bool {
-    let v1: i32 = ascii_of_7(v0);
+fn ascii_letter_7(mut v0: Rc<str>) -> bool {
+    let v1: i32 = ascii_of_8(v0);
     let v2: bool = v1 >= 65i32;
     let v4: bool = if v2 {
         let v3: bool = v1 <= 90i32;
@@ -102,12 +119,12 @@ fn ascii_letter_6(mut v0: Rc<str>) -> bool {
         }
     }
 }
-fn label_glyph_5(mut v0: Rc<str>) -> bool {
-    let v1: bool = ascii_letter_6(v0.clone());
+fn label_glyph_6(mut v0: Rc<str>) -> bool {
+    let v1: bool = ascii_letter_7(v0.clone());
     let mut v6: bool = if v1 {
         true
     } else {
-        let v2: i32 = ascii_of_7(v0.clone());
+        let v2: i32 = ascii_of_8(v0.clone());
         let v3: bool = v2 >= 48i32;
         if v3 {
             let v4: bool = v2 <= 57i32;
@@ -129,8 +146,8 @@ fn label_glyph_5(mut v0: Rc<str>) -> bool {
         v9
     }
 }
-fn run_glyph_4(mut v0: Rc<str>) -> bool {
-    let v1: bool = label_glyph_5(v0.clone());
+fn run_glyph_5(mut v0: Rc<str>) -> bool {
+    let v1: bool = label_glyph_6(v0.clone());
     if v1 {
         true
     } else {
@@ -138,7 +155,7 @@ fn run_glyph_4(mut v0: Rc<str>) -> bool {
         v2
     }
 }
-fn method12(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
+fn method13(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {
         match &*v0 {
             UH0::UH0_Cons(v2, v3) => {
@@ -154,32 +171,32 @@ fn method12(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
         }
     }
 }
-fn run_of_11(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> (Rc<UH0>, Rc<UH0>) {
+fn run_of_12(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> (Rc<UH0>, Rc<UH0>) {
     loop {
         match &*v0 {
             UH0::UH0_Cons(v2, v3) => {
                 let v2: Rc<str> = v2.clone();
                 let v3: Rc<UH0> = v3.clone();
-                let v4: bool = run_glyph_4(v2.clone());
+                let v4: bool = run_glyph_5(v2.clone());
                 if v4 {
                     let v5: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v1.clone()));
                     (v0, v1) = (v3.clone(), v5.clone());
                     continue;
                 } else {
                     let v8: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                    let mut v9: Rc<UH0> = method12(v1.clone(), v8.clone());
+                    let mut v9: Rc<UH0> = method13(v1.clone(), v8.clone());
                     return (v9.clone(), v0.clone());
                 }
             }
             _ => {
                 let v12: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                let v13: Rc<UH0> = method12(v1.clone(), v12.clone());
+                let v13: Rc<UH0> = method13(v1.clone(), v12.clone());
                 return (v13.clone(), v0.clone());
             }
         }
     }
 }
-fn method14(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
+fn method15(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
     loop {
         match &*v0 {
             UH0::UH0_Cons(v2, v3) => {
@@ -194,31 +211,14 @@ fn method14(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
         }
     }
 }
-fn last_or_13(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<str> {
-    method14(v1, v0)
+fn last_or_14(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<str> {
+    method15(v1, v0)
 }
-fn run_piece_10(mut v0: Rc<str>, mut v1: Rc<UH0>) -> (Rc<str>, Rc<UH0>, Rc<str>, Rc<UH0>) {
+fn run_piece_11(mut v0: Rc<str>, mut v1: Rc<UH0>) -> (Rc<str>, Rc<UH0>, Rc<str>, Rc<UH0>) {
     let v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-    let (mut v3, mut v4): (Rc<UH0>, Rc<UH0>) = run_of_11(v1, v2);
-    let v5: Rc<str> = last_or_13(v0.clone(), v3.clone());
+    let (mut v3, mut v4): (Rc<UH0>, Rc<UH0>) = run_of_12(v1, v2);
+    let v5: Rc<str> = last_or_14(v0.clone(), v3.clone());
     (v5, v4, v0, v3)
-}
-fn method15(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
-    loop {
-        match &*v0 {
-            UH1::UH1_Cons(v2, v3, v4) => {
-                let v2: Rc<str> = v2.clone();
-                let v3: Rc<UH0> = v3.clone();
-                let v4: Rc<UH1> = v4.clone();
-                let v5: Rc<UH1> = Rc::new(UH1::UH1_Cons(v2.clone(), v3.clone(), v1.clone()));
-                (v0, v1) = (v4.clone(), v5.clone());
-                continue;
-            }
-            UH1::UH1_Nil => {
-                return v1.clone();
-            }
-        }
-    }
 }
 fn pieces_from_3(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH1>) -> Rc<UH1> {
     loop {
@@ -226,9 +226,9 @@ fn pieces_from_3(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH1>) -> Rc<UH1> {
             UH0::UH0_Cons(v3, v4) => {
                 let v3: Rc<str> = v3.clone();
                 let v4: Rc<UH0> = v4.clone();
-                let v5: bool = run_glyph_4(v3.clone());
+                let v5: bool = run_glyph_5(v3.clone());
                 if v5 {
-                    let (mut v6, mut v7, mut v8, mut v9): (Rc<str>, Rc<UH0>, Rc<str>, Rc<UH0>) = run_piece_10(v0.clone(), v1.clone());
+                    let (mut v6, mut v7, mut v8, mut v9): (Rc<str>, Rc<UH0>, Rc<str>, Rc<UH0>) = run_piece_11(v0.clone(), v1.clone());
                     let mut v10: Rc<UH1> = Rc::new(UH1::UH1_Cons(v8.clone(), v9.clone(), v2.clone()));
                     (v0, v1, v2) = (v6.clone(), v7.clone(), v10.clone());
                     continue;
@@ -242,7 +242,7 @@ fn pieces_from_3(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH1>) -> Rc<UH1> {
             }
             UH0::UH0_Nil => {
                 let v17: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                return method15(v2.clone(), v17.clone());
+                return method4(v2.clone(), v17.clone());
             }
         }
     }
@@ -283,14 +283,14 @@ fn letters_after_22(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> (Rc<str>, bool) {
             UH0::UH0_Cons(v2, v3) => {
                 let v2: Rc<str> = v2.clone();
                 let v3: Rc<UH0> = v3.clone();
-                let v4: bool = ascii_letter_6(v2.clone());
+                let v4: bool = ascii_letter_7(v2.clone());
                 if v4 {
                     let v5: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v1.clone()));
                     (v0, v1) = (v3.clone(), v5.clone());
                     continue;
                 } else {
                     let v8: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                    let mut v9: Rc<UH0> = method12(v1.clone(), v8.clone());
+                    let mut v9: Rc<UH0> = method13(v1.clone(), v8.clone());
                     let mut v10: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
                     let v11: i32 = 0i32;
                     let v12: i32 = method23(v10.clone(), v9.clone(), v11);
@@ -304,7 +304,7 @@ fn letters_after_22(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> (Rc<str>, bool) {
             }
             UH0::UH0_Nil => {
                 let v20: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                let v21: Rc<UH0> = method12(v1.clone(), v20.clone());
+                let v21: Rc<UH0> = method13(v1.clone(), v20.clone());
                 let v22: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
                 let v23: i32 = 0i32;
                 let v24: i32 = method23(v22.clone(), v21.clone(), v23);
@@ -323,7 +323,7 @@ fn label_before_24(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<str> {
             UH0::UH0_Cons(v2, v3) => {
                 let v2: Rc<str> = v2.clone();
                 let v3: Rc<UH0> = v3.clone();
-                let v4: bool = label_glyph_5(v2.clone());
+                let v4: bool = label_glyph_6(v2.clone());
                 if v4 {
                     let v5: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v1.clone()));
                     (v0, v1) = (v3.clone(), v5.clone());
@@ -406,7 +406,7 @@ fn after_label_26(mut v0: Rc<UH0>) -> bool {
         UH0::UH0_Cons(v1, v2) => {
             let v1: Rc<str> = v1.clone();
             let v2: Rc<UH0> = v2.clone();
-            label_glyph_5(v1)
+            label_glyph_6(v1)
         }
         UH0::UH0_Nil => {
             false
@@ -448,7 +448,7 @@ fn defused_run_19(mut v0: Rc<dyn Fn(Rc<str>) -> bool>, mut v1: Rc<UH0>, mut v2: 
             }
             UH0::UH0_Nil => {
                 let v16: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                return method12(v3.clone(), v16.clone());
+                return method13(v3.clone(), v16.clone());
             }
         }
     }
@@ -464,7 +464,7 @@ fn blocks_domain_27(mut v0: Rc<str>) -> bool {
     if v3 {
         true
     } else {
-        let v4: i32 = ascii_of_7(v0);
+        let v4: i32 = ascii_of_8(v0);
         let v5: bool = v4 > 127i32;
         v5
     }

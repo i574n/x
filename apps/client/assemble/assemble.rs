@@ -157,10 +157,10 @@ fn grouped_6(mut v0: Rc<UH5>, mut v1: Rc<Heap0>) -> Rc<UH5> {
                 } else {
                     v4.clone()
                 };
-                let v22: i32 = v1.l2.clone();
+                let v22: i32 = v1.l2;
                 let v23: bool = v22 > v3;
                 let v25: i32 = if v23 {
-                    let v24: i32 = v1.l2.clone();
+                    let v24: i32 = v1.l2;
                     v24
                 } else {
                     v3
@@ -174,7 +174,7 @@ fn grouped_6(mut v0: Rc<UH5>, mut v1: Rc<Heap0>) -> Rc<UH5> {
         }
         UH5::UH5_Nil => {
             let v31: Rc<str> = v1.l0.clone();
-            let v32: i32 = v1.l2.clone();
+            let v32: i32 = v1.l2;
             let v33: Rc<str> = v1.l4.clone();
             let v34: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
             let v35: Rc<UH0> = Rc::new(UH0::UH0_Cons(v1, v34));
@@ -275,10 +275,10 @@ fn method12(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<UH0>, mut 
             let v7: Rc<Heap0> = v7.clone();
             let v8: Rc<UH0> = v8.clone();
             let v9: Rc<UH0> = method12(v0, v1, v2, v3, v4, v8, v6.clone());
-            let mut v10: i32 = v7.l1.clone();
+            let mut v10: i32 = v7.l1;
             let mut v11: bool = v10 == v4;
             let v14: bool = if v11 {
-                let v12: i32 = v7.l2.clone();
+                let v12: i32 = v7.l2;
                 let v13: bool = v12 == v1;
                 v13
             } else {
@@ -482,10 +482,10 @@ fn method21(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>, mut v3: Rc<UH0>, mut 
             let v6: Rc<Heap0> = v6.clone();
             let v7: Rc<UH0> = v7.clone();
             let v8: Rc<UH0> = method21(v0, v1, v2, v3, v7, v5.clone());
-            let v9: i32 = v6.l1.clone();
+            let v9: i32 = v6.l1;
             let mut v10: bool = v9 == 1i32;
             let v13: bool = if v10 {
-                let mut v11: i32 = v6.l2.clone();
+                let mut v11: i32 = v6.l2;
                 let v12: bool = v11 == v1;
                 v12
             } else {

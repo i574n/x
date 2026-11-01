@@ -775,7 +775,7 @@ fn method35(mut v0: Rc<UH4>, mut v1: Rc<UH4>) -> Rc<UH4> {
     }
 }
 fn entry_of_26(mut v0: Rc<UH1>, mut v1: Rc<UH5>, mut v2: Rc<UH6>, mut v3: Rc<Heap0>) -> Rc<Heap1> {
-    let (mut v4, mut v5, mut v6): (i32, i32, i32) = (v3.l5.clone(), v3.l6.clone(), v3.l7.clone());
+    let (mut v4, mut v5, mut v6): (i32, i32, i32) = (v3.l5, v3.l6, v3.l7);
     let v7: Rc<str> = Rc::<str>::from(format!("{:?}", v4));
     let v8: Rc<str> = Rc::<str>::from(format!("{:?}", v5));
     let v9: Rc<str> = Rc::<str>::from(format!("{:?}", v6));

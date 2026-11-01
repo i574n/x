@@ -1,6 +1,6 @@
 ///- --package .. --timeout 600000
 ///> gleam
-test xsim_events static =
+:# xsim_events static =
     :< testing
 
 :< sm'_operators

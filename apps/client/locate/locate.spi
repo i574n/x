@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d serde_json
-test locate static =
+:# locate static =
     :< testing
 
 :< sm'_operators
@@ -14,7 +14,7 @@ test locate static =
 := first_of (l : post_ids) (fallback : post_id) : post_id =
     ?= l ?|
     | x :: _ => x
-    | Nil => fallback
+    | [] => fallback
 
 := count_member (key : string) (n : i32) : string = member key (sm'::obj_to_string n)
 
@@ -36,7 +36,7 @@ test locate static =
 :~ frames_of (f : framed) : list string =
     ?= frame_text_of (expand_urls f::urls f::text) ?|
     | Some t ?& latest f => [ frame_json t::header t::body (first_of f::history f::id) f::parent ]
-    | _ => Nil
+    | _ => []
 
 := known_ids (l : list framed) : post_ids = l |> spread (\ (f : framed) => f::id :: f::history)
 
@@ -62,7 +62,7 @@ test locate static =
 
 := located_pair () : string = "{\"frames\":[" ++# one_frame () ++# "],\"known\":[\"5\",\"5\",\"6\",\"6\"]}"
 
-test posts_with_headers_become_frames =
+:# posts_with_headers_become_frames =
     := ~text = "c1 1/2\ngo a" ++# defused_dot () ++# "zz"
     located (one_page [ page_post "5" text; page_post "6" "no header here" ]) |> _assert_eq (located_pair ())
 
@@ -73,7 +73,7 @@ test posts_with_headers_become_frames =
         member "edit_history_post_ids" (items [ quoted_text "7"; quoted_text "8" ])
     ]
 
-test superseded_edits_are_known_but_not_framed =
+:# superseded_edits_are_known_but_not_framed =
     := ~page = one_page [ edited_post () ]
     located page |> _assert_eq "{\"frames\":[],\"known\":[\"7\",\"7\",\"8\"]}"
 

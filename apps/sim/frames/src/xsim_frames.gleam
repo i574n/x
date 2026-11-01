@@ -1,5 +1,12 @@
 import xsim_frames/part20.{closure29}
+import xsim_frames/part21.{closure110}
+import xsim_frames/part22.{closure112}
+import xsim_frames/part23.{closure118}
+import xsim_frames/part24.{closure124}
+import xsim_frames/part25.{closure132}
+import xsim_frames/part26.{closure138}
 import xsim_frames/part3.{closure0, closure5, closure7, closure9}
+import xsim_frames/part37.{closure144}
 import xsim_frames/part5.{closure10, closure12}
 import xsim_frames/part6.{closure13, closure14, closure15}
 import xsim_frames/part9.{closure19, closure27, closure28}
@@ -54,4 +61,32 @@ pub fn scenario_final(v0: String, v1: Int, v2: Int, v3: Int, v4: String, v5: Int
 
 pub fn simulated_lines(v0: String, v1: String, v2: String) -> String {
   closure29(Nil)(#(v0, v1, v2))
+}
+
+pub fn cli_run(v0: String) -> Int {
+  closure110(Nil)(v0)
+}
+
+pub fn cli_events(v0: String) -> Int {
+  closure112(Nil)(v0)
+}
+
+pub fn cli_world(v0: String) -> Int {
+  closure118(Nil)(v0)
+}
+
+pub fn cli_frames(v0: String) -> Int {
+  closure124(Nil)(v0)
+}
+
+pub fn cli_thread_run(v0: String) -> Int {
+  closure132(Nil)(v0)
+}
+
+pub fn cli_diff(v0: String) -> Int {
+  closure138(Nil)(v0)
+}
+
+pub fn cli_serve(v0: String) -> Int {
+  closure144(Nil)(v0)
 }

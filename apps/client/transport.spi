@@ -1,5 +1,5 @@
 ///- --package .
-test transport static =
+:# transport static =
     :< testing
 
 :< sm'_operators
@@ -69,7 +69,7 @@ test transport static =
 := accounts_of_lines (s : string) : accounts = pieces "\n" s |> each account_of_line
 
 ///> zig
-test account_lines_round_trip =
+:# account_lines_round_trip =
     := ~h = "bob"
     [ { id = user_id "1"; username = "alice" }; { id = user_id "22"; username = h } ]
     |> account_lines
@@ -78,6 +78,6 @@ test account_lines_round_trip =
     |> _assert_eq "1:alice\n22:bob"
 
 ///> zig
-test pieces_of_nothing_are_none =
+:# pieces_of_nothing_are_none =
     := ~s = ""
     pieces "," s |> listm::length |> _assert_eq 0i32

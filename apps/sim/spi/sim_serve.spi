@@ -1,6 +1,6 @@
 ///- --package .
 ///> gleam
-test sim_serve static =
+:# sim_serve static =
     :< testing
 
 :< sm'_operators
@@ -53,7 +53,7 @@ test sim_serve static =
     := prefix = name ++# ":"
     ?= pieces "\r\n" head |> keep (\ l => sm'::starts_with prefix (sm'::to_lower l)) ?|
     | l :: _ => after_prefix prefix l
-    | Nil => ""
+    | [] => ""
 
 := count_or_zero (s : string) : i32 = ?= count_of_text s ?| Some n => n | None => 0i32
 
@@ -80,7 +80,7 @@ test sim_serve static =
     := rest = i + sm'::length sep
     ? i < 0i32 ?> s, "" |: cut 0i32 i s, sm'::substring rest (sm'::length s - rest) s
 
-:= method_of (head : string) : string = ?= pieces " " head ?| m :: _ => m | Nil => ""
+:= method_of (head : string) : string = ?= pieces " " head ?| m :: _ => m | [] => ""
 
 :~ request_of (raw : string) : request =
     := head = cut 0i32 (head_end raw) raw
@@ -97,9 +97,9 @@ test sim_serve static =
 :~ ^ first_value (name : string) (items : list string) : string =
     ?= items ?|
     | item :: rest => ?= pair_value name item ?| Some v => v | None => first_value name rest
-    | Nil => ""
+    | [] => ""
 
-:= gated (cond : bool) (pairs : list (string * term)) : list (string * term) = ? cond ?> pairs |: Nil
+:= gated (cond : bool) (pairs : list (string * term)) : list (string * term) = ? cond ?> pairs |: []
 
 := listed (name : string) (query : string) : list string =
     first_value name (pieces "&" query) |> pieces "," |> keep (\ s => s <> "")
@@ -118,7 +118,7 @@ test sim_serve static =
 
 := field (key : string) (m : term) : term = call "maps" "get" [ str key; m; str "" ]
 
-:= items_at (key : string) (m : term) : term = call "maps" "get" [ str key; m; erlang_term::list_term Nil ]
+:= items_at (key : string) (m : term) : term = call "maps" "get" [ str key; m; erlang_term::list_term [] ]
 
 := terms_of (items : term) : list term =
     := n = call "erlang" "length" [ items ] |> erlang_term::cast
@@ -158,7 +158,7 @@ test sim_serve static =
 
 := blank_world (token : string) (user_token : string) (now : string) : api_world =
     { token; user_token; by_handle = fresh (); by_id = fresh (); page_size = 100i32; by_post = fresh ();
-        now; raw = str ""; issued = Nil; writes = no_writes () }
+        now; raw = str ""; issued = []; writes = no_writes () }
 
 := first_refresh (w : term) : list string = [ text (field "refresh_token" (field "oauth2" w)) ]
 
@@ -221,7 +221,7 @@ test sim_serve static =
     pieces "," (sm'::substring 6i32 (sm'::length auth - 6i32) auth) |> each header_field
 
 := fields_value (key : string) (fields : list (string * string)) : string =
-    ?= fields |> keep (\ (k, _) => k = key) ?| (_, v) :: _ => v | Nil => ""
+    ?= fields |> keep (\ (k, _) => k = key) ?| (_, v) :: _ => v | [] => ""
 
 := oauth1_secret (w : api_world) (key : string) : string = text (field key (field "oauth1" w::raw))
 
@@ -297,7 +297,7 @@ test sim_serve static =
 := user_of (h : string) (w : api_world) : term = dictm::present (sm'::to_lower h) w::by_handle |> public
 
 := listed_field (key : string) (items : list term) : list (string * term) =
-    ?= items ?| Nil => Nil | _ => [ (key, erlang_term::list_term items) ]
+    ?= items ?| [] => [] | _ => [ (key, erlang_term::list_term items) ]
 
 := found_users (w : api_world) (handles : list string) : list term =
     handles |> keep (\ h => known h w) |> each (\ h => user_of h w)
@@ -331,14 +331,14 @@ test sim_serve static =
     ?= l ?|
     | x :: rest ?& start > 0i32 => sliced (start - 1i32) count rest
     | x :: rest ?& count > 0i32 => x :: sliced 0i32 (count - 1i32) rest
-    | _ => Nil
+    | _ => []
 
 :~ followed (w : api_world) (u : term) : list term =
     := ids = terms_of (items_at "following" u) |> each id_text |> keep (\ i => dictm::has i w::by_id)
     ids |> each (\ i => dictm::present i w::by_id)
 
 := following_meta (shown : i32) (next : i32) (more : bool) : term =
-    := token = ? more ?> [ ("next_token", str ("p" ++# sm'::obj_to_string next)) ] |: Nil
+    := token = ? more ?> [ ("next_token", str ("p" ++# sm'::obj_to_string next)) ] |: []
     map_of (("result_count", int shown) :: token)
 
 := page_body (page : list term) (meta : term) : term =
@@ -377,7 +377,7 @@ test sim_serve static =
 := reasons () : list (i32 * string) = listm::append (client_reasons ()) (server_reasons ())
 
 := reason (status : i32) : string =
-    ?= reasons () |> keep (\ (s, _) => s = status) ?| (_, r) :: _ => r | Nil => "Status"
+    ?= reasons () |> keep (\ (s, _) => s = status) ?| (_, r) :: _ => r | [] => "Status"
 
 := status_line (status : i32) : string = "HTTP/1.1 " ++# sm'::obj_to_string status ++# " " ++# reason status
 
@@ -422,13 +422,13 @@ test sim_serve static =
     |? rest = "tweets" ?> Timeline (dictm::present id w::by_id) |: Elsewhere
 
 := users_route (w : api_world) (parts : list string) : api_route =
-    ?= parts ?| "by" :: Nil => UsersBy | Nil => UsersByIds | id :: rest :: Nil => user_route w id rest | _ => Elsewhere
+    ?= parts ?| "by" :: [] => UsersBy | [] => UsersByIds | id :: rest :: [] => user_route w id rest | _ => Elsewhere
 
 := search_route (kind : string) : api_route =
     ? kind = "recent" ?> SearchRecent |? kind = "all" ?> SearchAll |: Elsewhere
 
 := tweets_route (parts : list string) : api_route =
-    ?= parts ?| Nil => Lookup | id :: Nil => Single id | "search" :: kind :: Nil => search_route kind | _ => Elsewhere
+    ?= parts ?| [] => Lookup | id :: [] => Single id | "search" :: kind :: [] => search_route kind | _ => Elsewhere
 
 :~ route_of (w : api_world) (path : string) : api_route =
     ?= pieces "/" path ?|
@@ -446,13 +446,13 @@ test sim_serve static =
 
 := asked (fields : list string) (name : string) : bool = has (\ f => f = name) fields
 
-:= nonempty (key : string) (p : term) : bool = ?= terms_of (items_at key p) ?| Nil => !- | _ => !+
+:= nonempty (key : string) (p : term) : bool = ?= terms_of (items_at key p) ?| [] => !- | _ => !+
 
 := metric_names () : list string =
     [ "bookmark_count"; "impression_count"; "like_count"; "quote_count"; "reply_count"; "repost_count" ]
 
 := metrics_of (p : term) : term =
-    := counts = field_or "metrics" (map_of Nil) p
+    := counts = field_or "metrics" (map_of []) p
     map_of (metric_names () |> each (\ k => (k, field_or k (int 0i32) counts)))
 
 := history_of (p : term) : term = field_or "edit_history" (erlang_term::list_term [ field "id" p ]) p
@@ -494,7 +494,7 @@ test sim_serve static =
     ?= items ?|
     | (k, v) :: rest ?& dictm::has k seen => deduped seen rest
     | (k, v) :: rest => v :: deduped (dictm::insert k () seen) rest
-    | Nil => Nil
+    | [] => []
 
 := unique (items : list (string * term)) : list term = deduped (dictm::empty ()) items
 
@@ -523,7 +523,7 @@ test sim_serve static =
 := author_entry (t : term) : string * term = id_text (field "author_id" t), map_of [ ("id", field "author_id" t) ]
 
 :~ included_authors (w : api_world) (a : expansion_ask) (posts : list term) : list (string * term) =
-    ? asked a::expansions "referenced_posts.author_id" ?> targets_of w a posts |> each author_entry |: Nil
+    ? asked a::expansions "referenced_posts.author_id" ?> targets_of w a posts |> each author_entry |: []
 
 := wanted_key (a : expansion_ask) (k : string) : bool = k = "media_key" || asked a::media_fields k
 
@@ -535,7 +535,7 @@ test sim_serve static =
     terms_of (items_at "media" p) |> each (\ m => (text (field "media_key" m), kept_media a m))
 
 :~ included_media (a : expansion_ask) (posts : list term) : list (string * term) =
-    ? asked a::expansions "attachments.media_keys" ?> posts |> each (media_entries a) |> listm::concat |: Nil
+    ? asked a::expansions "attachments.media_keys" ?> posts |> each (media_entries a) |> listm::concat |: []
 
 := shown_targets (w : api_world) (a : expansion_ask) (posts : list term) : list term =
     targets_of w a posts |> each (\ t => (post_key t, rendered t a::fields)) |> unique
@@ -548,7 +548,7 @@ test sim_serve static =
     listm::concat [ listed_field "posts" (shown_targets w a posts); users; media_listed a posts ]
 
 :~ expanded (w : api_world) (a : expansion_ask) (posts : list term) : list (string * term) =
-    := includes = ?= includes_pairs w a posts ?| Nil => Nil | pairs => [ ("includes", map_of pairs) ]
+    := includes = ?= includes_pairs w a posts ?| [] => [] | pairs => [ ("includes", map_of pairs) ]
     listm::append (listed_field "data" (each (data_item a) posts)) includes
 
 := not_found_post (detail : string) (id : string) : list (string * term) =
@@ -581,7 +581,7 @@ test sim_serve static =
     | x :: rest ?& not_before (stamp x) (stamp p) => x :: inserted p rest
     | _ => p :: sorted
 
-:= newest_first (posts : list term) : list term = posts |> listm::fold (\ acc p => inserted p acc) Nil
+:= newest_first (posts : list term) : list term = posts |> listm::fold (\ acc p => inserted p acc) []
 
 := ref_kinds (p : term) : list string = terms_of (items_at "refs" p) |> each (\ r => text (field "type" r))
 
@@ -695,13 +695,13 @@ test sim_serve static =
     | _ => p :: sorted
 
 :~ found_posts (w : api_world) (s : search_ask) : list term =
-    := all = w::by_post |> dictm::fold (\ acc _ p => p :: acc) Nil
-    all |> keep (matches s) |> listm::fold (\ acc p => by_id_desc p acc) Nil
+    := all = w::by_post |> dictm::fold (\ acc _ p => p :: acc) []
+    all |> keep (matches s) |> listm::fold (\ acc p => by_id_desc p acc) []
 
 := edge_meta (page : list term) : list (string * term) =
     ?= page ?|
     | first :: _ => [ ("newest_id", field "id" first); ("oldest_id", field "id" (listm::fold (\ _ x => x) first page)) ]
-    | Nil => Nil
+    | [] => []
 
 :~ search_meta (page : list term) (next : i32) (more : bool) : term =
     := token = gated more [ ("next_token", str (sm'::obj_to_string next)) ]
@@ -730,7 +730,7 @@ test sim_serve static =
 
 :~ search (w : api_world) (all : bool) (query : string) : term =
     := ask = search_ask_of w all query
-    ? ask::conversation = "" ?> search_body Nil query |: search_body (found_posts w ask) query
+    ? ask::conversation = "" ?> search_body [] query |: search_body (found_posts w ask) query
 
 :~ users_reply (w : api_world) (r : request) : string =
     json_reply 200i32 (? r::path = "/2/users/by" ?> users_by w r::query |: users_by_ids w r::query)
@@ -783,7 +783,7 @@ test sim_serve static =
     := tail = [ ("scope", str "tweet.read tweet.write users.read offline.access"); ("refresh_token", str refresh) ]
     map_of (listm::append (token_head access) tail)
 
-:= last_issued (w : api_world) : string = ?= w::issued ?| t :: _ => t | Nil => ""
+:= last_issued (w : api_world) : string = ?= w::issued ?| t :: _ => t | [] => ""
 
 := renewal_ok (w : api_world) (form : string) : bool =
     query_first "grant_type" "" form = "refresh_token" && query_first "refresh_token" "" form = last_issued w
@@ -820,7 +820,7 @@ test sim_serve static =
 
 := replied_ref (parent : string) : term = stored_map [ ("type", str "replied_to"); ("id", str parent) ]
 
-:= reply_refs (parent : string) : term = erlang_term::list_term (? parent = "" ?> Nil |: [ replied_ref parent ])
+:= reply_refs (parent : string) : term = erlang_term::list_term (? parent = "" ?> [] |: [ replied_ref parent ])
 
 := conversation_for (w : api_world) (id : string) (parent : string) : term =
     ? parent = "" ?> str id |: field_or "conversation_id" (str parent) (post_of w parent)
@@ -879,7 +879,7 @@ test sim_serve static =
     ? dictm::has id w::writes::created ?> deleted () |: kept w 404i32 (missing_created id)
 
 := delete_target (r : request) : option string =
-    ?= pieces "/" r::path ?| "" :: "2" :: "tweets" :: id :: Nil ?& r::method = "DELETE" => Some id | _ => None
+    ?= pieces "/" r::path ?| "" :: "2" :: "tweets" :: id :: [] ?& r::method = "DELETE" => Some id | _ => None
 
 :~ post_or_delete (w : api_world) (r : request) (_ : caller wire::user_context) : string * api_world =
     ? r::method = "POST" && r::path = "/2/tweets" ?> new_post w r

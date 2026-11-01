@@ -53,10 +53,11 @@ function Check([bool] $Condition, [string] $Message) { if (!$Condition) { $failu
 function Step-Of([hashtable] $Results, [string] $Pattern) { $Results[@($Results.Keys | Where-Object { $_ -match $Pattern })[0]] }
 function Queries-Of($Step) { @($Step.Requests | ForEach-Object { "$($_.method) $($_.path)?$($_.query)" }) }
 
-$server = if ($env:XSIM_SERVER -eq 'sim') { @((Join-Path $PSScriptRoot "../../../scripts/sim-run.ps1"), "serve") } else { @(Join-Path $PSScriptRoot "stub.ps1") }
+$onStub = $env:XSIM_SERVER -eq 'stub'
+$server = if ($onStub) { @(Join-Path $PSScriptRoot "stub.ps1") } else { @((Join-Path $PSScriptRoot "../../../scripts/sim-run.ps1"), "serve") }
 $stub = Start-Process pwsh -ArgumentList (@("-NoProfile", "-File") + $server + @((Join-Path $PSScriptRoot "world.json"), $portFile, $requestLog)) -PassThru -NoNewWindow
 try {
-    $startSeconds = if ($env:XSIM_SERVER -eq 'sim') { 300 } else { 60 }
+    $startSeconds = if ($onStub) { 60 } else { 120 }
     $deadline = (Get-Date).AddSeconds($startSeconds)
     while (!(Test-Path $portFile) -or !(Get-Content $portFile -ErrorAction Ignore)) {
         if ($stub.HasExited) { throw "the X API stub exited before writing its port (exit code $($stub.ExitCode))" }

@@ -1,7 +1,7 @@
 ///- --package . --timeout 600000
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
-test events static =
+:# events static =
     :< testing
 
 :< sm'_operators
@@ -230,7 +230,7 @@ test events static =
     |? closes s next ?> Some (listm::rev ((f :: acc)))
     |: None
 
-:= fields_of_line (line : string) : option fields = ? starts_at "{" line 0i32 ?> fields_from line 1i32 Nil |: None
+:= fields_of_line (line : string) : option fields = ? starts_at "{" line 0i32 ?> fields_from line 1i32 [] |: None
 
 :~ value_of (key : string) (l : fields) : json_value =
     ?= first_where (\ (f : json_field) => f::key = key) l ?|
@@ -301,37 +301,37 @@ test events static =
 
 :~ ^ all_decoded (l : list string) (acc : list delivery) : result (list delivery) string =
     ?= l ?|
-    | Nil => Ok (listm::rev acc)
+    | [] => Ok (listm::rev acc)
     | line :: rest => decoded line |> then_ok \ d => all_decoded rest (d :: acc)
 
 :~ decoded_stream (text : string) : result (list delivery) string =
     ?= all_pieces "\n" text |> each sm'::trim |> keep (\ l => l <> "") ?|
-    | head :: lines ?& header_ok head => all_decoded lines Nil
+    | head :: lines ?& header_ok head => all_decoded lines []
     | _ => Error "not an xsim-events v1 stream"
 
 := first_frame () : string =
     "{\"at\":0,\"body\":\"x\",\"k\":1,\"kind\":\"frame\",\"n\":1,\"parent\":null,\"post\":\"p0\"}"
 
-test frames_encode_like_the_fixture =
+:# frames_encode_like_the_fixture =
     := ~post_id = "p0"
     := e = Content (Framed { post_id parent = None; part = { k = 1i32; n = 1i32; body = "x" } })
     encoded { at = 0i32; event = e } |> _assert_eq (first_frame ())
 
-test bodies_escape_quotes_and_lines =
+:# bodies_escape_quotes_and_lines =
     := ~body = "a \"b\"\n\tc\\"
     quoted body |> _assert_eq "\"a \\\"b\\\"\\n\\tc\\\\\""
     quoted (char_of 1i32) |> _assert_eq "\"\\u0001\""
 
 := liked_line () : string = "{\"at\":7,\"kind\":\"like\",\"post\":\"p2\",\"user\":\"u3\"}"
 
-test reactions_name_the_user =
+:# reactions_name_the_user =
     := ~user = "u3"
     encoded { at = 7i32; event = Reaction (Liked { post_id = "p2"; user }) } |> _assert_eq (liked_line ())
     kind_of (Reaction (Unliked { post_id = "p2"; user })) |> _assert_eq "unlike"
 
-test an_empty_stream_is_its_header =
+:# an_empty_stream_is_its_header =
     := ~header = stream_header ()
-    stream Nil |> _assert_eq (header ++# "\n")
+    stream [] |> _assert_eq (header ++# "\n")
 
 := posted_one () : delivery = { at = 0i32; event = Content (Posted { post_id = "p0"; parent = None; source = "x" }) }
 
@@ -360,7 +360,7 @@ test an_empty_stream_is_its_header =
     | Ok l => stream l
     | Error e => e
 
-test streams_decode_back_to_themselves =
+:# streams_decode_back_to_themselves =
     := ~text = stream (sample_deliveries ())
     reencoded text |> _assert_eq text
 
@@ -372,7 +372,7 @@ test streams_decode_back_to_themselves =
     | Ok d => encoded d
     | Error e => e
 
-test fixture_lines_keep_their_escapes =
+:# fixture_lines_keep_their_escapes =
     := ~line = edit_line ()
     line_again line |> _assert_eq line
 
@@ -381,12 +381,12 @@ test fixture_lines_keep_their_escapes =
     | Ok l => sm'::obj_to_string (listm::length l : i32)
     | Error e => e
 
-test foreign_streams_are_refused =
+:# foreign_streams_are_refused =
     := ~other = "{\"format\":\"other\",\"version\":1}"
     decoded_stream (other ++# "\n") |> verdict |> _assert_eq "not an xsim-events v1 stream"
 
 := boosted () : string = stream_header () ++# "\n{\"at\":1,\"kind\":\"boost\"}"
 
-test unknown_kinds_are_refused =
+:# unknown_kinds_are_refused =
     := ~text = boosted ()
     decoded_stream text |> verdict |> _assert_eq "unknown event kind 'boost'"

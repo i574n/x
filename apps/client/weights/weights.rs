@@ -402,7 +402,24 @@ fn units_on_1(mut v0: US0, mut v1: Rc<str>) -> Rc<UH0> {
     let v30: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
     method2(v0, v29, v30)
 }
-fn prefix_text_12(mut v0: i32, mut v1: Rc<UH0>, mut v2: Rc<str>) -> Rc<str> {
+fn method12(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
+    loop {
+        match &*v0 {
+            UH0::UH0_Cons(v2, v3, v4) => {
+                let v2: Rc<str> = v2.clone();
+                let v3: i32 = *v3;
+                let v4: Rc<UH0> = v4.clone();
+                let v5: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v3, v1.clone()));
+                (v0, v1) = (v4.clone(), v5.clone());
+                continue;
+            }
+            UH0::UH0_Nil => {
+                return v1.clone();
+            }
+        }
+    }
+}
+fn prefix_text_13(mut v0: i32, mut v1: Rc<UH0>, mut v2: Rc<str>) -> Rc<str> {
     loop {
         match &*v1 {
             UH0::UH0_Cons(v3, v4, v5) => {
@@ -503,10 +520,10 @@ fn closure4() -> Rc<dyn Fn(i32) -> bool> {
         v26
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn method14() -> Rc<dyn Fn(i32) -> bool> {
+fn method15() -> Rc<dyn Fn(i32) -> bool> {
     closure4()
 }
-fn method15(mut v0: Rc<dyn Fn(i32) -> bool>, mut v1: Rc<UH2>) -> bool {
+fn method16(mut v0: Rc<dyn Fn(i32) -> bool>, mut v1: Rc<UH2>) -> bool {
     loop {
         match &*v1 {
             UH2::UH2_Cons(v2, v3) => {
@@ -516,7 +533,7 @@ fn method15(mut v0: Rc<dyn Fn(i32) -> bool>, mut v1: Rc<UH2>) -> bool {
                 if v4 {
                     return true;
                 } else {
-                    let v5: Rc<dyn Fn(i32) -> bool> = method14();
+                    let v5: Rc<dyn Fn(i32) -> bool> = method15();
                     (v0, v1) = (v5.clone(), v3.clone());
                     continue;
                 }
@@ -527,7 +544,7 @@ fn method15(mut v0: Rc<dyn Fn(i32) -> bool>, mut v1: Rc<UH2>) -> bool {
         }
     }
 }
-fn link_length_13(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
+fn link_length_14(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
     loop {
         match &*v0 {
             UH0::UH0_Cons(v2, v3, v4) => {
@@ -541,8 +558,8 @@ fn link_length_13(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
                 let v9: i32 = 0i32;
                 let v10: Rc<UH2> = { thread_local!{ static CASE: Rc<UH2> = Rc::new(UH2::UH2_Nil); } CASE.with(|case| case.clone()) };
                 let mut v11: Rc<UH2> = method6(v6.clone(), v8, v9, v10.clone());
-                let mut v12: Rc<dyn Fn(i32) -> bool> = method14();
-                let v13: bool = method15(v12.clone(), v11.clone());
+                let mut v12: Rc<dyn Fn(i32) -> bool> = method15();
+                let v13: bool = method16(v12.clone(), v11.clone());
                 let v14: bool = v13 == false;
                 let v15: bool = v14 == false;
                 if v15 {
@@ -559,23 +576,6 @@ fn link_length_13(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
         }
     }
 }
-fn method16(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
-    loop {
-        match &*v0 {
-            UH0::UH0_Cons(v2, v3, v4) => {
-                let v2: Rc<str> = v2.clone();
-                let v3: i32 = *v3;
-                let v4: Rc<UH0> = v4.clone();
-                let v5: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v3, v1.clone()));
-                (v0, v1) = (v4.clone(), v5.clone());
-                continue;
-            }
-            UH0::UH0_Nil => {
-                return v1.clone();
-            }
-        }
-    }
-}
 fn linked_11(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {
         match &*v0 {
@@ -585,19 +585,19 @@ fn linked_11(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
                 let v6: Rc<UH0> = v6.clone();
                 let v7: i32 = 7i32;
                 let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                let v9: Rc<str> = prefix_text_12(v7, v0.clone(), v8.clone());
+                let v9: Rc<str> = prefix_text_13(v7, v0.clone(), v8.clone());
                 let v10: bool = &*v9 == "http://";
                 let v14: bool = if v10 {
                     true
                 } else {
                     let mut v11: i32 = 8i32;
-                    let mut v12: Rc<str> = prefix_text_12(v11, v0.clone(), v8.clone());
+                    let mut v12: Rc<str> = prefix_text_13(v11, v0.clone(), v8.clone());
                     let v13: bool = &*v12 == "https://";
                     v13
                 };
                 if v14 {
                     let v15: i32 = 0i32;
-                    let v16: i32 = link_length_13(v0.clone(), v15);
+                    let v16: i32 = link_length_14(v0.clone(), v15);
                     let v17: i32 = 23i32.wrapping_sub(v16);
                     let v18: bool = v17 > 0i32;
                     let (mut v20, mut v21): (Rc<str>, i32) = if v18 {
@@ -617,7 +617,7 @@ fn linked_11(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
             }
             UH0::UH0_Nil => {
                 let v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                return method16(v1.clone(), v2.clone());
+                return method12(v1.clone(), v2.clone());
             }
         }
     }

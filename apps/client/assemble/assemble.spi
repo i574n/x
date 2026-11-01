@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d serde_json
-test assemble static =
+:# assemble static =
     :< testing
 
 :< sm'_operators
@@ -44,7 +44,7 @@ test assemble static =
     := code, sources, notes = r
     sm'::obj_to_string code ++# "|" ++# sources ++# "|" ++# notes
 
-test frames_in_any_order_join_their_cell =
+:# frames_in_any_order_join_their_cell =
     := ~body = "inl a"
     [ frame_doc "c1" 2i32 2i32 " = 1"; frame_doc "c1" 1i32 2i32 body ]
     |> located_of
@@ -52,7 +52,7 @@ test frames_in_any_order_join_their_cell =
     |> reply_text
     |> _assert_eq "0|inl a = 1|"
 
-test a_lost_frame_holes_its_cell =
+:# a_lost_frame_holes_its_cell =
     := ~body = "inl a"
     [ frame_doc "c1" 1i32 2i32 body ]
     |> located_of

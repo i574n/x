@@ -1,6 +1,6 @@
 ///- --package .
 ///> gleam
-test memory_watch static =
+:# memory_watch static =
     :< testing
 
 :< sm'_operators
@@ -80,15 +80,15 @@ test memory_watch static =
     | Some w => two_ticks_peak w
     | None => failwith "memory watch did not start"
 
-test a_growing_sample_text_is_folded_once =
+:# a_growing_sample_text_is_folded_once =
     := ~text = "3 120\n5 340\n"
     peak_after_two_ticks (GrowingText (\ () => text)) |> _assert_eq "samples=2 last=340 procs=5 peak=340"
 
-test a_partial_last_line_waits_for_its_newline =
+:# a_partial_last_line_waits_for_its_newline =
     := ~text = "3 120\n5 34"
     peak_after_two_ticks (GrowingText (\ () => text)) |> _assert_eq "samples=1 last=120 procs=3 peak=120"
 
-test a_ticking_watch_samples_without_being_told =
+:# a_ticking_watch_samples_without_being_told =
     := ~line = "4 90\n"
     ?= ticking 60000i32 (\ () => line) ?|
     | Some w =>
@@ -96,6 +96,6 @@ test a_ticking_watch_samples_without_being_told =
         (r::samples > 0i32) |> _assert_eq !+
     | None => failwith "ticking did not start"
 
-test a_fresh_line_source_counts_every_tick =
+:# a_fresh_line_source_counts_every_tick =
     := ~line = "3 120\n"
     peak_after_two_ticks (FreshLine (\ () => line)) |> _assert_eq "samples=2 last=120 procs=3 peak=120"

@@ -9,7 +9,7 @@
 - **Write:** `xc post` and `xc delete`, signed with OAuth 1.0a (keys that never expire) or an OAuth 2.0 user token.
 - **Script it:** errors carry the API's own explanation and stable exit codes (0 shown, 2 usage, 3 missing credentials, 4 API failure, with whatever was read before printed first).
 
-Every walkthrough example below is replayed by `e2e/e2e.ps1` against a local stub of the X API and must match character for character, so this page cannot drift from the program. With `XSIM_SERVER=sim` the same replay runs against the simulator's X API server instead (`apps/sim`, `scripts/sim-run.ps1 serve`). The live samples in section 5 come from the real API.
+Every walkthrough example below is replayed by `e2e/e2e.ps1` against the simulator's X API server (`apps/sim`, `scripts/sim-run.ps1 serve`) and must match character for character, so this page cannot drift from the program. `XSIM_SERVER=stub` replays it against the older PowerShell stub instead, until that is retired. The live samples in section 5 come from the real API.
 
 ## 1. Get xc
 
@@ -176,9 +176,9 @@ xc: 3 API requests, 5 posts read, 5 shown
 xc: home timeline of @loner from 0 followed accounts
 2026-10-17 05:02  @loner  c3 1/1 := count_or_none (t : string) : i32 =     ?= count_of_text t ?|     | Some n => n     | None => -1i32  [0 replies, 0 reposts, 0 likes]
 2026-10-17 05:01  @loner  c2 1/1 :< sm'_operators :< prelude :< cli  [0 replies, 0 reposts, 0 likes]
-2026-10-17 05:00  @loner  c1 1/1 ///- --package .. ///> rust test checks static =     :< testing  [0 replies, 0 reposts, 0 likes]
+2026-10-17 05:00  @loner  c1 1/1 ///- --package .. ///> rust :# checks static =     :< testing  [0 replies, 0 reposts, 0 likes]
 2026-10-16 05:01  @loner  c2 1/1 :< sm'_operators :< prelude :< cli edited  [0 replies, 0 reposts, 0 likes]
-2026-10-16 05:00  @loner  c1 1/1 ///- --package .. ///> rust test checks static =     :< testing  [0 replies, 0 reposts, 0 likes]
+2026-10-16 05:00  @loner  c1 1/1 ///- --package .. ///> rust :# checks static =     :< testing  [0 replies, 0 reposts, 0 likes]
 ```
 
 ### Filters that lower the bill
@@ -266,10 +266,10 @@ xc thread 3000001
 ```text
 xc: 2 API requests
 ///- --package . --timeout 600000
-///- --test static
+///- --test static --symbol
 :< testing
 :< sm'_operators
-:= each \* a b. (f : a -> b) (l : list a) : list b = listm::foldBack (\ x acc => f x :: acc) l Nil
+:= each \* a b. (f : a -> b) (l : list a) : list b = listm::foldBack (\ x acc => f x :: acc) l []
 := keep \* t. (ok : t -> bool) (l : list t) : list t = listm'::filter ok l
 := spread \* a b. (f : a -> list b) (l : list a) : list b = listm'::collect f l
 := first_where \* t. (ok : t -> bool) (l : list t) : option t = listm'::try_find_ ok l
@@ -279,7 +279,7 @@ xc: 2 API requests
 := map_ok \* a b e. (f : a -> b) (r : result a e) : result b e = then_ok (f >> Ok) r
 := cut (start : i32) (len : i32) (s : string) : string = sm'::substring start len s
 := split_on (sep : string) (s : string) : list string = sm'::split_list sep s
-:= pieces (sep : string) (s : string) : list string = ? s = "" ?> Nil |: split_on sep s
+:= pieces (sep : string) (s : string) : list string = ? s = "" ?> [] |: split_on sep s
 :~ delimited (sep : string) (l : list string) : string = sm'::concat_list sep l
 := rest_from (i : i32) (s : string) : string = cut i (sm'::length s - i) s
 := first_line (text : string) : string =
@@ -430,11 +430,11 @@ xc post-thread --dry-run checks/checks.spi
 ```
 
 ```text
---- post 1 of 9, weight 70
+--- post 1 of 9, weight 68
 c1 1/1
 ///- --package ..
 ///> rust
-test checks static =
+:# checks static =
     :< testing
 --- post 2 of 9, weight 41
 c2 1/1
@@ -463,9 +463,9 @@ c6 1/1
 --- post 7 of 9, weight 87
 c7 1/1
 := username_or_empty (t : string) : string = username_of_text t |> text_or_empty
---- post 8 of 9, weight 265
+--- post 8 of 9, weight 263
 c8 1/1
-test counts_and_usernames_have_empty_answers =
+:# counts_and_usernames_have_empty_answers =
     := ~t = "12"
     count_or_none t |> _assert_eq 12i32
     (count_or_none "1x" < 0i32) |> _assert_eq !+
@@ -523,7 +523,7 @@ xc thread 9003
 xc: 2 API requests
 ///- --package ..
 ///> rust
-test checks static =
+:# checks static =
     :< testing
 :< sm'_operators
 :< prelude
@@ -540,7 +540,7 @@ test checks static =
 := date_or_empty (t : string) : string =
     ? shaped "9999-99-99" t ?> local_midnight t |: text_or_empty (date_of_text t)
 := username_or_empty (t : string) : string = username_of_text t |> text_or_empty
-test counts_and_usernames_have_empty_answers =
+:# counts_and_usernames_have_empty_answers =
     := ~t = "12"
     count_or_none t |> _assert_eq 12i32
     (count_or_none "1x" < 0i32) |> _assert_eq !+

@@ -1,10 +1,10 @@
 ///- --package . --timeout 600000
-test prelude static =
+:# prelude static =
     :< testing
 
 :< sm'_operators
 
-:= each \* a b. (f : a -> b) (l : list a) : list b = listm::foldBack (\ x acc => f x :: acc) l Nil
+:= each \* a b. (f : a -> b) (l : list a) : list b = listm::foldBack (\ x acc => f x :: acc) l []
 
 := keep \* t. (ok : t -> bool) (l : list t) : list t = listm'::filter ok l
 
@@ -24,7 +24,7 @@ test prelude static =
 
 := split_on (sep : string) (s : string) : list string = sm'::split_list sep s
 
-:= pieces (sep : string) (s : string) : list string = ? s = "" ?> Nil |: split_on sep s
+:= pieces (sep : string) (s : string) : list string = ? s = "" ?> [] |: split_on sep s
 
 :~ delimited (sep : string) (l : list string) : string = sm'::concat_list sep l
 
@@ -57,17 +57,17 @@ test prelude static =
 :~ count_of_text (text : string) : option i32 =
     ? text = "" || without_digits text <> "" ?> None |: digits text 0 0
 ///> zig
-test take_first_stops_at_the_limit =
+:# take_first_stops_at_the_limit =
     := ~n = 2i32
     [ 1i32; 2; 3 ] |> take_first n |> listm::length |> _assert_eq 2i32
 
 ///> zig
-test then_ok_stops_at_the_first_error =
+:# then_ok_stops_at_the_first_error =
     := ~e = "no"
     Error e |> then_ok (\ (x : i32) => Ok (x + 1)) |> _assert_eq (Error "no")
 
 ///> zig
-test keep_and_first_where_agree =
+:# keep_and_first_where_agree =
     := ~n = 2i32
     := l = [ 1i32; 2; 3; 4 ]
     keep (\ x => x > n) l |> listm::length |> _assert_eq 2i32

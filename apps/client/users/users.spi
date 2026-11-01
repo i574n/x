@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d serde_json
-test users static =
+:# users static =
     :< testing
 
 :< sm'_operators
@@ -62,7 +62,7 @@ test users static =
 := following_wanted (cap : i32) : i32 = ? cap < 0i32 ?> following_read_limit () + 1i32 |: cap
 
 :~ followed (base : string) (bearer : string) (id : string) (cap : i32) : listed =
-    := r = pages (app_api base bearer) (user_id id) (following_wanted cap) "" Nil
+    := r = pages (app_api base bearer) (user_id id) (following_wanted cap) "" []
     ? cap < 0i32 ?> capped_listing r |: listed_of r
 
 := listed_items (key : string) (body : string) : list string = parse_json body |> field key |> collect json_text
@@ -75,7 +75,7 @@ test users static =
 
 := ids_chunks (ids : string) : list (list user_id) = listm'::chunks_ (lookup_limit ()) (pieces "," ids |> each user_id)
 
-test user_ids_chunk_to_the_lookup_limit =
+:# user_ids_chunk_to_the_lookup_limit =
     := ~n = 250i32
     listm::init n (\ i => sm'::obj_to_string i)
     |> delimited ","
@@ -102,10 +102,10 @@ test user_ids_chunk_to_the_lookup_limit =
     ]
 
 := grown_text (wanted : i32) : string =
-    := l, more = grown wanted Nil (parse_json (two_accounts ()))
+    := l, more = grown wanted [] (parse_json (two_accounts ()))
     sm'::obj_to_string (listm::length l : i32) ++# "|" ++# more
 
-test following_pages_stop_once_enough_accounts_are_found =
+:# following_pages_stop_once_enough_accounts_are_found =
     := ~wanted = 2i32
     grown_text wanted |> _assert_eq "2|"
     grown_text 5i32 |> _assert_eq "2|n2"

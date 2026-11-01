@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d serde_json
-test refs static =
+:# refs static =
     :< testing
 
 :< sm'_operators
@@ -49,9 +49,9 @@ test refs static =
 := fetched_sizes (r : got (list i32)) : list i32 =
     ?= r ?|
     | Ok sizes => sizes
-    | Error _ => Nil
+    | Error _ => []
 
-test a_lookup_level_fetches_every_wanted_post =
+:# a_lookup_level_fetches_every_wanted_post =
     := ~n = 150i32
     := wanted = listm::init n (\ i => post_id (sm'::obj_to_string i))
     chunk_fetched (\ c => Ok (listm::length c : i32)) wanted |> fetched_sizes |> _assert_eq [ 100i32; 50i32 ]
@@ -67,7 +67,7 @@ test a_lookup_level_fetches_every_wanted_post =
 
 :~ ^ deepen (a : app) (q : query) (level : i32) (l : post_ids) (t : traced) : traced =
     ?= distinct_posts l ?|
-    | Nil => t
+    | [] => t
     | _ ?& level >= q::depth => t
     | wanted => posts_chunks a q wanted |> deepened a q level t
 
@@ -84,7 +84,7 @@ test a_lookup_level_fetches_every_wanted_post =
 := reply_of (t : traced) : refs_reply = sm'::concat_list "," t::bodies, t::failure, sm'::concat_list "," (unnamed t)
 
 := started (authors : string) (named : string) : traced =
-    { author_ids = pieces "," authors; named = pieces "," named; failure = ""; bodies = Nil }
+    { author_ids = pieces "," authors; named = pieces "," named; failure = ""; bodies = [] }
 
 :~ traced_refs
     (base : string) (bearer : string) (refs : string) (authors : string) (named : string) (q : query)
@@ -103,7 +103,7 @@ test a_lookup_level_fetches_every_wanted_post =
 := unnamed_after (body : string) : string =
     absorbed (parse_json body) body (started "7" "7") |> unnamed |> delimited ","
 
-test lookups_name_unseen_authors_and_the_next_level =
+:# lookups_name_unseen_authors_and_the_next_level =
     := ~body = lookup_doc ()
     unnamed_after body |> _assert_eq "9"
     next_ids (parse_json body) |> each post_text |> delimited "," |> _assert_eq "4"

@@ -1,6 +1,6 @@
 ///- --package .
 ///> gleam
-test executors static =
+:# executors static =
     :< testing
 
 :< sm'_operators
@@ -34,7 +34,7 @@ test executors static =
     := second = run sources
     first::out, second::out
 
-test a_leaking_executor_carries_the_previous_digest =
+:# a_leaking_executor_carries_the_previous_digest =
     := ~a = [ "inl a = 1" ]
     ?= leak_started () ?|
     | Some leak => two_leaking_runs leak a |> _assert_eq (fake_out a, fake_out a ++# fake_out a)

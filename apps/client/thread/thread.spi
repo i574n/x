@@ -1,6 +1,6 @@
 ///- --package ..
 ///> rust -d serde_json
-test thread static =
+:# thread static =
     :< testing
 
 :< sm'_operators
@@ -66,7 +66,7 @@ test thread static =
 
 := edited_page () : string = object [ member "data" (items [ versioned "1" [ "1" ]; versioned "2" [ "2"; "3" ] ]) ]
 
-test only_latest_versions_are_deleted =
+:# only_latest_versions_are_deleted =
     := ~page = edited_page ()
     ids_text [ page; page ] |> _assert_eq "1\n1"
     bundle_of [ "a"; "b" ] |> _assert_eq "[a,b]"

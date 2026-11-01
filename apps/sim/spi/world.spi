@@ -1,7 +1,7 @@
 ///- --package . --timeout 600000
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
-test world static =
+:# world static =
     :< testing
 
 :< sm'_operators
@@ -36,7 +36,7 @@ test world static =
 :== cursor = world * i32
 
 := empty_world (id_base : i32) : world =
-    { ids = id_base; clock = 0i32; frames = Nil; order = Nil; last_frame = Nil; root = None; lost = Nil; gone = Nil }
+    { ids = id_base; clock = 0i32; frames = []; order = []; last_frame = []; root = None; lost = []; gone = [] }
 
 :== live_cell = { cell : cell_id; parent : option cell_id; revisions : list string }
 
@@ -102,7 +102,7 @@ test world static =
 := first_revision (c : live_cell) : string =
     ?= c::revisions ?|
     | s :: _ => s
-    | Nil => ""
+    | [] => ""
 
 := chunks_for (chunking : cell_chunker) (c : live_cell) (source : string) : list string =
     chunking (cell_text c::cell) (post_limit ()) source
@@ -149,7 +149,7 @@ test world static =
 := later_revisions (c : live_cell) : list string =
     ?= c::revisions ?|
     | _ :: later => later
-    | Nil => Nil
+    | [] => []
 
 := edited_cell (chunking : cell_chunker) (w : world) (c : live_cell) : world =
     later_revisions c |> listm::fold (revised_with chunking c) w
@@ -157,7 +157,7 @@ test world static =
 := tail_cells (cells : live) : live =
     ?= cells ?|
     | _ :: rest => rest
-    | Nil => Nil
+    | [] => []
 
 := on_step (step : i32) (i : i32) : bool = i >= step - 1i32 && (i - step + 1i32) % step = 0i32
 
@@ -166,7 +166,7 @@ test world static =
         l
         |> listm::fold \ ((i, acc) : i32 * list t) (x : t) =>
                 i + 1i32, (? on_step step i ?> x :: acc |: acc)
-            (0i32, Nil)
+            (0i32, [])
     listm::rev picked
 
 := cell_ids (cells : live) : list cell_id = cells |> each (\ (c : live_cell) => c::cell)
@@ -225,12 +225,12 @@ test world static =
 := gap_of (w : world) (f : posted_frame) : list cell_id =
     ?= f::reply_to ?|
     | Some id ?& f::k = 1i32 && not (has (same_post id) (originals w)) => [ f::cell ]
-    | _ => Nil
+    | _ => []
 
 := keyed_frame (w : world) (o : frame_key) : list posted_frame =
     ?= frame_at w o::cell o::k ?|
     | Some f => [ f ]
-    | None => Nil
+    | None => []
 
 := ordered_frames (w : world) : list posted_frame = w::order |> spread (keyed_frame w)
 
@@ -247,7 +247,7 @@ test world static =
     | g :: rest ?& g::k < f::k => g :: by_k f rest
     | _ => f :: l
 
-:= sort_by_k (l : list posted_frame) : list posted_frame = l |> listm::fold (\ acc f => by_k f acc) Nil
+:= sort_by_k (l : list posted_frame) : list posted_frame = l |> listm::fold (\ acc f => by_k f acc) []
 
 := rebuilt (w : world) (cell : cell_id) : string =
     w::frames
@@ -390,7 +390,7 @@ test world static =
     := user = laid_out (user_fields a (ordered_frames p::posted |> spread (frame_posts p))) (braces ()) 2i32
     laid_out [ pair "users" (laid_out [ user ] (square ()) 1i32) ] (braces ()) 0i32 ++# "\n"
 
-:= lines_of_program (text : string) : list string = ? text = "" ?> Nil |: split_on "\n" text
+:= lines_of_program (text : string) : list string = ? text = "" ?> [] |: split_on "\n" text
 
 := quoted_list (l : list string) : string = laid_out (l |> each quoted) (square ()) 1i32
 
@@ -437,7 +437,7 @@ test world static =
     := w = materialized_for a alive
     world_json (posting_of a r w) a::account, expected_json alive w
 
-test stamps_carry_into_the_next_day =
+:# stamps_carry_into_the_next_day =
     := ~base = moment_of "2026-12-31T23:59:30Z"
     stamped base 45i32 |> _assert_eq "2027-01-01T00:00:15.000Z"
     stamped (moment_of "2026-08-01T08:00:00Z") 1i32 |> _assert_eq "2026-08-01T08:00:01.000Z"
@@ -451,7 +451,7 @@ test stamps_carry_into_the_next_day =
 := frame_summary (f : posted_frame) : string =
     post_text f::original ++# ":" ++# sm'::obj_to_string (listm::length f::versions : i32)
 
-test edits_add_versions_to_their_frames =
+:# edits_add_versions_to_their_frames =
     := ~cells = two_cells ()
     materialized split_named cells 100i32 { lost = 0i32; lost_cells = 0i32 }
     |> ordered_frames
@@ -477,6 +477,6 @@ test edits_add_versions_to_their_frames =
     ++# "|"
     ++# program cells w
 
-test a_cell_lost_with_all_its_posts_leaves_a_gap =
+:# a_cell_lost_with_all_its_posts_leaves_a_gap =
     := ~cells = chained_cells ()
     lost_cell_view cells |> _assert_eq "b|c|inl a = 1\n\ninl c = b"

@@ -1,5 +1,5 @@
 ///- --package . --timeout 900000
-test posts static =
+:# posts static =
     :< testing
 
 :< sm'_operators
@@ -34,7 +34,7 @@ test posts static =
 := latest (f : framed) : bool =
     ?= listm::rev f::history ?|
     | last :: _ => same_post last f::id
-    | Nil => !+
+    | [] => !+
 
 :== medium = { media_key : string; kind : string; alt_text : string }
 
@@ -52,7 +52,7 @@ test posts static =
 
 :== pool = { posts : list post; media : list medium; users : accounts }
 
-:= empty_pool () : pool = { posts = Nil; media = Nil; users = Nil }
+:= empty_pool () : pool = { posts = []; media = []; users = [] }
 
 := media_in (p : pool) : list medium =
     := { media } = p
@@ -69,7 +69,7 @@ test posts static =
     ? text = "quoted" ?> [ { kind = Quoted; id } ]
     |? text = "replied_to" ?> [ { kind = RepliedTo; id } ]
     |? text = "reposted" || text = "retweeted" ?> [ { kind = Reposted; id } ]
-    |: Nil
+    |: []
 
 := ref_label (k : ref_kind) : string =
     ?= k ?|
@@ -153,7 +153,7 @@ test posts static =
 
 := reference_of_text (t : string) : list reference =
     := i : i32 = sm'::index_of ":" t
-    ? i < 0i32 ?> Nil |: reference_as (sm'::substring 0i32 i t) (post_id (after i t))
+    ? i < 0i32 ?> [] |: reference_as (sm'::substring 0i32 i t) (post_id (after i t))
 
 := refs_of_text (t : string) : list reference = pieces "," t |> spread reference_of_text
 
@@ -162,7 +162,7 @@ test posts static =
 :~ ^ field_at (i : i32) (l : list string) : string =
     ?= l ?|
     | x :: xs => ? i = 0i32 ?> x |: field_at (i - 1i32) xs
-    | Nil => ""
+    | [] => ""
 
 :~ ^ fields_after (i : i32) (l : list string) : list string =
     ?= l ?|
@@ -184,7 +184,7 @@ test posts static =
 
 :~ entry_of_line (line : string) : list role_entry =
     := l = pieces "\t" line
-    ? listm::length l < 9i32 ?> Nil |: [ field_at 0 l, entry_at l ]
+    ? listm::length l < 9i32 ?> [] |: [ field_at 0 l, entry_at l ]
 
 :== digest = { primary : list entry; pool : list entry }
 
@@ -193,7 +193,7 @@ test posts static =
     ? role = "p" ?> { d ?| primary = e :: d::primary } |: { d ?| pool = e :: d::pool }
 
 :~ digest_of (text : string) : digest =
-    := d = pieces "\n" text |> spread entry_of_line |> listm::fold sorted { primary = Nil; pool = Nil }
+    := d = pieces "\n" text |> spread entry_of_line |> listm::fold sorted { primary = []; pool = [] }
     { primary = listm::rev d::primary; pool = listm::rev d::pool }
 
 := second_of (stamp : string) : string =
@@ -211,10 +211,10 @@ test posts static =
 
 :~ ^ merge_newest (a : list entry) (b : list entry) : list entry =
     ?= a ?|
-    | Nil => b
+    | [] => b
     | x :: xs =>
         ?= b ?|
-        | Nil => a
+        | [] => a
         | y :: ys => ? newer x y ?> x :: merge_newest xs b |: y :: merge_newest a ys
 
 :~ ^ halves (l : list entry) : list entry * list entry =
@@ -222,11 +222,11 @@ test posts static =
     | x :: y :: rest =>
         := left, right = halves rest
         x :: left, y :: right
-    | _ => l, Nil
+    | _ => l, []
 
 :~ ^ newest_first (l : list entry) : list entry =
     ?= l ?|
-    | Nil | (_ :: Nil) => l
+    | [] | (_ :: []) => l
     | _ =>
         := left, right = halves l
         merge_newest (newest_first left) (newest_first right)
@@ -247,7 +247,7 @@ test posts static =
 
 := per_author (cap : i32) (l : list entry) : list entry =
     ? cap <= 0 ?> l
-    |: listm::fold (tally_step cap) { seen = Nil; kept = Nil } l |> \ t => listm::rev t::kept
+    |: listm::fold (tally_step cap) { seen = []; kept = [] } l |> \ t => listm::rev t::kept
 
 :== selection = { limit : i32; per_author : i32 }
 
@@ -284,7 +284,7 @@ test posts static =
 :== view_options = { depth : i32; hints : bool; minute : string -> string }
 
 := hints_of (o : view_options) (level : i32) (e : entry) : list string =
-    ? o::hints ?> hint_lines (level + 1) e |: Nil
+    ? o::hints ?> hint_lines (level + 1) e |: []
 
 :~ ^ post_lines (pl : list entry) (o : view_options) (level : i32) (e : entry) : list string =
     := hints = hints_of o level e
@@ -297,7 +297,7 @@ test posts static =
 
 := reposted_id (e : entry) : option post_id =
     ?= e::refs ?|
-    | { kind id } :: Nil =>
+    | { kind id } :: [] =>
         ?= kind ?|
         | Reposted => Some id
         | _ => None
@@ -319,7 +319,7 @@ test posts static =
 
 := at (id : string) (who : string) (stamp : string) : post =
     heap { id = post_id id; author_id = user_id ("u" ++# who); author_username = who; created_at = stamp;
-        text = "t" ++# id; public_metrics = no_metrics (); refs = Nil; urls = Nil; media_keys = Nil }
+        text = "t" ++# id; public_metrics = no_metrics (); refs = []; urls = []; media_keys = [] }
 
 := citing (kind : ref_kind) (target : string) (p : post) : post =
     := f = fields_of_post p
@@ -354,19 +354,19 @@ test posts static =
     heap { f ?| text = "read\nthis " ++# url; urls = [ { url; expanded_url = "long1"; title = "" } ] }
 
 ///> zig
-test newest_first_orders_by_time =
+:# newest_first_orders_by_time =
     := ~early = "2026-10-15T08:00:00.000Z"
     [ at "1" "a" early; at "2" "b" "2026-10-15T09:30:00Z" ] |> ids |> _assert_eq "2,1"
 
 ///> zig
-test same_second_orders_newer_id_first_across_formats =
+:# same_second_orders_newer_id_first_across_formats =
     := ~stamp = "2026-10-15T09:30:00.000Z"
     [ at "9" "a" stamp; at "10" "b" "2026-10-15T09:30:00Z"; at "8" "c" stamp ] |> ids |> _assert_eq "10,9,8"
 
 := loud_posts () : list post = [ at "5" "loud" "09:05"; at "4" "loud" "09:04" ]
 
 ///> zig
-test per_author_keeps_quiet_accounts_visible =
+:# per_author_keeps_quiet_accounts_visible =
     := ~cap = 1i32
     at "1" "quiet" "08:00" :: loud_posts ()
     |> each lone
@@ -375,7 +375,7 @@ test per_author_keeps_quiet_accounts_visible =
     |> _assert_eq "5,1"
 
 ///> zig
-test links_are_expanded_and_lines_flattened =
+:# links_are_expanded_and_lines_flattened =
     := ~url = "s1"
     at "1" "b" "09:05" |> with_url url |> rendered
     |> _assert_eq (quiet ("09:05  @" ++# "b  read this long1"))
@@ -383,26 +383,26 @@ test links_are_expanded_and_lines_flattened =
 := liked (likes : i32) : public_metrics = { reply_count = 1; repost_count = 0; like_count = likes }
 
 ///> zig
-test counts_say_one_or_many =
+:# counts_say_one_or_many =
     := ~likes = 2i32
     := f = at "1" "b" "09:05" |> fields_of_post
     rendered (heap { f ?| public_metrics = liked likes })
     |> _assert_eq ("09:05  @" ++# "b  t1  [1 reply, 0 reposts, 2 likes]")
 
 ///> zig
-test entries_survive_their_line_form =
+:# entries_survive_their_line_form =
     := ~who = "b"
     := line = at "1" who "09:05" |> citing Quoted "7" |> lone |> entry_line "p"
     entry_of_line line |> each (\ (role, e) => entry_line role e) |> sm'::concat_list "" |> _assert_eq line
 
 ///> zig
-test references_nest_to_the_requested_depth =
+:# references_nest_to_the_requested_depth =
     := ~depth = 2i32
     := a, pl = quote_chain ()
     lines_of pl depth a |> pieces "|" |> listm::length |> _assert_eq 3i32
 
 ///> zig
-test missing_posts_are_named =
+:# missing_posts_are_named =
     := ~depth = 1i32
     at "1" "a" "09:00" |> citing Reposted "77" |> lines_of (empty_pool ()) depth
     |> _assert_eq (quiet ("09:00  @" ++# "a  t1") ++# "|  > reposted a post not loaded (77)")
@@ -416,18 +416,18 @@ test missing_posts_are_named =
     heap { f ?| text = "RT @" ++# "orig: trunc" } |> citing Reposted "2"
 
 ///> zig
-test a_repost_shows_its_original_once =
+:# a_repost_shows_its_original_once =
     := ~depth = 1i32
     := r = fan_repost ()
     lines_of (pool_of [ r; at "2" "orig" "08:00" ]) depth r
     |> _assert_eq (quiet ("09:00  @" ++# "fan  reposted @" ++# "orig: t2"))
 
 := edited (history : list string) : framed =
-    { id = post_id "2"; text = ""; history = history |> each post_id; urls = Nil; parent = None }
+    { id = post_id "2"; text = ""; history = history |> each post_id; urls = []; parent = None }
 
 ///> zig
-test only_the_newest_edit_is_latest =
+:# only_the_newest_edit_is_latest =
     := ~newest = "2"
     edited [ "1"; newest ] |> latest |> _assert_eq !+
     edited [ newest; "3" ] |> latest |> _assert_eq !-
-    edited Nil |> latest |> _assert_eq !+
+    edited [] |> latest |> _assert_eq !+

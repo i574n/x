@@ -1,7 +1,7 @@
 ///- --package . --timeout 900000
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
-test reading static =
+:# reading static =
     :< testing
 
 :< sm'_operators
@@ -46,7 +46,7 @@ test reading static =
     ?= l ?|
     | c :: rest ?& same_cell c::cell f::cell => merged c f :: rest
     | c :: rest => c :: grouped rest f
-    | Nil => [ opened f ]
+    | [] => [ opened f ]
 
 :~ ^ placed (c : cell_frames) (l : list cell_frames) : list cell_frames =
     ?= l ?|
@@ -68,7 +68,7 @@ test reading static =
 
 := reading_of (c : cell_frames) : cell_reading =
     ?= missing_ks c ?|
-    | Nil => Whole (source_of c)
+    | [] => Whole (source_of c)
     | missing => Holed (MissingFrames { cell = c::cell; missing; part_count = c::n })
 
 :== program = { sources : list string; flaws : list thread_flaw }
@@ -81,7 +81,7 @@ test reading static =
 := unknown_parent (known : post_ids) (f : frame) : list post_id =
     ?= f::parent ?|
     | Some p ?& not (has (same_post p) known) => [ p ]
-    | _ => Nil
+    | _ => []
 
 := gap_flaws (known : post_ids) (c : cell_frames) : list thread_flaw =
     frame_at c 1i32 |> spread (unknown_parent known) |> each (\ parent => ReplyGap { cell = c::cell; parent })
@@ -89,37 +89,37 @@ test reading static =
 := gaps (known : post_ids) (cells : list cell_frames) : list thread_flaw =
     ?= cells ?|
     | _ :: rest => rest |> spread (gap_flaws known)
-    | Nil => Nil
+    | [] => []
 
 := ordered (l : list frame) : list cell_frames =
-    l |> listm::fold grouped Nil |> listm::fold (\ acc c => placed c acc) Nil
+    l |> listm::fold grouped [] |> listm::fold (\ acc c => placed c acc) []
 
 :~ assembled (frames : list frame) (known : post_ids) : program =
     := cells = ordered frames
-    := p = cells |> listm::fold with_cell { sources = Nil; flaws = Nil }
+    := p = cells |> listm::fold with_cell { sources = []; flaws = [] }
     { p ?| flaws = listm::append p::flaws (gaps known cells) }
 
 := frames_in (text : string) (original : post_id) (parent : option post_id) : list frame =
     ?= frame_text_of text ?|
     | Some t => [ frame_in t original parent ]
-    | None => Nil
+    | None => []
 
 := numbered_post (k : i32) : post_id = post_id (sm'::obj_to_string k)
 
 :~ ^ chained (k : i32) (parent : option post_id) (l : list string) (acc : list frame) : list frame =
     ?= l ?|
-    | Nil => acc
+    | [] => acc
     | t :: rest =>
         chained (k + 1i32) (Some (numbered_post k)) rest (listm::append (frames_in t (numbered_post k) parent) acc)
 
 := ids_to (n : i32) : post_ids = listm::init n (\ i => numbered_post (i + 1i32))
 
-:= read_thread (posts : list string) : program = assembled (chained 1i32 None posts Nil) (ids_to (listm::length posts))
+:= read_thread (posts : list string) : program = assembled (chained 1i32 None posts []) (ids_to (listm::length posts))
 
 := mixed_cells () : string =
     "go x.com now\n\n" ++# repeated 150i32 "日本" "" ++# "\n\n" ++# repeated 120i32 "ab " ""
 
-test posted_cells_rebuild_exactly =
+:# posted_cells_rebuild_exactly =
     := ~text = mixed_cells ()
     := p = posts_of text |> read_thread
     p::sources |> delimited "|" |> _assert_eq (file_cells text |> delimited "|")
@@ -129,7 +129,7 @@ test posted_cells_rebuild_exactly =
 
 := ends_in_space (t : string) : bool = trimmed_end t <> t
 
-test posted_frames_keep_no_trailing_space =
+:# posted_frames_keep_no_trailing_space =
     := ~text = mixed_cells ()
     := posts = posts_of text
     (listm::length posts > 3i32) |> _assert_eq !+
@@ -141,7 +141,7 @@ test posted_frames_keep_no_trailing_space =
 
 := notes_of (p : program) : string = p::flaws |> each note_of |> delimited "|"
 
-test a_lost_frame_leaves_its_cell_holed =
+:# a_lost_frame_leaves_its_cell_holed =
     := ~lost = 2i32
     := p = posts_of (mixed_cells ()) |> without_post lost |> read_thread
     notes_of p |> _assert_eq "cell c2 is missing frame 2 of 3"

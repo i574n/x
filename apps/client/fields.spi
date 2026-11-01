@@ -1,6 +1,6 @@
 ///- --package .
 ///> rust
-test fields static =
+:# fields static =
     :< testing
 
 :< sm'_operators
@@ -10,7 +10,7 @@ test fields static =
 := process_args () : list string =
     :~ ^ from (i : i32) (acc : list string) : list string =
         ? i < 0i32 ?> acc |: from (i - 1) (env::command_line_argument i :: acc)
-    from (env::command_line_argument_count () - 1) Nil
+    from (env::command_line_argument_count () - 1) []
 
 :== selection_fields =
     {
@@ -136,10 +136,10 @@ test fields static =
         username = \ t => external_text $'xc_checks::xc_username(&*!t)' }
 
 ///> rust
-test a_payload_keeps_the_blank_defaults =
+:# a_payload_keeps_the_blank_defaults =
     := f = with_payload 6i32 "3000001"
     (f::kind, f::payload, f::selection::max_results, f::window::json) |> _assert_eq (6i32, "3000001", 5i32, !-)
 
 ///> rust
-test empty_external_text_is_none =
+:# empty_external_text_is_none =
     (external_text "", external_text "x") |> _assert_eq (None, Some "x")

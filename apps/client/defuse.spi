@@ -1,7 +1,7 @@
 ///- --package . --timeout 900000
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
-test defuse static =
+:# defuse static =
     :< testing
 
 :< sm'_operators
@@ -89,15 +89,15 @@ test defuse static =
 
 := zw (s : string) : string = sm'::replace "|" (zero_width_space ()) s
 
-test only_dots_before_a_known_tld_are_defused =
+:# only_dots_before_a_known_tld_are_defused =
     := ~s = "listm.map.foo head.zzz x.io a.b.post"
     defused_dots s |> _assert_eq (zw "listm|.map|.foo head.zzz x.io a.b|.post")
 
-test a_link_right_after_a_wide_glyph_stays_plain =
+:# a_link_right_after_a_wide_glyph_stays_plain =
     := ~s = "日本x.com"
     defused_dots s |> _assert_eq s
 
-test blocked_runs_and_numbers_stay_plain =
+:# blocked_runs_and_numbers_stay_plain =
     := ~at = "@"
     defused_dots (at ++# "x.map /y.map 1.5 t.co") |> _assert_eq (at ++# zw "x.map /y.map 1.5 t|.co")
 
@@ -169,23 +169,23 @@ test blocked_runs_and_numbers_stay_plain =
 
 :~ defused_entities (s : string) : string = entities_from "" (graphemes s) [] |> sm'::concat_list ""
 
-test entity_sigils_get_a_zero_width_space =
+:# entity_sigils_get_a_zero_width_space =
     := ~at, hash, cash = "@", "#", "$"
     defused_entities (at ++# "bob " ++# hash ++# "tag " ++# cash ++# "ABC")
     |> _assert_eq (at ++# zw "|bob " ++# hash ++# zw "|tag " ++# cash ++# zw "|ABC")
 
 := at_bob (lead : string) : string = defused_entities (lead ++# "@" ++# "bob")
 
-test a_mention_right_after_rt_is_defused =
+:# a_mention_right_after_rt_is_defused =
     (at_bob "RT", at_bob "rt:", at_bob "art")
     |> _assert_eq (zw "RT@|bob", zw "rt:@|bob", "art" ++# "@" ++# "bob")
 
-test sigils_after_wide_glyphs_are_defused =
+:# sigils_after_wide_glyphs_are_defused =
     := ~at, hash = "@", "#"
     (defused_entities ("日本" ++# at ++# "bob"), defused_entities ("🙂" ++# hash ++# "tag"))
     |> _assert_eq ("日本" ++# at ++# zw "|bob", "🙂" ++# hash ++# zw "|tag")
 
-test a_link_and_a_mention_at_the_start_are_defused =
+:# a_link_and_a_mention_at_the_start_are_defused =
     := ~at = "@"
     (defused_dots "cell.app x", defused_entities (at ++# "bob hi"))
     |> _assert_eq (zw "cell|.app x", at ++# zw "|bob hi")
@@ -195,12 +195,12 @@ test a_link_and_a_mention_at_the_start_are_defused =
 :~ restored_text (s : string) : string =
     sm'::replace (defused_dot ()) "." s |> sigil_restored "@" |> sigil_restored "#" |> sigil_restored "$"
 
-test restoring_undoes_both_defusings =
+:# restoring_undoes_both_defusings =
     := ~at, hash = "@", "#"
     := s = "see listm.map " ++# at ++# "bob " ++# hash ++# "tag"
     s |> defused_dots |> defused_entities |> restored_text |> _assert_eq s
 
-test emails_numbers_and_long_names_stay_plain =
+:# emails_numbers_and_long_names_stay_plain =
     := ~at, hash, cash = "@", "#", "$"
     defused_entities ("a" ++# at ++# "b.co " ++# hash ++# "123 " ++# cash ++# "ABCDEFG")
     |> _assert_eq ("a" ++# at ++# "b.co " ++# hash ++# "123 " ++# cash ++# "ABCDEFG")

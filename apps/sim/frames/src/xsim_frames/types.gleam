@@ -507,13 +507,13 @@ pub type Us63 {
 }
 
 pub type Us64 {
-    Us64Got(f0i0 : String, f0i1 : process.Pid, f0i2 : Us45, f0i3 : String)
-    Us64TimedOut
+    Us64Some(f0i0 : String, f0i1 : process.Pid, f0i2 : Us45, f0i3 : String)
+    Us64None
 }
 
 pub type Us65 {
-    Us65Some(f0i0 : String, f0i1 : process.Pid, f0i2 : Us45, f0i3 : String)
-    Us65None
+    Us65Got(f0i0 : String, f0i1 : process.Pid, f0i2 : Us45, f0i3 : String)
+    Us65TimedOut
 }
 
 pub type Us66 {
@@ -619,4 +619,125 @@ pub type Uh34 {
 pub type Uh35 {
     Uh35Nil
     Uh35Cons(Uh6, Uh35)
+}
+
+pub type Us80 {
+    Us80Some(f0i0 : String, f0i1 : Int, f0i2 : Int, f0i3 : Int, f0i4 : Int, f0i5 : String, f0i6 : Int, f0i7 : Bool, f0i8 : String, f0i9 : String)
+    Us80None
+}
+
+pub type Us81 {
+    Us81Ok(f0i0 : String, f0i1 : Int, f0i2 : Int, f0i3 : Int, f0i4 : Int, f0i5 : String, f0i6 : Int, f0i7 : Bool, f0i8 : String, f0i9 : String)
+    Us81Error(f1i0 : String)
+}
+
+pub type Us82 {
+    Us82EventsCells
+    Us82EventsSeed
+    Us82EventsUsers
+    Us82EventsEdits
+}
+
+pub type Us83 {
+    Us83Some(f0i0 : Us82)
+    Us83None
+}
+
+pub type Us84 {
+    Us84Some(f0i0 : String, f0i1 : String, f0i2 : String, f0i3 : Int, f0i4 : Int, f0i5 : Int, f0i6 : String, f0i7 : Int, f0i8 : String, f0i9 : String, f0i10 : Int, f0i11 : Int, f0i12 : String)
+    Us84None
+}
+
+pub type Us85 {
+    Us85Ok(f0i0 : String, f0i1 : String, f0i2 : String, f0i3 : Int, f0i4 : Int, f0i5 : Int, f0i6 : String, f0i7 : Int, f0i8 : String, f0i9 : String, f0i10 : Int, f0i11 : Int, f0i12 : String)
+    Us85Error(f1i0 : String)
+}
+
+pub type Us86 {
+    Us86Some(f0i0 : String, f0i1 : String)
+    Us86None
+}
+
+pub type Us87 {
+    Us87Ok(f0i0 : String, f0i1 : String)
+    Us87Error(f1i0 : String)
+}
+
+pub type Us88 {
+    Us88Some(f0i0 : String, f0i1 : String, f0i2 : String)
+    Us88None
+}
+
+pub type Us89 {
+    Us89Ok(f0i0 : String, f0i1 : String, f0i2 : String)
+    Us89Error(f1i0 : String)
+}
+
+pub type Us90 {
+    Us90Some(f0i0 : String, f0i1 : Int)
+    Us90None
+}
+
+pub type Us91 {
+    Us91Ok(f0i0 : String, f0i1 : Int)
+    Us91Error(f1i0 : String)
+}
+
+pub type Uh36 {
+    Uh36Nil
+    Uh36Cons(String, String, Uh36)
+}
+
+pub type Uh37 {
+    Uh37Nil
+    Uh37Cons(Uh29, Uh37)
+}
+
+pub type Us92 {
+    Us92AppBearer
+}
+
+pub type Uh38 {
+    Uh38Nil
+    Uh38Cons(String, Dynamic, Uh38)
+}
+
+pub type Us93 {
+    Us93UsersBy
+    Us93UsersByIds
+    Us93Following(f2i0 : Dynamic)
+    Us93Timeline(f3i0 : Dynamic)
+    Us93Lookup
+    Us93Single(f5i0 : String)
+    Us93SearchRecent
+    Us93SearchAll
+    Us93Elsewhere
+}
+
+pub type Us94 {
+    Us94Ok(f0i0 : Dynamic)
+    Us94Error
+}
+
+pub type Uh39 {
+    Uh39Nil
+    Uh39Cons(Int, String, Uh39)
+}
+
+pub type Uh40 {
+    Uh40Nil
+    Uh40Cons(Uh38, Uh40)
+}
+
+pub type Us95 {
+    Us95UserBearer
+    Us95OAuth1User
+}
+
+pub type Us96 {
+    Us96ClientBasic
+}
+
+pub type Us97 {
+    Us97Unauthenticated
 }
