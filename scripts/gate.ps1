@@ -63,3 +63,13 @@ $overFiles | ForEach-Object { Write-Output ("gate / file {0} {1} lines OVER {2}"
 Write-Output "gate / $(@($files).Count) files in every language but Spiral (data files exempt: $($dataFiles -join ', ')), $($overFiles.Count) over $Limit lines"
 if ($Enforce -and !$files) { throw "gate / git listed no files under $Root, so no file was measured" }
 if ($Enforce -and $overFiles.Count) { throw "gate / $($overFiles.Count) file(s) over $Limit lines: $(($overFiles | ForEach-Object File) -join ', ')" }
+
+$spiFiles = @(git -C $Root -c core.quotepath=off ls-files --cached --others --exclude-standard -- '*.spi') | Where-Object { Test-Path -LiteralPath (Join-Path $Root $_) -PathType Leaf }
+$listDrift = foreach ($file in $spiFiles) {
+    $n = 0
+    foreach ($line in [IO.File]::ReadAllLines((Join-Path $Root $file))) { if ($line -cmatch '\bNil\b|\bCons \(' -and $line -notmatch '\$[''"]') { $n++ } }
+    if ($n) { [pscustomobject]@{ File = $file; Lines = $n } }
+}
+$listDrift | ForEach-Object { Write-Output ("gate / list sugar {0}: {1} line(s) spell a list Nil or Cons, write [] and a :: b" -f $_.File, $_.Lines) }
+Write-Output "gate / $($spiFiles.Count) Spiral files, $(@($listDrift).Count) with list Nil/Cons outside host macros"
+if ($Enforce -and @($listDrift).Count) { throw "gate / list sugar drifted back in $(@($listDrift).Count) file(s): $(($listDrift | ForEach-Object File) -join ', ')" }

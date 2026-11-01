@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory)] [string] $Label,
-    [ValidateSet('verify', 'sim', 'parity')] [string] $Mode = 'verify',
+    [ValidateSet('verify', 'sim')] [string] $Mode = 'verify',
     [string] $MirrorName = $(if ($Mode -eq 'verify') { 'xqueue1' } else { 'xqueue3' }),
     [string] $Core,
     [int] $TimeoutMs = $(if ($Mode -eq 'verify') { 28800000 } else { 14400000 }),
@@ -44,21 +44,14 @@ pwsh -NoProfile -File "$x\apps\client\build.ps1" -fast 1 *> '{mirror}\e2e-client
 if ($LASTEXITCODE) { Get-Content '{mirror}\e2e-client-build.log' -Tail 12; exit 1 }
 . "$x\scripts\common.ps1"
 $exe = Join-Path (Get-XCargoTargetDir) 'release/xc.exe'
-if ('MODE' -eq 'parity') {
-    $o = @(pwsh -NoProfile -File "$x\scripts\e2e-parity.ps1" -Exe $exe -WorkDir '{mirror}\e2e-parity' 2>&1 | ForEach-Object { "$_" })
-    $code = $LASTEXITCODE
-    $o | Where-Object { $_ -match '^e2e-parity /|^  |^x_\w+' } | Select-Object -Last 40
-} else {
-    $env:XSIM_SERVER = 'sim'
-    $o = @(pwsh -NoProfile -File "$x\apps\client\e2e\e2e.ps1" -Exe $exe -WorkDir '{mirror}\e2e-sim' 2>&1 | ForEach-Object { "$_" })
-    $code = $LASTEXITCODE
-    $o | Where-Object { $_ -match 'x e2e / (\d+ requests|FAILED)|RUST-OK|RUST-FAILED|did not|exited before|Exception' } | Select-Object -Last 25
-    $o | Where-Object { $_ -match '^xsim serve / answered ' } | ForEach-Object { ($_ -replace '^xsim serve / answered ', '') -replace '/2/users/\d+/', '/2/users/<id>/' -replace '/2/tweets/\d+$', '/2/tweets/<id>' } | Group-Object | ForEach-Object { '  ' + $_.Count + ' x ' + $_.Name }
-}
-'x node-run / MODE exit ' + $code
+$o = @(pwsh -NoProfile -File "$x\apps\client\e2e\e2e.ps1" -Exe $exe -WorkDir '{mirror}\e2e-sim' 2>&1 | ForEach-Object { "$_" })
+$code = $LASTEXITCODE
+$o | Where-Object { $_ -match 'x e2e / (\d+ requests|FAILED)|RUST-OK|RUST-FAILED|did not|exited before|Exception' } | Select-Object -Last 25
+$o | Where-Object { $_ -match '^xsim serve / answered ' } | ForEach-Object { ($_ -replace '^xsim serve / answered ', '') -replace '/2/users/\d+/', '/2/users/<id>/' -replace '/2/tweets/\d+$', '/2/tweets/<id>' } | Group-Object | ForEach-Object { '  ' + $_.Count + ' x ' + $_.Name }
+'x node-run / sim exit ' + $code
 FREED
 exit $code
-'@.Replace('MODE', $Mode)
+'@
 }
 $command = $command.Replace('FREED', $freed)
 $coreCheck = if ($Core) { @('-RequireCore', $Core) } else { @() }

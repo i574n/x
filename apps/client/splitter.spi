@@ -15,16 +15,24 @@
 
 :== units = list weighed
 
+:! on_x = ()
+:! on_mastodon = ()
+:! on_bluesky = ()
+
+:== posting = (string -> bool) -> (string -> string) -> string -> string
+
+:? cell_limit p : p -> i32
+:? posted_as p : p -> posting
+:? glyphs_on p : p -> string -> list string
+:? unit_as p : p -> string -> weighed
+:? padded_as p : p -> units -> units
+
 := posted_text (known : string -> bool) (tagged : string -> string) (s : string) : string =
     s |> defused_dots_by known |> tagged
 
-:= posted_by (known : string -> bool) (tagged : string -> string) (p : platform) (s : string) : string =
-    ?= p ?|
-    | OnX => posted_text known tagged s
-    | OnMastodon => s
-    | OnBluesky _ => s
-
-:= posted_on (p : platform) (s : string) : string = posted_by is_tld defused_entities p s
+:+ posted_as on_x = \ _ known tagged s => posted_text known tagged s
+:+ posted_as on_mastodon = \ _ _ _ s => s
+:+ posted_as on_bluesky = \ _ _ _ s => s
 
 :~ ^ glued (l : list string) (acc : list string) : list string =
     ?= l ?|
@@ -32,25 +40,21 @@
     | g :: rest => glued rest (g :: acc)
     | [] => listm::rev acc
 
-:= posted_glyphs (p : platform) (s : string) : list string =
-    ?= p ?|
-    | OnX => glued (graphemes s) []
-    | OnMastodon => graphemes s
-    | OnBluesky _ => graphemes s
+:+ glyphs_on on_x = \ _ s => glued (graphemes s) []
+:+ glyphs_on on_mastodon = \ _ s => graphemes s
+:+ glyphs_on on_bluesky = \ _ s => graphemes s
 
 := byte_weight (g : string) : i32 =
     := tenths = (sm'::length g + 9i32) / 10i32
     ? tenths < 1i32 ?> 1i32 |: tenths
 
-:= unit_on (p : platform) (g : string) : weighed =
-    ?= p ?|
-    | OnX => { glyph = g; weight = glyph_weight g }
-    | OnMastodon => { glyph = g; weight = 1i32 }
-    | OnBluesky _ => { glyph = g; weight = byte_weight g }
+:+ unit_as on_x = \ _ g => { glyph = g; weight = glyph_weight g }
+:+ unit_as on_mastodon = \ _ g => { glyph = g; weight = 1i32 }
+:+ unit_as on_bluesky = \ _ g => { glyph = g; weight = byte_weight g }
 
-:~ units_on (p : platform) (s : string) : units = posted_glyphs p s |> listm::map (unit_on p)
+:~ units_with \* p {glyphs_on; unit_as}. (on : p) (s : string) : units = glyphs_on on s |> listm::map (unit_as on)
 
-:~ units_of (s : string) : units = units_on OnX s
+:~ units_of (s : string) : units = units_with on_x s
 
 := has_units (l : units) : bool =
     ?= l ?|
@@ -103,11 +107,9 @@
 
 := post_limit () : i32 = 280i32
 
-:= limit_on (p : platform) : i32 =
-    ?= p ?|
-    | OnX => post_limit ()
-    | OnMastodon => 500i32
-    | OnBluesky _ => 300i32
+:+ cell_limit on_x = \ _ => post_limit ()
+:+ cell_limit on_mastodon = \ _ => 500i32
+:+ cell_limit on_bluesky = \ _ => 300i32
 
 := header (label : cell_id) (part : i32) (part_count : i32) : string =
     rendered { cell = label; part part_count } ++# "\n"
@@ -147,11 +149,31 @@
     | u :: rest ?& starts_link l => linked rest (padded_link u (link_length l 0i32) :: acc)
     | u :: rest => linked rest (u :: acc)
 
-:= weighed_on (p : platform) (s : string) : units =
+:+ padded_as on_x = \ _ us => us
+:+ padded_as on_mastodon = \ _ us => linked us []
+:+ padded_as on_bluesky = \ _ us => us
+
+:~ weighed_with \* p {glyphs_on; unit_as; padded_as}. (on : p) (s : string) : units = padded_as on (units_with on s)
+
+:== platform_rules = { limit : i32; posted : posting; weighed : string -> units }
+
+:= rules_with \* p {cell_limit; posted_as; glyphs_on; unit_as; padded_as}. (on : p) : platform_rules =
+    { limit = cell_limit on; posted = posted_as on; weighed = weighed_with on }
+
+:= rules_of (p : platform) : platform_rules =
     ?= p ?|
-    | OnX => units_on OnX s
-    | OnMastodon => linked (units_on OnMastodon s) []
-    | OnBluesky _ => units_on p s
+    | OnX => rules_with on_x
+    | OnMastodon => rules_with on_mastodon
+    | OnBluesky _ => rules_with on_bluesky
+
+:= limit_on (p : platform) : i32 = (rules_of p)::limit
+
+:= posted_by (known : string -> bool) (tagged : string -> string) (p : platform) (s : string) : string =
+    (rules_of p)::posted known tagged s
+
+:= posted_on (p : platform) (s : string) : string = posted_by is_tld defused_entities p s
+
+:= weighed_on (p : platform) (s : string) : units = (rules_of p)::weighed s
 
 := weight_on (p : platform) (t : string) : i32 =
     weighed_on p t |> listm::fold (\ sum (u : weighed) => sum + u::weight) 0i32

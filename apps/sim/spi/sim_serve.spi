@@ -857,7 +857,7 @@
 
 := orphan (w : api_world) (parent : string) : bool = parent <> "" && not (dictm::has parent w::by_post)
 
-:= too_heavy (t : string) : bool = t = "" || splitter::x_weight t > 280i32
+:= too_heavy (t : string) : bool = t = "" || splitter::x_weight t > splitter::post_limit ()
 
 :~ new_post (w : api_world) (r : request) : string * api_world =
     := b = json_body r

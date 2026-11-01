@@ -53,15 +53,14 @@ function Check([bool] $Condition, [string] $Message) { if (!$Condition) { $failu
 function Step-Of([hashtable] $Results, [string] $Pattern) { $Results[@($Results.Keys | Where-Object { $_ -match $Pattern })[0]] }
 function Queries-Of($Step) { @($Step.Requests | ForEach-Object { "$($_.method) $($_.path)?$($_.query)" }) }
 
-$onStub = $env:XSIM_SERVER -eq 'stub'
-$server = if ($onStub) { @(Join-Path $PSScriptRoot "stub.ps1") } else { @((Join-Path $PSScriptRoot "../../../scripts/sim-run.ps1"), "serve") }
-$stub = Start-Process pwsh -ArgumentList (@("-NoProfile", "-File") + $server + @((Join-Path $PSScriptRoot "world.json"), $portFile, $requestLog)) -PassThru -NoNewWindow
+$server = @((Join-Path $PSScriptRoot "../../../scripts/sim-run.ps1"), "serve")
+$xServer = Start-Process pwsh -ArgumentList (@("-NoProfile", "-File") + $server + @((Join-Path $PSScriptRoot "world.json"), $portFile, $requestLog)) -PassThru -NoNewWindow
 try {
-    $startSeconds = if ($onStub) { 60 } else { 120 }
+    $startSeconds = 120
     $deadline = (Get-Date).AddSeconds($startSeconds)
     while (!(Test-Path $portFile) -or !(Get-Content $portFile -ErrorAction Ignore)) {
-        if ($stub.HasExited) { throw "the X API stub exited before writing its port (exit code $($stub.ExitCode))" }
-        if ((Get-Date) -gt $deadline) { throw "the X API stub did not write its port within $startSeconds s" }
+        if ($xServer.HasExited) { throw "the simulator's X API server exited before writing its port (exit code $($xServer.ExitCode))" }
+        if ((Get-Date) -gt $deadline) { throw "the simulator's X API server did not write its port within $startSeconds s" }
         Start-Sleep -Milliseconds 100
     }
     $port = [int](Get-Content $portFile)
@@ -153,7 +152,7 @@ try {
         Check ($tooted.Exit -eq 0 -and $statuses.Count -gt 0 -and $accepted200 -eq $statuses.Count) "xc post-thread to Mastodon: exit $($tooted.Exit), $accepted200 of $($statuses.Count) statuses accepted"
         Check ($statuses.Count -le $sent.Count) "Mastodon's 500 split used $($statuses.Count) posts, more than X's 280 split ($($sent.Count))"
         Check (@($bodies | Where-Object { $_.status.Contains([string][char]0x200B) }).Count -eq 0) "a Mastodon status carries a zero-width space"
-        Check ($tooted.Requests.Count -eq 0) "xc post-thread to Mastodon also sent $($tooted.Requests.Count) request(s) to the X stub"
+        Check ($tooted.Requests.Count -eq 0) "xc post-thread to Mastodon also sent $($tooted.Requests.Count) request(s) to the X server"
         $tootIds = @($tooted.Stdout -split "`n" | Where-Object { $_ -match '^posted (\d+) ' } | ForEach-Object { ($_ -split ' ')[1] })
         for ($i = 1; $i -lt $bodies.Count; $i++) {
             Check ($bodies[$i].in_reply_to_id -eq $tootIds[$i - 1]) "status $($i + 1) replies to '$($bodies[$i].in_reply_to_id)', expected '$($tootIds[$i - 1])'"
@@ -184,7 +183,7 @@ try {
         Check ($skeeted.Exit -eq 0 -and $sessions.Count -eq 1 -and $records.Count -gt 0 -and $ok -eq $records.Count) "xc post-thread to Bluesky: exit $($skeeted.Exit), $($sessions.Count) session(s), $ok of $($records.Count) records accepted"
         Check ($records.Count -le $sent.Count) "Bluesky's 300 split used $($records.Count) posts, more than X's 280 split ($($sent.Count))"
         Check (@($bodies | Where-Object { $_.text.Contains([string][char]0x200B) }).Count -eq 0) "a Bluesky record carries a zero-width space"
-        Check ($skeeted.Requests.Count -eq 0) "xc post-thread to Bluesky also sent $($skeeted.Requests.Count) request(s) to the X stub"
+        Check ($skeeted.Requests.Count -eq 0) "xc post-thread to Bluesky also sent $($skeeted.Requests.Count) request(s) to the X server"
         $uris = @($skeeted.Stdout -split "`n" | Where-Object { $_ -match '^posted (\S+) ' } | ForEach-Object { ($_ -split ' ')[1] })
         for ($i = 1; $i -lt $bodies.Count; $i++) {
             Check ($bodies[$i].reply.parent.uri -eq $uris[$i - 1] -and $bodies[$i].reply.root.uri -eq $uris[0]) "record $($i + 1) does not reply to its parent and the thread root"
@@ -204,7 +203,7 @@ try {
         $outputs.Add($gone.Text)
         $removals = @(Get-Content $blueskyLog | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.path -eq "/xrpc/com.atproto.repo.deleteRecord" -and $_.status -eq 200 }).Count
         Check ($single.Exit -eq 0 -and $uri -and $gone.Exit -eq 0 -and $removals -eq 1) "a single Bluesky post and its delete: exits $($single.Exit)/$($gone.Exit), uri '$uri', $removals deleteRecord(s)"
-        Check ($single.Requests.Count + $gone.Requests.Count -eq 0) "a single Bluesky post or delete also talked to the X stub"
+        Check ($single.Requests.Count + $gone.Requests.Count -eq 0) "a single Bluesky post or delete also talked to the X server"
         Write-Output "x e2e / bluesky post and delete / exits $($single.Exit)/$($gone.Exit)"
         $mixed = Invoke-Step "xc delete-thread 9003" $world.token -Extra $site
         $outputs.Add($mixed.Text)
@@ -234,9 +233,9 @@ try {
     Check ($unauthorized -eq 2) "expected exactly two unauthorized requests (the wrong bearer token and the forged signature), got $unauthorized"
     $leaks = @($outputs | Where-Object { $_.Contains($world.token) -or $_.Contains($world.user_token) -or $_.Contains($world.oauth1.token_secret) -or $_.Contains($world.oauth1.consumer_secret) -or $_.Contains($world.oauth2.client_secret) -or $_.Contains($world.oauth2.refresh_token) -or $_.Contains($world.oauth2.access_token) })
     Check ($leaks.Count -eq 0) "a token appeared in program output"
-    Write-Output "x e2e / $((Read-Requests).Count) requests to the stub on port $port"
+    Write-Output "x e2e / $((Read-Requests).Count) requests to the sim on port $port"
 } finally {
-    if (!$stub.HasExited) { if ($IsWindows) { taskkill /PID $stub.Id /T /F *> $null } else { Stop-Process -Id $stub.Id -Force } }
+    if (!$xServer.HasExited) { if ($IsWindows) { taskkill /PID $xServer.Id /T /F *> $null } else { Stop-Process -Id $xServer.Id -Force } }
 }
 
 if ($Accept) {

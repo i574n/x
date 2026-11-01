@@ -9,7 +9,7 @@
 - **Write:** `xc post` and `xc delete`, signed with OAuth 1.0a (keys that never expire) or an OAuth 2.0 user token.
 - **Script it:** errors carry the API's own explanation and stable exit codes (0 shown, 2 usage, 3 missing credentials, 4 API failure, with whatever was read before printed first).
 
-Every walkthrough example below is replayed by `e2e/e2e.ps1` against the simulator's X API server (`apps/sim`, `scripts/sim-run.ps1 serve`) and must match character for character, so this page cannot drift from the program. `XSIM_SERVER=stub` replays it against the older PowerShell stub instead, until that is retired. The live samples in section 5 come from the real API.
+Every walkthrough example below is replayed by `e2e/e2e.ps1` against the simulator's X API server (`apps/sim`, `scripts/sim-run.ps1 serve`) and must match character for character, so this page cannot drift from the program. The live samples in section 5 come from the real API.
 
 ## 1. Get xc
 

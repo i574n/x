@@ -8,16 +8,14 @@ $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot '../../scripts/common.ps1')
 Assert-SpiralBeside
 . (Join-Path $SpiralRoot 'scripts/core.ps1')
+. (Join-Path $SpiralRoot 'lib/spiral/lib.ps1')
 Set-Location $PSScriptRoot
 
 $bundle = Join-Path $SpiralRoot 'apps/compiler/tmp'
-$toolchain = & {
-    . (Join-Path $SpiralRoot 'apps/compiler/scripts/env.ps1')
-    [pscustomobject]@{ PackageDir = Get-SpiralPackageDir; Dotnet = Resolve-SpiralDotnet; Dll = Get-SpiralCompilerDll 'single-flight' }
-}
-$env:SPIRAL_COMPILER_PACKAGE_DIR = $toolchain.PackageDir
-$env:SPIRAL_DOTNET = $toolchain.Dotnet
-$env:SPIRAL_COMPILER_DLL = $toolchain.Dll
+$compiler = Ensure-SpiralCompiler
+$env:SPIRAL_COMPILER_PACKAGE_DIR = & { . (Join-Path $SpiralRoot 'apps/compiler/scripts/env.ps1'); Get-SpiralPackageDir }
+$env:SPIRAL_DOTNET = $compiler.Dotnet
+$env:SPIRAL_COMPILER_DLL = $compiler.Compiler
 $env:SPIRAL_WORKSPACE_ROOT = (Resolve-Path $bundle).Path
 $scoopErlang = Join-Path $HOME 'scoop/apps/erlang/current/bin'
 if (Test-Path $scoopErlang) { $env:PATH = "$scoopErlang$([IO.Path]::PathSeparator)$env:PATH" }
