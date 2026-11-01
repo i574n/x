@@ -25,16 +25,6 @@ if (!$elixirLib) { throw "xsim / elixir did not report its lib dir" }
 $paths = @(Join-Path $build 'consolidated') + @(Get-ChildItem (Join-Path $elixirLib '*/ebin'), (Join-Path $build 'lib/*/ebin'), (Join-Path $frames '*/ebin') -Directory).FullName
 $codePath = @($paths | Where-Object { (Test-Path $_) -and $_ -notmatch '[\\/]mix[\\/]ebin$' } | ForEach-Object { '-pa', $_ })
 $entry = if ($RunArgs.Count -and $RunArgs[0] -in 'events', 'world', 'frames', 'thread_run', 'diff', 'serve') { "cli_$($RunArgs[0])" } else { 'cli_run' }
-$stub = $null
-if ($entry -eq 'cli_serve') {
-    if ($RunArgs.Count -lt 4) { throw "xsim / usage: sim-run.ps1 serve WORLD PORTFILE LOG" }
-    $stubPort = Join-Path $build "stub-port-$PID.txt"
-    Remove-Item $stubPort -ErrorAction Ignore
-    $stub = Start-Process pwsh -ArgumentList '-NoProfile', '-File', (Join-Path $XRoot 'apps/client/e2e/stub.ps1'), $RunArgs[1], $stubPort, $RunArgs[3] -PassThru -NoNewWindow
-    $deadline = (Get-Date).AddSeconds(60)
-    while (!(Test-Path $stubPort) -or !(Get-Content $stubPort -ErrorAction Ignore)) { if ((Get-Date) -gt $deadline) { throw "xsim / stub.ps1 gave no port" }; Start-Sleep -Milliseconds 100 }
-    $RunArgs = @($RunArgs[0..3]) + @((Get-Content $stubPort).Trim())
-}
-try { erl -noshell @codePath -eval "halt(xsim_frames:$entry(<<>>))" -extra @RunArgs; $code = $LASTEXITCODE }
-finally { if ($stub -and !$stub.HasExited) { Stop-Process -Id $stub.Id -Force -ErrorAction Ignore } }
-exit $code
+if ($entry -eq 'cli_serve' -and $RunArgs.Count -lt 4) { throw "xsim / usage: sim-run.ps1 serve WORLD PORTFILE LOG" }
+erl -noshell @codePath -eval "halt(xsim_frames:$entry(<<>>))" -extra @RunArgs
+exit $LASTEXITCODE

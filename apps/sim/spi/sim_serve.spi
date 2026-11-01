@@ -69,10 +69,6 @@ test sim_serve static =
     := got = ? complete acc ?> atom "done" |: recv_chunk sock
     ? is_ok got ?> received sock (acc ++# text (second got)) |: acc
 
-:~ ^ drained (sock : term) (acc : string) : string =
-    := got = recv_chunk sock
-    ? is_ok got ?> drained sock (acc ++# text (second got)) |: acc
-
 :== request = { method : string; path : string; query : string; head : string; raw : string }
 
 := first_line (head : string) : string = cut 0i32 (sm'::index_of "\r\n" head) head
@@ -114,11 +110,12 @@ test sim_serve static =
 
 :== api_world =
     { token : string; user_token : string; by_handle : index; by_id : index; page_size : i32; by_post : index;
-        stale : bool; now : string; raw : term; issued : list string; writes : write_state }
+        now : string; raw : term; issued : list string; writes : write_state }
 
 := writes_of (me : term) (created : dictm::dict string ()) (next_id : i32) : write_state = { me; created; next_id }
 
 := no_writes () : write_state = writes_of (erlang_term::of "") (dictm::empty ()) 9001i32
+
 := field (key : string) (m : term) : term = call "maps" "get" [ str key; m; str "" ]
 
 := items_at (key : string) (m : term) : term = call "maps" "get" [ str key; m; erlang_term::list_term Nil ]
@@ -161,7 +158,7 @@ test sim_serve static =
 
 := blank_world (token : string) (user_token : string) (now : string) : api_world =
     { token; user_token; by_handle = fresh (); by_id = fresh (); page_size = 100i32; by_post = fresh ();
-        stale = !-; now; raw = str ""; issued = Nil; writes = no_writes () }
+        now; raw = str ""; issued = Nil; writes = no_writes () }
 
 := first_refresh (w : term) : list string = [ text (field "refresh_token" (field "oauth2" w)) ]
 
@@ -251,19 +248,31 @@ test sim_serve static =
     := o = field "oauth2" w::raw
     "Basic " ++# base64_of (str (text (field "client_id" o) ++# ":" ++# text (field "client_secret" o)))
 
-:= bearer_kind (w : api_world) (auth : string) : string =
-    ? auth = "Bearer " ++# w::token ?> "app" |? auth = "Bearer " ++# w::user_token ?> "user" |: ""
-
 := is_client (w : api_world) (r : request) (auth : string) : bool =
     auth = client_basic w && r::path = "/2/oauth2/token"
 
 := is_oauth1 (w : api_world) (r : request) (auth : string) : bool =
     sm'::starts_with "OAuth " auth && oauth1_valid w r auth
 
-:~ auth_kind (w : api_world) (r : request) : string =
-    := auth = header_value "authorization" r::head
-    ? bearer_kind w auth <> "" ?> bearer_kind w auth
-    |? is_client w r auth ?> "client" |? is_oauth1 w r auth ?> "oauth1" |: ""
+:! client_context = ()
+
+:! no_context = ()
+
+:| caller c =
+    | AppBearer :: caller wire::app_context
+    | UserBearer :: caller wire::user_context
+    | OAuth1User :: caller wire::user_context
+    | ClientBasic :: caller client_context
+    | Unauthenticated :: caller no_context
+
+:= caller_word \* c. (who : caller c) : string =
+    ?= who ?|
+    | AppBearer => "app"
+    | UserBearer => "user"
+    | OAuth1User => "oauth1"
+    | ClientBasic => "client"
+    | Unauthenticated => ""
+
 
 := map_of (pairs : list (string * term)) : term =
     call "maps" "from_list" [ pairs |> each (\ (k, v) => pair k v) |> erlang_term::list_term ]
@@ -426,13 +435,6 @@ test sim_serve static =
     | "" :: "2" :: "users" :: parts => users_route w parts
     | "" :: "2" :: "tweets" :: parts => tweets_route parts
     | _ => Elsewhere
-
-:= post_route (route : api_route) : bool =
-    ?= route ?| Timeline _ => !+ | Lookup => !+ | Single _ => !+ | SearchRecent => !+ | SearchAll => !+ | _ => !-
-
-:= served_here (w : api_world) (r : request) : bool =
-    := route = route_of w r::path
-    r::method <> "GET" || ((?= route ?| Elsewhere => !- | _ => !+) && not (w::stale && post_route route))
 
 := json_reply (status : i32) (body : term) : string = response_text status (encoded body)
 
@@ -749,14 +751,17 @@ test sim_serve static =
 :~ other_reply (w : api_world) (r : request) (route : api_route) : string =
     ?= route ?| UsersBy => users_reply w r | UsersByIds => users_reply w r | _ => post_reply w r route
 
+:= no_route (path : string) : term = problem 404i32 "Not Found Error" ("no route " ++# path)
+
 :~ routed (w : api_world) (r : request) : string =
     ?= route_of w r::path ?|
     | Following u => following_reply w u r
     | Timeline u => timeline w u r::query
+    | Elsewhere => json_reply 404i32 (no_route r::path)
     | route => other_reply w r route
 
-:~ answer (w : api_world) (r : request) (kind : string) : string =
-    ? kind = "" ?> json_reply 401i32 (unauthorized ()) |: routed w r
+:~ answer \* c. (w : api_world) (r : request) (who : caller c) : string =
+    ?= who ?| Unauthenticated => json_reply 401i32 (unauthorized ()) | _ => routed w r
 
 := unsupported_detail () : string =
     "Authenticating with OAuth 2.0 Application-Only is forbidden for this endpoint.  "
@@ -793,14 +798,7 @@ test sim_serve static =
 :~ renewed (w : api_world) (r : request) : string * api_world =
     ? renewal_ok w (body_of r) ?> issued_next w |: (json_reply 400i32 (renewal_error ()), w)
 
-:= no_route (path : string) : term = problem 404i32 "Not Found Error" ("no route " ++# path)
-
 := kept (w : api_world) (status : i32) (body : term) : string * api_world = json_reply status body, w
-
-:~ token_reply (w : api_world) (r : request) (kind : string) : string * api_world =
-    ? kind = "" ?> kept w 401i32 (unauthorized ())
-    |? kind = "client" ?> renewed w r
-    |? kind = "app" ?> kept w 403i32 (user_context_only ()) |: kept w 404i32 (no_route r::path)
 
 := empty_map () : term = call "maps" "new" []
 
@@ -817,7 +815,10 @@ test sim_serve static =
 := stamp_after (w : api_world) (n : i32) : string =
     cut 0i32 19i32 (rfc3339_of (call "erlang" "+" [ seconds_of w::now; int n ])) ++# ".000Z"
 
-:= replied_ref (parent : string) : term = map_of [ ("type", str "replied_to"); ("id", str parent) ]
+:= stored_map (pairs : list (string * term)) : term =
+    call "maps" "from_list" [ pairs |> each (\ (k, v) => erlang_term::tuple [ str k; v ]) |> erlang_term::list_term ]
+
+:= replied_ref (parent : string) : term = stored_map [ ("type", str "replied_to"); ("id", str parent) ]
 
 := reply_refs (parent : string) : term = erlang_term::list_term (? parent = "" ?> Nil |: [ replied_ref parent ])
 
@@ -830,7 +831,7 @@ test sim_serve static =
 
 :~ created_post (w : api_world) (id : string) (t : string) (parent : string) : term =
     := tail = [ ("conversation_id", conversation_for w id parent); ("refs", reply_refs parent) ]
-    map_of (listm::append (created_head w id t) tail)
+    stored_map (listm::append (created_head w id t) tail)
 
 := history_one (id : string) : term = erlang_term::list_term [ str id ]
 
@@ -880,69 +881,56 @@ test sim_serve static =
 := delete_target (r : request) : option string =
     ?= pieces "/" r::path ?| "" :: "2" :: "tweets" :: id :: Nil ?& r::method = "DELETE" => Some id | _ => None
 
-:= user_kind (kind : string) : bool = kind = "user" || kind = "oauth1"
-
-:~ post_or_delete (w : api_world) (r : request) : string * api_world =
+:~ post_or_delete (w : api_world) (r : request) (_ : caller wire::user_context) : string * api_world =
     ? r::method = "POST" && r::path = "/2/tweets" ?> new_post w r
     |: ?= delete_target r ?| Some id => removed w id | None => kept w 404i32 (no_route r::path)
 
-:~ write_reply (w : api_world) (r : request) (kind : string) : string * api_world =
-    ? not (user_kind kind) ?> kept w 403i32 (user_context_only ())
-    |: post_or_delete w r
-
-:~ change_reply (w : api_world) (r : request) (kind : string) : string * api_world =
-    ? kind = "" ?> kept w 401i32 (unauthorized ())
-    |? r::method = "POST" && kind = "client" ?> renewed w r |: write_reply w r kind
-
-:~ relayed (opened : term) (raw : string) : string =
-    tcp "send" [ second opened; str raw ] |> ignore
-    drained (second opened) ""
-
-:~ forwarded (stub_port : i32) (raw : string) : string =
-    := opened = tcp "connect" [ loopback (); int stub_port; erlang_term::list_term (raw_options ()) ]
-    ? is_ok opened ?> relayed opened raw |: ""
+:~ change_reply \* c. (w : api_world) (r : request) (who : caller c) : string * api_world =
+    ?= who ?|
+    | Unauthenticated => kept w 401i32 (unauthorized ())
+    | ClientBasic ?& r::method = "POST" => renewed w r
+    | UserBearer => post_or_delete w r UserBearer
+    | OAuth1User => post_or_delete w r OAuth1User
+    | _ => kept w 403i32 (user_context_only ())
 
 := noted (r : request) : () =
     := line = str ("xsim serve / answered " ++# r::method ++# " " ++# r::path ++# "\n")
     call "io" "put_chars" [ atom "standard_error"; line ] |> ignore
 
-:~ own_reply (w : api_world) (log : string) (r : request) (kind : string) : string * api_world =
-    logged log r kind
+:~ caller_reply \* c. (w : api_world) (log : string) (r : request) (who : caller c) : string * api_world =
+    logged log r (caller_word who)
     noted r
-    ? r::method = "GET" ?> (answer w r kind, w) |: change_reply w r kind
+    ? r::method = "GET" ?> (answer w r who, w) |: change_reply w r who
 
-:= after_forward (w : api_world) (r : request) : api_world = { w ?| stale = w::stale || r::method <> "GET" }
-
-:= relay_here (w : api_world) (r : request) (kind : string) : bool = not (served_here w r)
-
-:~ replied (w : api_world) (log : string) (stub_port : i32) (raw : string) : string * api_world =
+:~ replied (w : api_world) (log : string) (raw : string) : string * api_world =
     := r = request_of raw
-    := kind = auth_kind w r
-    ? relay_here w r kind ?> (forwarded stub_port raw, after_forward w r) |: own_reply w log r kind
+    := auth = header_value "authorization" r::head
+    ? auth = "Bearer " ++# w::token ?> caller_reply w log r AppBearer
+    |? auth = "Bearer " ++# w::user_token ?> caller_reply w log r UserBearer
+    |? is_client w r auth ?> caller_reply w log r ClientBasic
+    |? is_oauth1 w r auth ?> caller_reply w log r OAuth1User |: caller_reply w log r Unauthenticated
 
-:~ handled (w : api_world) (log : string) (stub_port : i32) (sock : term) : api_world =
-    := reply, next = replied w log stub_port (received sock "")
+:~ handled (w : api_world) (log : string) (sock : term) : api_world =
+    := reply, next = replied w log (received sock "")
     tcp "send" [ sock; str reply ] |> ignore
     tcp "close" [ sock ] |> ignore
     next
 
-:~ ^ served (w : api_world) (log : string) (stub_port : i32) (listener : term) : i32 =
+:~ ^ served (w : api_world) (log : string) (listener : term) : i32 =
     := accepted = tcp "accept" [ listener ]
-    ? not (is_ok accepted) ?> 1i32
-    |:
-        served (handled w log stub_port (second accepted)) log stub_port listener
+    ? not (is_ok accepted) ?> 1i32 |: served (handled w log (second accepted)) log listener
 
 := port_text (listener : term) : string = sm'::obj_to_string (port_of listener)
 
-:~ listening (world_path : string) (port_file : string) (log : string) (stub : string) : i32 =
+:~ listening (world_path : string) (port_file : string) (log : string) : i32 =
     := listener = listened ()
     file_system::write_all_text port_file (port_text listener)
-    served (world_of world_path) log (count_or_zero stub) listener
+    served (world_of world_path) log listener
 
-:~ started (world_path : string) (port_file : string) (log : string) (stub : string) : i32 =
-    ? oauth1_self_test () ?> listening world_path port_file log stub |: 3i32
+:~ started (world_path : string) (port_file : string) (log : string) : i32 =
+    ? oauth1_self_test () ?> listening world_path port_file log |: 3i32
 
 := serve (args : list string) : i32 =
     ?= args ?|
-    | world_path :: port_file :: log :: stub :: _ => started world_path port_file log stub
+    | world_path :: port_file :: log :: _ => started world_path port_file log
     | _ => 2i32
