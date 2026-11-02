@@ -4,17 +4,17 @@ import gleam/erlang/atom
 import gleam/string
 import xsim_frames/types.{type Uh3, type Uh29, type Uh38, Uh29Cons, Uh29Nil, Uh38Cons, Uh38Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us72None, Us72Some, Us94Error, Us94Ok}
 import xsim_frames/part1.{count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, split_list_2}
-import xsim_frames/part13.{method301}
-import xsim_frames/part27.{items_from_444}
-import xsim_frames/part28.{first_value_474, method466, method467, method471, method472, method481, sliced_480}
-import xsim_frames/part29.{method488, timeline_fault_485}
-import xsim_frames/part30.{method504, method512, method513, timeline_posts_487}
-import xsim_frames/part31.{includes_pairs_507, rendered_518}
+import xsim_frames/part13.{method300}
+import xsim_frames/part27.{items_from_443}
+import xsim_frames/part28.{first_value_473, method465, method466, method470, method471, method480, sliced_479}
+import xsim_frames/part29.{method487, timeline_fault_484}
+import xsim_frames/part30.{method503, method511, method512, timeline_posts_486}
+import xsim_frames/part31.{includes_pairs_506, rendered_517}
 
-pub fn data_item_547(v0: Uh3, v1: Uh3, _v2: Uh3, v3: Dynamic) -> Dynamic {
-    let v4 = rendered_518(v3, v0)
-    let v5 = method512()
-    let v6 = method513(v5, v1)
+pub fn data_item_546(v0: Uh3, v1: Uh3, _v2: Uh3, v3: Dynamic) -> Dynamic {
+    let v4 = rendered_517(v3, v0)
+    let v5 = method511()
+    let v6 = method512(v5, v1)
     let v32 =
         case v6 {
             True -> {
@@ -41,7 +41,7 @@ pub fn data_item_547(v0: Uh3, v1: Uh3, _v2: Uh3, v3: Dynamic) -> Dynamic {
                 let v27 = [v21, ..v26]
                 let v28 = erlang_term_apply(v23, v25, v27)
                 let v29 = Uh29Nil
-                let v30 = items_from_444(v28, v29)
+                let v30 = items_from_443(v28, v29)
                 case v30  {
                     Uh29Nil -> False
                     _ -> True
@@ -83,27 +83,27 @@ pub fn data_item_547(v0: Uh3, v1: Uh3, _v2: Uh3, v3: Dynamic) -> Dynamic {
     }
 }
 
-pub fn method546(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29, v4: Uh29) -> Uh29 {
+pub fn method545(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29, v4: Uh29) -> Uh29 {
     case v3  {
         Uh29Cons(v5, v6) -> {
-            let v7 = method546(v0, v1, v2, v6, v4)
-            let v8 = data_item_547(v0, v1, v2, v5)
+            let v7 = method545(v0, v1, v2, v6, v4)
+            let v8 = data_item_546(v0, v1, v2, v5)
             Uh29Cons(v8, v7)
         }
         Uh29Nil -> v4
     }
 }
 
-pub fn expanded_506(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3, v14: Uh3, v15: Uh29) -> Uh38 {
-    let v16 = includes_pairs_507(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15)
+pub fn expanded_505(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3, v14: Uh3, v15: Uh29) -> Uh38 {
+    let v16 = includes_pairs_506(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15)
     let v33 =
         case v16  {
             Uh38Nil -> Uh38Nil
             _ -> {
                 let v18 = Uh29Nil
-                let v19 = method467(v16, v18)
+                let v19 = method466(v16, v18)
                 let v20 = []
-                let v21 = method301(v19, v20)
+                let v21 = method300(v19, v20)
                 let v22 = erlang_term_coerce(v21)
                 let v23 = "maps"
                 let v24 = atom.create(v23)
@@ -118,28 +118,28 @@ pub fn expanded_506(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
             }
         }
     let v34 = Uh29Nil
-    let v35 = method546(v12, v13, v14, v15, v34)
+    let v35 = method545(v12, v13, v14, v15, v34)
     let v43 =
         case v35  {
             Uh29Nil -> Uh38Nil
             _ -> {
                 let v37 = []
-                let v38 = method301(v35, v37)
+                let v38 = method300(v35, v37)
                 let v39 = erlang_term_coerce(v38)
                 let v40 = "data"
                 let v41 = Uh38Nil
                 Uh38Cons(v40, v39, v41)
             }
         }
-    method466(v43, v33)
+    method465(v43, v33)
 }
 
-pub fn timeline_body_486(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic, v13: String, v14: Int) -> Dynamic {
+pub fn timeline_body_485(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic, v13: String, v14: Int) -> Dynamic {
     let v15 = 0
-    let v16 = timeline_posts_487(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
+    let v16 = timeline_posts_486(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
     let v17 = Uh29Nil
-    let v18 = method504(v16, v17)
-    let v19 = sliced_480(v15, v14, v18)
+    let v18 = method503(v16, v17)
+    let v19 = sliced_479(v15, v14, v18)
     let v20 = "media.fields"
     let v21 = v13 == ""
     let v25 =
@@ -150,7 +150,7 @@ pub fn timeline_body_486(v0: String, v1: String, v2: dict.Dict(String, Dynamic),
                 split_list_2(v23, v13)
             }
         }
-    let v26 = first_value_474(v20, v25)
+    let v26 = first_value_473(v20, v25)
     let v27 = v26 == ""
     let v31 =
         case v27 {
@@ -161,7 +161,7 @@ pub fn timeline_body_486(v0: String, v1: String, v2: dict.Dict(String, Dynamic),
             }
         }
     let v32 = Uh3Nil
-    let v33 = method488(v31, v32)
+    let v33 = method487(v31, v32)
     let v34 = "post.fields"
     let v38 =
         case v21 {
@@ -171,7 +171,7 @@ pub fn timeline_body_486(v0: String, v1: String, v2: dict.Dict(String, Dynamic),
                 split_list_2(v36, v13)
             }
         }
-    let v39 = first_value_474(v34, v38)
+    let v39 = first_value_473(v34, v38)
     let v40 = v39 == ""
     let v44 =
         case v40 {
@@ -182,7 +182,7 @@ pub fn timeline_body_486(v0: String, v1: String, v2: dict.Dict(String, Dynamic),
             }
         }
     let v45 = Uh3Nil
-    let v46 = method488(v44, v45)
+    let v46 = method487(v44, v45)
     let v47 = "expansions"
     let v51 =
         case v21 {
@@ -192,7 +192,7 @@ pub fn timeline_body_486(v0: String, v1: String, v2: dict.Dict(String, Dynamic),
                 split_list_2(v49, v13)
             }
         }
-    let v52 = first_value_474(v47, v51)
+    let v52 = first_value_473(v47, v51)
     let v53 = v52 == ""
     let v57 =
         case v53 {
@@ -203,10 +203,10 @@ pub fn timeline_body_486(v0: String, v1: String, v2: dict.Dict(String, Dynamic),
             }
         }
     let v58 = Uh3Nil
-    let v59 = method488(v57, v58)
-    let v60 = expanded_506(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v46, v59, v33, v19)
+    let v59 = method487(v57, v58)
+    let v60 = expanded_505(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v46, v59, v33, v19)
     let v61 = 0
-    let v62 = method481(v19, v61)
+    let v62 = method480(v19, v61)
     let v63 = erlang_term_coerce(v62)
     let v64 = "result_count"
     let v65 = atom.create(v64)
@@ -228,11 +228,11 @@ pub fn timeline_body_486(v0: String, v1: String, v2: dict.Dict(String, Dynamic),
     let v81 = "meta"
     let v82 = Uh38Nil
     let v83 = Uh38Cons(v81, v80, v82)
-    let v84 = method466(v60, v83)
+    let v84 = method465(v60, v83)
     let v85 = Uh29Nil
-    let v86 = method467(v84, v85)
+    let v86 = method466(v84, v85)
     let v87 = []
-    let v88 = method301(v86, v87)
+    let v88 = method300(v86, v87)
     let v89 = erlang_term_coerce(v88)
     let v90 = atom.create(v74)
     let v91 = atom.create(v76)
@@ -242,8 +242,8 @@ pub fn timeline_body_486(v0: String, v1: String, v2: dict.Dict(String, Dynamic),
     v94
 }
 
-pub fn timeline_reply_484(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic, v13: String, v14: String) -> String {
-    let v15 = timeline_fault_485(v12)
+pub fn timeline_reply_483(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic, v13: String, v14: String) -> String {
+    let v15 = timeline_fault_484(v12)
     case v15  {
         Us2None -> {
             let v17 = count_of_text_10(v14)
@@ -252,7 +252,7 @@ pub fn timeline_reply_484(v0: String, v1: String, v2: dict.Dict(String, Dynamic)
                     Us3None -> 0
                     Us3Some(v18) -> v18
                 }
-            let v21 = timeline_body_486(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v20)
+            let v21 = timeline_body_485(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v20)
             let v22 = "json"
             let v23 = atom.create(v22)
             let v24 = "encode"
@@ -298,7 +298,7 @@ pub fn timeline_reply_484(v0: String, v1: String, v2: dict.Dict(String, Dynamic)
     }
 }
 
-pub fn timeline_483(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic, v13: String) -> String {
+pub fn timeline_482(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic, v13: String) -> String {
     let v14 = "max_results"
     let v15 = v13 == ""
     let v19 =
@@ -309,7 +309,7 @@ pub fn timeline_483(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
                 split_list_2(v17, v13)
             }
         }
-    let v20 = first_value_474(v14, v19)
+    let v20 = first_value_473(v14, v19)
     let v21 = v20 == ""
     let v23 =
         case v21 {
@@ -335,7 +335,7 @@ pub fn timeline_483(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
             }
         }
     case v30 {
-        True -> timeline_reply_484(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v23)
+        True -> timeline_reply_483(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v23)
         False -> {
             let v32 = "max_results must be 5..100, got "
             let v33 = v32 <> v23 
@@ -430,10 +430,10 @@ pub fn timeline_483(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
     }
 }
 
-pub fn method551(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
+pub fn method550(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
     case v12  {
         Uh3Cons(v14, v15) -> {
-            let v16 = method551(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
+            let v16 = method550(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
             let v17 = v14 |> string.lowercase
             let v18 = dict.has_key(v2, v17)
             let v19 = v18 == False
@@ -446,7 +446,7 @@ pub fn method551(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dic
     }
 }
 
-pub fn not_found_553(v0: String) -> Dynamic {
+pub fn not_found_552(v0: String) -> Dynamic {
     let v1 = "user"
     let v2 = erlang_term_coerce(v1)
     let v3 = "usernames"
@@ -521,21 +521,21 @@ pub fn not_found_553(v0: String) -> Dynamic {
     v71
 }
 
-pub fn method552(v0: Uh3, v1: Uh29) -> Uh29 {
+pub fn method551(v0: Uh3, v1: Uh29) -> Uh29 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method552(v3, v1)
-            let v5 = not_found_553(v2)
+            let v4 = method551(v3, v1)
+            let v5 = not_found_552(v2)
             Uh29Cons(v5, v4)
         }
         Uh3Nil -> v1
     }
 }
 
-pub fn method554(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
+pub fn method553(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
     case v12  {
         Uh3Cons(v14, v15) -> {
-            let v16 = method554(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
+            let v16 = method553(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
             let v17 = v14 |> string.lowercase
             let v18 = dict.has_key(v2, v17)
             case v18 {
@@ -547,14 +547,14 @@ pub fn method554(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dic
     }
 }
 
-pub fn method555(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh29) -> Uh29 {
+pub fn method554(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh29) -> Uh29 {
     case v12  {
         Uh3Cons(v14, v15) -> {
-            let v16 = method555(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
+            let v16 = method554(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
             let v17 = v14 |> string.lowercase
             let v18 = dict.get(v2, v17)
-            let v19 = method471()
-            let v20 = method472()
+            let v19 = method470()
+            let v20 = method471()
             let v21 = case v18 { Ok(x) -> v19(x) Error(x) -> v20(x) }
             let v26 =
                 case v21  {
@@ -640,7 +640,7 @@ pub fn method555(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dic
     }
 }
 
-pub fn users_by_550(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String) -> Dynamic {
+pub fn users_by_549(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String) -> Dynamic {
     let v13 = "usernames"
     let v14 = v12 == ""
     let v18 =
@@ -651,7 +651,7 @@ pub fn users_by_550(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
                 split_list_2(v16, v12)
             }
         }
-    let v19 = first_value_474(v13, v18)
+    let v19 = first_value_473(v13, v18)
     let v20 = v19 == ""
     let v24 =
         case v20 {
@@ -662,17 +662,17 @@ pub fn users_by_550(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
             }
         }
     let v25 = Uh3Nil
-    let v26 = method488(v24, v25)
+    let v26 = method487(v24, v25)
     let v27 = Uh3Nil
-    let v28 = method551(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v26, v27)
+    let v28 = method550(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v26, v27)
     let v29 = Uh29Nil
-    let v30 = method552(v28, v29)
+    let v30 = method551(v28, v29)
     let v38 =
         case v30  {
             Uh29Nil -> Uh38Nil
             _ -> {
                 let v32 = []
-                let v33 = method301(v30, v32)
+                let v33 = method300(v30, v32)
                 let v34 = erlang_term_coerce(v33)
                 let v35 = "errors"
                 let v36 = Uh38Nil
@@ -680,26 +680,26 @@ pub fn users_by_550(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
             }
         }
     let v39 = Uh3Nil
-    let v40 = method554(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v26, v39)
+    let v40 = method553(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v26, v39)
     let v41 = Uh29Nil
-    let v42 = method555(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v40, v41)
+    let v42 = method554(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v40, v41)
     let v50 =
         case v42  {
             Uh29Nil -> Uh38Nil
             _ -> {
                 let v44 = []
-                let v45 = method301(v42, v44)
+                let v45 = method300(v42, v44)
                 let v46 = erlang_term_coerce(v45)
                 let v47 = "data"
                 let v48 = Uh38Nil
                 Uh38Cons(v47, v46, v48)
             }
         }
-    let v51 = method466(v50, v38)
+    let v51 = method465(v50, v38)
     let v52 = Uh29Nil
-    let v53 = method467(v51, v52)
+    let v53 = method466(v51, v52)
     let v54 = []
-    let v55 = method301(v53, v54)
+    let v55 = method300(v53, v54)
     let v56 = erlang_term_coerce(v55)
     let v57 = "maps"
     let v58 = atom.create(v57)
@@ -711,10 +711,10 @@ pub fn users_by_550(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
     v63
 }
 
-pub fn method557(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
+pub fn method556(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
     case v12  {
         Uh3Cons(v14, v15) -> {
-            let v16 = method557(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
+            let v16 = method556(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
             let v17 = dict.has_key(v3, v14)
             case v17 {
                 True -> Uh3Cons(v14, v16)
@@ -725,13 +725,13 @@ pub fn method557(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dic
     }
 }
 
-pub fn method558(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh29) -> Uh29 {
+pub fn method557(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh29) -> Uh29 {
     case v12  {
         Uh3Cons(v14, v15) -> {
-            let v16 = method558(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
+            let v16 = method557(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
             let v17 = dict.get(v3, v14)
-            let v18 = method471()
-            let v19 = method472()
+            let v18 = method470()
+            let v19 = method471()
             let v20 = case v17 { Ok(x) -> v18(x) Error(x) -> v19(x) }
             let v25 =
                 case v20  {
@@ -817,7 +817,7 @@ pub fn method558(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dic
     }
 }
 
-pub fn users_by_ids_556(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String) -> Dynamic {
+pub fn users_by_ids_555(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String) -> Dynamic {
     let v13 = "ids"
     let v14 = v12 == ""
     let v18 =
@@ -828,7 +828,7 @@ pub fn users_by_ids_556(v0: String, v1: String, v2: dict.Dict(String, Dynamic), 
                 split_list_2(v16, v12)
             }
         }
-    let v19 = first_value_474(v13, v18)
+    let v19 = first_value_473(v13, v18)
     let v20 = v19 == ""
     let v24 =
         case v20 {
@@ -839,13 +839,13 @@ pub fn users_by_ids_556(v0: String, v1: String, v2: dict.Dict(String, Dynamic), 
             }
         }
     let v25 = Uh3Nil
-    let v26 = method488(v24, v25)
+    let v26 = method487(v24, v25)
     let v27 = Uh3Nil
-    let v28 = method557(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v26, v27)
+    let v28 = method556(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v26, v27)
     let v29 = Uh29Nil
-    let v30 = method558(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v28, v29)
+    let v30 = method557(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v28, v29)
     let v31 = []
-    let v32 = method301(v30, v31)
+    let v32 = method300(v30, v31)
     let v33 = erlang_term_coerce(v32)
     let v34 = "data"
     let v35 = atom.create(v34)
@@ -867,12 +867,12 @@ pub fn users_by_ids_556(v0: String, v1: String, v2: dict.Dict(String, Dynamic), 
     v50
 }
 
-pub fn users_reply_549(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, v13: String, v14: String, _v15: String, _v16: String) -> String {
+pub fn users_reply_548(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, v13: String, v14: String, _v15: String, _v16: String) -> String {
     let v17 = v13 == "/2/users/by"
     let v20 =
         case v17 {
-            True -> users_by_550(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v14)
-            False -> users_by_ids_556(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v14)
+            True -> users_by_549(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v14)
+            False -> users_by_ids_555(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v14)
         }
     let v21 = "json"
     let v22 = atom.create(v21)
@@ -916,10 +916,10 @@ pub fn users_reply_549(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v
     v59
 }
 
-pub fn method561(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
+pub fn method560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
     case v12  {
         Uh3Cons(v14, v15) -> {
-            let v16 = method561(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
+            let v16 = method560(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
             let v17 = dict.has_key(v5, v14)
             let v18 = v17 == False
             case v18 {

@@ -9,12 +9,12 @@ import gleam/string
 import xsim_frames/types.{type Uh3, type Uh36, type Us95, type Us96, Uh36Cons, Uh36Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us95OAuth1User, Us95UserBearer, Us96ClientBasic}
 import xsim_frames/part1.{closure1, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
 import xsim_frames/part2.{method20}
-import xsim_frames/part28.{first_value_474, logged_464}
+import xsim_frames/part28.{first_value_473, logged_463}
 import xsim_frames/part3.{method56, method57}
-import xsim_frames/part34.{answer_581, routed_469}
-import xsim_frames/part35.{new_post_585, removed_590}
+import xsim_frames/part34.{answer_580, routed_468}
+import xsim_frames/part35.{new_post_584, removed_589}
 
-pub fn post_or_delete_584(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn post_or_delete_583(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v17 = v12 == "POST"
     let v19 =
         case v17 {
@@ -25,7 +25,7 @@ pub fn post_or_delete_584(v0: String, v1: String, v2: dict.Dict(String, Dynamic)
             False -> False
         }
     case v19 {
-        True -> new_post_585(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+        True -> new_post_584(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
         False -> {
             let v33 = v13 == ""
             let v37 =
@@ -177,24 +177,24 @@ pub fn post_or_delete_584(v0: String, v1: String, v2: dict.Dict(String, Dynamic)
                     let v170 = v169 <> v146 
                     #(v170, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
                 }
-                Us2Some(v69) -> removed_590(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v69)
+                Us2Some(v69) -> removed_589(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v69)
             }
         }
     }
 }
 
-pub fn user_write_583(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: Us95) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn user_write_582(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: Us95) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     case v17  {
-        Us95OAuth1User -> post_or_delete_584(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
-        Us95UserBearer -> post_or_delete_584(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+        Us95OAuth1User -> post_or_delete_583(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+        Us95UserBearer -> post_or_delete_583(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
     }
 }
 
-pub fn change_reply_582(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: Us95) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
-    user_write_583(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
+pub fn change_reply_581(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: Us95) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+    user_write_582(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
 }
 
-pub fn reply_as_580(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: String, v18: Us95) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn reply_as_579(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: String, v18: Us95) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v22 =
         case v18  {
             Us95OAuth1User -> {
@@ -206,7 +206,7 @@ pub fn reply_as_580(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
                 v19
             }
         }
-    logged_464(v12, v13, v14, v15, v16, v17, v22)
+    logged_463(v12, v13, v14, v15, v16, v17, v22)
     let v23 = "xsim serve / answered "
     let v24 = v23 <> v13 
     let v25 = " "
@@ -229,18 +229,18 @@ pub fn reply_as_580(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
     let v42 = v13 == "GET"
     case v42 {
         True -> {
-            let v43 = answer_581(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
+            let v43 = answer_580(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
             #(v43, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
         }
-        False -> change_reply_582(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
+        False -> change_reply_581(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
     }
 }
 
-pub fn answer_593(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, _v17: Us96) -> String {
-    routed_469(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+pub fn answer_592(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, _v17: Us96) -> String {
+    routed_468(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
 }
 
-pub fn issued_next_596(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn issued_next_595(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v12 = ""
     let v13 = erlang_term_coerce(v12)
     let v14 = "oauth2"
@@ -400,7 +400,7 @@ pub fn issued_next_596(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v
     #(v166, v0, v1, v2, v3, v4, v5, v6, v7, v167, v9, v10, v11)
 }
 
-pub fn renewed_595(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, _v13: String, _v14: String, _v15: String, v16: String) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn renewed_594(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, _v13: String, _v14: String, _v15: String, v16: String) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v17 = "\r\n\r\n"
     let v18 = option.from_result(result.map(string.split_once(v16, v17), pair.first))
     let v19 = closure1(Nil)
@@ -431,7 +431,7 @@ pub fn renewed_595(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: d
                 split_list_2(v36, v32)
             }
         }
-    let v39 = first_value_474(v33, v38)
+    let v39 = first_value_473(v33, v38)
     let v40 = v39 == ""
     let v42 =
         case v40 {
@@ -454,7 +454,7 @@ pub fn renewed_595(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: d
                             split_list_2(v46, v32)
                         }
                     }
-                let v49 = first_value_474(v44, v48)
+                let v49 = first_value_473(v44, v48)
                 let v50 = v49 == ""
                 let v52 =
                     case v50 {
@@ -478,7 +478,7 @@ pub fn renewed_595(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: d
             False -> False
         }
     case v59 {
-        True -> issued_next_596(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
+        True -> issued_next_595(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
         False -> {
             let v73 = "invalid_request"
             let v74 = erlang_term_coerce(v73)
@@ -553,7 +553,7 @@ pub fn renewed_595(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: d
     }
 }
 
-pub fn user_write_597(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, _v13: String, _v14: String, _v15: String, _v16: String, _v17: Us96) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn user_write_596(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, _v13: String, _v14: String, _v15: String, _v16: String, _v17: Us96) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v18 = "Unsupported Authentication"
     let v19 = erlang_term_coerce(v18)
     let v20 = "Authenticating with OAuth 2.0 Application-Only is forbidden for this endpoint.  "
@@ -646,19 +646,19 @@ pub fn user_write_597(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3
     #(v106, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
 }
 
-pub fn change_reply_594(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: Us96) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn change_reply_593(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: Us96) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     case v17  {
         Us96ClientBasic -> {
             let v18 = v12 == "POST"
             case v18 {
-                True -> renewed_595(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
-                False -> user_write_597(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
+                True -> renewed_594(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+                False -> user_write_596(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
             }
         }
     }
 }
 
-pub fn reply_as_592(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: String, v18: Us96) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn reply_as_591(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: String, v18: Us96) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v20 =
         case v18  {
             Us96ClientBasic -> {
@@ -666,7 +666,7 @@ pub fn reply_as_592(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
                 v19
             }
         }
-    logged_464(v12, v13, v14, v15, v16, v17, v20)
+    logged_463(v12, v13, v14, v15, v16, v17, v20)
     let v21 = "xsim serve / answered "
     let v22 = v21 <> v13 
     let v23 = " "
@@ -689,17 +689,17 @@ pub fn reply_as_592(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
     let v40 = v13 == "GET"
     case v40 {
         True -> {
-            let v41 = answer_593(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
+            let v41 = answer_592(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
             #(v41, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
         }
-        False -> change_reply_594(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
+        False -> change_reply_593(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
     }
 }
 
-pub fn method600(v0: Uh3, v1: Uh36) -> Uh36 {
+pub fn method599(v0: Uh3, v1: Uh36) -> Uh36 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method600(v3, v1)
+            let v4 = method599(v3, v1)
             let v5 = spiral_string_length(v2)
             let v6 = 0
             let v7 = method56(v2, v5, v6)
@@ -766,11 +766,25 @@ pub fn method600(v0: Uh3, v1: Uh36) -> Uh36 {
     }
 }
 
+pub fn method600(v0: Uh36, v1: Uh36) -> Uh36 {
+    case v0  {
+        Uh36Cons(v2, v3, v4) -> {
+            let v5 = method600(v4, v1)
+            let v6 = v2 == "oauth_consumer_key"
+            case v6 {
+                True -> Uh36Cons(v2, v3, v5)
+                False -> v5
+            }
+        }
+        Uh36Nil -> v1
+    }
+}
+
 pub fn method601(v0: Uh36, v1: Uh36) -> Uh36 {
     case v0  {
         Uh36Cons(v2, v3, v4) -> {
             let v5 = method601(v4, v1)
-            let v6 = v2 == "oauth_consumer_key"
+            let v6 = v2 == "oauth_token"
             case v6 {
                 True -> Uh36Cons(v2, v3, v5)
                 False -> v5
@@ -784,7 +798,7 @@ pub fn method602(v0: Uh36, v1: Uh36) -> Uh36 {
     case v0  {
         Uh36Cons(v2, v3, v4) -> {
             let v5 = method602(v4, v1)
-            let v6 = v2 == "oauth_token"
+            let v6 = v2 == "oauth_signature"
             case v6 {
                 True -> Uh36Cons(v2, v3, v5)
                 False -> v5
@@ -798,20 +812,6 @@ pub fn method603(v0: Uh36, v1: Uh36) -> Uh36 {
     case v0  {
         Uh36Cons(v2, v3, v4) -> {
             let v5 = method603(v4, v1)
-            let v6 = v2 == "oauth_signature"
-            case v6 {
-                True -> Uh36Cons(v2, v3, v5)
-                False -> v5
-            }
-        }
-        Uh36Nil -> v1
-    }
-}
-
-pub fn method604(v0: Uh36, v1: Uh36) -> Uh36 {
-    case v0  {
-        Uh36Cons(v2, v3, v4) -> {
-            let v5 = method604(v4, v1)
             let v6 = v2 != "oauth_signature"
             case v6 {
                 True -> Uh36Cons(v2, v3, v5)

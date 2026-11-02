@@ -8,11 +8,11 @@ import gleam/result
 import gleam/string
 import xsim_frames/types.{type Uh3, Uh29Cons, Uh29Nil, Us2None, Us2Some, Us72None, Us72Some, Us94Error, Us94Ok}
 import xsim_frames/part1.{closure1, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_string_length, spiral_string_slice, spiral_wrap_signed}
-import xsim_frames/part13.{method301}
-import xsim_frames/part28.{method471, method472}
-import xsim_frames/part34.{method587, units_of_586}
+import xsim_frames/part13.{method300}
+import xsim_frames/part28.{method470, method471}
+import xsim_frames/part34.{method586, units_of_585}
 
-pub fn created_post_589(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3: dict.Dict(String, Dynamic), _v4: Int, v5: dict.Dict(String, Dynamic), v6: String, _v7: Dynamic, _v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), _v11: Int, v12: String, v13: String, v14: String) -> Dynamic {
+pub fn created_post_588(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3: dict.Dict(String, Dynamic), _v4: Int, v5: dict.Dict(String, Dynamic), v6: String, _v7: Dynamic, _v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), _v11: Int, v12: String, v13: String, v14: String) -> Dynamic {
     let v15 = v14 == ""
     let v44 =
         case v15 {
@@ -23,8 +23,8 @@ pub fn created_post_589(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic
             False -> {
                 let v17 = erlang_term_coerce(v14)
                 let v18 = dict.get(v5, v14)
-                let v19 = method471()
-                let v20 = method472()
+                let v19 = method470()
+                let v20 = method471()
                 let v21 = case v18 { Ok(x) -> v19(x) Error(x) -> v20(x) }
                 let v26 =
                     case v21  {
@@ -89,7 +89,7 @@ pub fn created_post_589(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic
             }
         }
     let v77 = []
-    let v78 = method301(v76, v77)
+    let v78 = method300(v76, v77)
     let v79 = erlang_term_coerce(v78)
     let v80 = dict.size(v10)
     let v81 = erlang_term_coerce(v6)
@@ -213,7 +213,7 @@ pub fn created_post_589(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic
     v198
 }
 
-pub fn posted_588(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn posted_587(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v14 = string.inspect(v11)
     let v15 = erlang_term_coerce(v14)
     let v16 = "&"
@@ -319,12 +319,12 @@ pub fn posted_588(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
     let v116 = v115 <> v92 
     let v117 = dict.insert(v10, v14, Nil)
     let v118 = spiral_wrap_signed(v11 + 1, 32)
-    let v119 = created_post_589(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v117, v118, v14, v12, v13)
+    let v119 = created_post_588(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v117, v118, v14, v12, v13)
     let v120 = dict.insert(v5, v14, v119)
     #(v116, v0, v1, v2, v3, v4, v120, v6, v7, v8, v9, v117, v118)
 }
 
-pub fn new_post_585(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, _v13: String, _v14: String, _v15: String, v16: String) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn new_post_584(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, _v13: String, _v14: String, _v15: String, v16: String) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v17 = "\r\n\r\n"
     let v18 = option.from_result(result.map(string.split_once(v16, v17), pair.first))
     let v19 = closure1(Nil)
@@ -487,9 +487,9 @@ pub fn new_post_585(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
         case v146 {
             True -> True
             False -> {
-                let v147 = units_of_586(v90)
+                let v147 = units_of_585(v90)
                 let v148 = 0
-                let v149 = method587(v147, v148)
+                let v149 = method586(v147, v148)
                 let v150 = v149 > 280
                 v150
             }
@@ -688,13 +688,13 @@ pub fn new_post_585(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
                     let v330 = v329 <> v306 
                     #(v330, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
                 }
-                False -> posted_588(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v90, v145)
+                False -> posted_587(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v90, v145)
             }
         }
     }
 }
 
-pub fn removed_590(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn removed_589(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v13 = dict.has_key(v10, v12)
     case v13 {
         True -> {

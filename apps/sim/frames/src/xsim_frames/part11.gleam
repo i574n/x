@@ -3,16 +3,16 @@ import gleam/list
 import gleam/string
 import xsim_frames/types.{type Uh3, type Us2, type Us17, type Us18, type Us16, type Uh15, type Us30, type Us45, type Uh28, type Us47, type Us57, type Us59, type Us61, Uh13Cons, Uh13Nil, Uh15Cons, Uh15Nil, Uh3Cons, Uh3Nil, Us16Content, Us16Reaction, Us16Revision, Us17Framed, Us17Posted, Us18Deleted, Us18Edited, Us18FrameEdited, Us19Liked, Us19Unliked, Us2None, Us2Some, Us3None, Us3Some, Us47Applied, Us47Waiting, Us48Error, Us48Ok, Us49None, Us49Some, Us52Error, Us52Ok, Us53None, Us53Some, Us54Error, Us54Ok, Us55None, Us55Some, Us56Error, Us56Ok, Us57Error, Us57Ok, Us58None, Us58Some, Us59Error, Us59Ok, Us60None, Us60Some, Us61Error, Us61Ok}
 import xsim_frames/part1.{dictm_term_sorted, spiral_string_slice, spiral_wrap_signed, unicode_erlang_characters_to_binary}
-import xsim_frames/part10.{closure43, closure44, hash_text_240, method246, method247, method250, method254, method255, method257, method258, method259, method260, method261, method262}
+import xsim_frames/part10.{closure43, closure44, hash_text_239, method245, method246, method249, method253, method254, method256, method257, method258, method259, method260, method261}
 import xsim_frames/part2.{delimited_21}
-import xsim_frames/part8.{restored_text_227}
+import xsim_frames/part8.{restored_text_226}
 
-pub fn method263(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
+pub fn method262(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
     let #(v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67) =
         case v0  {
             Uh3Cons(v14, v15) -> {
-                let #(v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28) = rekeyed_256(v14, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
-                method263(v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28)
+                let #(v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28) = rekeyed_255(v14, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
+                method262(v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28)
             }
             _ -> {
                 let #(v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54) =
@@ -26,10 +26,10 @@ pub fn method263(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(Strin
     #(v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67)
 }
 
-pub fn rekeyed_256(v0: String, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
+pub fn rekeyed_255(v0: String, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
     let v14 = dict.get(v6, v0)
-    let v15 = method254()
-    let v16 = method255()
+    let v15 = method253()
+    let v16 = method254()
     let v17 = case v14 { Ok(x) -> v15(x) Error(x) -> v16(x) }
     let v22 =
         case v17  {
@@ -37,8 +37,8 @@ pub fn rekeyed_256(v0: String, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(
             Us52Ok(v18) -> Us53Some(v18)
         }
     let v23 = dict.get(v4, v0)
-    let v24 = method257()
-    let v25 = method258()
+    let v24 = method256()
+    let v25 = method257()
     let v26 = case v23 { Ok(x) -> v24(x) Error(x) -> v25(x) }
     let v33 =
         case v26  {
@@ -65,8 +65,8 @@ pub fn rekeyed_256(v0: String, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(
             }
             Us2Some(v46) -> {
                 let v47 = dict.get(v5, v46)
-                let v48 = method259()
-                let v49 = method260()
+                let v48 = method258()
+                let v49 = method259()
                 let v50 = case v47 { Ok(x) -> v48(x) Error(x) -> v49(x) }
                 let v55 =
                     case v50  {
@@ -90,12 +90,12 @@ pub fn rekeyed_256(v0: String, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(
     })
     let v69 = listm_fold
     let v70 = Uh13Nil
-    let v71 = method261(v69, v70)
+    let v71 = method260(v69, v70)
     let v72 = -1
-    let v73 = method262(v44, v71, v72)
+    let v73 = method261(v44, v71, v72)
     let v74 = dict.get(v44, v73)
-    let v75 = method259()
-    let v76 = method260()
+    let v75 = method258()
+    let v76 = method259()
     let v77 = case v74 { Ok(x) -> v75(x) Error(x) -> v76(x) }
     let v82 =
         case v77  {
@@ -110,13 +110,13 @@ pub fn rekeyed_256(v0: String, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(
     let v87 = unicode_erlang_characters_to_binary([0])
     let v88 = v62 <> v87 
     let v89 = v88 <> v86 
-    let v90 = hash_text_240(v89)
+    let v90 = hash_text_239(v89)
     let v91 = spiral_string_slice(v90, 0, 15)
     let v92 = dict.insert(v5, v0, v91)
     let v93 = dict.insert(v9, v0, Nil)
     let #(v121, v122, v123, v124, v125, v126, v127, v128, v129, v130, v131, v132, v133) =
         case v22  {
-            Us53Some(v94) -> method263(v94, v1, v2, v3, v4, v92, v6, v7, v8, v93, v10, v11, v12, v13)
+            Us53Some(v94) -> method262(v94, v1, v2, v3, v4, v92, v6, v7, v8, v93, v10, v11, v12, v13)
             _ -> {
                 let #(v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120) =
                     case v22  {
@@ -136,7 +136,7 @@ pub fn ok_c55(capt: Nil) -> fn(#(Int, Bool)) -> Us57 {
     }
 }
 
-pub fn method264() -> fn(#(Int, Bool)) -> Us57 {
+pub fn method263() -> fn(#(Int, Bool)) -> Us57 {
     ok_c55(Nil)
 }
 
@@ -146,7 +146,7 @@ pub fn error_c56(capt: Nil) -> fn(Nil) -> Us57 {
     }
 }
 
-pub fn method265() -> fn(Nil) -> Us57 {
+pub fn method264() -> fn(Nil) -> Us57 {
     error_c56(Nil)
 }
 
@@ -156,7 +156,7 @@ pub fn ok_c57(capt: Nil) -> fn(dict.Dict(String, Nil)) -> Us59 {
     }
 }
 
-pub fn method266() -> fn(dict.Dict(String, Nil)) -> Us59 {
+pub fn method265() -> fn(dict.Dict(String, Nil)) -> Us59 {
     ok_c57(Nil)
 }
 
@@ -166,7 +166,7 @@ pub fn error_c58(capt: Nil) -> fn(Nil) -> Us59 {
     }
 }
 
-pub fn method267() -> fn(Nil) -> Us59 {
+pub fn method266() -> fn(Nil) -> Us59 {
     error_c58(Nil)
 }
 
@@ -186,7 +186,7 @@ pub fn closure60(capt: Nil) -> fn(#(Int, Int, Int, Int)) -> #(Int, Int, Int, Int
     }
 }
 
-pub fn frame_edit_gathered_269(v0: Int, v1: String, v2: Int, v3: Int, v4: Int, v5: String, v6: dict.Dict(Int, Nil), v7: Uh15, v8: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v9: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v10: dict.Dict(String, String), v11: dict.Dict(String, Uh3), v12: dict.Dict(String, dict.Dict(String, Nil)), v13: dict.Dict(String, #(Int, Bool)), v14: dict.Dict(String, Nil), v15: Int, v16: Int, v17: Int, v18: Int) -> Us47 {
+pub fn frame_edit_gathered_268(v0: Int, v1: String, v2: Int, v3: Int, v4: Int, v5: String, v6: dict.Dict(Int, Nil), v7: Uh15, v8: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v9: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v10: dict.Dict(String, String), v11: dict.Dict(String, Uh3), v12: dict.Dict(String, dict.Dict(String, Nil)), v13: dict.Dict(String, #(Int, Bool)), v14: dict.Dict(String, Nil), v15: Int, v16: Int, v17: Int, v18: Int) -> Us47 {
     let v19 = "edit\n"
     let v20 = v19 <> v1 
     let v21 = "\n"
@@ -195,15 +195,15 @@ pub fn frame_edit_gathered_269(v0: Int, v1: String, v2: Int, v3: Int, v4: Int, v
     let v24 = v22 <> v23 
     let v25 = closure59(#(v1, v2, v3, v4, v5))
     let v26 = closure60(Nil)
-    frame_gathered_245(v24, v0, v3, v4, v5, v25, v26, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18)
+    frame_gathered_244(v24, v0, v3, v4, v5, v25, v26, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18)
 }
 
-pub fn revision_applied_268(v0: Int, v1: Us18, v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int) -> Us47 {
+pub fn revision_applied_267(v0: Int, v1: Us18, v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int) -> Us47 {
     case v1  {
         Us18Deleted(v56) -> {
             let v57 = dict.get(v5, v56)
-            let v58 = method257()
-            let v59 = method258()
+            let v58 = method256()
+            let v59 = method257()
             let v60 = case v57 { Ok(x) -> v58(x) Error(x) -> v59(x) }
             let v67 =
                 case v60  {
@@ -221,8 +221,8 @@ pub fn revision_applied_268(v0: Int, v1: Us18, v2: dict.Dict(Int, Nil), v3: Uh15
         }
         Us18Edited(v15, v16) -> {
             let v17 = dict.get(v5, v15)
-            let v18 = method257()
-            let v19 = method258()
+            let v18 = method256()
+            let v19 = method257()
             let v20 = case v17 { Ok(x) -> v18(x) Error(x) -> v19(x) }
             let v27 =
                 case v20  {
@@ -234,33 +234,33 @@ pub fn revision_applied_268(v0: Int, v1: Us18, v2: dict.Dict(Int, Nil), v3: Uh15
                 Us55Some(v28, v29, v30) -> {
                     let v31 = dict.insert(v29, v0, v16)
                     let v32 = dict.insert(v5, v15, #(v28, v31, v30))
-                    let #(v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45) = rekeyed_256(v15, v2, v3, v4, v32, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+                    let #(v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45) = rekeyed_255(v15, v2, v3, v4, v32, v6, v7, v8, v9, v10, v11, v12, v13, v14)
                     Us47Applied(v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45)
                 }
             }
         }
-        Us18FrameEdited(v50, v51, v52, v53, v54) -> frame_edit_gathered_269(v0, v50, v51, v52, v53, v54, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+        Us18FrameEdited(v50, v51, v52, v53, v54) -> frame_edit_gathered_268(v0, v50, v51, v52, v53, v54, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
     }
 }
 
-pub fn frame_done_249(v0: String, v1: dict.Dict(Int, #(Int, Int, String)), v2: Int, v3: fn(String) -> Us16, v4: fn(#(Int, Int, Int, Int)) -> #(Int, Int, Int, Int), v5: dict.Dict(Int, Nil), v6: Uh15, v7: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v8: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v9: dict.Dict(String, String), v10: dict.Dict(String, Uh3), v11: dict.Dict(String, dict.Dict(String, Nil)), v12: dict.Dict(String, #(Int, Bool)), v13: dict.Dict(String, Nil), v14: Int, v15: Int, v16: Int, v17: Int) -> Us47 {
+pub fn frame_done_248(v0: String, v1: dict.Dict(Int, #(Int, Int, String)), v2: Int, v3: fn(String) -> Us16, v4: fn(#(Int, Int, Int, Int)) -> #(Int, Int, Int, Int), v5: dict.Dict(Int, Nil), v6: Uh15, v7: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v8: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v9: dict.Dict(String, String), v10: dict.Dict(String, Uh3), v11: dict.Dict(String, dict.Dict(String, Nil)), v12: dict.Dict(String, #(Int, Bool)), v13: dict.Dict(String, Nil), v14: Int, v15: Int, v16: Int, v17: Int) -> Us47 {
     let v18 = dict.size(v1)
     let v19 = 0
-    let v20 = method250(v18, v1, v19)
+    let v20 = method249(v18, v1, v19)
     let v21 = ""
     let v22 = delimited_21(v21, v20)
-    let v23 = restored_text_227(v22)
+    let v23 = restored_text_226(v22)
     let v24 = v3(v23)
     let v25 = dict.delete(v7, v0)
     let #(v26, v27, v28, v29) = v4(#(v14, v15, v16, v17))
-    completed_253(v2, v24, v5, v6, v25, v8, v9, v10, v11, v12, v13, v26, v27, v28, v29)
+    completed_252(v2, v24, v5, v6, v25, v8, v9, v10, v11, v12, v13, v26, v27, v28, v29)
 }
 
-pub fn frame_step_248(v0: String, v1: dict.Dict(Int, #(Int, Int, String)), v2: Int, _v3: Int, v4: Int, _v5: String, v6: fn(String) -> Us16, v7: fn(#(Int, Int, Int, Int)) -> #(Int, Int, Int, Int), v8: dict.Dict(Int, Nil), v9: Uh15, v10: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v11: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v12: dict.Dict(String, String), v13: dict.Dict(String, Uh3), v14: dict.Dict(String, dict.Dict(String, Nil)), v15: dict.Dict(String, #(Int, Bool)), v16: dict.Dict(String, Nil), v17: Int, v18: Int, v19: Int, v20: Int) -> Us47 {
+pub fn frame_step_247(v0: String, v1: dict.Dict(Int, #(Int, Int, String)), v2: Int, _v3: Int, v4: Int, _v5: String, v6: fn(String) -> Us16, v7: fn(#(Int, Int, Int, Int)) -> #(Int, Int, Int, Int), v8: dict.Dict(Int, Nil), v9: Uh15, v10: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v11: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v12: dict.Dict(String, String), v13: dict.Dict(String, Uh3), v14: dict.Dict(String, dict.Dict(String, Nil)), v15: dict.Dict(String, #(Int, Bool)), v16: dict.Dict(String, Nil), v17: Int, v18: Int, v19: Int, v20: Int) -> Us47 {
     let v21 = dict.size(v1)
     let v22 = v21 == v4
     case v22 {
-        True -> frame_done_249(v0, v1, v2, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20)
+        True -> frame_done_248(v0, v1, v2, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20)
         False -> {
             let v24 = dict.insert(v10, v0, #(v1, v2))
             Us47Applied(v8, v9, v24, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20)
@@ -268,10 +268,10 @@ pub fn frame_step_248(v0: String, v1: dict.Dict(Int, #(Int, Int, String)), v2: I
     }
 }
 
-pub fn frame_gathered_245(v0: String, v1: Int, v2: Int, v3: Int, v4: String, v5: fn(String) -> Us16, v6: fn(#(Int, Int, Int, Int)) -> #(Int, Int, Int, Int), v7: dict.Dict(Int, Nil), v8: Uh15, v9: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v10: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v11: dict.Dict(String, String), v12: dict.Dict(String, Uh3), v13: dict.Dict(String, dict.Dict(String, Nil)), v14: dict.Dict(String, #(Int, Bool)), v15: dict.Dict(String, Nil), v16: Int, v17: Int, v18: Int, v19: Int) -> Us47 {
+pub fn frame_gathered_244(v0: String, v1: Int, v2: Int, v3: Int, v4: String, v5: fn(String) -> Us16, v6: fn(#(Int, Int, Int, Int)) -> #(Int, Int, Int, Int), v7: dict.Dict(Int, Nil), v8: Uh15, v9: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v10: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v11: dict.Dict(String, String), v12: dict.Dict(String, Uh3), v13: dict.Dict(String, dict.Dict(String, Nil)), v14: dict.Dict(String, #(Int, Bool)), v15: dict.Dict(String, Nil), v16: Int, v17: Int, v18: Int, v19: Int) -> Us47 {
     let v20 = dict.get(v9, v0)
-    let v21 = method246()
-    let v22 = method247()
+    let v21 = method245()
+    let v22 = method246()
     let v23 = case v20 { Ok(x) -> v21(x) Error(x) -> v22(x) }
     let v29 =
         case v23  {
@@ -300,17 +300,17 @@ pub fn frame_gathered_245(v0: String, v1: Int, v2: Int, v3: Int, v4: String, v5:
             True -> v1
             False -> v36
         }
-    frame_step_248(v0, v37, v39, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19)
+    frame_step_247(v0, v37, v39, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19)
 }
 
-pub fn content_applied_244(v0: Int, v1: Us17, v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int) -> Us47 {
+pub fn content_applied_243(v0: Int, v1: Us17, v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int) -> Us47 {
     case v1  {
         Us17Framed(v76, v77, v78, v79, v80) -> {
             let v81 = "post\n"
             let v82 = v81 <> v76 
             let v83 = closure43(#(v76, v77, v78, v79, v80))
             let v84 = closure44(Nil)
-            frame_gathered_245(v82, v0, v78, v79, v80, v83, v84, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+            frame_gathered_244(v82, v0, v78, v79, v80, v83, v84, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
         }
         Us17Posted(v15, v16, v17) -> {
             case v16  {
@@ -324,8 +324,8 @@ pub fn content_applied_244(v0: Int, v1: Us17, v2: dict.Dict(Int, Nil), v3: Uh15,
                             let v23 = dict.insert(v22, v0, v17)
                             let v24 = dict.insert(v5, v15, #(v16, v23, False))
                             let v25 = dict.get(v7, v18)
-                            let v26 = method254()
-                            let v27 = method255()
+                            let v26 = method253()
+                            let v27 = method254()
                             let v28 = case v25 { Ok(x) -> v26(x) Error(x) -> v27(x) }
                             let v33 =
                                 case v28  {
@@ -339,7 +339,7 @@ pub fn content_applied_244(v0: Int, v1: Us17, v2: dict.Dict(Int, Nil), v3: Uh15,
                                 }
                             let v38 = Uh3Cons(v15, v37)
                             let v39 = dict.insert(v7, v18, v38)
-                            let #(v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52) = rekeyed_256(v15, v2, v3, v4, v24, v6, v39, v8, v9, v10, v11, v12, v13, v14)
+                            let #(v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52) = rekeyed_255(v15, v2, v3, v4, v24, v6, v39, v8, v9, v10, v11, v12, v13, v14)
                             Us47Applied(v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52)
                         }
                     }
@@ -353,7 +353,7 @@ pub fn content_applied_244(v0: Int, v1: Us17, v2: dict.Dict(Int, Nil), v3: Uh15,
                             Us2None -> #(v57, v6, v7)
                             _ -> panic as "spiral: union case ruled out by partial evaluation"
                         }
-                    let #(v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73) = rekeyed_256(v15, v2, v3, v4, v58, v59, v60, v8, v9, v10, v11, v12, v13, v14)
+                    let #(v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73) = rekeyed_255(v15, v2, v3, v4, v58, v59, v60, v8, v9, v10, v11, v12, v13, v14)
                     Us47Applied(v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73)
                 }
             }
@@ -361,9 +361,9 @@ pub fn content_applied_244(v0: Int, v1: Us17, v2: dict.Dict(Int, Nil), v3: Uh15,
     }
 }
 
-pub fn applied_event_243(v0: Int, v1: Us16, v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int) -> Us47 {
+pub fn applied_event_242(v0: Int, v1: Us16, v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int) -> Us47 {
     case v1  {
-        Us16Content(v15) -> content_applied_244(v0, v15, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+        Us16Content(v15) -> content_applied_243(v0, v15, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
         Us16Reaction(v19) -> {
             case v19  {
                 Us19Liked(v20, v21) -> {
@@ -376,8 +376,8 @@ pub fn applied_event_243(v0: Int, v1: Us16, v2: dict.Dict(Int, Nil), v3: Uh15, v
                             let v26 = v20 <> v25 
                             let v27 = v26 <> v21 
                             let v28 = dict.get(v9, v27)
-                            let v29 = method264()
-                            let v30 = method265()
+                            let v29 = method263()
+                            let v30 = method264()
                             let v31 = case v28 { Ok(x) -> v29(x) Error(x) -> v30(x) }
                             let v37 =
                                 case v31  {
@@ -397,8 +397,8 @@ pub fn applied_event_243(v0: Int, v1: Us16, v2: dict.Dict(Int, Nil), v3: Uh15, v
                                 False -> {
                                     let v44 = dict.new()
                                     let v45 = dict.get(v8, v20)
-                                    let v46 = method266()
-                                    let v47 = method267()
+                                    let v46 = method265()
+                                    let v47 = method266()
                                     let v48 = case v45 { Ok(x) -> v46(x) Error(x) -> v47(x) }
                                     let v53 =
                                         case v48  {
@@ -432,8 +432,8 @@ pub fn applied_event_243(v0: Int, v1: Us16, v2: dict.Dict(Int, Nil), v3: Uh15, v
                             let v72 = v66 <> v71 
                             let v73 = v72 <> v67 
                             let v74 = dict.get(v9, v73)
-                            let v75 = method264()
-                            let v76 = method265()
+                            let v75 = method263()
+                            let v76 = method264()
                             let v77 = case v74 { Ok(x) -> v75(x) Error(x) -> v76(x) }
                             let v83 =
                                 case v77  {
@@ -453,8 +453,8 @@ pub fn applied_event_243(v0: Int, v1: Us16, v2: dict.Dict(Int, Nil), v3: Uh15, v
                                 False -> {
                                     let v90 = dict.new()
                                     let v91 = dict.get(v8, v66)
-                                    let v92 = method266()
-                                    let v93 = method267()
+                                    let v92 = method265()
+                                    let v93 = method266()
                                     let v94 = case v91 { Ok(x) -> v92(x) Error(x) -> v93(x) }
                                     let v99 =
                                         case v94  {
@@ -480,12 +480,12 @@ pub fn applied_event_243(v0: Int, v1: Us16, v2: dict.Dict(Int, Nil), v3: Uh15, v
                 }
             }
         }
-        Us16Revision(v17) -> revision_applied_268(v0, v17, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+        Us16Revision(v17) -> revision_applied_267(v0, v17, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
     }
 }
 
-pub fn completed_253(v0: Int, v1: Us16, v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int) -> Us47 {
-    let v15 = applied_event_243(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
+pub fn completed_252(v0: Int, v1: Us16, v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int) -> Us47 {
+    let v15 = applied_event_242(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14)
     case v15  {
         Us47Applied(v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28) -> Us47Applied(v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28)
         Us47Waiting -> {
@@ -496,10 +496,10 @@ pub fn completed_253(v0: Int, v1: Us16, v2: dict.Dict(Int, Nil), v3: Uh15, v4: d
     }
 }
 
-pub fn method272(v0: Int, v1: Uh15, v2: Uh15) -> Uh15 {
+pub fn method271(v0: Int, v1: Uh15, v2: Uh15) -> Uh15 {
     case v1  {
         Uh15Cons(v3, v4, v5) -> {
-            let v6 = method272(v0, v5, v2)
+            let v6 = method271(v0, v5, v2)
             let v7 = v3 != v0
             case v7 {
                 True -> Uh15Cons(v3, v4, v6)
@@ -510,12 +510,12 @@ pub fn method272(v0: Int, v1: Uh15, v2: Uh15) -> Uh15 {
     }
 }
 
-pub fn drained_270(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
-    let #(v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25) = drained_from_271(v1, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
+pub fn drained_269(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
+    let #(v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25) = drained_from_270(v1, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
     #(v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25)
 }
 
-pub fn drained_from_271(v0: Uh15, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
+pub fn drained_from_270(v0: Uh15, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
     let #(v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110) =
         case v0  {
             Uh15Nil -> #(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
@@ -523,17 +523,17 @@ pub fn drained_from_271(v0: Uh15, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Di
                 let #(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97) =
                     case v0  {
                         Uh15Cons(v14, v15, v16) -> {
-                            let v17 = applied_event_243(v14, v15, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
+                            let v17 = applied_event_242(v14, v15, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
                             case v17  {
                                 Us47Applied(v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30) -> {
                                     let v31 = Uh15Nil
-                                    let v32 = method272(v14, v19, v31)
-                                    drained_270(v18, v32, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30)
+                                    let v32 = method271(v14, v19, v31)
+                                    drained_269(v18, v32, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30)
                                 }
                                 _ -> {
                                     let #(v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71) =
                                         case v17  {
-                                            Us47Waiting -> drained_from_271(v16, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
+                                            Us47Waiting -> drained_from_270(v16, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
                                             _ -> panic as "spiral: union case ruled out by partial evaluation"
                                         }
                                     #(v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71)
@@ -548,7 +548,7 @@ pub fn drained_from_271(v0: Uh15, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Di
     #(v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110)
 }
 
-pub fn delivered_242(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int, v13: Int, v14: Us16) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
+pub fn delivered_241(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int, v13: Int, v14: Us16) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
     let v15 = dict.has_key(v0, v13)
     let #(v73, v74, v75, v76, v77, v78, v79, v80, v81, v82, v83, v84, v85) =
         case v15 {
@@ -558,10 +558,10 @@ pub fn delivered_242(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(
             }
             False -> {
                 let v17 = dict.insert(v0, v13, Nil)
-                let v18 = applied_event_243(v13, v14, v17, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
+                let v18 = applied_event_242(v13, v14, v17, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
                 let #(v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72) =
                     case v18  {
-                        Us47Applied(v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31) -> drained_270(v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31)
+                        Us47Applied(v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31) -> drained_269(v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31)
                         _ -> {
                             let #(v47, v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59) =
                                 case v18  {
@@ -587,7 +587,7 @@ pub fn ok_c61(capt: Nil) -> fn(Int) -> Us61 {
     }
 }
 
-pub fn method274() -> fn(Int) -> Us61 {
+pub fn method273() -> fn(Int) -> Us61 {
     ok_c61(Nil)
 }
 
@@ -597,17 +597,17 @@ pub fn error_c62(capt: Nil) -> fn(Nil) -> Us61 {
     }
 }
 
-pub fn method275() -> fn(Nil) -> Us61 {
+pub fn method274() -> fn(Nil) -> Us61 {
     error_c62(Nil)
 }
 
-pub fn method273(v0: dict.Dict(String, Int), v1: Int, v2: Uh3, v3: Uh3) -> Uh3 {
+pub fn method272(v0: dict.Dict(String, Int), v1: Int, v2: Uh3, v3: Uh3) -> Uh3 {
     case v2  {
         Uh3Cons(v4, v5) -> {
-            let v6 = method273(v0, v1, v5, v3)
+            let v6 = method272(v0, v1, v5, v3)
             let v7 = dict.get(v0, v4)
-            let v8 = method274()
-            let v9 = method275()
+            let v8 = method273()
+            let v9 = method274()
             let v10 = case v7 { Ok(x) -> v8(x) Error(x) -> v9(x) }
             let v15 =
                 case v10  {
@@ -629,17 +629,17 @@ pub fn method273(v0: dict.Dict(String, Int), v1: Int, v2: Uh3, v3: Uh3) -> Uh3 {
     }
 }
 
-pub fn method276(v0: Uh3, v1: dict.Dict(String, Int)) -> dict.Dict(String, Int) {
+pub fn method275(v0: Uh3, v1: dict.Dict(String, Int)) -> dict.Dict(String, Int) {
     case v0  {
         Uh3Cons(v2, v3) -> {
             let v4 = dict.delete(v1, v2)
-            method276(v3, v4)
+            method275(v3, v4)
         }
         Uh3Nil -> v1
     }
 }
 
-pub fn method277(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int, v14: dict.Dict(String, Uh3), v15: Uh3, v16: dict.Dict(String, #(Us45, String)), v17: dict.Dict(String, Int), v18: dict.Dict(String, String), v19: dict.Dict(String, String), v20: dict.Dict(String, Int), v21: Int, v22: dict.Dict(String, Int), v23: dict.Dict(String, Int), v24: dict.Dict(String, Int), v25: Int, v26: Int, v27: Int, v28: Int, v29: Int, v30: dict.Dict(String, #(String, Us45, String)), v31: Bool, v32: Bool, v33: Us30, v34: Bool, v35: Int, v36: Uh28) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int, dict.Dict(String, Uh3), Uh3, dict.Dict(String, #(Us45, String)), dict.Dict(String, Int), dict.Dict(String, String), dict.Dict(String, String), dict.Dict(String, Int), Int, dict.Dict(String, Int), dict.Dict(String, Int), dict.Dict(String, Int), Int, Int, Int, Int, Int, dict.Dict(String, #(String, Us45, String)), Bool, Bool, Us30, Bool, Int, Uh28) {
+pub fn method276(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int, v14: dict.Dict(String, Uh3), v15: Uh3, v16: dict.Dict(String, #(Us45, String)), v17: dict.Dict(String, Int), v18: dict.Dict(String, String), v19: dict.Dict(String, String), v20: dict.Dict(String, Int), v21: Int, v22: dict.Dict(String, Int), v23: dict.Dict(String, Int), v24: dict.Dict(String, Int), v25: Int, v26: Int, v27: Int, v28: Int, v29: Int, v30: dict.Dict(String, #(String, Us45, String)), v31: Bool, v32: Bool, v33: Us30, v34: Bool, v35: Int, v36: Uh28) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int, dict.Dict(String, Uh3), Uh3, dict.Dict(String, #(Us45, String)), dict.Dict(String, Int), dict.Dict(String, String), dict.Dict(String, String), dict.Dict(String, Int), Int, dict.Dict(String, Int), dict.Dict(String, Int), dict.Dict(String, Int), Int, Int, Int, Int, Int, dict.Dict(String, #(String, Us45, String)), Bool, Bool, Us30, Bool, Int, Uh28) {
     let #(v201, v202, v203, v204, v205, v206, v207, v208, v209, v210, v211, v212, v213, v214, v215, v216, v217, v218, v219, v220, v221, v222, v223, v224, v225, v226, v227, v228, v229, v230, v231, v232, v233, v234, v235, v236) =
         case v0  {
             Uh3Cons(v37, v38) -> {
@@ -656,8 +656,8 @@ pub fn method277(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(Strin
                                     False -> {
                                         let v42 = dict.delete(v16, v37)
                                         let v43 = dict.get(v24, v37)
-                                        let v44 = method274()
-                                        let v45 = method275()
+                                        let v44 = method273()
+                                        let v45 = method274()
                                         let v46 = case v43 { Ok(x) -> v44(x) Error(x) -> v45(x) }
                                         let v51 =
                                             case v46  {
@@ -677,7 +677,7 @@ pub fn method277(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(Strin
                             #(v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79, v80, v81, v82, v83, v84, v85, v86, v87, v88, v89, v90, v91, v92)
                         }
                     }
-                method277(v38, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120, v121, v122, v123, v124, v125, v126, v127, v128)
+                method276(v38, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120, v121, v122, v123, v124, v125, v126, v127, v128)
             }
             _ -> {
                 let #(v165, v166, v167, v168, v169, v170, v171, v172, v173, v174, v175, v176, v177, v178, v179, v180, v181, v182, v183, v184, v185, v186, v187, v188, v189, v190, v191, v192, v193, v194, v195, v196, v197, v198, v199, v200) =
@@ -691,10 +691,10 @@ pub fn method277(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(Strin
     #(v201, v202, v203, v204, v205, v206, v207, v208, v209, v210, v211, v212, v213, v214, v215, v216, v217, v218, v219, v220, v221, v222, v223, v224, v225, v226, v227, v228, v229, v230, v231, v232, v233, v234, v235, v236)
 }
 
-pub fn method279(v0: String, v1: Uh3, v2: Uh3) -> Uh3 {
+pub fn method278(v0: String, v1: Uh3, v2: Uh3) -> Uh3 {
     case v1  {
         Uh3Cons(v3, v4) -> {
-            let v5 = method279(v0, v4, v2)
+            let v5 = method278(v0, v4, v2)
             let v6 = v3 != v0
             case v6 {
                 True -> Uh3Cons(v3, v5)
@@ -713,19 +713,19 @@ pub fn closure63(capt: #(String)) -> fn(String) -> Bool {
     }
 }
 
-pub fn method280(v0: String) -> fn(String) -> Bool {
+pub fn method279(v0: String) -> fn(String) -> Bool {
     closure63(#(v0))
 }
 
-pub fn method281(v0: String, v1: fn(String) -> Bool, v2: Uh3) -> Bool {
+pub fn method280(v0: String, v1: fn(String) -> Bool, v2: Uh3) -> Bool {
     case v2  {
         Uh3Cons(v3, v4) -> {
             let v5 = v1(v3)
             case v5 {
                 True -> True
                 False -> {
-                    let v6 = method280(v0)
-                    method281(v0, v6, v4)
+                    let v6 = method279(v0)
+                    method280(v0, v6, v4)
                 }
             }
         }

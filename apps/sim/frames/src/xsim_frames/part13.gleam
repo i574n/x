@@ -6,30 +6,30 @@ import gleam/list
 import gleam/string
 import xsim_frames/types.{type Uh3, type Us2, type Uh15, type Us30, type Us45, type Uh28, type Us66, type Uh29, Uh15Nil, Uh28Nil, Uh29Cons, Uh29Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us45Done, Us45Erred, Us52Error, Us52Ok, Us53None, Us53Some, Us54Error, Us54Ok, Us55None, Us55Some, Us56Error, Us56Ok, Us59Error, Us59Ok, Us60None, Us60Some, Us62Error, Us62Ok, Us63None, Us63Some, Us66Error, Us66Ok, Us67None, Us67Some}
 import xsim_frames/part1.{dictm_term_sorted, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, method4, spiral_wrap_signed}
-import xsim_frames/part10.{method254, method255, method257, method258, method259, method260}
-import xsim_frames/part11.{method266, method267, method276, method277}
-import xsim_frames/part12.{collected_292, method241, method278, method285, method286, method287, method288, started_queued_283}
+import xsim_frames/part10.{method253, method254, method256, method257, method258, method259}
+import xsim_frames/part11.{method265, method266, method275, method276}
+import xsim_frames/part12.{collected_291, method240, method277, method284, method285, method286, method287, started_queued_282}
 import xsim_frames/part2.{method20}
 
-pub fn method294(v0: String, v1: Uh3, v2: dict.Dict(String, #(String, Us45, String))) -> dict.Dict(String, #(String, Us45, String)) {
+pub fn method293(v0: String, v1: Uh3, v2: dict.Dict(String, #(String, Us45, String))) -> dict.Dict(String, #(String, Us45, String)) {
     case v1  {
         Uh3Cons(v3, v4) -> {
             let v5 = Us45Erred
             let v6 = "no reply within 600 s"
             let v7 = dict.insert(v2, v3, #(v0, v5, v6))
-            method294(v0, v4, v7)
+            method293(v0, v4, v7)
         }
         Uh3Nil -> v2
     }
 }
 
-pub fn method293(v0: dict.Dict(String, process.Pid), v1: Uh3, v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int, v15: dict.Dict(String, Uh3), v16: Uh3, v17: dict.Dict(String, #(Us45, String)), v18: dict.Dict(String, Int), v19: dict.Dict(String, String), v20: dict.Dict(String, String), v21: dict.Dict(String, Int), v22: Int, v23: dict.Dict(String, Int), v24: dict.Dict(String, Int), v25: dict.Dict(String, Int), v26: Int, v27: Int, v28: Int, v29: Int, v30: Int, v31: dict.Dict(String, #(String, Us45, String)), v32: Bool, v33: Bool, v34: Us30, v35: Bool, v36: Int, v37: Uh28, v38: dict.Dict(String, process.Pid), v39: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int, dict.Dict(String, Uh3), Uh3, dict.Dict(String, #(Us45, String)), dict.Dict(String, Int), dict.Dict(String, String), dict.Dict(String, String), dict.Dict(String, Int), Int, dict.Dict(String, Int), dict.Dict(String, Int), dict.Dict(String, Int), Int, Int, Int, Int, Int, dict.Dict(String, #(String, Us45, String)), Bool, Bool, Us30, Bool, Int, Uh28, dict.Dict(String, process.Pid), Int) {
+pub fn method292(v0: dict.Dict(String, process.Pid), v1: Uh3, v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int, v15: dict.Dict(String, Uh3), v16: Uh3, v17: dict.Dict(String, #(Us45, String)), v18: dict.Dict(String, Int), v19: dict.Dict(String, String), v20: dict.Dict(String, String), v21: dict.Dict(String, Int), v22: Int, v23: dict.Dict(String, Int), v24: dict.Dict(String, Int), v25: dict.Dict(String, Int), v26: Int, v27: Int, v28: Int, v29: Int, v30: Int, v31: dict.Dict(String, #(String, Us45, String)), v32: Bool, v33: Bool, v34: Us30, v35: Bool, v36: Int, v37: Uh28, v38: dict.Dict(String, process.Pid), v39: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int, dict.Dict(String, Uh3), Uh3, dict.Dict(String, #(Us45, String)), dict.Dict(String, Int), dict.Dict(String, String), dict.Dict(String, String), dict.Dict(String, Int), Int, dict.Dict(String, Int), dict.Dict(String, Int), dict.Dict(String, Int), Int, Int, Int, Int, Int, dict.Dict(String, #(String, Us45, String)), Bool, Bool, Us30, Bool, Int, Uh28, dict.Dict(String, process.Pid), Int) {
     let #(v309, v310, v311, v312, v313, v314, v315, v316, v317, v318, v319, v320, v321, v322, v323, v324, v325, v326, v327, v328, v329, v330, v331, v332, v333, v334, v335, v336, v337, v338, v339, v340, v341, v342, v343, v344, v345, v346) =
         case v1  {
             Uh3Cons(v40, v41) -> {
                 let v42 = dict.get(v0, v40)
-                let v43 = method287()
-                let v44 = method288()
+                let v43 = method286()
+                let v44 = method287()
                 let v45 = case v42 { Ok(x) -> v43(x) Error(x) -> v44(x) }
                 let v50 =
                     case v45  {
@@ -43,8 +43,8 @@ pub fn method293(v0: dict.Dict(String, process.Pid), v1: Uh3, v2: dict.Dict(Int,
                     }
                 process.kill(v54)
                 let v55 = dict.get(v38, v40)
-                let v56 = method287()
-                let v57 = method288()
+                let v56 = method286()
+                let v57 = method287()
                 let v58 = case v55 { Ok(x) -> v56(x) Error(x) -> v57(x) }
                 let v63 =
                     case v58  {
@@ -67,8 +67,8 @@ pub fn method293(v0: dict.Dict(String, process.Pid), v1: Uh3, v2: dict.Dict(Int,
                         True -> #(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39)
                         False -> {
                             let v71 = dict.get(v15, v40)
-                            let v72 = method254()
-                            let v73 = method255()
+                            let v72 = method253()
+                            let v73 = method254()
                             let v74 = case v71 { Ok(x) -> v72(x) Error(x) -> v73(x) }
                             let v79 =
                                 case v74  {
@@ -84,7 +84,7 @@ pub fn method293(v0: dict.Dict(String, process.Pid), v1: Uh3, v2: dict.Dict(Int,
                                         let v84 = dict.insert(v17, v40, #(v82, v83))
                                         case v35 {
                                             True -> {
-                                                let v85 = method294(v40, v80, v31)
+                                                let v85 = method293(v40, v80, v31)
                                                 #(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v81, v16, v84, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v85, v32, v33, v34, v35, v36, v37)
                                             }
                                             False -> #(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v81, v16, v84, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37)
@@ -103,7 +103,7 @@ pub fn method293(v0: dict.Dict(String, process.Pid), v1: Uh3, v2: dict.Dict(Int,
                             #(v158, v159, v160, v161, v162, v163, v164, v165, v166, v167, v168, v169, v170, v171, v172, v173, v174, v175, v176, v177, v178, v179, v180, v181, v182, v183, v184, v185, v186, v187, v188, v189, v190, v191, v192, v193, v194, v39)
                         }
                     }
-                method293(v0, v41, v195, v196, v197, v198, v199, v200, v201, v202, v203, v204, v205, v206, v207, v208, v209, v210, v211, v212, v213, v214, v215, v216, v217, v218, v219, v220, v221, v222, v223, v224, v225, v226, v227, v228, v229, v230, v231, v232)
+                method292(v0, v41, v195, v196, v197, v198, v199, v200, v201, v202, v203, v204, v205, v206, v207, v208, v209, v210, v211, v212, v213, v214, v215, v216, v217, v218, v219, v220, v221, v222, v223, v224, v225, v226, v227, v228, v229, v230, v231, v232)
             }
             _ -> {
                 let #(v271, v272, v273, v274, v275, v276, v277, v278, v279, v280, v281, v282, v283, v284, v285, v286, v287, v288, v289, v290, v291, v292, v293, v294, v295, v296, v297, v298, v299, v300, v301, v302, v303, v304, v305, v306, v307, v308) =
@@ -117,7 +117,7 @@ pub fn method293(v0: dict.Dict(String, process.Pid), v1: Uh3, v2: dict.Dict(Int,
     #(v309, v310, v311, v312, v313, v314, v315, v316, v317, v318, v319, v320, v321, v322, v323, v324, v325, v326, v327, v328, v329, v330, v331, v332, v333, v334, v335, v336, v337, v338, v339, v340, v341, v342, v343, v344, v345, v346)
 }
 
-pub fn settled_runs_291(v0: fn(Uh3) -> #(Us45, String), v1: process.Subject(#(String, process.Pid, Us45, String)), v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int, v15: dict.Dict(String, Uh3), v16: Uh3, v17: dict.Dict(String, #(Us45, String)), v18: dict.Dict(String, Int), v19: dict.Dict(String, String), v20: dict.Dict(String, String), v21: dict.Dict(String, Int), v22: Int, v23: dict.Dict(String, Int), v24: dict.Dict(String, Int), v25: dict.Dict(String, Int), v26: Int, v27: Int, v28: Int, v29: Int, v30: Int, v31: dict.Dict(String, #(String, Us45, String)), v32: Bool, v33: Bool, v34: Us30, v35: Bool, v36: Int, v37: Uh28, v38: dict.Dict(String, process.Pid), v39: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int, dict.Dict(String, Uh3), Uh3, dict.Dict(String, #(Us45, String)), dict.Dict(String, Int), dict.Dict(String, String), dict.Dict(String, String), dict.Dict(String, Int), Int, dict.Dict(String, Int), dict.Dict(String, Int), dict.Dict(String, Int), Int, Int, Int, Int, Int, dict.Dict(String, #(String, Us45, String)), Bool, Bool, Us30, Bool, Int, Uh28, dict.Dict(String, process.Pid), Int) {
+pub fn settled_runs_290(v0: fn(Uh3) -> #(Us45, String), v1: process.Subject(#(String, process.Pid, Us45, String)), v2: dict.Dict(Int, Nil), v3: Uh15, v4: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v5: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v6: dict.Dict(String, String), v7: dict.Dict(String, Uh3), v8: dict.Dict(String, dict.Dict(String, Nil)), v9: dict.Dict(String, #(Int, Bool)), v10: dict.Dict(String, Nil), v11: Int, v12: Int, v13: Int, v14: Int, v15: dict.Dict(String, Uh3), v16: Uh3, v17: dict.Dict(String, #(Us45, String)), v18: dict.Dict(String, Int), v19: dict.Dict(String, String), v20: dict.Dict(String, String), v21: dict.Dict(String, Int), v22: Int, v23: dict.Dict(String, Int), v24: dict.Dict(String, Int), v25: dict.Dict(String, Int), v26: Int, v27: Int, v28: Int, v29: Int, v30: Int, v31: dict.Dict(String, #(String, Us45, String)), v32: Bool, v33: Bool, v34: Us30, v35: Bool, v36: Int, v37: Uh28, v38: dict.Dict(String, process.Pid), v39: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int, dict.Dict(String, Uh3), Uh3, dict.Dict(String, #(Us45, String)), dict.Dict(String, Int), dict.Dict(String, String), dict.Dict(String, String), dict.Dict(String, Int), Int, dict.Dict(String, Int), dict.Dict(String, Int), dict.Dict(String, Int), Int, Int, Int, Int, Int, dict.Dict(String, #(String, Us45, String)), Bool, Bool, Us30, Bool, Int, Uh28, dict.Dict(String, process.Pid), Int) {
     let v40 = dict.keys(v10)
     let v41 = dictm_term_sorted(v40)
     let v42 = Uh3Nil
@@ -129,8 +129,8 @@ pub fn settled_runs_291(v0: fn(Uh3) -> #(Us45, String), v1: process.Subject(#(St
     })
     let v46 = listm_fold
     let v47 = dict.new()
-    let #(v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79, v80, v81, v82, v83) = method278(v46, v2, v3, v4, v5, v6, v7, v8, v9, v47, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37)
-    let #(v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119) = started_queued_283(v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79, v80, v81, v82, v83)
+    let #(v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79, v80, v81, v82, v83) = method277(v46, v2, v3, v4, v5, v6, v7, v8, v9, v47, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37)
+    let #(v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119) = started_queued_282(v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79, v80, v81, v82, v83)
     let v120 = dict.size(v97)
     let v121 = dict.size(v99)
     let v122 = v120 > v111
@@ -146,9 +146,9 @@ pub fn settled_runs_291(v0: fn(Uh3) -> #(Us45, String), v1: process.Subject(#(St
             False -> v112
         }
     let v126 = Uh28Nil
-    let v127 = method285(v119, v126)
+    let v127 = method284(v119, v126)
     let v128 = Uh28Nil
-    let #(v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v157, v158, v159, v160, v161, v162, v163, v164, v165, v166) = method286(v0, v1, v127, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v123, v125, v113, v114, v115, v116, v117, v118, v128, v38, v39)
+    let #(v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v157, v158, v159, v160, v161, v162, v163, v164, v165, v166) = method285(v0, v1, v127, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v123, v125, v113, v114, v115, v116, v117, v118, v128, v38, v39)
     let v167 = dict.size(v165)
     let v168 = v167 == 0
     let #(v334, v335, v336, v337, v338, v339, v340, v341, v342, v343, v344, v345, v346, v347, v348, v349, v350, v351, v352, v353, v354, v355, v356, v357, v358, v359, v360, v361, v362, v363, v364, v365, v366, v367, v368, v369, v370, v371) =
@@ -156,7 +156,7 @@ pub fn settled_runs_291(v0: fn(Uh3) -> #(Us45, String), v1: process.Subject(#(St
             True -> #(v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v157, v158, v159, v160, v161, v162, v163, v164, v165, v166)
             False -> {
                 let v169 = 600000
-                let #(v170, v171, v172, v173, v174, v175, v176, v177, v178, v179, v180, v181, v182, v183, v184, v185, v186, v187, v188, v189, v190, v191, v192, v193, v194, v195, v196, v197, v198, v199, v200, v201, v202, v203, v204, v205, v206, v207) = collected_292(v1, v169, v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v157, v158, v159, v160, v161, v162, v163, v164, v165, v166)
+                let #(v170, v171, v172, v173, v174, v175, v176, v177, v178, v179, v180, v181, v182, v183, v184, v185, v186, v187, v188, v189, v190, v191, v192, v193, v194, v195, v196, v197, v198, v199, v200, v201, v202, v203, v204, v205, v206, v207) = collected_291(v1, v169, v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v157, v158, v159, v160, v161, v162, v163, v164, v165, v166)
                 let v208 = dict.size(v206)
                 let v209 = dict.size(v165)
                 let v210 = v208 == v209
@@ -175,34 +175,34 @@ pub fn settled_runs_291(v0: fn(Uh3) -> #(Us45, String), v1: process.Subject(#(St
                             let v217 = listm_fold
                             let v218 = Uh3Nil
                             let v219 = method4(v217, v218)
-                            let #(v220, v221, v222, v223, v224, v225, v226, v227, v228, v229, v230, v231, v232, v233, v234, v235, v236, v237, v238, v239, v240, v241, v242, v243, v244, v245, v246, v247, v248, v249, v250, v251, v252, v253, v254, v255, v256, v257) = method293(v206, v219, v170, v171, v172, v173, v174, v175, v176, v177, v178, v179, v180, v181, v182, v183, v184, v185, v186, v187, v188, v189, v190, v191, v192, v193, v194, v195, v196, v197, v198, v199, v200, v201, v202, v203, v204, v205, v206, v207)
+                            let #(v220, v221, v222, v223, v224, v225, v226, v227, v228, v229, v230, v231, v232, v233, v234, v235, v236, v237, v238, v239, v240, v241, v242, v243, v244, v245, v246, v247, v248, v249, v250, v251, v252, v253, v254, v255, v256, v257) = method292(v206, v219, v170, v171, v172, v173, v174, v175, v176, v177, v178, v179, v180, v181, v182, v183, v184, v185, v186, v187, v188, v189, v190, v191, v192, v193, v194, v195, v196, v197, v198, v199, v200, v201, v202, v203, v204, v205, v206, v207)
                             #(v220, v221, v222, v223, v224, v225, v226, v227, v228, v229, v230, v231, v232, v233, v234, v235, v236, v237, v238, v239, v240, v241, v242, v243, v244, v245, v246, v247, v248, v249, v250, v251, v252, v253, v254, v255, v256, v257)
                         }
                         False -> #(v170, v171, v172, v173, v174, v175, v176, v177, v178, v179, v180, v181, v182, v183, v184, v185, v186, v187, v188, v189, v190, v191, v192, v193, v194, v195, v196, v197, v198, v199, v200, v201, v202, v203, v204, v205, v206, v207)
                     }
-                let #(v296, v297, v298, v299, v300, v301, v302, v303, v304, v305, v306, v307, v308, v309, v310, v311, v312, v313, v314, v315, v316, v317, v318, v319, v320, v321, v322, v323, v324, v325, v326, v327, v328, v329, v330, v331, v332, v333) = settled_runs_291(v0, v1, v258, v259, v260, v261, v262, v263, v264, v265, v266, v267, v268, v269, v270, v271, v272, v273, v274, v275, v276, v277, v278, v279, v280, v281, v282, v283, v284, v285, v286, v287, v288, v289, v290, v291, v292, v293, v294, v295)
+                let #(v296, v297, v298, v299, v300, v301, v302, v303, v304, v305, v306, v307, v308, v309, v310, v311, v312, v313, v314, v315, v316, v317, v318, v319, v320, v321, v322, v323, v324, v325, v326, v327, v328, v329, v330, v331, v332, v333) = settled_runs_290(v0, v1, v258, v259, v260, v261, v262, v263, v264, v265, v266, v267, v268, v269, v270, v271, v272, v273, v274, v275, v276, v277, v278, v279, v280, v281, v282, v283, v284, v285, v286, v287, v288, v289, v290, v291, v292, v293, v294, v295)
                 #(v296, v297, v298, v299, v300, v301, v302, v303, v304, v305, v306, v307, v308, v309, v310, v311, v312, v313, v314, v315, v316, v317, v318, v319, v320, v321, v322, v323, v324, v325, v326, v327, v328, v329, v330, v331, v332, v333)
             }
         }
     #(v334, v335, v336, v337, v338, v339, v340, v341, v342, v343, v344, v345, v346, v347, v348, v349, v350, v351, v352, v353, v354, v355, v356, v357, v358, v359, v360, v361, v362, v363, v364, v365, v366, v367, v368, v369, v370, v371)
 }
 
-pub fn method295(v0: dict.Dict(String, Int), v1: Int, v2: Uh3, v3: Uh3) -> Uh3 {
+pub fn method294(v0: dict.Dict(String, Int), v1: Int, v2: Uh3, v3: Uh3) -> Uh3 {
     case v2  {
         Uh3Cons(v4, v5) -> {
-            let v6 = method295(v0, v1, v5, v3)
+            let v6 = method294(v0, v1, v5, v3)
             Uh3Cons(v4, v6)
         }
         Uh3Nil -> v3
     }
 }
 
-pub fn method296(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int, v13: dict.Dict(String, dict.Dict(String, Nil)), v14: Uh3, v15: dict.Dict(String, String)) -> dict.Dict(String, String) {
+pub fn method295(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int, v13: dict.Dict(String, dict.Dict(String, Nil)), v14: Uh3, v15: dict.Dict(String, String)) -> dict.Dict(String, String) {
     case v14  {
         Uh3Cons(v16, v17) -> {
             let v18 = dict.get(v13, v16)
-            let v19 = method266()
-            let v20 = method267()
+            let v19 = method265()
+            let v20 = method266()
             let v21 = case v18 { Ok(x) -> v19(x) Error(x) -> v20(x) }
             let v26 =
                 case v21  {
@@ -215,8 +215,8 @@ pub fn method296(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict
                     Us60Some(v27) -> v27
                 }
             let v31 = dict.get(v6, v16)
-            let v32 = method266()
-            let v33 = method267()
+            let v32 = method265()
+            let v33 = method266()
             let v34 = case v31 { Ok(x) -> v32(x) Error(x) -> v33(x) }
             let v39 =
                 case v34  {
@@ -224,8 +224,8 @@ pub fn method296(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict
                     Us59Ok(v35) -> Us60Some(v35)
                 }
             let v40 = dict.get(v3, v16)
-            let v41 = method257()
-            let v42 = method258()
+            let v41 = method256()
+            let v42 = method257()
             let v43 = case v40 { Ok(x) -> v41(x) Error(x) -> v42(x) }
             let v50 =
                 case v43  {
@@ -250,8 +250,8 @@ pub fn method296(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict
                                 case v58 {
                                     True -> {
                                         let v59 = dict.get(v4, v16)
-                                        let v60 = method259()
-                                        let v61 = method260()
+                                        let v60 = method258()
+                                        let v61 = method259()
                                         let v62 = case v59 { Ok(x) -> v60(x) Error(x) -> v61(x) }
                                         case v62  {
                                             Us56Error -> Us2None
@@ -274,7 +274,7 @@ pub fn method296(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict
                         v75
                     }
                 }
-            method296(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v17, v77)
+            method295(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v17, v77)
         }
         Uh3Nil -> v15
     }
@@ -287,7 +287,7 @@ pub fn ok_c67(capt: Nil) -> fn(#(Us45, String)) -> Us66 {
     }
 }
 
-pub fn method298() -> fn(#(Us45, String)) -> Us66 {
+pub fn method297() -> fn(#(Us45, String)) -> Us66 {
     ok_c67(Nil)
 }
 
@@ -297,16 +297,16 @@ pub fn error_c68(capt: Nil) -> fn(Nil) -> Us66 {
     }
 }
 
-pub fn method299() -> fn(Nil) -> Us66 {
+pub fn method298() -> fn(Nil) -> Us66 {
     error_c68(Nil)
 }
 
-pub fn method297(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int, v13: dict.Dict(String, Uh3), v14: Uh3, v15: dict.Dict(String, #(Us45, String)), v16: dict.Dict(String, Int), v17: dict.Dict(String, String), v18: dict.Dict(String, String), v19: dict.Dict(String, Int), v20: Int, v21: dict.Dict(String, Int), v22: dict.Dict(String, Int), v23: dict.Dict(String, Int), v24: Int, v25: Int, v26: Int, v27: Int, v28: Int, v29: dict.Dict(String, #(String, Us45, String)), v30: Bool, v31: Bool, v32: Us30, v33: Bool, v34: Int, v35: Uh28, v36: dict.Dict(String, String), v37: Uh3, v38: dict.Dict(String, #(String, Us45, String))) -> dict.Dict(String, #(String, Us45, String)) {
+pub fn method296(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int, v13: dict.Dict(String, Uh3), v14: Uh3, v15: dict.Dict(String, #(Us45, String)), v16: dict.Dict(String, Int), v17: dict.Dict(String, String), v18: dict.Dict(String, String), v19: dict.Dict(String, Int), v20: Int, v21: dict.Dict(String, Int), v22: dict.Dict(String, Int), v23: dict.Dict(String, Int), v24: Int, v25: Int, v26: Int, v27: Int, v28: Int, v29: dict.Dict(String, #(String, Us45, String)), v30: Bool, v31: Bool, v32: Us30, v33: Bool, v34: Int, v35: Uh28, v36: dict.Dict(String, String), v37: Uh3, v38: dict.Dict(String, #(String, Us45, String))) -> dict.Dict(String, #(String, Us45, String)) {
     case v37  {
         Uh3Cons(v39, v40) -> {
             let v41 = dict.get(v36, v39)
-            let v42 = method259()
-            let v43 = method260()
+            let v42 = method258()
+            let v43 = method259()
             let v44 = case v41 { Ok(x) -> v42(x) Error(x) -> v43(x) }
             let v49 =
                 case v44  {
@@ -319,8 +319,8 @@ pub fn method297(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict
                     Us2Some(v50) -> v50
                 }
             let v54 = dict.get(v15, v53)
-            let v55 = method298()
-            let v56 = method299()
+            let v55 = method297()
+            let v56 = method298()
             let v57 = case v54 { Ok(x) -> v55(x) Error(x) -> v56(x) }
             let v63 =
                 case v57  {
@@ -335,7 +335,7 @@ pub fn method297(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict
                         v66
                     }
                 }
-            method297(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v40, v68)
+            method296(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v40, v68)
         }
         Uh3Nil -> v38
     }
@@ -378,8 +378,8 @@ pub fn closure42(capt: #(Int, fn(Uh3) -> #(Us45, String), Bool, Bool, Us30, Bool
         let v39 = 0
         let v40 = Uh28Nil
         let v41 = 0
-        let #(v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79) = method241(v1, v8, v0, v7, v9, v28, v10, v11, v12, v13, v14, v15, v16, v29, v30, v31, v32, v17, v33, v18, v19, v20, v21, v22, v34, v23, v24, v25, v35, v36, v37, v38, v39, v26, v2, v3, v4, v5, v6, v40, v27, v41)
-        let #(v80, v81, v82, v83, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, _v116, v117) = settled_runs_291(v1, v8, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79)
+        let #(v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79) = method240(v1, v8, v0, v7, v9, v28, v10, v11, v12, v13, v14, v15, v16, v29, v30, v31, v32, v17, v33, v18, v19, v20, v21, v22, v34, v23, v24, v25, v35, v36, v37, v38, v39, v26, v2, v3, v4, v5, v6, v40, v27, v41)
+        let #(v80, v81, v82, v83, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, _v116, v117) = settled_runs_290(v1, v8, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79)
         let v118 = dict.keys(v99)
         let v119 = dictm_term_sorted(v118)
         let v120 = Uh3Nil
@@ -391,9 +391,9 @@ pub fn closure42(capt: #(Int, fn(Uh3) -> #(Us45, String), Bool, Bool, Us30, Bool
         })
         let v124 = listm_fold
         let v125 = Uh3Nil
-        let v126 = method295(v99, v100, v124, v125)
-        let v127 = method276(v126, v99)
-        let #(v128, v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v157, v158, v159, v160, v161, v162, v163) = method277(v126, v80, v81, v82, v83, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v127, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115)
+        let v126 = method294(v99, v100, v124, v125)
+        let v127 = method275(v126, v99)
+        let #(v128, v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v157, v158, v159, v160, v161, v162, v163) = method276(v126, v80, v81, v82, v83, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v127, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115)
         let v164 = dict.size(v157)
         let v165 = v164 > 0
         let #(v188, v189, v190, v191, v192, v193, v194, v195, v196, v197, v198, v199, v200, v201, v202, v203, v204, v205, v206, v207, v208, v209, v210, v211, v212, v213, v214, v215, v216, v217, v218, v219, v220, v221, v222, v223) =
@@ -413,7 +413,7 @@ pub fn closure42(capt: #(Int, fn(Uh3) -> #(Us45, String), Bool, Bool, Us30, Bool
                     let v173 = listm_fold
                     let v174 = Uh3Nil
                     let v175 = method4(v173, v174)
-                    let v176 = method296(v128, v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v134, v175, v166)
+                    let v176 = method295(v128, v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v134, v175, v166)
                     let v177 = dict.new()
                     let v178 = dict.keys(v176)
                     let v179 = dictm_term_sorted(v178)
@@ -427,7 +427,7 @@ pub fn closure42(capt: #(Int, fn(Uh3) -> #(Us45, String), Bool, Bool, Us30, Bool
                     let v184 = listm_fold
                     let v185 = Uh3Nil
                     let v186 = method4(v184, v185)
-                    let v187 = method297(v128, v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v157, v158, v159, v160, v161, v162, v163, v176, v186, v177)
+                    let v187 = method296(v128, v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v157, v158, v159, v160, v161, v162, v163, v176, v186, v177)
                     #(v128, v129, v130, v131, v132, v133, v134, v135, v136, v137, v138, v139, v140, v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v187, v158, v159, v160, v161, v162, v163)
                 }
             }
@@ -456,10 +456,10 @@ pub fn closure39(capt: Nil) -> fn(Int) -> fn(fn(Uh3) -> #(Us45, String)) -> fn(#
     }
 }
 
-pub fn method300(v0: Uh3, v1: Uh29) -> Uh29 {
+pub fn method299(v0: Uh3, v1: Uh29) -> Uh29 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method300(v3, v1)
+            let v4 = method299(v3, v1)
             let v5 = "spiral"
             let v6 = atom.create(v5)
             let v7 = erlang_term_coerce(v6)
@@ -495,10 +495,10 @@ pub fn method300(v0: Uh3, v1: Uh29) -> Uh29 {
     }
 }
 
-pub fn method301(v0: Uh29, v1: List(Dynamic)) -> List(Dynamic) {
+pub fn method300(v0: Uh29, v1: List(Dynamic)) -> List(Dynamic) {
     case v0  {
         Uh29Cons(v2, v3) -> {
-            let v4 = method301(v3, v1)
+            let v4 = method300(v3, v1)
             let v5 = [v2, ..v4]
             v5
         }
@@ -530,9 +530,9 @@ pub fn closure69(capt: #(String, Bool, Dynamic)) -> fn(Uh3) -> #(Us45, String) {
     fn (v3) {
         let #(v0, v1, v2) = capt
         let v4 = Uh29Nil
-        let v5 = method300(v3, v4)
+        let v5 = method299(v3, v4)
         let v6 = []
-        let v7 = method301(v5, v6)
+        let v7 = method300(v5, v6)
         let v8 = erlang_term_coerce(v7)
         let v9 = "cells"
         let v10 = atom.create(v9)
@@ -778,9 +778,9 @@ pub fn closure72(capt: #(String)) -> fn(Uh3) -> #(Us45, String) {
     fn (v1) {
         let #(v0) = capt
         let v2 = Uh29Nil
-        let v3 = method300(v1, v2)
+        let v3 = method299(v1, v2)
         let v4 = []
-        let v5 = method301(v3, v4)
+        let v5 = method300(v3, v4)
         let v6 = erlang_term_coerce(v5)
         let v7 = "cells"
         let v8 = atom.create(v7)

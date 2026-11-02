@@ -5,13 +5,13 @@ import gleam/result
 import gleam/string
 import xsim_frames/types.{type Uh3, type Us80, type Us81, Uh3Cons, Uh3Nil, Uh8Nil, Us29CellsExecutor, Us29FakeExecutor, Us29LeakingExecutor, Us30NoEviction, Us33Error, Us33Ok, Us34None, Us34Some, Us36RunParsed, Us36RunRejected, Us3None, Us3Some, Us56Error, Us56Ok, Us69None, Us69Some, Us70Tick, Us74None, Us74Some, Us76Error, Us76Ok, Us80None, Us80Some, Us81Error, Us81Ok, Us82EventsCells, Us82EventsEdits, Us82EventsSeed, Us82EventsUsers, Us83None, Us83Some}
 import xsim_frames/part1.{count_of_text_10, erlang_term_apply, erlang_term_coerce, spiral_fs_coerce, spiral_fs_read_file, spiral_fs_write_file, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, unicode_erlang_characters_to_binary}
-import xsim_frames/part10.{closure32, closure35, closure36, closure37, flags_parsed_236, method259, method260, quiet_c38}
+import xsim_frames/part10.{closure32, closure35, closure36, closure37, flags_parsed_235, method258, method259, quiet_c38}
 import xsim_frames/part13.{closure39, closure69, closure72}
 import xsim_frames/part14.{closure73, closure75, closure76, closure78, closure79, closure80, closure81, closure84, closure86}
 import xsim_frames/part15.{closure87, closure89, closure90, closure91, closure92}
-import xsim_frames/part17.{method367, method368}
+import xsim_frames/part17.{method366, method367}
 import xsim_frames/part2.{concat_balanced_22, delimited_21, method20}
-import xsim_frames/part20.{method393, method394, method399, method400, simulated_by_305}
+import xsim_frames/part20.{method392, method393, method398, method399, simulated_by_304}
 import xsim_frames/part9.{closure30}
 
 pub fn closure110(capt: Nil) -> fn(String) -> Int {
@@ -168,7 +168,7 @@ pub fn closure110(capt: Nil) -> fn(String) -> Int {
         let v132 = 0
         let v133 = False
         let v134 = False
-        let v135 = flags_parsed_236(v116, v117, v118, v119, v120, v121, v122, v119, v123, v124, v125, v126, v127, v128, v119, v119, v129, v130, v131, v132, v133, v134, v115)
+        let v135 = flags_parsed_235(v116, v117, v118, v119, v120, v121, v122, v119, v123, v124, v125, v126, v127, v128, v119, v119, v129, v130, v131, v132, v133, v134, v115)
         let v168 =
             case v135  {
                 Us33Error(v165) -> Us36RunRejected(v165)
@@ -212,16 +212,16 @@ pub fn closure110(capt: Nil) -> fn(String) -> Int {
                             True -> v194
                             False -> {
                                 let v202 = spiral_fs_read_file(v195)
-                                let v203 = method367()
-                                let v204 = method368()
+                                let v203 = method366()
+                                let v204 = method367()
                                 let v205 = case v202 { Ok(x) -> v203(x) Error(x) -> v204(x) }
                                 let v218 =
                                     case v205  {
                                         Us76Error(v215) -> panic as "file_system.read_all_text: file:read_file failed"
                                         Us76Ok(v206) -> {
                                             let v207 = bit_array.to_string(v206)
-                                            let v208 = method259()
-                                            let v209 = method260()
+                                            let v208 = method258()
+                                            let v209 = method259()
                                             let v210 = case v207 { Ok(x) -> v208(x) Error(x) -> v209(x) }
                                             case v210  {
                                                 Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -239,13 +239,13 @@ pub fn closure110(capt: Nil) -> fn(String) -> Int {
                                         False -> split_list_2(v220, v221)
                                     }
                                 let v226 = Uh3Nil
-                                method393(v225, v226)
+                                method392(v225, v226)
                             }
                         }
                     case v228  {
                         Uh3Cons(v229, v230) -> {
                             let v231 = Uh8Nil
-                            let v232 = method394(v196, v228, v231)
+                            let v232 = method393(v196, v228, v231)
                             let v233 = erlang_term_coerce(v229)
                             let v234 = "filename"
                             let v235 = atom.create(v234)
@@ -314,7 +314,7 @@ pub fn closure110(capt: Nil) -> fn(String) -> Int {
         let v300 = 0
         let v301 = False
         let v302 = False
-        let v303 = flags_parsed_236(v116, v117, v287, v119, v288, v289, v290, v119, v291, v292, v293, v294, v295, v296, v119, v119, v297, v298, v299, v300, v301, v302, v115)
+        let v303 = flags_parsed_235(v116, v117, v287, v119, v288, v289, v290, v119, v291, v292, v293, v294, v295, v296, v119, v119, v297, v298, v299, v300, v301, v302, v115)
         let v336 =
             case v303  {
                 Us33Error(v333) -> Us36RunRejected(v333)
@@ -519,7 +519,7 @@ pub fn closure110(capt: Nil) -> fn(String) -> Int {
                     let v503 = closure90(#(v420, v502))
                     let v504 = closure91(Nil)
                     let v505 = closure92(Nil)
-                    let v506 = simulated_by_305(v411, v412, v413, v503, v504, v505, v417, v337, v338, v339, v340, v341, v342, v343, v344, v345, v346, v347, v348, v349, v350, v351, v352, v353, v354, v355, v356, v270)
+                    let v506 = simulated_by_304(v411, v412, v413, v503, v504, v505, v417, v337, v338, v339, v340, v341, v342, v343, v344, v345, v346, v347, v348, v349, v350, v351, v352, v353, v354, v355, v356, v270)
                     let v507 = "\n"
                     delimited_21(v507, v506)
                 }
@@ -545,8 +545,8 @@ pub fn closure110(capt: Nil) -> fn(String) -> Int {
                 True -> Uh3Nil
                 False -> split_list_2(v514, v513)
             }
-        let v528 = method399()
-        let v529 = method400(v528, v527)
+        let v528 = method398()
+        let v529 = method399(v528, v527)
         case v529 {
             True -> 1
             False -> 0
@@ -798,7 +798,7 @@ pub fn closure115(capt: Nil) -> fn(#(String, Int, Int, Int, Int, String, Int, Bo
     }
 }
 
-pub fn valued_then_403(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> Us80, v1: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> fn(String) -> Us81, v2: String, v3: Int, v4: Int, v5: Int, v6: Int, v7: String, v8: Int, v9: Bool, v10: String, v11: String, v12: String, v13: Uh3) -> Us81 {
+pub fn valued_then_402(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> Us80, v1: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> fn(String) -> Us81, v2: String, v3: Int, v4: Int, v5: Int, v6: Int, v7: String, v8: Int, v9: Bool, v10: String, v11: String, v12: String, v13: Uh3) -> Us81 {
     case v13  {
         Uh3Cons(v14, v15) -> {
             let v16 = v1(#(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11))
@@ -821,7 +821,7 @@ pub fn valued_then_403(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, S
                 }
             let v26 = v16(v25)
             let v27 = v26(v14)
-            continued_404(v0, v1, v27, v15)
+            continued_403(v0, v1, v27, v15)
         }
         Uh3Nil -> {
             let v29 = "--"
@@ -849,7 +849,7 @@ pub fn valued_then_403(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, S
     }
 }
 
-pub fn arg_parsed_402(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> Us80, v1: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> fn(String) -> Us81, v2: String, v3: Int, v4: Int, v5: Int, v6: Int, v7: String, v8: Int, v9: Bool, v10: String, v11: String, v12: String, v13: Uh3) -> Us81 {
+pub fn arg_parsed_401(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> Us80, v1: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> fn(String) -> Us81, v2: String, v3: Int, v4: Int, v5: Int, v6: Int, v7: String, v8: Int, v9: Bool, v10: String, v11: String, v12: String, v13: Uh3) -> Us81 {
     let v14 = v0(#(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11))
     let v15 = "--"
     let v16 = v12 |> string.starts_with(v15)
@@ -870,12 +870,12 @@ pub fn arg_parsed_402(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, St
         }
     let v24 = v14(v23)
     case v24  {
-        Us80None -> valued_then_403(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
-        Us80Some(v25, v26, v27, v28, v29, v30, v31, v32, v33, v34) -> flags_parsed_401(v0, v1, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v13)
+        Us80None -> valued_then_402(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
+        Us80Some(v25, v26, v27, v28, v29, v30, v31, v32, v33, v34) -> flags_parsed_400(v0, v1, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v13)
     }
 }
 
-pub fn flags_parsed_401(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> Us80, v1: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> fn(String) -> Us81, v2: String, v3: Int, v4: Int, v5: Int, v6: Int, v7: String, v8: Int, v9: Bool, v10: String, v11: String, v12: Uh3) -> Us81 {
+pub fn flags_parsed_400(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> Us80, v1: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> fn(String) -> Us81, v2: String, v3: Int, v4: Int, v5: Int, v6: Int, v7: String, v8: Int, v9: Bool, v10: String, v11: String, v12: Uh3) -> Us81 {
     case v12  {
         Uh3Cons(v14, v15) -> {
             let v16 = "--"
@@ -904,24 +904,24 @@ pub fn flags_parsed_401(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, 
                     let v29 = v27 <> v28 
                     Us81Error(v29)
                 }
-                False -> arg_parsed_402(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v14, v15)
+                False -> arg_parsed_401(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v14, v15)
             }
         }
         Uh3Nil -> Us81Ok(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
     }
 }
 
-pub fn continued_404(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> Us80, v1: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> fn(String) -> Us81, v2: Us81, v3: Uh3) -> Us81 {
+pub fn continued_403(v0: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> Us80, v1: fn(#(String, Int, Int, Int, Int, String, Int, Bool, String, String)) -> fn(String) -> fn(String) -> Us81, v2: Us81, v3: Uh3) -> Us81 {
     case v2  {
         Us81Error(v15) -> Us81Error(v15)
-        Us81Ok(v4, v5, v6, v7, v8, v9, v10, v11, v12, v13) -> flags_parsed_401(v0, v1, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v3)
+        Us81Ok(v4, v5, v6, v7, v8, v9, v10, v11, v12, v13) -> flags_parsed_400(v0, v1, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v3)
     }
 }
 
-pub fn method405(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method404(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method405(v3, v1)
+            let v4 = method404(v3, v1)
             let v5 = v2 != ""
             case v5 {
                 True -> Uh3Cons(v2, v4)

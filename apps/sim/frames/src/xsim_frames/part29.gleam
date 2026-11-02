@@ -4,9 +4,9 @@ import gleam/erlang/atom
 import gleam/string
 import xsim_frames/types.{type Uh3, type Us2, type Uh29, Uh29Cons, Uh29Nil, Uh39Cons, Uh39Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us72None, Us72Some, Us94Error, Us94Ok}
 import xsim_frames/part1.{count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
-import xsim_frames/part28.{first_value_474, following_body_475, method471, method472}
+import xsim_frames/part28.{first_value_473, following_body_474, method470, method471}
 
-pub fn following_473(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic, v13: String) -> #(Int, Dynamic) {
+pub fn following_472(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic, v13: String) -> #(Int, Dynamic) {
     let v14 = "max_results"
     let v15 = v13 == ""
     let v19 =
@@ -17,7 +17,7 @@ pub fn following_473(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3:
                 split_list_2(v17, v13)
             }
         }
-    let v20 = first_value_474(v14, v19)
+    let v20 = first_value_473(v14, v19)
     let v21 = v20 == ""
     let v23 =
         case v21 {
@@ -53,7 +53,7 @@ pub fn following_473(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3:
                         split_list_2(v33, v13)
                     }
                 }
-            let v36 = first_value_474(v31, v35)
+            let v36 = first_value_473(v31, v35)
             let v37 = v36 == ""
             let v39 =
                 case v37 {
@@ -86,7 +86,7 @@ pub fn following_473(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3:
                     True -> v52
                     False -> v4
                 }
-            let v55 = following_body_475(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v48, v54)
+            let v55 = following_body_474(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v48, v54)
             #(200, v55)
         }
         False -> {
@@ -144,7 +144,7 @@ pub fn following_473(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3:
     }
 }
 
-pub fn timeline_fault_485(v0: Dynamic) -> Us2 {
+pub fn timeline_fault_484(v0: Dynamic) -> Us2 {
     let v1 = "plain_status"
     let v2 = erlang_term_coerce(v1)
     let v3 = "maps"
@@ -726,10 +726,10 @@ pub fn timeline_fault_485(v0: Dynamic) -> Us2 {
     }
 }
 
-pub fn method488(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method487(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method488(v3, v1)
+            let v4 = method487(v3, v1)
             let v5 = v2 != ""
             case v5 {
                 True -> Uh3Cons(v2, v4)
@@ -740,10 +740,10 @@ pub fn method488(v0: Uh3, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn method489(v0: Uh29, v1: Uh3) -> Uh3 {
+pub fn method488(v0: Uh29, v1: Uh3) -> Uh3 {
     case v0  {
         Uh29Cons(v2, v3) -> {
-            let v4 = method489(v3, v1)
+            let v4 = method488(v3, v1)
             let v5 = ""
             let v6 = erlang_term_coerce(v5)
             let v7 = "id"
@@ -790,10 +790,10 @@ pub fn method489(v0: Uh29, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn method490(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
+pub fn method489(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
     case v12  {
         Uh3Cons(v14, v15) -> {
-            let v16 = method490(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
+            let v16 = method489(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
             let v17 = dict.has_key(v5, v14)
             case v17 {
                 True -> Uh3Cons(v14, v16)
@@ -804,13 +804,13 @@ pub fn method490(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dic
     }
 }
 
-pub fn method491(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh29) -> Uh29 {
+pub fn method490(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh29) -> Uh29 {
     case v12  {
         Uh3Cons(v14, v15) -> {
-            let v16 = method491(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
+            let v16 = method490(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
             let v17 = dict.get(v5, v14)
-            let v18 = method471()
-            let v19 = method472()
+            let v18 = method470()
+            let v19 = method471()
             let v20 = case v17 { Ok(x) -> v18(x) Error(x) -> v19(x) }
             let v25 =
                 case v20  {
@@ -835,19 +835,19 @@ pub fn closure147(capt: Nil) -> fn(String) -> Bool {
     }
 }
 
-pub fn method493() -> fn(String) -> Bool {
+pub fn method492() -> fn(String) -> Bool {
     closure147(Nil)
 }
 
-pub fn method494(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
+pub fn method493(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
     case v1  {
         Uh3Cons(v2, v3) -> {
             let v4 = v0(v2)
             case v4 {
                 True -> True
                 False -> {
-                    let v5 = method493()
-                    method494(v5, v3)
+                    let v5 = method492()
+                    method493(v5, v3)
                 }
             }
         }
@@ -855,10 +855,10 @@ pub fn method494(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
     }
 }
 
-pub fn method495(v0: Uh29, v1: Uh3) -> Uh3 {
+pub fn method494(v0: Uh29, v1: Uh3) -> Uh3 {
     case v0  {
         Uh29Cons(v2, v3) -> {
-            let v4 = method495(v3, v1)
+            let v4 = method494(v3, v1)
             let v5 = ""
             let v6 = erlang_term_coerce(v5)
             let v7 = "type"
@@ -888,19 +888,19 @@ pub fn closure148(capt: Nil) -> fn(String) -> Bool {
     }
 }
 
-pub fn method496() -> fn(String) -> Bool {
+pub fn method495() -> fn(String) -> Bool {
     closure148(Nil)
 }
 
-pub fn method497(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
+pub fn method496(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
     case v1  {
         Uh3Cons(v2, v3) -> {
             let v4 = v0(v2)
             case v4 {
                 True -> True
                 False -> {
-                    let v5 = method496()
-                    method497(v5, v3)
+                    let v5 = method495()
+                    method496(v5, v3)
                 }
             }
         }
@@ -915,19 +915,19 @@ pub fn closure149(capt: Nil) -> fn(String) -> Bool {
     }
 }
 
-pub fn method498() -> fn(String) -> Bool {
+pub fn method497() -> fn(String) -> Bool {
     closure149(Nil)
 }
 
-pub fn method499(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
+pub fn method498(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
     case v1  {
         Uh3Cons(v2, v3) -> {
             let v4 = v0(v2)
             case v4 {
                 True -> True
                 False -> {
-                    let v5 = method498()
-                    method499(v5, v3)
+                    let v5 = method497()
+                    method498(v5, v3)
                 }
             }
         }
@@ -942,6 +942,6 @@ pub fn closure150(capt: Nil) -> fn(String) -> Bool {
     }
 }
 
-pub fn method500() -> fn(String) -> Bool {
+pub fn method499() -> fn(String) -> Bool {
     closure150(Nil)
 }

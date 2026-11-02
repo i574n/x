@@ -9,18 +9,18 @@ import gleam/result
 import gleam/string
 import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Us2, type Uh15, type Us30, type Us45, type Uh28, type Us75, type Uh31, type Uh32, type Us76, type Us77, type Uh33, type Us79, Uh0Cons, Uh0Nil, Uh13Cons, Uh13Nil, Uh15Cons, Uh15Nil, Uh1Cons, Uh2Cons, Uh31Cons, Uh31Nil, Uh32Cons, Uh32Nil, Uh33Cons, Uh33Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us45Crashed, Us45Done, Us45Erred, Us56Error, Us56Ok, Us61Error, Us61Ok, Us75OnBluesky, Us75OnMastodon, Us75OnX, Us76Error, Us76Ok, Us77Error, Us77Ok, Us78None, Us78Some, Us79None, Us79Some}
 import xsim_frames/part1.{closure1, method4, spiral_string_length, spiral_wrap_signed, unicode_erlang_characters_to_binary, unicode_erlang_nfc}
-import xsim_frames/part10.{method259, method260}
-import xsim_frames/part11.{method274, method275}
-import xsim_frames/part12.{chain_sources_284}
+import xsim_frames/part10.{method258, method259}
+import xsim_frames/part11.{method273, method274}
+import xsim_frames/part12.{chain_sources_283}
 import xsim_frames/part15.{closure96, closure97}
-import xsim_frames/part16.{defused_dots_by_308, defused_entities_329, glued_349, method351}
+import xsim_frames/part16.{defused_dots_by_307, defused_entities_328, glued_348, method350}
 import xsim_frames/part2.{concat_balanced_22, method20, method25, method26}
-import xsim_frames/part7.{method165, method166}
+import xsim_frames/part7.{method164, method165}
 
-pub fn method350(v0: Us75, v1: Uh3, v2: Uh31) -> Uh31 {
+pub fn method349(v0: Us75, v1: Uh3, v2: Uh31) -> Uh31 {
     case v1  {
         Uh3Cons(v3, v4) -> {
-            let v5 = method350(v0, v4, v2)
+            let v5 = method349(v0, v4, v2)
             let #(v88, v89) =
                 case v0  {
                     Us75OnX -> {
@@ -194,7 +194,7 @@ pub fn method350(v0: Us75, v1: Uh3, v2: Uh31) -> Uh31 {
                                     })
                                     let v73 = listm_fold
                                     let v74 = 0
-                                    method351(v73, v74)
+                                    method350(v73, v74)
                                 }
                             }
                         #(v3, v76)
@@ -232,7 +232,7 @@ pub fn method350(v0: Us75, v1: Uh3, v2: Uh31) -> Uh31 {
     }
 }
 
-pub fn units_on_348(v0: Us75, v1: String) -> Uh31 {
+pub fn units_on_347(v0: Us75, v1: String) -> Uh31 {
     let v29 =
         case v0  {
             Us75OnBluesky(v18, v19) -> {
@@ -273,14 +273,14 @@ pub fn units_on_348(v0: Us75, v1: String) -> Uh31 {
                 })
                 let v8 = listm_fold
                 let v9 = Uh3Nil
-                glued_349(v8, v9)
+                glued_348(v8, v9)
             }
         }
     let v30 = Uh31Nil
-    method350(v0, v29, v30)
+    method349(v0, v29, v30)
 }
 
-pub fn prefix_text_353(v0: Int, v1: Uh31, v2: String) -> String {
+pub fn prefix_text_352(v0: Int, v1: Uh31, v2: String) -> String {
     case v1  {
         Uh31Cons(v3, v4, v5) -> {
             let v6 = v0 > 0
@@ -288,7 +288,7 @@ pub fn prefix_text_353(v0: Int, v1: Uh31, v2: String) -> String {
                 True -> {
                     let v7 = spiral_wrap_signed(v0 - 1, 32)
                     let v8 = v2 <> v3 
-                    prefix_text_353(v7, v5, v8)
+                    prefix_text_352(v7, v5, v8)
                 }
                 False -> v2
             }
@@ -297,7 +297,7 @@ pub fn prefix_text_353(v0: Int, v1: Uh31, v2: String) -> String {
     }
 }
 
-pub fn link_length_354(v0: Uh31, v1: Int) -> Int {
+pub fn link_length_353(v0: Uh31, v1: Int) -> Int {
     case v0  {
         Uh31Cons(v2, v3, v4) -> {
             let v5 = string.to_utf_codepoints(v2)
@@ -311,14 +311,14 @@ pub fn link_length_354(v0: Uh31, v1: Int) -> Int {
             v11
             })
             let v12 = listm_fold
-            let v13 = method165()
-            let v14 = method166(v13, v12)
+            let v13 = method164()
+            let v14 = method165(v13, v12)
             let v15 = v14 == False
             let v16 = v15 == False
             case v16 {
                 True -> {
                     let v17 = spiral_wrap_signed(v1 + 1, 32)
-                    link_length_354(v4, v17)
+                    link_length_353(v4, v17)
                 }
                 False -> v1
             }
@@ -327,29 +327,29 @@ pub fn link_length_354(v0: Uh31, v1: Int) -> Int {
     }
 }
 
-pub fn method355(v0: Uh31, v1: Uh31) -> Uh31 {
+pub fn method354(v0: Uh31, v1: Uh31) -> Uh31 {
     case v0  {
         Uh31Cons(v2, v3, v4) -> {
             let v5 = Uh31Cons(v2, v3, v1)
-            method355(v4, v5)
+            method354(v4, v5)
         }
         Uh31Nil -> v1
     }
 }
 
-pub fn linked_352(v0: Uh31, v1: Uh31) -> Uh31 {
+pub fn linked_351(v0: Uh31, v1: Uh31) -> Uh31 {
     case v0  {
         Uh31Cons(v4, v5, v6) -> {
             let v7 = 7
             let v8 = ""
-            let v9 = prefix_text_353(v7, v0, v8)
+            let v9 = prefix_text_352(v7, v0, v8)
             let v10 = v9 == "http://"
             let v14 =
                 case v10 {
                     True -> True
                     False -> {
                         let v11 = 8
-                        let v12 = prefix_text_353(v11, v0, v8)
+                        let v12 = prefix_text_352(v11, v0, v8)
                         let v13 = v12 == "https://"
                         v13
                     }
@@ -357,7 +357,7 @@ pub fn linked_352(v0: Uh31, v1: Uh31) -> Uh31 {
             case v14 {
                 True -> {
                     let v15 = 0
-                    let v16 = link_length_354(v0, v15)
+                    let v16 = link_length_353(v0, v15)
                     let v17 = spiral_wrap_signed(23 - v16, 32)
                     let v18 = v17 > 0
                     let #(v20, v21) =
@@ -369,26 +369,26 @@ pub fn linked_352(v0: Uh31, v1: Uh31) -> Uh31 {
                             False -> #(v4, v5)
                         }
                     let v22 = Uh31Cons(v20, v21, v1)
-                    linked_352(v6, v22)
+                    linked_351(v6, v22)
                 }
                 False -> {
                     let v24 = Uh31Cons(v4, v5, v1)
-                    linked_352(v6, v24)
+                    linked_351(v6, v24)
                 }
             }
         }
         Uh31Nil -> {
             let v2 = Uh31Nil
-            method355(v1, v2)
+            method354(v1, v2)
         }
     }
 }
 
-pub fn method356(v0: Uh31, v1: Int) -> Int {
+pub fn method355(v0: Uh31, v1: Int) -> Int {
     case v0  {
         Uh31Cons(v2, v3, v4) -> {
             let v5 = spiral_wrap_signed(v1 + v3, 32)
-            method356(v4, v5)
+            method355(v4, v5)
         }
         Uh31Nil -> v1
     }
@@ -397,18 +397,18 @@ pub fn method356(v0: Uh31, v1: Int) -> Int {
 pub fn closure101(capt: #(Us75)) -> fn(String) -> Int {
     fn (v1) {
         let #(v0) = capt
-        let v2 = units_on_348(v0, v1)
+        let v2 = units_on_347(v0, v1)
         let v9 =
             case v0  {
                 Us75OnBluesky(v5, v6) -> v2
                 Us75OnMastodon -> {
                     let v3 = Uh31Nil
-                    linked_352(v2, v3)
+                    linked_351(v2, v3)
                 }
                 Us75OnX -> v2
             }
         let v10 = 0
-        method356(v9, v10)
+        method355(v9, v10)
     }
 }
 
@@ -426,33 +426,33 @@ pub fn closure102(capt: Nil) -> fn(#(String, Int)) -> Bool {
         v8
         })
         let v9 = listm_fold
-        let v10 = method165()
-        let v11 = method166(v10, v9)
+        let v10 = method164()
+        let v11 = method165(v10, v9)
         let v12 = v11 == False
         let v13 = v12 == False
         v13
     }
 }
 
-pub fn taken_while_361(v0: fn(#(String, Int)) -> Bool, v1: Uh31, v2: Uh31) -> #(Uh31, Uh31) {
+pub fn taken_while_360(v0: fn(#(String, Int)) -> Bool, v1: Uh31, v2: Uh31) -> #(Uh31, Uh31) {
     case v1  {
         Uh31Cons(v3, v4, v5) -> {
             let v6 = v0(#(v3, v4))
             case v6 {
                 True -> {
                     let v7 = Uh31Cons(v3, v4, v2)
-                    taken_while_361(v0, v5, v7)
+                    taken_while_360(v0, v5, v7)
                 }
                 False -> {
                     let v10 = Uh31Nil
-                    let v11 = method355(v2, v10)
+                    let v11 = method354(v2, v10)
                     #(v11, v1)
                 }
             }
         }
         _ -> {
             let v14 = Uh31Nil
-            let v15 = method355(v2, v14)
+            let v15 = method354(v2, v14)
             #(v15, v1)
         }
     }
@@ -472,40 +472,40 @@ pub fn closure103(capt: Nil) -> fn(#(String, Int)) -> Bool {
         v8
         })
         let v9 = listm_fold
-        let v10 = method165()
-        let v11 = method166(v10, v9)
+        let v10 = method164()
+        let v11 = method165(v10, v9)
         let v12 = v11 == False
         v12
     }
 }
 
-pub fn method362(v0: Uh31, v1: Int) -> Int {
+pub fn method361(v0: Uh31, v1: Int) -> Int {
     case v0  {
         Uh31Cons(v2, v3, v4) -> {
             let v5 = spiral_wrap_signed(v1 + 1, 32)
-            method362(v4, v5)
+            method361(v4, v5)
         }
         Uh31Nil -> v1
     }
 }
 
-pub fn method363(v0: Uh31, v1: Uh31) -> Uh31 {
+pub fn method362(v0: Uh31, v1: Uh31) -> Uh31 {
     case v0  {
         Uh31Cons(v2, v3, v4) -> {
-            let v5 = method363(v4, v1)
+            let v5 = method362(v4, v1)
             Uh31Cons(v2, v3, v5)
         }
         Uh31Nil -> v1
     }
 }
 
-pub fn split_point_360(v0: Uh31) -> #(Uh31, Uh31) {
+pub fn split_point_359(v0: Uh31) -> #(Uh31, Uh31) {
     let v1 = closure102(Nil)
     let v2 = Uh31Nil
-    let #(v3, v4) = taken_while_361(v1, v0, v2)
+    let #(v3, v4) = taken_while_360(v1, v0, v2)
     let v5 = closure103(Nil)
     let v6 = Uh31Nil
-    let #(v7, v8) = taken_while_361(v5, v4, v6)
+    let #(v7, v8) = taken_while_360(v5, v4, v6)
     let v9 =
         case v8  {
             Uh31Nil -> False
@@ -515,9 +515,9 @@ pub fn split_point_360(v0: Uh31) -> #(Uh31, Uh31) {
         case v9 {
             True -> {
                 let v10 = 0
-                let v11 = method362(v3, v10)
+                let v11 = method361(v3, v10)
                 let v12 = 0
-                let v13 = method362(v7, v12)
+                let v13 = method361(v7, v12)
                 let v14 = spiral_wrap_signed(v11 + v13, 32)
                 let v15 = v14 <= 60
                 v15
@@ -526,12 +526,12 @@ pub fn split_point_360(v0: Uh31) -> #(Uh31, Uh31) {
         }
     case v16 {
         True -> {
-            let v17 = method363(v3, v7)
+            let v17 = method362(v3, v7)
             #(v17, v8)
         }
         False -> {
             let v18 = Uh31Nil
-            let #(v19, v20) = taken_while_361(v5, v0, v18)
+            let #(v19, v20) = taken_while_360(v5, v0, v18)
             let v21 =
                 case v20  {
                     Uh31Nil -> False
@@ -548,17 +548,17 @@ pub fn split_point_360(v0: Uh31) -> #(Uh31, Uh31) {
     }
 }
 
-pub fn method364(v0: Uh31, v1: Uh3) -> Uh3 {
+pub fn method363(v0: Uh31, v1: Uh3) -> Uh3 {
     case v0  {
         Uh31Cons(v2, v3, v4) -> {
-            let v5 = method364(v4, v1)
+            let v5 = method363(v4, v1)
             Uh3Cons(v2, v5)
         }
         Uh31Nil -> v1
     }
 }
 
-pub fn chunk_359(v0: Int, v1: Uh31, v2: Uh31, v3: Int, v4: Uh3) -> Uh3 {
+pub fn chunk_358(v0: Int, v1: Uh31, v2: Uh31, v3: Int, v4: Uh3) -> Uh3 {
     case v1  {
         Uh31Cons(v15, v16, v17) -> {
             let v18 = spiral_wrap_signed(v3 + v16, 32)
@@ -579,21 +579,21 @@ pub fn chunk_359(v0: Int, v1: Uh31, v2: Uh31, v3: Int, v4: Uh3) -> Uh3 {
             case v22 {
                 True -> {
                     let v23 = Uh31Cons(v15, v16, v2)
-                    chunk_359(v0, v17, v23, v18, v4)
+                    chunk_358(v0, v17, v23, v18, v4)
                 }
                 False -> {
-                    let #(v25, v26) = split_point_360(v2)
+                    let #(v25, v26) = split_point_359(v2)
                     let v27 = Uh31Nil
-                    let v28 = method355(v25, v27)
-                    let v29 = method363(v28, v1)
+                    let v28 = method354(v25, v27)
+                    let v29 = method362(v28, v1)
                     let v37 =
                         case v26  {
                             Uh31Nil -> v4
                             _ -> {
                                 let v30 = Uh31Nil
-                                let v31 = method355(v26, v30)
+                                let v31 = method354(v26, v30)
                                 let v32 = Uh3Nil
-                                let v33 = method364(v31, v32)
+                                let v33 = method363(v31, v32)
                                 let v34 = ""
                                 let v35 = concat_balanced_22(v34, v33)
                                 Uh3Cons(v35, v4)
@@ -601,7 +601,7 @@ pub fn chunk_359(v0: Int, v1: Uh31, v2: Uh31, v3: Int, v4: Uh3) -> Uh3 {
                         }
                     let v38 = Uh31Nil
                     let v39 = 0
-                    chunk_359(v0, v29, v38, v39, v37)
+                    chunk_358(v0, v29, v38, v39, v37)
                 }
             }
         }
@@ -611,9 +611,9 @@ pub fn chunk_359(v0: Int, v1: Uh31, v2: Uh31, v3: Int, v4: Uh3) -> Uh3 {
                     Uh31Nil -> v4
                     _ -> {
                         let v5 = Uh31Nil
-                        let v6 = method355(v2, v5)
+                        let v6 = method354(v2, v5)
                         let v7 = Uh3Nil
-                        let v8 = method364(v6, v7)
+                        let v8 = method363(v6, v7)
                         let v9 = ""
                         let v10 = concat_balanced_22(v9, v8)
                         Uh3Cons(v10, v4)
@@ -625,7 +625,7 @@ pub fn chunk_359(v0: Int, v1: Uh31, v2: Uh31, v3: Int, v4: Uh3) -> Uh3 {
     }
 }
 
-pub fn chunks_of_358(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh31, v4: Int) -> Uh3 {
+pub fn chunks_of_357(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh31, v4: Int) -> Uh3 {
     let v5 = " "
     let v6 = v1 <> v5 
     let v7 = string.inspect(v4)
@@ -641,7 +641,7 @@ pub fn chunks_of_358(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh31, v4: I
     let v17 = Uh31Nil
     let v18 = 0
     let v19 = Uh3Nil
-    let v20 = chunk_359(v16, v3, v17, v18, v19)
+    let v20 = chunk_358(v16, v3, v17, v18, v19)
     let v21 = 0
     let v22 = method20(v20, v21)
     let v23 = string.inspect(v22)
@@ -650,44 +650,44 @@ pub fn chunks_of_358(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh31, v4: I
     let v26 = spiral_string_length(v25)
     let v27 = v24 > v26
     case v27 {
-        True -> chunks_of_358(v0, v1, v2, v3, v22)
+        True -> chunks_of_357(v0, v1, v2, v3, v22)
         False -> v20
     }
 }
 
-pub fn split_units_357(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh31) -> Uh3 {
+pub fn split_units_356(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh31) -> Uh3 {
     let v4 = 9
-    chunks_of_358(v0, v1, v2, v3, v4)
+    chunks_of_357(v0, v1, v2, v3, v4)
 }
 
-pub fn split_cell_on_347(v0: Us75, v1: String, v2: Int, v3: String) -> Uh3 {
+pub fn split_cell_on_346(v0: Us75, v1: String, v2: Int, v3: String) -> Uh3 {
     let v4 = closure101(#(v0))
     let v5 = unicode_erlang_nfc(v3)
-    let v6 = units_on_348(v0, v5)
+    let v6 = units_on_347(v0, v5)
     let v13 =
         case v0  {
             Us75OnBluesky(v9, v10) -> v6
             Us75OnMastodon -> {
                 let v7 = Uh31Nil
-                linked_352(v6, v7)
+                linked_351(v6, v7)
             }
             Us75OnX -> v6
         }
-    split_units_357(v2, v1, v4, v13)
+    split_units_356(v2, v1, v4, v13)
 }
 
-pub fn split_cell_306(v0: String, v1: Int, v2: String) -> Uh3 {
+pub fn split_cell_305(v0: String, v1: Int, v2: String) -> Uh3 {
     let v3 = Us75OnX
     let v4 = closure96(Nil)
-    let v5 = defused_dots_by_308(v4, v2)
-    let v6 = defused_entities_329(v5)
-    split_cell_on_347(v3, v0, v1, v6)
+    let v5 = defused_dots_by_307(v4, v2)
+    let v6 = defused_entities_328(v5)
+    split_cell_on_346(v3, v0, v1, v6)
 }
 
 pub fn closure95(capt: #(String, Int)) -> fn(String) -> Uh3 {
     fn (v2) {
         let #(v0, v1) = capt
-        split_cell_306(v0, v1, v2)
+        split_cell_305(v0, v1, v2)
     }
 }
 
@@ -704,11 +704,11 @@ pub fn closure93(capt: Nil) -> fn(String) -> fn(Int) -> fn(String) -> Uh3 {
     }
 }
 
-pub fn method366(v0: Uh32, v1: Uh32) -> Uh32 {
+pub fn method365(v0: Uh32, v1: Uh32) -> Uh32 {
     case v0  {
         Uh32Cons(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40) -> {
             let v41 = Uh32Cons(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v1)
-            method366(v40, v41)
+            method365(v40, v41)
         }
         Uh32Nil -> v1
     }
@@ -720,7 +720,7 @@ pub fn ok_c104(capt: Nil) -> fn(BitArray) -> Us76 {
     }
 }
 
-pub fn method367() -> fn(BitArray) -> Us76 {
+pub fn method366() -> fn(BitArray) -> Us76 {
     ok_c104(Nil)
 }
 
@@ -730,15 +730,15 @@ pub fn error_c105(capt: Nil) -> fn(Dynamic) -> Us76 {
     }
 }
 
-pub fn method368() -> fn(Dynamic) -> Us76 {
+pub fn method367() -> fn(Dynamic) -> Us76 {
     error_c105(Nil)
 }
 
-pub fn method369(v0: Uh15, v1: Int) -> Int {
+pub fn method368(v0: Uh15, v1: Int) -> Int {
     case v0  {
         Uh15Cons(v2, v3, v4) -> {
             let v5 = spiral_wrap_signed(v1 + 1, 32)
-            method369(v4, v5)
+            method368(v4, v5)
         }
         Uh15Nil -> v1
     }
@@ -751,7 +751,7 @@ pub fn ok_c106(capt: Nil) -> fn(#(String, Us45, String)) -> Us77 {
     }
 }
 
-pub fn method371() -> fn(#(String, Us45, String)) -> Us77 {
+pub fn method370() -> fn(#(String, Us45, String)) -> Us77 {
     ok_c106(Nil)
 }
 
@@ -761,11 +761,11 @@ pub fn error_c107(capt: Nil) -> fn(Nil) -> Us77 {
     }
 }
 
-pub fn method372() -> fn(Nil) -> Us77 {
+pub fn method371() -> fn(Nil) -> Us77 {
     error_c107(Nil)
 }
 
-pub fn shown_inserted_373(v0: String, v1: String, v2: Bool, v3: String, v4: Uh0) -> Uh0 {
+pub fn shown_inserted_372(v0: String, v1: String, v2: Bool, v3: String, v4: Uh0) -> Uh0 {
     case v4  {
         Uh0Cons(v5, v6, v7, v8, v9) -> {
             let v10 = string.compare(v5, v0) == order.Lt
@@ -783,7 +783,7 @@ pub fn shown_inserted_373(v0: String, v1: String, v2: Bool, v3: String, v4: Uh0)
             let v14 = v13 == -1
             case v14 {
                 True -> {
-                    let v15 = shown_inserted_373(v0, v1, v2, v3, v9)
+                    let v15 = shown_inserted_372(v0, v1, v2, v3, v9)
                     Uh0Cons(v5, v6, v7, v8, v15)
                 }
                 False -> Uh0Cons(v0, v1, v2, v3, v4)
@@ -793,12 +793,12 @@ pub fn shown_inserted_373(v0: String, v1: String, v2: Bool, v3: String, v4: Uh0)
     }
 }
 
-pub fn method370(v0: dict.Dict(String, #(String, Us45, String)), v1: Uh3, v2: Uh0) -> Uh0 {
+pub fn method369(v0: dict.Dict(String, #(String, Us45, String)), v1: Uh3, v2: Uh0) -> Uh0 {
     case v1  {
         Uh3Cons(v3, v4) -> {
             let v5 = dict.get(v0, v3)
-            let v6 = method371()
-            let v7 = method372()
+            let v6 = method370()
+            let v7 = method371()
             let v8 = case v5 { Ok(x) -> v6(x) Error(x) -> v7(x) }
             let v15 =
                 case v8  {
@@ -840,19 +840,19 @@ pub fn method370(v0: dict.Dict(String, #(String, Us45, String)), v1: Uh3, v2: Uh
             let v35 = "|"
             let v36 = v34 <> v35 
             let v37 = v36 <> v27 
-            let v38 = shown_inserted_373(v3, v25, v28, v37, v2)
-            method370(v0, v4, v38)
+            let v38 = shown_inserted_372(v3, v25, v28, v37, v2)
+            method369(v0, v4, v38)
         }
         Uh3Nil -> v2
     }
 }
 
-pub fn method374(v0: dict.Dict(String, String), v1: Uh3, v2: Uh1) -> Uh1 {
+pub fn method373(v0: dict.Dict(String, String), v1: Uh3, v2: Uh1) -> Uh1 {
     case v1  {
         Uh3Cons(v3, v4) -> {
             let v5 = dict.get(v0, v3)
-            let v6 = method259()
-            let v7 = method260()
+            let v6 = method258()
+            let v7 = method259()
             let v8 = case v5 { Ok(x) -> v6(x) Error(x) -> v7(x) }
             let v13 =
                 case v8  {
@@ -865,18 +865,18 @@ pub fn method374(v0: dict.Dict(String, String), v1: Uh3, v2: Uh1) -> Uh1 {
                     Us2Some(v14) -> v14
                 }
             let v18 = Uh1Cons(v3, v17, v2)
-            method374(v0, v4, v18)
+            method373(v0, v4, v18)
         }
         Uh3Nil -> v2
     }
 }
 
-pub fn method375(v0: dict.Dict(String, Int), v1: Uh3, v2: Uh2) -> Uh2 {
+pub fn method374(v0: dict.Dict(String, Int), v1: Uh3, v2: Uh2) -> Uh2 {
     case v1  {
         Uh3Cons(v3, v4) -> {
             let v5 = dict.get(v0, v3)
-            let v6 = method274()
-            let v7 = method275()
+            let v6 = method273()
+            let v7 = method274()
             let v8 = case v5 { Ok(x) -> v6(x) Error(x) -> v7(x) }
             let v13 =
                 case v8  {
@@ -889,16 +889,16 @@ pub fn method375(v0: dict.Dict(String, Int), v1: Uh3, v2: Uh2) -> Uh2 {
                     Us3Some(v14) -> v14
                 }
             let v18 = Uh2Cons(v3, v17, v2)
-            method375(v0, v4, v18)
+            method374(v0, v4, v18)
         }
         Uh3Nil -> v2
     }
 }
 
-pub fn method376(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool, v7: Uh0, v8: Uh0) -> Uh0 {
+pub fn method375(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool, v7: Uh0, v8: Uh0) -> Uh0 {
     case v7  {
         Uh0Cons(v9, v10, v11, v12, v13) -> {
-            let v14 = method376(v0, v1, v2, v3, v4, v5, v6, v13, v8)
+            let v14 = method375(v0, v1, v2, v3, v4, v5, v6, v13, v8)
             let v15 = method25(v9, v10, v11, v12)
             let v16 = method26(v9, v10, v11, v12, v15, v1)
             case v16 {
@@ -910,23 +910,23 @@ pub fn method376(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool,
     }
 }
 
-pub fn method377(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int, v13: dict.Dict(String, Uh3), v14: Uh3, v15: dict.Dict(String, #(Us45, String)), v16: dict.Dict(String, Int), v17: dict.Dict(String, String), v18: dict.Dict(String, String), v19: dict.Dict(String, Int), v20: Int, v21: dict.Dict(String, Int), v22: dict.Dict(String, Int), v23: dict.Dict(String, Int), v24: Int, v25: Int, v26: Int, v27: Int, v28: Int, v29: dict.Dict(String, #(String, Us45, String)), v30: Bool, v31: Bool, v32: Us30, v33: Bool, v34: Int, v35: Uh28, v36: fn(Uh3) -> #(Us45, String), v37: Uh0, v38: Uh33) -> Uh33 {
+pub fn method376(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int, v13: dict.Dict(String, Uh3), v14: Uh3, v15: dict.Dict(String, #(Us45, String)), v16: dict.Dict(String, Int), v17: dict.Dict(String, String), v18: dict.Dict(String, String), v19: dict.Dict(String, Int), v20: Int, v21: dict.Dict(String, Int), v22: dict.Dict(String, Int), v23: dict.Dict(String, Int), v24: Int, v25: Int, v26: Int, v27: Int, v28: Int, v29: dict.Dict(String, #(String, Us45, String)), v30: Bool, v31: Bool, v32: Us30, v33: Bool, v34: Int, v35: Uh28, v36: fn(Uh3) -> #(Us45, String), v37: Uh0, v38: Uh33) -> Uh33 {
     case v37  {
         Uh0Cons(v39, v40, v41, v42, v43) -> {
             let v44 = Us2Some(v39)
             let v45 = Uh3Nil
-            let v46 = chain_sources_284(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v44, v45)
+            let v46 = chain_sources_283(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v44, v45)
             let v47 = "\n"
             let v48 = concat_balanced_22(v47, v46)
             let #(v49, v50) = v36(v46)
             let v51 = Uh33Cons(v48, v49, v50, v38)
-            method377(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v43, v51)
+            method376(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v43, v51)
         }
         Uh0Nil -> v38
     }
 }
 
-pub fn method379(v0: Uh3, v1: Uh33) -> Us79 {
+pub fn method378(v0: Uh3, v1: Uh33) -> Us79 {
     case v1  {
         Uh33Cons(v3, v4, v5, v6) -> {
             let v7 = "\n"
@@ -934,7 +934,7 @@ pub fn method379(v0: Uh3, v1: Uh33) -> Us79 {
             let v9 = v3 == v8
             case v9 {
                 True -> Us79Some(v3, v4, v5)
-                False -> method379(v0, v6)
+                False -> method378(v0, v6)
             }
         }
         Uh33Nil -> Us79None

@@ -237,7 +237,7 @@ pub fn method114(v0: Uh15, v1: Uh15) -> Uh15 {
     }
 }
 
-pub fn controls_from_121(v0: Int, v1: String) -> String {
+pub fn controls_from_120(v0: Int, v1: String) -> String {
     let v2 = v0 >= 32
     case v2 {
         True -> v1
@@ -322,29 +322,27 @@ pub fn controls_from_121(v0: Int, v1: String) -> String {
                         }
                     }
                 }
-            let v44 =
+            let v48 =
                 case v34  {
                     Us2None -> {
                         let v36 = v0 / 16
                         let v37 = spiral_string_slice("0123456789abcdef", v36, v36)
-                        let v38 = "\\u00"
-                        let v39 = v38 <> v37 
-                        let v40 = v0 % 16
-                        let v41 = spiral_string_slice("0123456789abcdef", v40, v40)
-                        let v42 = v39 <> v41 
-                        v42
+                        let v38 = v0 % 16
+                        let v39 = spiral_string_slice("0123456789abcdef", v38, v38)
+                        let v40 = ""
+                        let v41 = "\\u00"
+                        let v42 = Uh3Nil
+                        let v43 = Uh3Cons(v39, v42)
+                        let v44 = Uh3Cons(v37, v43)
+                        let v45 = Uh3Cons(v41, v44)
+                        concat_balanced_22(v40, v45)
                     }
                     Us2Some(v35) -> v35
                 }
-            let v45 = v1 |> string.replace(v13, v44)
-            controls_from_121(v3, v45)
+            let v49 = v1 |> string.replace(v13, v48)
+            controls_from_120(v3, v49)
         }
     }
-}
-
-pub fn without_controls_120(v0: String) -> String {
-    let v1 = 0
-    controls_from_121(v1, v0)
 }
 
 pub fn quoted_119(v0: String) -> String {
@@ -354,10 +352,14 @@ pub fn quoted_119(v0: String) -> String {
     let v4 = "\""
     let v5 = "\\\""
     let v6 = v3 |> string.replace(v4, v5)
-    let v7 = without_controls_120(v6)
-    let v8 = v4 <> v7 
-    let v9 = v8 <> v4 
-    v9
+    let v7 = 0
+    let v8 = controls_from_120(v7, v6)
+    let v9 = ""
+    let v10 = Uh3Nil
+    let v11 = Uh3Cons(v4, v10)
+    let v12 = Uh3Cons(v8, v11)
+    let v13 = Uh3Cons(v4, v12)
+    concat_balanced_22(v9, v13)
 }
 
 pub fn field_118(v0: String, v1: String) -> String {
@@ -665,10 +667,10 @@ pub fn closure12(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Boo
     }
 }
 
-pub fn method124(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method123(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method124(v3, v1)
+            let v4 = method123(v3, v1)
             let v5 = spiral_string_length(v2)
             let v6 = 0
             let v7 = method56(v2, v5, v6)
@@ -683,10 +685,10 @@ pub fn method124(v0: Uh3, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn method125(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method124(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method125(v3, v1)
+            let v4 = method124(v3, v1)
             let v5 = v2 != ""
             case v5 {
                 True -> Uh3Cons(v2, v4)
@@ -697,7 +699,7 @@ pub fn method125(v0: Uh3, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn parent_at_128(v0: Uh5) -> Us2 {
+pub fn parent_at_127(v0: Uh5) -> Us2 {
     let v1 = "parent"
     let v2 = value_of_14(v1, v0)
     case v2  {
@@ -706,7 +708,7 @@ pub fn parent_at_128(v0: Uh5) -> Us2 {
     }
 }
 
-pub fn decoded_127(v0: String) -> Us22 {
+pub fn decoded_126(v0: String) -> Us22 {
     let v1 = spiral_string_length(v0)
     let v2 = 0 > v1
     let v7 =
@@ -744,7 +746,7 @@ pub fn decoded_127(v0: String) -> Us22 {
                     True -> {
                         let v17 = "post"
                         let v18 = text_at_13(v17, v13)
-                        let v19 = parent_at_128(v13)
+                        let v19 = parent_at_127(v13)
                         let v20 = "source"
                         let v21 = text_at_13(v20, v13)
                         let v22 = Us17Posted(v18, v19, v21)
@@ -757,7 +759,7 @@ pub fn decoded_127(v0: String) -> Us22 {
                             True -> {
                                 let v26 = "post"
                                 let v27 = text_at_13(v26, v13)
-                                let v28 = parent_at_128(v13)
+                                let v28 = parent_at_127(v13)
                                 let v29 = "k"
                                 let v30 = count_at_16(v29, v13)
                                 let v31 = "n"
@@ -865,15 +867,15 @@ pub fn decoded_127(v0: String) -> Us22 {
     }
 }
 
-pub fn all_decoded_126(v0: Uh3, v1: Uh15) -> Us21 {
+pub fn all_decoded_125(v0: Uh3, v1: Uh15) -> Us21 {
     case v0  {
         Uh3Cons(v5, v6) -> {
-            let v7 = decoded_127(v5)
+            let v7 = decoded_126(v5)
             case v7  {
                 Us22Error(v12) -> Us21Error(v12)
                 Us22Ok(v8, v9) -> {
                     let v10 = Uh15Cons(v8, v9, v1)
-                    all_decoded_126(v6, v10)
+                    all_decoded_125(v6, v10)
                 }
             }
         }

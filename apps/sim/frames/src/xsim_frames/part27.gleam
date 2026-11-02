@@ -8,16 +8,16 @@ import gleam/result
 import gleam/string
 import xsim_frames/types.{type Uh3, type Uh29, type Uh36, type Uh37, Uh29Cons, Uh29Nil, Uh36Cons, Uh36Nil, Uh37Cons, Uh37Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us56Error, Us56Ok, Us76Error, Us76Ok}
 import xsim_frames/part1.{closure1, count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_fs_read_file, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
-import xsim_frames/part10.{method259, method260}
-import xsim_frames/part13.{method301}
-import xsim_frames/part17.{method367, method368}
+import xsim_frames/part10.{method258, method259}
+import xsim_frames/part13.{method300}
+import xsim_frames/part17.{method366, method367}
 import xsim_frames/part2.{delimited_21}
 import xsim_frames/part3.{method56, method57}
 
-pub fn method443(v0: Uh36, v1: Uh29) -> Uh29 {
+pub fn method442(v0: Uh36, v1: Uh29) -> Uh29 {
     case v0  {
         Uh36Cons(v2, v3, v4) -> {
-            let v5 = method443(v4, v1)
+            let v5 = method442(v4, v1)
             let v6 = erlang_term_coerce(v2)
             let v7 = ""
             let v8 = erlang_term_coerce(v7)
@@ -63,7 +63,7 @@ pub fn method443(v0: Uh36, v1: Uh29) -> Uh29 {
     }
 }
 
-pub fn items_from_444(v0: Dynamic, v1: Uh29) -> Uh29 {
+pub fn items_from_443(v0: Dynamic, v1: Uh29) -> Uh29 {
     let v2 = []
     let v3 = erlang_term_coerce(v2)
     let v4 = v0 == v3
@@ -84,15 +84,15 @@ pub fn items_from_444(v0: Dynamic, v1: Uh29) -> Uh29 {
             let v16 = [v0, ..v15]
             let v17 = erlang_term_apply(v12, v14, v16)
             let v18 = Uh29Cons(v17, v1)
-            items_from_444(v11, v18)
+            items_from_443(v11, v18)
         }
     }
 }
 
-pub fn method445(v0: Uh29, v1: Uh3) -> Uh3 {
+pub fn method444(v0: Uh29, v1: Uh3) -> Uh3 {
     case v0  {
         Uh29Cons(v2, v3) -> {
-            let v4 = method445(v3, v1)
+            let v4 = method444(v3, v1)
             let v5 = erlang_term_coerce(1)
             let v6 = "erlang"
             let v7 = atom.create(v6)
@@ -120,11 +120,11 @@ pub fn method445(v0: Uh29, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn signed_params_442(v0: Uh36) -> String {
+pub fn signed_params_441(v0: Uh36) -> String {
     let v1 = Uh29Nil
-    let v2 = method443(v0, v1)
+    let v2 = method442(v0, v1)
     let v3 = []
-    let v4 = method301(v2, v3)
+    let v4 = method300(v2, v3)
     let v5 = erlang_term_coerce(v4)
     let v6 = "lists"
     let v7 = atom.create(v6)
@@ -140,14 +140,14 @@ pub fn signed_params_442(v0: Uh36) -> String {
     let v17 = [v12, ..v16]
     let v18 = erlang_term_apply(v13, v15, v17)
     let v19 = Uh29Nil
-    let v20 = items_from_444(v18, v19)
+    let v20 = items_from_443(v18, v19)
     let v21 = Uh3Nil
-    let v22 = method445(v20, v21)
+    let v22 = method444(v20, v21)
     let v23 = "&"
     delimited_21(v23, v22)
 }
 
-pub fn oauth1_signature_441(v0: String, v1: String, v2: Uh36, v3: String, v4: String) -> String {
+pub fn oauth1_signature_440(v0: String, v1: String, v2: Uh36, v3: String, v4: String) -> String {
     let v5 = "&"
     let v6 = v0 <> v5 
     let v7 = erlang_term_coerce(v1)
@@ -171,7 +171,7 @@ pub fn oauth1_signature_441(v0: String, v1: String, v2: Uh36, v3: String, v4: St
     let v25 = erlang_term_coerce(v24)
     let v26 = v6 <> v25 
     let v27 = v26 <> v5 
-    let v28 = signed_params_442(v2)
+    let v28 = signed_params_441(v2)
     let v29 = erlang_term_coerce(v28)
     let v30 = erlang_term_coerce(v8)
     let v31 = atom.create(v10)
@@ -246,10 +246,10 @@ pub fn oauth1_signature_441(v0: String, v1: String, v2: Uh36, v3: String, v4: St
     v99
 }
 
-pub fn method449(v0: String, v1: Uh29, v2: Uh37) -> Uh37 {
+pub fn method448(v0: String, v1: Uh29, v2: Uh37) -> Uh37 {
     case v1  {
         Uh29Cons(v3, v4) -> {
-            let v5 = method449(v0, v4, v2)
+            let v5 = method448(v0, v4, v2)
             let v6 = erlang_term_coerce(v0)
             let v7 = "filename"
             let v8 = atom.create(v7)
@@ -271,16 +271,16 @@ pub fn method449(v0: String, v1: Uh29, v2: Uh37) -> Uh37 {
             let v24 = erlang_term_coerce(v3)
             let v25 = v23 <> v24 
             let v26 = spiral_fs_read_file(v25)
-            let v27 = method367()
-            let v28 = method368()
+            let v27 = method366()
+            let v28 = method367()
             let v29 = case v26 { Ok(x) -> v27(x) Error(x) -> v28(x) }
             let v42 =
                 case v29  {
                     Us76Error(v39) -> panic as "file_system.read_all_text: file:read_file failed"
                     Us76Ok(v30) -> {
                         let v31 = bit_array.to_string(v30)
-                        let v32 = method259()
-                        let v33 = method260()
+                        let v32 = method258()
+                        let v33 = method259()
                         let v34 = case v31 { Ok(x) -> v32(x) Error(x) -> v33(x) }
                         case v34  {
                             Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -319,34 +319,34 @@ pub fn method449(v0: String, v1: Uh29, v2: Uh37) -> Uh37 {
             let v71 = [v65, ..v70]
             let v72 = erlang_term_apply(v67, v69, v71)
             let v73 = Uh29Nil
-            let v74 = items_from_444(v72, v73)
+            let v74 = items_from_443(v72, v73)
             Uh37Cons(v74, v5)
         }
         Uh29Nil -> v2
     }
 }
 
-pub fn method451(v0: Uh29, v1: Uh29) -> Uh29 {
+pub fn method450(v0: Uh29, v1: Uh29) -> Uh29 {
     case v0  {
         Uh29Cons(v2, v3) -> {
-            let v4 = method451(v3, v1)
+            let v4 = method450(v3, v1)
             Uh29Cons(v2, v4)
         }
         Uh29Nil -> v1
     }
 }
 
-pub fn method450(v0: Uh37, v1: Uh29) -> Uh29 {
+pub fn method449(v0: Uh37, v1: Uh29) -> Uh29 {
     case v0  {
         Uh37Cons(v2, v3) -> {
-            let v4 = method450(v3, v1)
-            method451(v2, v4)
+            let v4 = method449(v3, v1)
+            method450(v2, v4)
         }
         Uh37Nil -> v1
     }
 }
 
-pub fn included_users_448(v0: String, v1: Dynamic) -> Uh29 {
+pub fn included_users_447(v0: String, v1: Dynamic) -> Uh29 {
     let v2 = []
     let v3 = erlang_term_coerce(v2)
     let v4 = "include"
@@ -370,9 +370,9 @@ pub fn included_users_448(v0: String, v1: Dynamic) -> Uh29 {
     let v22 = [v16, ..v21]
     let v23 = erlang_term_apply(v18, v20, v22)
     let v24 = Uh29Nil
-    let v25 = items_from_444(v23, v24)
+    let v25 = items_from_443(v23, v24)
     let v26 = Uh37Nil
-    let v27 = method449(v0, v25, v26)
+    let v27 = method448(v0, v25, v26)
     let v28 = []
     let v29 = erlang_term_coerce(v28)
     let v30 = "users"
@@ -392,13 +392,13 @@ pub fn included_users_448(v0: String, v1: Dynamic) -> Uh29 {
     let v44 = [v40, ..v43]
     let v45 = erlang_term_apply(v41, v42, v44)
     let v46 = Uh29Nil
-    let v47 = items_from_444(v45, v46)
+    let v47 = items_from_443(v45, v46)
     let v48 = Uh29Nil
-    let v49 = method450(v27, v48)
-    method451(v47, v49)
+    let v49 = method449(v27, v48)
+    method450(v47, v49)
 }
 
-pub fn method454(v0: Dynamic, v1: Uh29, v2: dict.Dict(String, Dynamic)) -> dict.Dict(String, Dynamic) {
+pub fn method453(v0: Dynamic, v1: Uh29, v2: dict.Dict(String, Dynamic)) -> dict.Dict(String, Dynamic) {
     case v1  {
         Uh29Cons(v3, v4) -> {
             let v5 = ""
@@ -464,13 +464,13 @@ pub fn method454(v0: Dynamic, v1: Uh29, v2: dict.Dict(String, Dynamic)) -> dict.
             let v57 = [v49, ..v56]
             let v58 = erlang_term_apply(v51, v53, v57)
             let v59 = dict.insert(v2, v36, v58)
-            method454(v0, v4, v59)
+            method453(v0, v4, v59)
         }
         Uh29Nil -> v2
     }
 }
 
-pub fn with_posts_453(v0: Dynamic, v1: dict.Dict(String, Dynamic)) -> dict.Dict(String, Dynamic) {
+pub fn with_posts_452(v0: Dynamic, v1: dict.Dict(String, Dynamic)) -> dict.Dict(String, Dynamic) {
     let v2 = []
     let v3 = erlang_term_coerce(v2)
     let v4 = "posts"
@@ -494,11 +494,11 @@ pub fn with_posts_453(v0: Dynamic, v1: dict.Dict(String, Dynamic)) -> dict.Dict(
     let v22 = [v16, ..v21]
     let v23 = erlang_term_apply(v18, v20, v22)
     let v24 = Uh29Nil
-    let v25 = items_from_444(v23, v24)
-    method454(v0, v25, v1)
+    let v25 = items_from_443(v23, v24)
+    method453(v0, v25, v1)
 }
 
-pub fn method452(v0: Uh29, v1: String, v2: String, v3: dict.Dict(String, Dynamic), v4: dict.Dict(String, Dynamic), v5: Int, v6: dict.Dict(String, Dynamic), v7: String, v8: Dynamic, v9: Uh3, v10: Dynamic, v11: dict.Dict(String, Nil), v12: Int) -> #(String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn method451(v0: Uh29, v1: String, v2: String, v3: dict.Dict(String, Dynamic), v4: dict.Dict(String, Dynamic), v5: Int, v6: dict.Dict(String, Dynamic), v7: String, v8: Dynamic, v9: Uh3, v10: Dynamic, v11: dict.Dict(String, Nil), v12: Int) -> #(String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let #(v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99) =
         case v0  {
             Uh29Cons(v13, v14) -> {
@@ -558,8 +558,8 @@ pub fn method452(v0: Uh29, v1: String, v2: String, v3: dict.Dict(String, Dynamic
                         }
                     }
                 let v62 = dict.insert(v4, v61, v13)
-                let v63 = with_posts_453(v13, v6)
-                method452(v14, v1, v2, v32, v62, v5, v63, v7, v8, v9, v10, v11, v12)
+                let v63 = with_posts_452(v13, v6)
+                method451(v14, v1, v2, v32, v62, v5, v63, v7, v8, v9, v10, v11, v12)
             }
             _ -> {
                 let #(v76, v77, v78, v79, v80, v81, v82, v83, v84, v85, v86, v87) =
@@ -573,18 +573,18 @@ pub fn method452(v0: Uh29, v1: String, v2: String, v3: dict.Dict(String, Dynamic
     #(v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99)
 }
 
-pub fn world_of_447(v0: String) -> #(String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn world_of_446(v0: String) -> #(String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v1 = spiral_fs_read_file(v0)
-    let v2 = method367()
-    let v3 = method368()
+    let v2 = method366()
+    let v3 = method367()
     let v4 = case v1 { Ok(x) -> v2(x) Error(x) -> v3(x) }
     let v17 =
         case v4  {
             Us76Error(v14) -> panic as "file_system.read_all_text: file:read_file failed"
             Us76Ok(v5) -> {
                 let v6 = bit_array.to_string(v5)
-                let v7 = method259()
-                let v8 = method260()
+                let v7 = method258()
+                let v8 = method259()
                 let v9 = case v6 { Ok(x) -> v7(x) Error(x) -> v8(x) }
                 case v9  {
                     Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -600,7 +600,7 @@ pub fn world_of_447(v0: String) -> #(String, String, dict.Dict(String, Dynamic),
     let v23 = []
     let v24 = [v18, ..v23]
     let v25 = erlang_term_apply(v20, v22, v24)
-    let v26 = included_users_448(v0, v25)
+    let v26 = included_users_447(v0, v25)
     let v27 = ""
     let v28 = erlang_term_coerce(v27)
     let v29 = "token"
@@ -700,14 +700,14 @@ pub fn world_of_447(v0: String) -> #(String, String, dict.Dict(String, Dynamic),
     let v123 = Uh3Nil
     let v124 = Uh3Cons(v111, v123)
     let v125 = 9001
-    let #(v126, v127, v128, v129, v130, v131, v132, v133, v134, v135, v136, v137) = method452(v26, v42, v55, v69, v70, v122, v71, v68, v25, v124, v86, v74, v125)
+    let #(v126, v127, v128, v129, v130, v131, v132, v133, v134, v135, v136, v137) = method451(v26, v42, v55, v69, v70, v122, v71, v68, v25, v124, v86, v74, v125)
     #(v126, v127, v128, v129, v130, v131, v132, v133, v134, v135, v136, v137)
 }
 
-pub fn method459(v0: String, v1: Uh3, v2: Uh3) -> Uh3 {
+pub fn method458(v0: String, v1: Uh3, v2: Uh3) -> Uh3 {
     case v1  {
         Uh3Cons(v3, v4) -> {
-            let v5 = method459(v0, v4, v2)
+            let v5 = method458(v0, v4, v2)
             let v6 = v3 |> string.lowercase
             let v7 = v6 |> string.starts_with(v0)
             case v7 {
@@ -719,7 +719,7 @@ pub fn method459(v0: String, v1: Uh3, v2: Uh3) -> Uh3 {
     }
 }
 
-pub fn header_value_458(v0: String, v1: String) -> String {
+pub fn header_value_457(v0: String, v1: String) -> String {
     let v2 = ":"
     let v3 = v0 <> v2 
     let v4 = v1 == ""
@@ -732,7 +732,7 @@ pub fn header_value_458(v0: String, v1: String) -> String {
             }
         }
     let v9 = Uh3Nil
-    let v10 = method459(v3, v8, v9)
+    let v10 = method458(v3, v8, v9)
     case v10  {
         Uh3Cons(v11, v12) -> {
             let v13 = spiral_string_length(v3)
@@ -758,7 +758,7 @@ pub fn header_value_458(v0: String, v1: String) -> String {
     }
 }
 
-pub fn received_457(v0: Dynamic, v1: String) -> String {
+pub fn received_456(v0: Dynamic, v1: String) -> String {
     let v2 = "\r\n\r\n"
     let v3 = option.from_result(result.map(string.split_once(v1, v2), pair.first))
     let v4 = closure1(Nil)
@@ -790,7 +790,7 @@ pub fn received_457(v0: Dynamic, v1: String) -> String {
                 let v23 = spiral_wrap_signed(v11 - 1, 32)
                 let v24 = spiral_string_slice(v1, 0, v23)
                 let v25 = "content-length"
-                let v26 = header_value_458(v25, v24)
+                let v26 = header_value_457(v25, v24)
                 let v27 = count_of_text_10(v26)
                 let v30 =
                     case v27  {
@@ -865,7 +865,7 @@ pub fn received_457(v0: Dynamic, v1: String) -> String {
             let v77 = erlang_term_apply(v71, v73, v76)
             let v78 = erlang_term_coerce(v77)
             let v79 = v1 <> v78 
-            received_457(v0, v79)
+            received_456(v0, v79)
         }
         False -> v1
     }

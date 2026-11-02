@@ -5,23 +5,23 @@ import gleam/list
 import gleam/string
 import xsim_frames/types.{type Uh3, type Us2, type Uh9, type Uh10, type Uh15, type Us29, type Us30, type Us45, type Uh28, type Uh32, type Uh34, type Uh35, Uh0Nil, Uh1Nil, Uh2Nil, Uh32Cons, Uh32Nil, Uh33Nil, Uh34Cons, Uh35Cons, Uh3Cons, Uh3Nil, Uh6Cons, Uh6Nil, Us12Broken, Us12Held, Us13BreakingEditsFail, Us13NoStaleResults, Us13OneCompilePerPrefix, Us13SequentialEquivalence, Us13UnwantedResultsFreed, Us13WithdrawnDemandHidden, Us21Error, Us21Ok, Us2Some, Us30NoEviction, Us45Crashed, Us45Done, Us45Erred, Us56Error, Us56Ok, Us76Error, Us76Ok, Us77Error, Us77Ok, Us78None, Us78Some}
 import xsim_frames/part1.{dictm_term_sorted, method4, spiral_fs_coerce, spiral_fs_read_file, spiral_fs_write_file, spiral_wrap_signed}
-import xsim_frames/part10.{method259, method260}
-import xsim_frames/part12.{chain_sources_284}
-import xsim_frames/part13.{method296}
-import xsim_frames/part17.{method366, method367, method368, method369, method370, method371, method372, method374, method375, method376, method377}
-import xsim_frames/part18.{method378, method380, method381, method382, method383, method384}
+import xsim_frames/part10.{method258, method259}
+import xsim_frames/part12.{chain_sources_283}
+import xsim_frames/part13.{method295}
+import xsim_frames/part17.{method365, method366, method367, method368, method369, method370, method371, method373, method374, method375, method376}
+import xsim_frames/part18.{method377, method379, method380, method381, method382, method383}
 import xsim_frames/part2.{delimited_21, method20, method30, method32, method33, method36, method37, taken_31}
 import xsim_frames/part3.{method40, method43, method79}
 import xsim_frames/part4.{method96}
 import xsim_frames/part5.{stream_115}
-import xsim_frames/part6.{decoded_stream_123, deliveries_130}
+import xsim_frames/part6.{decoded_stream_122, deliveries_129}
 
-pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, String), v2: Bool, v3: fn(Int) -> Uh3, v4: fn(Nil) -> Int, v5: fn(Nil) -> Int, v6: fn(Int) -> fn(fn(Uh3) -> #(Us45, String)) -> fn(#(Bool, Bool, Us30, Bool, Int)) -> fn(Uh15) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int, dict.Dict(String, Uh3), Uh3, dict.Dict(String, #(Us45, String)), dict.Dict(String, Int), dict.Dict(String, String), dict.Dict(String, String), dict.Dict(String, Int), Int, dict.Dict(String, Int), dict.Dict(String, Int), dict.Dict(String, Int), Int, Int, Int, Int, Int, dict.Dict(String, #(String, Us45, String)), Bool, Bool, Us30, Bool, Int, Uh28, Int), v7: Uh3, v8: String, v9: Int, v10: Int, v11: Int, v12: String, v13: Bool, v14: Int, v15: Int, v16: Int, v17: Int, v18: Int, v19: String, v20: String, v21: Us29, v22: Int, v23: Us30, v24: Int, v25: Bool, v26: Bool, v27: Uh9, v28: Uh10, v29: Uh3, v30: Uh10, v31: Int, v32: Uh32) -> Uh32 {
+pub fn outcomes_from_364(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, String), v2: Bool, v3: fn(Int) -> Uh3, v4: fn(Nil) -> Int, v5: fn(Nil) -> Int, v6: fn(Int) -> fn(fn(Uh3) -> #(Us45, String)) -> fn(#(Bool, Bool, Us30, Bool, Int)) -> fn(Uh15) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int, dict.Dict(String, Uh3), Uh3, dict.Dict(String, #(Us45, String)), dict.Dict(String, Int), dict.Dict(String, String), dict.Dict(String, String), dict.Dict(String, Int), Int, dict.Dict(String, Int), dict.Dict(String, Int), dict.Dict(String, Int), Int, Int, Int, Int, Int, dict.Dict(String, #(String, Us45, String)), Bool, Bool, Us30, Bool, Int, Uh28, Int), v7: Uh3, v8: String, v9: Int, v10: Int, v11: Int, v12: String, v13: Bool, v14: Int, v15: Int, v16: Int, v17: Int, v18: Int, v19: String, v20: String, v21: Us29, v22: Int, v23: Us30, v24: Int, v25: Bool, v26: Bool, v27: Uh9, v28: Uh10, v29: Uh3, v30: Uh10, v31: Int, v32: Uh32) -> Uh32 {
     let v33 = v31 > v17
     case v33 {
         True -> {
             let v34 = Uh32Nil
-            method366(v32, v34)
+            method365(v32, v34)
         }
         False -> {
             let v36 = spiral_wrap_signed(v31 + 1, 32)
@@ -30,16 +30,16 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                 case v37 {
                     True -> {
                         let v38 = spiral_fs_read_file(v19)
-                        let v39 = method367()
-                        let v40 = method368()
+                        let v39 = method366()
+                        let v40 = method367()
                         let v41 = case v38 { Ok(x) -> v39(x) Error(x) -> v40(x) }
                         let v54 =
                             case v41  {
                                 Us76Error(v51) -> panic as "file_system.read_all_text: file:read_file failed"
                                 Us76Ok(v42) -> {
                                     let v43 = bit_array.to_string(v42)
-                                    let v44 = method259()
-                                    let v45 = method260()
+                                    let v44 = method258()
+                                    let v45 = method259()
                                     let v46 = case v43 { Ok(x) -> v44(x) Error(x) -> v45(x) }
                                     case v46  {
                                         Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -47,7 +47,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                                     }
                                 }
                             }
-                        let v55 = decoded_stream_123(v54)
+                        let v55 = decoded_stream_122(v54)
                         case v55  {
                             Us21Error(v57) -> {
                                 let v58 = "xsim: --replay "
@@ -62,7 +62,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                     }
                     False -> {
                         let v66 = 6
-                        deliveries_130(v30, v31, v18, v66)
+                        deliveries_129(v30, v31, v18, v66)
                     }
                 }
             let v69 = v20 != ""
@@ -111,7 +111,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v131 = 0
             let v132 = method96(v30, v131)
             let v133 = 0
-            let v134 = method369(v68, v133)
+            let v134 = method368(v68, v133)
             let v135 = dict.keys(v114)
             let v136 = dictm_term_sorted(v135)
             let v137 = Uh3Nil
@@ -125,7 +125,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v142 = Uh3Nil
             let v143 = method4(v141, v142)
             let v144 = Uh0Nil
-            let v145 = method370(v114, v143, v144)
+            let v145 = method369(v114, v143, v144)
             let v146 = dict.new()
             let v147 = dict.keys(v91)
             let v148 = dictm_term_sorted(v147)
@@ -139,7 +139,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v153 = listm_fold
             let v154 = Uh3Nil
             let v155 = method4(v153, v154)
-            let v156 = method296(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v91, v155, v146)
+            let v156 = method295(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v91, v155, v146)
             let v157 = dict.keys(v156)
             let v158 = dictm_term_sorted(v157)
             let v159 = Uh3Nil
@@ -153,7 +153,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v164 = Uh3Nil
             let v165 = method4(v163, v164)
             let v166 = Uh1Nil
-            let v167 = method374(v156, v165, v166)
+            let v167 = method373(v156, v165, v166)
             let v168 = dict.keys(v106)
             let v169 = dictm_term_sorted(v168)
             let v170 = Uh3Nil
@@ -167,7 +167,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v175 = Uh3Nil
             let v176 = method4(v174, v175)
             let v177 = Uh2Nil
-            let v178 = method375(v106, v176, v177)
+            let v178 = method374(v106, v176, v177)
             let v179 = dict.keys(v107)
             let v180 = dictm_term_sorted(v179)
             let v181 = Uh3Nil
@@ -181,7 +181,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v186 = Uh3Nil
             let v187 = method4(v185, v186)
             let v188 = Uh2Nil
-            let v189 = method375(v107, v187, v188)
+            let v189 = method374(v107, v187, v188)
             let v190 = dict.keys(v108)
             let v191 = dictm_term_sorted(v190)
             let v192 = Uh3Nil
@@ -195,7 +195,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v197 = Uh3Nil
             let v198 = method4(v196, v197)
             let v199 = Uh2Nil
-            let v200 = method375(v108, v198, v199)
+            let v200 = method374(v108, v198, v199)
             let v201 = dict.keys(v100)
             let v202 = dictm_term_sorted(v201)
             let v203 = Uh3Nil
@@ -212,9 +212,9 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                     _ -> True
                 }
             let v209 = Uh0Nil
-            let v210 = method376(v145, v167, v178, v189, v200, v207, v208, v145, v209)
+            let v210 = method375(v145, v167, v178, v189, v200, v207, v208, v145, v209)
             let v211 = Uh33Nil
-            let v212 = method377(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120, v1, v210, v211)
+            let v212 = method376(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120, v1, v210, v211)
             let v213 = dict.keys(v114)
             let v214 = dictm_term_sorted(v213)
             let v215 = Uh3Nil
@@ -228,7 +228,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v220 = Uh3Nil
             let v221 = method4(v219, v220)
             let v222 = Uh0Nil
-            let v223 = method370(v114, v221, v222)
+            let v223 = method369(v114, v221, v222)
             let v224 = dict.new()
             let v225 = dict.keys(v91)
             let v226 = dictm_term_sorted(v225)
@@ -242,7 +242,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v231 = listm_fold
             let v232 = Uh3Nil
             let v233 = method4(v231, v232)
-            let v234 = method296(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v91, v233, v224)
+            let v234 = method295(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v91, v233, v224)
             let v235 = dict.keys(v234)
             let v236 = dictm_term_sorted(v235)
             let v237 = Uh3Nil
@@ -256,7 +256,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v242 = Uh3Nil
             let v243 = method4(v241, v242)
             let v244 = Uh1Nil
-            let v245 = method374(v234, v243, v244)
+            let v245 = method373(v234, v243, v244)
             let v246 = dict.keys(v106)
             let v247 = dictm_term_sorted(v246)
             let v248 = Uh3Nil
@@ -270,7 +270,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v253 = Uh3Nil
             let v254 = method4(v252, v253)
             let v255 = Uh2Nil
-            let v256 = method375(v106, v254, v255)
+            let v256 = method374(v106, v254, v255)
             let v257 = dict.keys(v107)
             let v258 = dictm_term_sorted(v257)
             let v259 = Uh3Nil
@@ -284,7 +284,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v264 = Uh3Nil
             let v265 = method4(v263, v264)
             let v266 = Uh2Nil
-            let v267 = method375(v107, v265, v266)
+            let v267 = method374(v107, v265, v266)
             let v268 = dict.keys(v108)
             let v269 = dictm_term_sorted(v268)
             let v270 = Uh3Nil
@@ -298,7 +298,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v275 = Uh3Nil
             let v276 = method4(v274, v275)
             let v277 = Uh2Nil
-            let v278 = method375(v108, v276, v277)
+            let v278 = method374(v108, v276, v277)
             let v279 = dict.keys(v100)
             let v280 = dictm_term_sorted(v279)
             let v281 = Uh3Nil
@@ -315,7 +315,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                     _ -> True
                 }
             let v287 = Uh0Nil
-            let v288 = method378(v223, v245, v256, v267, v278, v285, v286, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120, v212, v1, v223, v287)
+            let v288 = method377(v223, v245, v256, v267, v278, v285, v286, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120, v212, v1, v223, v287)
             let v289 = Uh3Nil
             let v290 = method30(v288, v289)
             let v295 =
@@ -408,7 +408,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                 case v2 {
                     True -> {
                         let v351 = dict.new()
-                        let v352 = method380(v29, v351)
+                        let v352 = method379(v29, v351)
                         let v353 = dict.keys(v114)
                         let v354 = dictm_term_sorted(v353)
                         let v355 = Uh3Nil
@@ -422,7 +422,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                         let v360 = Uh3Nil
                         let v361 = method4(v359, v360)
                         let v362 = Uh0Nil
-                        let v363 = method370(v114, v361, v362)
+                        let v363 = method369(v114, v361, v362)
                         let v364 = dict.new()
                         let v365 = dict.keys(v91)
                         let v366 = dictm_term_sorted(v365)
@@ -436,7 +436,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                         let v371 = listm_fold
                         let v372 = Uh3Nil
                         let v373 = method4(v371, v372)
-                        let v374 = method296(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v91, v373, v364)
+                        let v374 = method295(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v91, v373, v364)
                         let v375 = dict.keys(v374)
                         let v376 = dictm_term_sorted(v375)
                         let v377 = Uh3Nil
@@ -450,7 +450,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                         let v382 = Uh3Nil
                         let v383 = method4(v381, v382)
                         let v384 = Uh1Nil
-                        let _v385 = method374(v374, v383, v384)
+                        let _v385 = method373(v374, v383, v384)
                         let v386 = dict.keys(v106)
                         let v387 = dictm_term_sorted(v386)
                         let v388 = Uh3Nil
@@ -464,7 +464,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                         let v393 = Uh3Nil
                         let v394 = method4(v392, v393)
                         let v395 = Uh2Nil
-                        let _v396 = method375(v106, v394, v395)
+                        let _v396 = method374(v106, v394, v395)
                         let v397 = dict.keys(v107)
                         let v398 = dictm_term_sorted(v397)
                         let v399 = Uh3Nil
@@ -478,7 +478,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                         let v404 = Uh3Nil
                         let v405 = method4(v403, v404)
                         let v406 = Uh2Nil
-                        let _v407 = method375(v107, v405, v406)
+                        let _v407 = method374(v107, v405, v406)
                         let v408 = dict.keys(v108)
                         let v409 = dictm_term_sorted(v408)
                         let v410 = Uh3Nil
@@ -492,7 +492,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                         let v415 = Uh3Nil
                         let v416 = method4(v414, v415)
                         let v417 = Uh2Nil
-                        let _v418 = method375(v108, v416, v417)
+                        let _v418 = method374(v108, v416, v417)
                         let v419 = dict.keys(v100)
                         let v420 = dictm_term_sorted(v419)
                         let v421 = Uh3Nil
@@ -504,7 +504,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                         })
                         let _v425 = listm_fold
                         let v427 = Uh0Nil
-                        let v428 = method381(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120, v352, v363, v427)
+                        let v428 = method380(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103, v104, v105, v106, v107, v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120, v352, v363, v427)
                         let v429 = Uh3Nil
                         let v430 = method30(v428, v429)
                         let v435 =
@@ -519,7 +519,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                         let v436 = Us13BreakingEditsFail
                         let v437 = Uh6Nil
                         let v438 = Uh6Cons(v436, v435, v437)
-                        method382(v350, v438)
+                        method381(v350, v438)
                     }
                     False -> v350
                 }
@@ -537,7 +537,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v449 = Uh3Nil
             let v450 = method4(v448, v449)
             let v451 = 0
-            let v452 = method383(v106, v450, v451)
+            let v452 = method382(v106, v450, v451)
             let v453 = "starts"
             let v454 = "="
             let v455 = v453 <> v454 
@@ -565,7 +565,7 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v474 = Uh3Nil
             let v475 = method4(v473, v474)
             let v476 = 0
-            let v477 = method383(v108, v475, v476)
+            let v477 = method382(v108, v475, v476)
             let v478 = "evictions"
             let v479 = v478 <> v454 
             let v480 = string.inspect(v477)
@@ -714,14 +714,14 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
             let v623 = Uh3Cons(v621, v622)
             let v624 = delimited_21(v576, v623)
             let v625 = Uh3Nil
-            let v626 = method384(v440, v625)
+            let v626 = method383(v440, v625)
             let #(v731, v732, v733, v734, v735, v736, v737, v738, v739, v740, v741, v742, v743, v744, v745, v746, v747, v748, v749, v750, v751, v752, v753, v754, v755, v756, v757, v758, v759, v760, v761, v762, v763, v764, v765, v766, v767, v768) =
                 case v626  {
                     Uh3Cons(v627, v628) -> {
                         let v629 = v624 <> v576 
                         let v630 = Us2Some(v627)
                         let v631 = Uh3Nil
-                        let v632 = chain_sources_284(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v630, v631)
+                        let v632 = chain_sources_283(v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v630, v631)
                         let v633 = "XSIM explain "
                         let v634 = v633 <> v627 
                         let v635 = " cells="
@@ -733,8 +733,8 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                         let v641 = "\n  concurrent="
                         let v642 = v640 <> v641 
                         let v643 = dict.get(v114, v627)
-                        let v644 = method371()
-                        let v645 = method372()
+                        let v644 = method370()
+                        let v645 = method371()
                         let v646 = case v643 { Ok(x) -> v644(x) Error(x) -> v645(x) }
                         let v653 =
                             case v646  {
@@ -813,35 +813,35 @@ pub fn outcomes_from_365(v0: fn(Uh3) -> #(Us45, String), v1: fn(Uh3) -> #(Us45, 
                     }
                 }
             let v769 = Uh32Cons(v731, v732, v733, v734, v735, v736, v737, v738, v739, v740, v741, v742, v743, v744, v745, v746, v747, v748, v749, v750, v751, v752, v753, v754, v755, v756, v757, v758, v759, v760, v761, v762, v763, v764, v765, v766, v767, v768, v32)
-            outcomes_from_365(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v36, v769)
+            outcomes_from_364(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v36, v769)
         }
     }
 }
 
-pub fn method385(v0: Uh32, v1: Uh3) -> Uh3 {
+pub fn method384(v0: Uh32, v1: Uh3) -> Uh3 {
     case v0  {
         Uh32Cons(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40) -> {
-            let v41 = method385(v40, v1)
+            let v41 = method384(v40, v1)
             Uh3Cons(v2, v41)
         }
         Uh32Nil -> v1
     }
 }
 
-pub fn method386(v0: Uh32, v1: Uh34) -> Uh34 {
+pub fn method385(v0: Uh32, v1: Uh34) -> Uh34 {
     case v0  {
         Uh32Cons(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40) -> {
-            let v41 = method386(v40, v1)
+            let v41 = method385(v40, v1)
             Uh34Cons(v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v41)
         }
         Uh32Nil -> v1
     }
 }
 
-pub fn method387(v0: Uh32, v1: Uh35) -> Uh35 {
+pub fn method386(v0: Uh32, v1: Uh35) -> Uh35 {
     case v0  {
         Uh32Cons(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40) -> {
-            let v41 = method387(v40, v1)
+            let v41 = method386(v40, v1)
             Uh35Cons(v39, v41)
         }
         Uh32Nil -> v1

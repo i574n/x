@@ -3,11 +3,11 @@ import gleam/erlang/atom
 import gleam/string
 import xsim_frames/types.{type Us90, Uh29Nil, Uh3Cons, Uh3Nil, Us56Error, Us56Ok, Us76Error, Us76Ok, Us89Error, Us89Ok, Us90None}
 import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_fs_read_file, split_list_2, unicode_erlang_characters_to_binary}
-import xsim_frames/part10.{method259, method260}
-import xsim_frames/part17.{method367, method368}
+import xsim_frames/part10.{method258, method259}
+import xsim_frames/part17.{method366, method367}
 import xsim_frames/part2.{delimited_21, method20}
-import xsim_frames/part20.{method396, method397, method398, method399, method400}
-import xsim_frames/part24.{closure133, closure135, flags_parsed_427, method431, paired_rows_433}
+import xsim_frames/part20.{method395, method396, method397, method398, method399}
+import xsim_frames/part24.{closure133, closure135, flags_parsed_426, method430, paired_rows_432}
 
 pub fn closure132(capt: Nil) -> fn(String) -> Int {
     fn (v0) {
@@ -152,7 +152,7 @@ pub fn closure132(capt: Nil) -> fn(String) -> Int {
         let v121 = closure133(Nil)
         let v122 = closure135(Nil)
         let v123 = ""
-        let v124 = flags_parsed_427(v121, v122, v123, v123, v123, v120)
+        let v124 = flags_parsed_426(v121, v122, v123, v123, v123, v120)
         let v146 =
             case v124  {
                 Us89Ok(v125, v126, v127) -> {
@@ -244,15 +244,15 @@ pub fn closure132(capt: Nil) -> fn(String) -> Int {
                         case v164 {
                             True -> {
                                 let v165 = spiral_fs_read_file(v148)
-                                let v166 = method367()
-                                let v167 = method368()
+                                let v166 = method366()
+                                let v167 = method367()
                                 let v168 = case v165 { Ok(x) -> v166(x) Error(x) -> v167(x) }
                                 case v168  {
                                     Us76Error(v178) -> panic as "file_system.read_all_text: file:read_file failed"
                                     Us76Ok(v169) -> {
                                         let v170 = bit_array.to_string(v169)
-                                        let v171 = method259()
-                                        let v172 = method260()
+                                        let v171 = method258()
+                                        let v172 = method259()
                                         let v173 = case v170 { Ok(x) -> v171(x) Error(x) -> v172(x) }
                                         case v173  {
                                             Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -265,16 +265,16 @@ pub fn closure132(capt: Nil) -> fn(String) -> Int {
                                 let v182 = "\n"
                                 let v183 = erlang_term_coerce(v182)
                                 let v184 = spiral_fs_read_file(v149)
-                                let v185 = method367()
-                                let v186 = method368()
+                                let v185 = method366()
+                                let v186 = method367()
                                 let v187 = case v184 { Ok(x) -> v185(x) Error(x) -> v186(x) }
                                 let v200 =
                                     case v187  {
                                         Us76Error(v197) -> panic as "file_system.read_all_text: file:read_file failed"
                                         Us76Ok(v188) -> {
                                             let v189 = bit_array.to_string(v188)
-                                            let v190 = method259()
-                                            let v191 = method260()
+                                            let v190 = method258()
+                                            let v191 = method259()
                                             let v192 = case v189 { Ok(x) -> v190(x) Error(x) -> v191(x) }
                                             case v192  {
                                                 Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -350,23 +350,23 @@ pub fn closure132(capt: Nil) -> fn(String) -> Int {
                     let v264 = erlang_term_apply(v259, v261, v263)
                     let v265 = erlang_term_coerce(v264)
                     let v266 = 0
-                    let v267 = method396(v265, v258, v266)
+                    let v267 = method395(v265, v258, v266)
                     let v268 = Uh29Nil
-                    let v269 = method397(v267, v268)
+                    let v269 = method396(v267, v268)
                     let v270 = Uh3Nil
-                    let v271 = method398(v269, v270)
+                    let v271 = method397(v269, v270)
                     let v272 = delimited_21(v234, v271)
                     let v273 = spiral_fs_read_file(v163)
-                    let v274 = method367()
-                    let v275 = method368()
+                    let v274 = method366()
+                    let v275 = method367()
                     let v276 = case v273 { Ok(x) -> v274(x) Error(x) -> v275(x) }
                     let v289 =
                         case v276  {
                             Us76Error(v286) -> panic as "file_system.read_all_text: file:read_file failed"
                             Us76Ok(v277) -> {
                                 let v278 = bit_array.to_string(v277)
-                                let v279 = method259()
-                                let v280 = method260()
+                                let v279 = method258()
+                                let v280 = method259()
                                 let v281 = case v278 { Ok(x) -> v279(x) Error(x) -> v280(x) }
                                 case v281  {
                                     Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -400,24 +400,24 @@ pub fn closure132(capt: Nil) -> fn(String) -> Int {
                     let v313 = erlang_term_apply(v309, v310, v312)
                     let v314 = erlang_term_coerce(v313)
                     let v315 = 0
-                    let v316 = method396(v314, v308, v315)
+                    let v316 = method395(v314, v308, v315)
                     let v317 = Uh29Nil
-                    let v318 = method397(v316, v317)
+                    let v318 = method396(v316, v317)
                     let v319 = Uh3Nil
-                    let v320 = method398(v318, v319)
+                    let v320 = method397(v318, v319)
                     let v321 = delimited_21(v234, v320)
                     let v322 = v272 == v321
                     let v323 = spiral_fs_read_file(v163)
-                    let v324 = method367()
-                    let v325 = method368()
+                    let v324 = method366()
+                    let v325 = method367()
                     let v326 = case v323 { Ok(x) -> v324(x) Error(x) -> v325(x) }
                     let v339 =
                         case v326  {
                             Us76Error(v336) -> panic as "file_system.read_all_text: file:read_file failed"
                             Us76Ok(v327) -> {
                                 let v328 = bit_array.to_string(v327)
-                                let v329 = method259()
-                                let v330 = method260()
+                                let v329 = method258()
+                                let v330 = method259()
                                 let v331 = case v328 { Ok(x) -> v329(x) Error(x) -> v330(x) }
                                 case v331  {
                                     Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -599,9 +599,9 @@ pub fn closure132(capt: Nil) -> fn(String) -> Int {
                     let v505 = erlang_term_apply(v501, v502, v504)
                     let v506 = erlang_term_coerce(v505)
                     let v507 = 0
-                    let v508 = method396(v506, v500, v507)
+                    let v508 = method395(v506, v500, v507)
                     let v509 = Uh3Nil
-                    let v510 = method431(v508, v509)
+                    let v510 = method430(v508, v509)
                     let v511 = erlang_term_coerce(v233)
                     let v512 = erlang_term_coerce(v123)
                     let v513 = atom.create(v237)
@@ -763,9 +763,9 @@ pub fn closure132(capt: Nil) -> fn(String) -> Int {
                     let v663 = erlang_term_apply(v659, v660, v662)
                     let v664 = erlang_term_coerce(v663)
                     let v665 = 0
-                    let v666 = method396(v664, v658, v665)
+                    let v666 = method395(v664, v658, v665)
                     let v667 = Uh3Nil
-                    let v668 = method431(v666, v667)
+                    let v668 = method430(v666, v667)
                     let v669 = erlang_term_coerce(v233)
                     let v670 = erlang_term_coerce(v123)
                     let v671 = atom.create(v237)
@@ -792,11 +792,11 @@ pub fn closure132(capt: Nil) -> fn(String) -> Int {
                     let v692 = erlang_term_apply(v688, v689, v691)
                     let v693 = erlang_term_coerce(v692)
                     let v694 = 0
-                    let v695 = method396(v693, v687, v694)
+                    let v695 = method395(v693, v687, v694)
                     let v696 = Uh29Nil
-                    let v697 = method397(v695, v696)
+                    let v697 = method396(v695, v696)
                     let v698 = Uh3Nil
-                    let v699 = method398(v697, v698)
+                    let v699 = method397(v697, v698)
                     let v700 = 0
                     let v701 = method20(v699, v700)
                     let v702 = 0
@@ -903,7 +903,7 @@ pub fn closure132(capt: Nil) -> fn(String) -> Int {
                         }
                     let v759 = v755 <> v758 
                     let v760 = v732 <> v759 
-                    let v761 = paired_rows_433(v510, v668)
+                    let v761 = paired_rows_432(v510, v668)
                     let v762 = Uh3Cons(v760, v761)
                     delimited_21(v234, v762)
                 }
@@ -924,8 +924,8 @@ pub fn closure132(capt: Nil) -> fn(String) -> Int {
                 True -> Uh3Nil
                 False -> split_list_2(v769, v768)
             }
-        let v783 = method399()
-        let v784 = method400(v783, v782)
+        let v783 = method398()
+        let v784 = method399(v783, v782)
         case v784 {
             True -> 1
             False -> 0

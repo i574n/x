@@ -5,14 +5,14 @@ import gleam/list
 import gleam/string
 import xsim_frames/types.{type Uh3, type Uh29, type Uh31, type Us92, type Us93, type Us95, Uh29Cons, Uh29Nil, Uh31Cons, Uh31Nil, Uh39Cons, Uh39Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us56Error, Us56Ok, Us72None, Us72Some, Us75OnX, Us92AppBearer, Us93Elsewhere, Us93Following, Us93Lookup, Us93SearchAll, Us93Single, Us93Timeline, Us93UsersBy, Us93UsersByIds, Us94Error, Us94Ok}
 import xsim_frames/part1.{dictm_term_sorted, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
-import xsim_frames/part10.{method259, method260}
-import xsim_frames/part17.{units_on_348}
-import xsim_frames/part28.{first_value_474, logged_464, method471, method472, route_of_470}
-import xsim_frames/part29.{following_473}
-import xsim_frames/part32.{timeline_483, users_reply_549}
-import xsim_frames/part33.{lookup_560, method574, method575, search_body_569, search_terms_565, single_563, window_start_568}
+import xsim_frames/part10.{method258, method259}
+import xsim_frames/part17.{units_on_347}
+import xsim_frames/part28.{first_value_473, logged_463, method470, method471, route_of_469}
+import xsim_frames/part29.{following_472}
+import xsim_frames/part32.{timeline_482, users_reply_548}
+import xsim_frames/part33.{lookup_559, method573, method574, search_body_568, search_terms_564, single_562, window_start_567}
 
-pub fn by_id_desc_577(v0: Dynamic, v1: Uh29) -> Uh29 {
+pub fn by_id_desc_576(v0: Dynamic, v1: Uh29) -> Uh29 {
     case v1  {
         Uh29Cons(v2, v3) -> {
             let v4 = ""
@@ -165,7 +165,7 @@ pub fn by_id_desc_577(v0: Dynamic, v1: Uh29) -> Uh29 {
             let v135 = erlang_term_coerce(v134)
             case v135 {
                 True -> {
-                    let v136 = by_id_desc_577(v0, v3)
+                    let v136 = by_id_desc_576(v0, v3)
                     Uh29Cons(v2, v136)
                 }
                 False -> Uh29Cons(v0, v1)
@@ -175,17 +175,17 @@ pub fn by_id_desc_577(v0: Dynamic, v1: Uh29) -> Uh29 {
     }
 }
 
-pub fn method576(v0: Uh29, v1: Uh29) -> Uh29 {
+pub fn method575(v0: Uh29, v1: Uh29) -> Uh29 {
     case v0  {
         Uh29Cons(v2, v3) -> {
-            let v4 = by_id_desc_577(v2, v1)
-            method576(v3, v4)
+            let v4 = by_id_desc_576(v2, v1)
+            method575(v3, v4)
         }
         Uh29Nil -> v1
     }
 }
 
-pub fn found_posts_573(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3: dict.Dict(String, Dynamic), _v4: Int, v5: dict.Dict(String, Dynamic), _v6: String, _v7: Dynamic, _v8: Uh3, _v9: Dynamic, _v10: dict.Dict(String, Nil), _v11: Int, v12: String, v13: String, v14: String) -> Uh29 {
+pub fn found_posts_572(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3: dict.Dict(String, Dynamic), _v4: Int, v5: dict.Dict(String, Dynamic), _v6: String, _v7: Dynamic, _v8: Uh3, _v9: Dynamic, _v10: dict.Dict(String, Nil), _v11: Int, v12: String, v13: String, v14: String) -> Uh29 {
     let v15 = dict.keys(v5)
     let v16 = dictm_term_sorted(v15)
     let v17 = Uh3Nil
@@ -199,21 +199,21 @@ pub fn found_posts_573(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic)
     let v22 = Uh3Nil
     let v23 = method4(v21, v22)
     let v24 = Uh29Nil
-    let v25 = method574(v5, v23, v24)
+    let v25 = method573(v5, v23, v24)
     let v26 = Uh29Nil
-    let v27 = method575(v12, v13, v14, v25, v26)
+    let v27 = method574(v12, v13, v14, v25, v26)
     let v28 = Uh29Nil
-    method576(v27, v28)
+    method575(v27, v28)
 }
 
-pub fn search_564(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Bool, v13: String) -> Dynamic {
-    let v14 = search_terms_565(v13)
+pub fn search_563(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Bool, v13: String) -> Dynamic {
+    let v14 = search_terms_564(v13)
     let v15 =
         case v12 {
             True -> 30
             False -> 7
         }
-    let v16 = window_start_568(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15)
+    let v16 = window_start_567(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15)
     let v17 = "start_time"
     let v18 = v13 == ""
     let v22 =
@@ -224,7 +224,7 @@ pub fn search_564(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
                 split_list_2(v20, v13)
             }
         }
-    let v23 = first_value_474(v17, v22)
+    let v23 = first_value_473(v17, v22)
     let v24 = v23 == ""
     let v26 =
         case v24 {
@@ -271,8 +271,8 @@ pub fn search_564(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
         case v45 {
             True -> {
                 let v46 = dict.get(v14, v44)
-                let v47 = method259()
-                let v48 = method260()
+                let v47 = method258()
+                let v48 = method259()
                 let v49 = case v46 { Ok(x) -> v47(x) Error(x) -> v48(x) }
                 let v54 =
                     case v49  {
@@ -295,8 +295,8 @@ pub fn search_564(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
         case v62 {
             True -> {
                 let v63 = dict.get(v14, v61)
-                let v64 = method259()
-                let v65 = method260()
+                let v64 = method258()
+                let v65 = method259()
                 let v66 = case v63 { Ok(x) -> v64(x) Error(x) -> v65(x) }
                 let v71 =
                     case v66  {
@@ -320,8 +320,8 @@ pub fn search_564(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
             True -> {
                 let v80 = v77 |> string.lowercase
                 let v81 = dict.get(v2, v80)
-                let v82 = method471()
-                let v83 = method472()
+                let v82 = method470()
+                let v83 = method471()
                 let v84 = case v81 { Ok(x) -> v82(x) Error(x) -> v83(x) }
                 let v89 =
                     case v84  {
@@ -379,19 +379,19 @@ pub fn search_564(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
     case v127 {
         True -> {
             let v128 = Uh29Nil
-            search_body_569(v128, v13)
+            search_body_568(v128, v13)
         }
         False -> {
-            let v130 = found_posts_573(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v60, v126, v43)
-            search_body_569(v130, v13)
+            let v130 = found_posts_572(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v60, v126, v43)
+            search_body_568(v130, v13)
         }
     }
 }
 
-pub fn post_reply_559(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, _v13: String, v14: String, _v15: String, _v16: String, v17: Us93) -> String {
+pub fn post_reply_558(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, _v13: String, v14: String, _v15: String, _v16: String, v17: Us93) -> String {
     case v17  {
         Us93Lookup -> {
-            let v59 = lookup_560(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v14)
+            let v59 = lookup_559(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v14)
             let v60 = "json"
             let v61 = atom.create(v60)
             let v62 = "encode"
@@ -434,7 +434,7 @@ pub fn post_reply_559(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3
             v98
         }
         Us93Single(v18) -> {
-            let v19 = single_563(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v18, v14)
+            let v19 = single_562(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v18, v14)
             let v20 = "json"
             let v21 = atom.create(v20)
             let v22 = "encode"
@@ -482,7 +482,7 @@ pub fn post_reply_559(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3
                     Us93SearchAll -> True
                     _ -> False
                 }
-            let v100 = search_564(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v99, v14)
+            let v100 = search_563(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v99, v14)
             let v101 = "json"
             let v102 = atom.create(v101)
             let v103 = "encode"
@@ -527,16 +527,16 @@ pub fn post_reply_559(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3
     }
 }
 
-pub fn other_reply_548(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: Us93) -> String {
+pub fn other_reply_547(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: Us93) -> String {
     case v17  {
-        Us93UsersBy -> users_reply_549(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
-        Us93UsersByIds -> users_reply_549(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
-        _ -> post_reply_559(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
+        Us93UsersBy -> users_reply_548(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+        Us93UsersByIds -> users_reply_548(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+        _ -> post_reply_558(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
     }
 }
 
-pub fn routed_469(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String) -> String {
-    let v17 = route_of_470(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13)
+pub fn routed_468(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String) -> String {
+    let v17 = route_of_469(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13)
     case v17  {
         Us93Elsewhere -> {
             let v117 = "no route "
@@ -630,7 +630,7 @@ pub fn routed_469(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
             v204
         }
         Us93Following(v18) -> {
-            let #(v19, v20) = following_473(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v18, v14)
+            let #(v19, v20) = following_472(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v18, v14)
             let v21 = "json"
             let v22 = atom.create(v21)
             let v23 = "encode"
@@ -788,16 +788,16 @@ pub fn routed_469(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
             let v114 = v113 <> v35 
             v114
         }
-        Us93Timeline(v115) -> timeline_483(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v115, v14)
-        _ -> other_reply_548(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
+        Us93Timeline(v115) -> timeline_482(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v115, v14)
+        _ -> other_reply_547(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
     }
 }
 
-pub fn answer_468(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, _v17: Us92) -> String {
-    routed_469(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+pub fn answer_467(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, _v17: Us92) -> String {
+    routed_468(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
 }
 
-pub fn user_write_579(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, _v13: String, _v14: String, _v15: String, _v16: String, _v17: Us92) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn user_write_578(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, _v12: String, _v13: String, _v14: String, _v15: String, _v16: String, _v17: Us92) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v18 = "Unsupported Authentication"
     let v19 = erlang_term_coerce(v18)
     let v20 = "Authenticating with OAuth 2.0 Application-Only is forbidden for this endpoint.  "
@@ -890,11 +890,11 @@ pub fn user_write_579(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3
     #(v106, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
 }
 
-pub fn change_reply_578(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: Us92) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
-    user_write_579(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
+pub fn change_reply_577(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: Us92) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+    user_write_578(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
 }
 
-pub fn reply_as_463(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: String, v18: Us92) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+pub fn reply_as_462(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, v17: String, v18: Us92) -> #(String, String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
     let v20 =
         case v18  {
             Us92AppBearer -> {
@@ -902,7 +902,7 @@ pub fn reply_as_463(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
                 v19
             }
         }
-    logged_464(v12, v13, v14, v15, v16, v17, v20)
+    logged_463(v12, v13, v14, v15, v16, v17, v20)
     let v21 = "xsim serve / answered "
     let v22 = v21 <> v13 
     let v23 = " "
@@ -925,27 +925,27 @@ pub fn reply_as_463(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: 
     let v40 = v13 == "GET"
     case v40 {
         True -> {
-            let v41 = answer_468(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
+            let v41 = answer_467(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
             #(v41, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11)
         }
-        False -> change_reply_578(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
+        False -> change_reply_577(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v13, v14, v15, v16, v17, v18)
     }
 }
 
-pub fn answer_581(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, _v17: Us95) -> String {
-    routed_469(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+pub fn answer_580(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String, v13: String, v14: String, v15: String, v16: String, _v17: Us95) -> String {
+    routed_468(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
 }
 
-pub fn units_of_586(v0: String) -> Uh31 {
+pub fn units_of_585(v0: String) -> Uh31 {
     let v1 = Us75OnX
-    units_on_348(v1, v0)
+    units_on_347(v1, v0)
 }
 
-pub fn method587(v0: Uh31, v1: Int) -> Int {
+pub fn method586(v0: Uh31, v1: Int) -> Int {
     case v0  {
         Uh31Cons(v2, v3, v4) -> {
             let v5 = spiral_wrap_signed(v1 + v3, 32)
-            method587(v4, v5)
+            method586(v4, v5)
         }
         Uh31Nil -> v1
     }

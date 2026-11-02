@@ -8,16 +8,16 @@ import gleam/result
 import gleam/string
 import xsim_frames/types.{type Uh3, type Uh29, Uh29Cons, Uh29Nil, Uh38Cons, Uh38Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us72None, Us72Some, Us94Error, Us94Ok}
 import xsim_frames/part1.{closure1, count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
-import xsim_frames/part13.{method301}
-import xsim_frames/part28.{first_value_474, method466, method467, method471, method472, method481, sliced_480}
-import xsim_frames/part29.{method488, method490, method491}
-import xsim_frames/part31.{rendered_518}
-import xsim_frames/part32.{expanded_506, method561}
+import xsim_frames/part13.{method300}
+import xsim_frames/part28.{first_value_473, method465, method466, method470, method471, method480, sliced_479}
+import xsim_frames/part29.{method487, method489, method490}
+import xsim_frames/part31.{rendered_517}
+import xsim_frames/part32.{expanded_505, method560}
 
-pub fn method562(v0: Uh3, v1: Uh29) -> Uh29 {
+pub fn method561(v0: Uh3, v1: Uh29) -> Uh29 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method562(v3, v1)
+            let v4 = method561(v3, v1)
             let v5 = erlang_term_coerce(v2)
             let v6 = "Could not find post with ids: ["
             let v7 = v6 <> v2 
@@ -65,7 +65,7 @@ pub fn method562(v0: Uh3, v1: Uh29) -> Uh29 {
     }
 }
 
-pub fn lookup_560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String) -> Dynamic {
+pub fn lookup_559(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: String) -> Dynamic {
     let v13 = "ids"
     let v14 = v12 == ""
     let v18 =
@@ -76,7 +76,7 @@ pub fn lookup_560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
                 split_list_2(v16, v12)
             }
         }
-    let v19 = first_value_474(v13, v18)
+    let v19 = first_value_473(v13, v18)
     let v20 = v19 == ""
     let v24 =
         case v20 {
@@ -87,7 +87,7 @@ pub fn lookup_560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
             }
         }
     let v25 = Uh3Nil
-    let v26 = method488(v24, v25)
+    let v26 = method487(v24, v25)
     let v27 = "media.fields"
     let v31 =
         case v14 {
@@ -97,7 +97,7 @@ pub fn lookup_560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
                 split_list_2(v29, v12)
             }
         }
-    let v32 = first_value_474(v27, v31)
+    let v32 = first_value_473(v27, v31)
     let v33 = v32 == ""
     let v37 =
         case v33 {
@@ -108,7 +108,7 @@ pub fn lookup_560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
             }
         }
     let v38 = Uh3Nil
-    let v39 = method488(v37, v38)
+    let v39 = method487(v37, v38)
     let v40 = "post.fields"
     let v44 =
         case v14 {
@@ -118,7 +118,7 @@ pub fn lookup_560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
                 split_list_2(v42, v12)
             }
         }
-    let v45 = first_value_474(v40, v44)
+    let v45 = first_value_473(v40, v44)
     let v46 = v45 == ""
     let v50 =
         case v46 {
@@ -129,7 +129,7 @@ pub fn lookup_560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
             }
         }
     let v51 = Uh3Nil
-    let v52 = method488(v50, v51)
+    let v52 = method487(v50, v51)
     let v53 = "expansions"
     let v57 =
         case v14 {
@@ -139,7 +139,7 @@ pub fn lookup_560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
                 split_list_2(v55, v12)
             }
         }
-    let v58 = first_value_474(v53, v57)
+    let v58 = first_value_473(v53, v57)
     let v59 = v58 == ""
     let v63 =
         case v59 {
@@ -150,33 +150,33 @@ pub fn lookup_560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
             }
         }
     let v64 = Uh3Nil
-    let v65 = method488(v63, v64)
+    let v65 = method487(v63, v64)
     let v66 = Uh3Nil
-    let v67 = method490(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v26, v66)
+    let v67 = method489(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v26, v66)
     let v68 = Uh29Nil
-    let v69 = method491(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v67, v68)
-    let v70 = expanded_506(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v52, v65, v39, v69)
+    let v69 = method490(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v67, v68)
+    let v70 = expanded_505(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v52, v65, v39, v69)
     let v71 = Uh3Nil
-    let v72 = method561(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v26, v71)
+    let v72 = method560(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v26, v71)
     let v73 = Uh29Nil
-    let v74 = method562(v72, v73)
+    let v74 = method561(v72, v73)
     let v82 =
         case v74  {
             Uh29Nil -> Uh38Nil
             _ -> {
                 let v76 = []
-                let v77 = method301(v74, v76)
+                let v77 = method300(v74, v76)
                 let v78 = erlang_term_coerce(v77)
                 let v79 = "errors"
                 let v80 = Uh38Nil
                 Uh38Cons(v79, v78, v80)
             }
         }
-    let v83 = method466(v70, v82)
+    let v83 = method465(v70, v82)
     let v84 = Uh29Nil
-    let v85 = method467(v83, v84)
+    let v85 = method466(v83, v84)
     let v86 = []
-    let v87 = method301(v85, v86)
+    let v87 = method300(v85, v86)
     let v88 = erlang_term_coerce(v87)
     let v89 = "maps"
     let v90 = atom.create(v89)
@@ -188,13 +188,13 @@ pub fn lookup_560(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: di
     v95
 }
 
-pub fn single_563(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3: dict.Dict(String, Dynamic), _v4: Int, v5: dict.Dict(String, Dynamic), _v6: String, _v7: Dynamic, _v8: Uh3, _v9: Dynamic, _v10: dict.Dict(String, Nil), _v11: Int, v12: String, v13: String) -> Dynamic {
+pub fn single_562(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3: dict.Dict(String, Dynamic), _v4: Int, v5: dict.Dict(String, Dynamic), _v6: String, _v7: Dynamic, _v8: Uh3, _v9: Dynamic, _v10: dict.Dict(String, Nil), _v11: Int, v12: String, v13: String) -> Dynamic {
     let v14 = dict.has_key(v5, v12)
     case v14 {
         True -> {
             let v15 = dict.get(v5, v12)
-            let v16 = method471()
-            let v17 = method472()
+            let v16 = method470()
+            let v17 = method471()
             let v18 = case v15 { Ok(x) -> v16(x) Error(x) -> v17(x) }
             let v23 =
                 case v18  {
@@ -216,7 +216,7 @@ pub fn single_563(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3
                         split_list_2(v31, v13)
                     }
                 }
-            let v34 = first_value_474(v28, v33)
+            let v34 = first_value_473(v28, v33)
             let v35 = v34 == ""
             let v39 =
                 case v35 {
@@ -227,8 +227,8 @@ pub fn single_563(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3
                     }
                 }
             let v40 = Uh3Nil
-            let v41 = method488(v39, v40)
-            let v42 = rendered_518(v27, v41)
+            let v41 = method487(v39, v40)
+            let v42 = rendered_517(v27, v41)
             let v43 = "data"
             let v44 = atom.create(v43)
             let v45 = erlang_term_coerce(v44)
@@ -333,10 +333,10 @@ pub fn single_563(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3
     }
 }
 
-pub fn method566(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method565(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method566(v3, v1)
+            let v4 = method565(v3, v1)
             let v5 = ":"
             let v6 = option.from_result(result.map(string.split_once(v2, v5), pair.first))
             let v7 = closure1(Nil)
@@ -361,7 +361,7 @@ pub fn method566(v0: Uh3, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn method567(v0: Uh3, v1: dict.Dict(String, String)) -> dict.Dict(String, String) {
+pub fn method566(v0: Uh3, v1: dict.Dict(String, String)) -> dict.Dict(String, String) {
     case v0  {
         Uh3Cons(v2, v3) -> {
             let v4 = ":"
@@ -398,13 +398,13 @@ pub fn method567(v0: Uh3, v1: dict.Dict(String, String)) -> dict.Dict(String, St
                     }
                 }
             let v26 = dict.insert(v1, v24, v25)
-            method567(v3, v26)
+            method566(v3, v26)
         }
         Uh3Nil -> v1
     }
 }
 
-pub fn search_terms_565(v0: String) -> dict.Dict(String, String) {
+pub fn search_terms_564(v0: String) -> dict.Dict(String, String) {
     let v1 = "query"
     let v2 = v0 == ""
     let v6 =
@@ -415,7 +415,7 @@ pub fn search_terms_565(v0: String) -> dict.Dict(String, String) {
                 split_list_2(v4, v0)
             }
         }
-    let v7 = first_value_474(v1, v6)
+    let v7 = first_value_473(v1, v6)
     let v8 = v7 == ""
     let v10 =
         case v8 {
@@ -439,12 +439,12 @@ pub fn search_terms_565(v0: String) -> dict.Dict(String, String) {
             False -> split_list_2(v12, v17)
         }
     let v22 = Uh3Nil
-    let v23 = method566(v21, v22)
+    let v23 = method565(v21, v22)
     let v24 = dict.new()
-    method567(v23, v24)
+    method566(v23, v24)
 }
 
-pub fn window_start_568(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3: dict.Dict(String, Dynamic), _v4: Int, _v5: dict.Dict(String, Dynamic), v6: String, _v7: Dynamic, _v8: Uh3, _v9: Dynamic, _v10: dict.Dict(String, Nil), _v11: Int, v12: Int) -> String {
+pub fn window_start_567(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), _v3: dict.Dict(String, Dynamic), _v4: Int, _v5: dict.Dict(String, Dynamic), v6: String, _v7: Dynamic, _v8: Uh3, _v9: Dynamic, _v10: dict.Dict(String, Nil), _v11: Int, v12: Int) -> String {
     let v13 = erlang_term_coerce(v6)
     let v14 = "unicode"
     let v15 = atom.create(v14)
@@ -505,10 +505,10 @@ pub fn window_start_568(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic
     v69
 }
 
-pub fn method570(v0: String, v1: Uh29, v2: Uh29) -> Uh29 {
+pub fn method569(v0: String, v1: Uh29, v2: Uh29) -> Uh29 {
     case v1  {
         Uh29Cons(v3, v4) -> {
-            let v5 = method570(v0, v4, v2)
+            let v5 = method569(v0, v4, v2)
             let v6 = "post.fields"
             let v7 = v0 == ""
             let v11 =
@@ -519,7 +519,7 @@ pub fn method570(v0: String, v1: Uh29, v2: Uh29) -> Uh29 {
                         split_list_2(v9, v0)
                     }
                 }
-            let v12 = first_value_474(v6, v11)
+            let v12 = first_value_473(v6, v11)
             let v13 = v12 == ""
             let v17 =
                 case v13 {
@@ -530,22 +530,22 @@ pub fn method570(v0: String, v1: Uh29, v2: Uh29) -> Uh29 {
                     }
                 }
             let v18 = Uh3Nil
-            let v19 = method488(v17, v18)
-            let v20 = rendered_518(v3, v19)
+            let v19 = method487(v17, v18)
+            let v20 = rendered_517(v3, v19)
             Uh29Cons(v20, v5)
         }
         Uh29Nil -> v2
     }
 }
 
-pub fn method572(v0: Uh29, v1: Dynamic) -> Dynamic {
+pub fn method571(v0: Uh29, v1: Dynamic) -> Dynamic {
     case v0  {
-        Uh29Cons(v2, v3) -> method572(v3, v2)
+        Uh29Cons(v2, v3) -> method571(v3, v2)
         Uh29Nil -> v1
     }
 }
 
-pub fn search_meta_571(v0: Uh29, v1: Int, v2: Bool) -> Dynamic {
+pub fn search_meta_570(v0: Uh29, v1: Int, v2: Bool) -> Dynamic {
     let v3 = string.inspect(v1)
     let v4 = erlang_term_coerce(v3)
     let v9 =
@@ -558,7 +558,7 @@ pub fn search_meta_571(v0: Uh29, v1: Int, v2: Bool) -> Dynamic {
             False -> Uh38Nil
         }
     let v10 = 0
-    let v11 = method481(v0, v10)
+    let v11 = method480(v0, v10)
     let v12 = erlang_term_coerce(v11)
     let v49 =
         case v0  {
@@ -578,7 +578,7 @@ pub fn search_meta_571(v0: Uh29, v1: Int, v2: Bool) -> Dynamic {
                 let v27 = [v18, ..v26]
                 let v28 = erlang_term_apply(v21, v23, v27)
                 let v29 = erlang_term_coerce(v28)
-                let v30 = method572(v0, v13)
+                let v30 = method571(v0, v13)
                 let v31 = erlang_term_coerce(v15)
                 let v32 = erlang_term_coerce(v17)
                 let v33 = erlang_term_coerce(v31)
@@ -599,10 +599,10 @@ pub fn search_meta_571(v0: Uh29, v1: Int, v2: Bool) -> Dynamic {
             Uh29Nil -> Uh38Nil
         }
     let v50 = Uh38Nil
-    let v51 = method466(v9, v50)
-    let v52 = method466(v49, v51)
+    let v51 = method465(v9, v50)
+    let v52 = method465(v49, v51)
     let v53 = Uh29Nil
-    let v54 = method467(v52, v53)
+    let v54 = method466(v52, v53)
     let v55 = "result_count"
     let v56 = atom.create(v55)
     let v57 = erlang_term_coerce(v56)
@@ -611,7 +611,7 @@ pub fn search_meta_571(v0: Uh29, v1: Int, v2: Bool) -> Dynamic {
     let v60 = [v57, ..v59]
     let v61 = erlang_term_tuple(v60)
     let v62 = []
-    let v63 = method301(v54, v62)
+    let v63 = method300(v54, v62)
     let v64 = [v61, ..v63]
     let v65 = erlang_term_coerce(v64)
     let v66 = "maps"
@@ -624,7 +624,7 @@ pub fn search_meta_571(v0: Uh29, v1: Int, v2: Bool) -> Dynamic {
     v72
 }
 
-pub fn search_body_569(v0: Uh29, v1: String) -> Dynamic {
+pub fn search_body_568(v0: Uh29, v1: String) -> Dynamic {
     let v2 = "next_token"
     let v3 = v1 == ""
     let v7 =
@@ -635,7 +635,7 @@ pub fn search_body_569(v0: Uh29, v1: String) -> Dynamic {
                 split_list_2(v5, v1)
             }
         }
-    let v8 = first_value_474(v2, v7)
+    let v8 = first_value_473(v2, v7)
     let v9 = v8 == ""
     let v11 =
         case v9 {
@@ -660,7 +660,7 @@ pub fn search_body_569(v0: Uh29, v1: String) -> Dynamic {
                 split_list_2(v18, v1)
             }
         }
-    let v21 = first_value_474(v16, v20)
+    let v21 = first_value_473(v16, v20)
     let v22 = v21 == ""
     let v24 =
         case v22 {
@@ -676,15 +676,15 @@ pub fn search_body_569(v0: Uh29, v1: String) -> Dynamic {
             Us3None -> 0
             Us3Some(v26) -> v26
         }
-    let v29 = sliced_480(v15, v28, v0)
+    let v29 = sliced_479(v15, v28, v0)
     let v30 = Uh29Nil
-    let v31 = method570(v1, v29, v30)
+    let v31 = method569(v1, v29, v30)
     let v39 =
         case v31  {
             Uh29Nil -> Uh38Nil
             _ -> {
                 let v33 = []
-                let v34 = method301(v31, v33)
+                let v34 = method300(v31, v33)
                 let v35 = erlang_term_coerce(v34)
                 let v36 = "data"
                 let v37 = Uh38Nil
@@ -693,17 +693,17 @@ pub fn search_body_569(v0: Uh29, v1: String) -> Dynamic {
         }
     let v40 = spiral_wrap_signed(v15 + v28, 32)
     let v41 = 0
-    let v42 = method481(v0, v41)
+    let v42 = method480(v0, v41)
     let v43 = v40 < v42
-    let v44 = search_meta_571(v29, v40, v43)
+    let v44 = search_meta_570(v29, v40, v43)
     let v45 = "meta"
     let v46 = Uh38Nil
     let v47 = Uh38Cons(v45, v44, v46)
-    let v48 = method466(v39, v47)
+    let v48 = method465(v39, v47)
     let v49 = Uh29Nil
-    let v50 = method467(v48, v49)
+    let v50 = method466(v48, v49)
     let v51 = []
-    let v52 = method301(v50, v51)
+    let v52 = method300(v50, v51)
     let v53 = erlang_term_coerce(v52)
     let v54 = "maps"
     let v55 = atom.create(v54)
@@ -715,12 +715,12 @@ pub fn search_body_569(v0: Uh29, v1: String) -> Dynamic {
     v60
 }
 
-pub fn method574(v0: dict.Dict(String, Dynamic), v1: Uh3, v2: Uh29) -> Uh29 {
+pub fn method573(v0: dict.Dict(String, Dynamic), v1: Uh3, v2: Uh29) -> Uh29 {
     case v1  {
         Uh3Cons(v3, v4) -> {
             let v5 = dict.get(v0, v3)
-            let v6 = method471()
-            let v7 = method472()
+            let v6 = method470()
+            let v7 = method471()
             let v8 = case v5 { Ok(x) -> v6(x) Error(x) -> v7(x) }
             let v13 =
                 case v8  {
@@ -733,16 +733,16 @@ pub fn method574(v0: dict.Dict(String, Dynamic), v1: Uh3, v2: Uh29) -> Uh29 {
                     Us72Some(v14) -> v14
                 }
             let v18 = Uh29Cons(v17, v2)
-            method574(v0, v4, v18)
+            method573(v0, v4, v18)
         }
         Uh3Nil -> v2
     }
 }
 
-pub fn method575(v0: String, v1: String, v2: String, v3: Uh29, v4: Uh29) -> Uh29 {
+pub fn method574(v0: String, v1: String, v2: String, v3: Uh29, v4: Uh29) -> Uh29 {
     case v3  {
         Uh29Cons(v5, v6) -> {
-            let v7 = method575(v0, v1, v2, v6, v4)
+            let v7 = method574(v0, v1, v2, v6, v4)
             let v8 = v1 == ""
             let v42 =
                 case v8 {
