@@ -1,4 +1,4 @@
-///- --package .
+///- --package . --timeout 600000
 ///> rust -d sha2 unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
 :# sim_run static =

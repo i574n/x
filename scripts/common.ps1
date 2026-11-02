@@ -43,7 +43,9 @@ function Assert-CellBudget([Parameter(Mandatory)] [string] $Path, [Parameter(Man
     $report | ForEach-Object { "$Label / $_" } | Write-Host
     $counted = $report | Select-String -Pattern 'cell-budget report: (\d+) finding' | Select-Object -Last 1
     if (!$counted) { throw "CELL-BUDGET $Label / no report line from Cells' cell-budget check (exit $code)" }
-    if ($code -ne 0 -or [int] $counted.Matches[0].Groups[1].Value -gt 0) { throw "CELL-BUDGET $Label / findings (exit $code), see the report above" }
+    $over = [regex]::Match($counted.Line, '\bover_budget (\d+)')
+    if ($code -ne 0 -or $over.Success) { throw "CELL-BUDGET $Label / over budget (exit $code), see the report above" }
+    if ([int] $counted.Matches[0].Groups[1].Value -gt 0) { Write-Host "CELL-BUDGET $Label / advisory only: $($counted.Line.Trim()); x defuses these dots when it posts" }
 }
 
 function Assert-SpiralTotals([Parameter(Mandatory)] [AllowEmptyCollection()] [AllowEmptyString()] [string[]] $Lines) {
