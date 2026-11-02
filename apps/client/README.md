@@ -1,4 +1,4 @@
-# xc: an X client written in Spiral
+# xc: an X client
 
 `xc` reads X timelines and posts as you, from a terminal or a script. It is a Spiral program compiled to native Rust (one static `xc.exe` on Windows, no runtime to install), talking to the official X API v2.
 
