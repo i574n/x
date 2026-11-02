@@ -1,4 +1,4 @@
-///- --package .
+///- --package . --timeout 600000
 ///> gleam
 :# cells_executor static =
     :< testing
@@ -206,7 +206,7 @@
 
 :== task_reply = string * erlang_process::pid * task_result
 
-:== async_state = { sched : scheduler; pids : dictm::dict string erlang_process::pid; peak_mb : i32 }
+:== async_state = { sched : scheduler; pids : dict::dict string erlang_process::pid; peak_mb : i32 }
 
 :== reply_to = erlang_process::subject task_reply
 
@@ -217,13 +217,13 @@
     erlang_process::spawn_unlinked (replied exec reply key sources)
 
 := started_in (exec : executor) (reply : reply_to) (a : async_state) (key : string) (code : list string) : async_state =
-    { a ?| pids = dictm::insert key (spawned_task exec reply key code) a::pids }
+    { a ?| pids = dict::insert key (spawned_task exec reply key code) a::pids }
 
 := cancelled_in (a : async_state) (key : string) : async_state =
-    ?= dictm::find key a::pids ?|
+    ?= dict::find key a::pids ?|
     | Some p =>
         erlang_process::kill p
-        { a ?| pids = dictm::remove key a::pids }
+        { a ?| pids = dict::remove key a::pids }
     | None => a
 
 := commanded (exec : executor) (reply : reply_to) (a : async_state) (c : task_command) : async_state =
@@ -240,14 +240,14 @@
     erlang_term::equal (erlang_term::of a) (erlang_term::of b)
 
 := current_run (a : async_state) (key : string) (from : erlang_process::pid) : bool =
-    ?= dictm::find key a::pids ?|
+    ?= dict::find key a::pids ?|
     | Some p => same_pid p from
     | None => !-
 
 := finished_in (a : async_state) (key : string) (p : erlang_process::pid) (r : task_result) : async_state =
     ? not (current_run a key p) ?> a
     |:
-        { a ?| sched = finished_task key r a::sched; pids = dictm::remove key a::pids }
+        { a ?| sched = finished_task key r a::sched; pids = dict::remove key a::pids }
 
 :~ ^ collected (reply : reply_to) (wait_ms : i32) (a : async_state) : async_state =
     ?= erlang_process::receive_within reply wait_ms |> erlang_process::receipt_value ?|
@@ -263,7 +263,7 @@
     erlang_term::apply "erlang" "max" [ erlang_term::of 0i32; left ] |> erlang_term::cast
 
 := next_reply (reply : reply_to) (deadline : term) (a : async_state) : option task_reply =
-    ? dictm::size a::pids = 0i32 ?> None
+    ? dict::size a::pids = 0i32 ?> None
     |: erlang_process::receive_within reply (left_until deadline) |> erlang_process::receipt_value
 
 :~ ^ harvested (reply : reply_to) (deadline : term) (a : async_state) : async_state =
@@ -283,18 +283,18 @@
     erlang_process::kill p
     finished_in b key p { status = Erred; out = "no reply within 600 s" }
 
-:= timed_out (a : async_state) : async_state = a::pids |> dictm::fold abandoned a
+:= timed_out (a : async_state) : async_state = a::pids |> dict::fold abandoned a
 
 := waited (reply : reply_to) (b : async_state) : async_state =
     := c = collected reply 600000i32 b
-    ? dictm::size c::pids = dictm::size b::pids ?> timed_out c |: c
+    ? dict::size c::pids = dict::size b::pids ?> timed_out c |: c
 
 :~ ^ settled_runs (exec : executor) (reply : reply_to) (a : async_state) : async_state =
     := b = launched exec reply { a ?| sched = drained a::sched }
-    ? dictm::size b::pids = 0i32 ?> b
+    ? dict::size b::pids = 0i32 ?> b
     |: waited reply b |> settled_runs exec reply
 
-:= async_start (f : fault_set) : async_state = { sched = new_scheduler f; pids = dictm::empty (); peak_mb = 0i32 }
+:= async_start (f : fault_set) : async_state = { sched = new_scheduler f; pids = dict::empty (); peak_mb = 0i32 }
 
 := finished_view (a : async_state) : scheduler = a::sched |> expired !+ |> settled_view
 

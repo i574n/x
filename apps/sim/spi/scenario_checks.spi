@@ -37,7 +37,7 @@
 
 := schedule_holds (events : flow) (schedule : i32) : bool =
     := s = scheduled_run (plain_faults ()) events schedule 300i32 6i32
-    all_held s && dictm::size s::visible_map > 0i32
+    all_held s && dict::size s::visible_map > 0i32
 
 :~ ^ schedules_hold (events : flow) (schedule : i32) (last : i32) : bool =
     ? schedule > last ?> !+ |: schedule_holds events schedule && schedules_hold events (schedule + 1i32) last
@@ -122,7 +122,7 @@
     has (\ n => sm'::ends_with ("_assert_eq " ++# n) (sm'::trim source)) [ "10"; "17"; "9"; "5" ]
 
 := distinct_count (ids : list string) : i32 =
-    ids |> listm::fold (\ d id => dictm::set_add id d) (dictm::set_empty ()) |> dictm::set_size
+    ids |> listm::fold (\ d id => dict::set_add id d) (dict::set_empty ()) |> dict::set_size
 
 := authors_interleaved (ids : list string) : bool = has (sm'::starts_with "f0") ids && has (sm'::starts_with "f1") ids
 
@@ -148,35 +148,35 @@
     := ~cells = elixir_cells ()
     notebooks_scenario cells |> notebooks_shape |> _assert_eq (!+, !+, !+, !+)
 
-:= honest (broken : dictm::set string) : list string -> task_result =
-    \ sources => ? dictm::set_has (last_of sources) broken ?> { status = Erred; out = "failed" } |: fake_result sources
+:= honest (broken : dict::set string) : list string -> task_result =
+    \ sources => ? dict::set_has (last_of sources) broken ?> { status = Erred; out = "failed" } |: fake_result sources
 
-:== source_map = dictm::dict string string
+:== source_map = dict::dict string string
 
 := originals_of (s : scenario) : source_map =
-    s::posts |> listm::fold (\ d (r : rooted) => dictm::insert r::post_id r::source d) (dictm::empty ())
+    s::posts |> listm::fold (\ d (r : rooted) => dict::insert r::post_id r::source d) (dict::empty ())
 
 := is_original (originals : source_map) (id : string) (source : string) : bool =
-    ?= dictm::find id originals ?|
+    ?= dict::find id originals ?|
     | Some o => o = source
     | None => !-
 
-:= rules_hold_for (broken : dictm::set string) (run : scheduler) : bool =
+:= rules_hold_for (broken : dict::set string) (run : scheduler) : bool =
     runner_checks run (honest broken) |> has (\ (f : finding) => verdict_text f::verdict <> "ok") |> not
 
 := reverted_in (originals : source_map) (run : scheduler) : bool =
-    run::in_box::graph::posts |> dictm::fold (\ ok id p => ok && is_original originals id (latest_source p)) !+
+    run::in_box::graph::posts |> dict::fold (\ ok id p => ok && is_original originals id (latest_source p)) !+
 
-:= run_holds (broken : dictm::set string) (originals : source_map) (run : scheduler) : bool =
+:= run_holds (broken : dict::set string) (originals : source_map) (run : scheduler) : bool =
     rules_hold_for broken run && verdict_text (breaking_failed run broken) = "ok" && reverted_in originals run
 
-:= persona_run (broken : dictm::set string) (events : flow) (schedule : i32) : scheduler =
+:= persona_run (broken : dict::set string) (events : flow) (schedule : i32) : scheduler =
     := limited = plain_faults ()
     := pace = { permille = 300i32; window = 10i32 }
     sync_run_with (honest broken) { limited ?| limit = 2i32 } (deliveries events schedule pace)
 
 :~ ^ persona_runs
-    (broken : dictm::set string) (events : flow) (schedule : i32) (acc : list scheduler)
+    (broken : dict::set string) (events : flow) (schedule : i32) (acc : list scheduler)
     : list scheduler
     =
     ? schedule > 4i32 ?> listm::rev acc
@@ -193,18 +193,18 @@
     := c = cast 17i32 2i32 0i32
     from_cells { c ?| personas = parsed_personas "lurker=2,fickle=3,editor=2,breaker=2" } "" cells
 
-:= broken_set (s : scenario) : dictm::set string =
-    s::broken |> listm::fold (\ d b => dictm::set_add b d) (dictm::set_empty ())
+:= broken_set (s : scenario) : dict::set string =
+    s::broken |> listm::fold (\ d b => dict::set_add b d) (dict::set_empty ())
 
 := restores_original (originals : source_map) (events : flow) : bool =
     events |> has \ e => ?= e ?| Revision (Edited r) => is_original originals r::post_id r::source | _ => !-
 
-:= personas_hold (broken : dictm::set string) (originals : source_map) (runs : list scheduler) : bool * bool =
+:= personas_hold (broken : dict::set string) (originals : source_map) (runs : list scheduler) : bool * bool =
     not (has (\ run => not (run_holds broken originals run)) runs), neighbours_commute runs
 
 := persona_signals (s : scenario) : bool * bool * bool =
     := restores = restores_original (originals_of s) s::all_events
-    has fickle_unlike s::all_events, restores, dictm::set_size (broken_set s) > 0i32
+    has fickle_unlike s::all_events, restores, dict::set_size (broken_set s) > 0i32
 
 := persona_runs_hold (s : scenario) : bool * bool =
     := broken = broken_set s

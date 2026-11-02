@@ -3,7 +3,7 @@ import gleam/erlang/atom
 import gleam/list
 import gleam/string
 import xsim_frames/types.{type Uh3, type Uh8, type Us75, type Us86, type Us87, Uh29Nil, Uh3Cons, Uh3Nil, Uh8Cons, Uh8Nil, Us56Error, Us56Ok, Us75OnBluesky, Us75OnMastodon, Us75OnX, Us76Error, Us76Ok, Us85Error, Us85Ok, Us86None, Us86Some, Us87Error, Us87Ok}
-import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, method4, spiral_fs_coerce, spiral_fs_read_file, spiral_fs_write_file, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, unicode_erlang_characters_to_binary}
+import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, method4, spiral_fs_coerce, spiral_fs_read_file, spiral_fs_write_file, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, unicode_erlang_characters_to_binary, unicode_erlang_nfc}
 import xsim_frames/part10.{method259, method260}
 import xsim_frames/part15.{closure96}
 import xsim_frames/part16.{defused_dots_by_308, defused_entities_329}
@@ -234,12 +234,12 @@ pub fn closure118(capt: Nil) -> fn(String) -> Int {
                 }
                 _ -> v133
             }
-        let v288 =
+        let v293 =
             case v167  {
-                Us85Error(v284) -> {
-                    let v285 = "XSIM rejected world: "
-                    let v286 = v285 <> v284 
-                    v286
+                Us85Error(v289) -> {
+                    let v290 = "XSIM rejected world: "
+                    let v291 = v290 <> v289 
+                    v291
                 }
                 Us85Ok(v168, v169, v170, v171, v172, v173, v174, v175, v176, v177, v178, v179, v180) -> {
                     let v181 = spiral_fs_read_file(v168)
@@ -352,32 +352,37 @@ pub fn closure118(capt: Nil) -> fn(String) -> Int {
                     let v277 = []
                     let v278 = [v272, ..v277]
                     let v279 = erlang_term_apply(v274, v276, v278)
-                    let v280 = erlang_term_coerce(v279)
-                    let v281 = "xsim.world "
-                    let v282 = v281 <> v280 
-                    let v283 = v282 <> v271 
-                    v283
+                    let v280 = atom.create(v103)
+                    let v281 = atom.create(v105)
+                    let v282 = []
+                    let v283 = [v279, ..v282]
+                    let v284 = erlang_term_apply(v280, v281, v283)
+                    let v285 = erlang_term_coerce(v284)
+                    let v286 = "xsim.world "
+                    let v287 = v286 <> v285 
+                    let v288 = v287 <> v271 
+                    v288
                 }
             }
-        let v289 = "\n"
-        let v290 = v288 <> v289 
-        let v291 = erlang_term_coerce(v290)
-        let v292 = "io"
-        let v293 = atom.create(v292)
-        let v294 = "put_chars"
-        let v295 = atom.create(v294)
-        let v296 = []
-        let v297 = [v291, ..v296]
-        let _v298 = erlang_term_apply(v293, v295, v297)
-        let v299 = v288 == ""
-        let v302 =
-            case v299 {
+        let v294 = "\n"
+        let v295 = v293 <> v294 
+        let v296 = erlang_term_coerce(v295)
+        let v297 = "io"
+        let v298 = atom.create(v297)
+        let v299 = "put_chars"
+        let v300 = atom.create(v299)
+        let v301 = []
+        let v302 = [v296, ..v301]
+        let _v303 = erlang_term_apply(v298, v300, v302)
+        let v304 = v293 == ""
+        let v307 =
+            case v304 {
                 True -> Uh3Nil
-                False -> split_list_2(v289, v288)
+                False -> split_list_2(v294, v293)
             }
-        let v303 = method399()
-        let v304 = method400(v303, v302)
-        case v304 {
+        let v308 = method399()
+        let v309 = method400(v308, v307)
+        case v309 {
             True -> 1
             False -> 0
         }
@@ -862,16 +867,8 @@ pub fn method425(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
             let v4 = method425(v3, v1)
-            let v5 = erlang_term_coerce(v2)
-            let v6 = "unicode"
-            let v7 = atom.create(v6)
-            let v8 = "characters_to_nfc_binary"
-            let v9 = atom.create(v8)
-            let v10 = []
-            let v11 = [v5, ..v10]
-            let v12 = erlang_term_apply(v7, v9, v11)
-            let v13 = erlang_term_coerce(v12)
-            Uh3Cons(v13, v4)
+            let v5 = unicode_erlang_nfc(v2)
+            Uh3Cons(v5, v4)
         }
         Uh3Nil -> v1
     }

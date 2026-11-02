@@ -101,12 +101,12 @@ pub fn closure124(capt: Nil) -> fn(String) -> Int {
                 }
                 _ -> v40
             }
-        let v156 =
+        let v161 =
             case v57  {
-                Us87Error(v152) -> {
-                    let v153 = "XSIM rejected frames: "
-                    let v154 = v153 <> v152 
-                    v154
+                Us87Error(v157) -> {
+                    let v158 = "XSIM rejected frames: "
+                    let v159 = v158 <> v157 
+                    v159
                 }
                 Us87Ok(v58, v59) -> {
                     let v60 = spiral_fs_read_file(v58)
@@ -222,32 +222,37 @@ pub fn closure124(capt: Nil) -> fn(String) -> Int {
                     let v145 = []
                     let v146 = [v140, ..v145]
                     let v147 = erlang_term_apply(v142, v144, v146)
-                    let v148 = erlang_term_coerce(v147)
-                    let v149 = "xsim.frames "
-                    let v150 = v149 <> v148 
-                    let v151 = v150 <> v139 
-                    v151
+                    let v148 = atom.create(v19)
+                    let v149 = atom.create(v21)
+                    let v150 = []
+                    let v151 = [v147, ..v150]
+                    let v152 = erlang_term_apply(v148, v149, v151)
+                    let v153 = erlang_term_coerce(v152)
+                    let v154 = "xsim.frames "
+                    let v155 = v154 <> v153 
+                    let v156 = v155 <> v139 
+                    v156
                 }
             }
-        let v157 = "\n"
-        let v158 = v156 <> v157 
-        let v159 = erlang_term_coerce(v158)
-        let v160 = "io"
-        let v161 = atom.create(v160)
-        let v162 = "put_chars"
-        let v163 = atom.create(v162)
-        let v164 = []
-        let v165 = [v159, ..v164]
-        let _v166 = erlang_term_apply(v161, v163, v165)
-        let v167 = v156 == ""
-        let v170 =
-            case v167 {
+        let v162 = "\n"
+        let v163 = v161 <> v162 
+        let v164 = erlang_term_coerce(v163)
+        let v165 = "io"
+        let v166 = atom.create(v165)
+        let v167 = "put_chars"
+        let v168 = atom.create(v167)
+        let v169 = []
+        let v170 = [v164, ..v169]
+        let _v171 = erlang_term_apply(v166, v168, v170)
+        let v172 = v161 == ""
+        let v175 =
+            case v172 {
                 True -> Uh3Nil
-                False -> split_list_2(v157, v156)
+                False -> split_list_2(v162, v161)
             }
-        let v171 = method399()
-        let v172 = method400(v171, v170)
-        case v172 {
+        let v176 = method399()
+        let v177 = method400(v176, v175)
+        case v177 {
             True -> 1
             False -> 0
         }

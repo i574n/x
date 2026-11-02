@@ -10,8 +10,8 @@ import xsim_frames/part12.{chain_sources_284}
 import xsim_frames/part13.{method296}
 import xsim_frames/part17.{method366, method367, method368, method369, method370, method371, method372, method374, method375, method376, method377}
 import xsim_frames/part18.{method378, method380, method381, method382, method383, method384}
-import xsim_frames/part2.{delimited_21, method20, method30, method32, method33, method36, method37, method40, taken_31}
-import xsim_frames/part3.{method43, method79}
+import xsim_frames/part2.{delimited_21, method20, method30, method32, method33, method36, method37, taken_31}
+import xsim_frames/part3.{method40, method43, method79}
 import xsim_frames/part4.{method96}
 import xsim_frames/part5.{stream_115}
 import xsim_frames/part6.{decoded_stream_123, deliveries_130}

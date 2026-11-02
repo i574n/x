@@ -22,8 +22,8 @@
 :== shell_inbox = erlang_process::subject shell_message
 
 :== shell_state =
-    { sched : scheduler; me : shell_inbox; exec : executor; guards : dictm::dict string handle;
-        early_cancels : dictm::set string }
+    { sched : scheduler; me : shell_inbox; exec : executor; guards : dict::dict string handle;
+        early_cancels : dict::set string }
 
 :== shell_next = otp_actor::next shell_state shell_message
 
@@ -45,22 +45,22 @@
 
 := guard_cancelled (st : shell_state) (key : string) (own : handle) : shell_state =
     erlang_process::send own ()
-    { st ?| guards = dictm::remove key st::guards }
+    { st ?| guards = dict::remove key st::guards }
 
 := cancelled (st : shell_state) (key : string) : shell_state =
-    ?= dictm::find key st::guards ?|
+    ?= dict::find key st::guards ?|
     | Some own => guard_cancelled st key own
-    | None => { st ?| early_cancels = dictm::set_add key st::early_cancels }
+    | None => { st ?| early_cancels = dict::set_add key st::early_cancels }
 
 := cancelled_early (st : shell_state) (key : string) (own : handle) : shell_state =
     erlang_process::send own ()
-    { st ?| early_cancels = dictm::set_drop key st::early_cancels }
+    { st ?| early_cancels = dict::set_drop key st::early_cancels }
 
 := adopted (st : shell_state) (key : string) (own : handle) : shell_state =
-    ? dictm::set_has key st::early_cancels ?> cancelled_early st key own
-    |: { st ?| guards = dictm::insert key own st::guards }
+    ? dict::set_has key st::early_cancels ?> cancelled_early st key own
+    |: { st ?| guards = dict::insert key own st::guards }
 
-:= released (st : shell_state) (key : string) : shell_state = { st ?| guards = dictm::remove key st::guards }
+:= released (st : shell_state) (key : string) : shell_state = { st ?| guards = dict::remove key st::guards }
 
 := commanded (st : shell_state) (c : task_command) : shell_state =
     ?= c ?|
@@ -78,7 +78,7 @@
     erlang_process::send reply (st::sched |> expired !+ |> settled_view)
     st
 
-:= busy (st : shell_state) : bool = dictm::size st::sched::task_work::running > 0i32
+:= busy (st : shell_state) : bool = dict::size st::sched::task_work::running > 0i32
 
 := settle_or_wait (st : shell_state) (reply : erlang_process::subject scheduler) : shell_state =
     ? busy st ?>
@@ -101,7 +101,7 @@
 := handled (st : shell_state) (m : shell_message) : shell_next = otp_actor::continue (next_state st m)
 
 := fresh_state (f : fault_set) (exec : executor) (me : shell_inbox) : shell_state =
-    { sched = new_scheduler f; me; exec; guards = dictm::empty (); early_cancels = dictm::set_empty () }
+    { sched = new_scheduler f; me; exec; guards = dict::empty (); early_cancels = dict::set_empty () }
 
 := shell_started (f : fault_set) (exec : executor) : option shell_inbox =
     otp_actor::new_with_self 10000i32 (fresh_state f exec)
@@ -133,7 +133,7 @@
     ]
 
 := settled_sizes (inbox : shell_inbox) (l : list delivery) : i32 * i32 =
-    dictm::size (shell_settled inbox l)::visible_map, dictm::size (sync_run (plain_faults ()) l)::visible_map
+    dict::size (shell_settled inbox l)::visible_map, dict::size (sync_run (plain_faults ()) l)::visible_map
 
 :# the_otp_shell_settles_like_sync_run =
     := ~l = two_posts ()
@@ -166,7 +166,7 @@
         paused 50i32
         { status = Done; out = fake_out sources }
 
-:= cancel_shape (s : scheduler) : i32 * i32 = s::run_counts::cancels, dictm::size s::visible_map
+:= cancel_shape (s : scheduler) : i32 * i32 = s::run_counts::cancels, dict::size s::visible_map
 
 := shell_cancels (l : list delivery) : i32 * i32 =
     ?= shell_started (plain_faults ()) (slow_executor ()) ?|
@@ -207,7 +207,7 @@
 := test_state () : shell_state = fresh_state (plain_faults ()) (fake_executor ()) (erlang_process::new_subject ())
 
 := guard_shape (own : handle) (st : shell_state) : bool * i32 * i32 =
-    signalled_in 100i32 own, dictm::size st::guards, dictm::set_size st::early_cancels
+    signalled_in 100i32 own, dict::size st::guards, dict::set_size st::early_cancels
 
 :# a_cancel_before_its_guard_reaches_the_guard_on_adoption =
     := ~key = "k"

@@ -926,3 +926,25 @@ pub fn method194(v0: Int, v1: Int, v2: Uh22, v3: Uh24, v4: Uh25, v5: Us26, v6: U
         Uh26Nil -> v10
     }
 }
+
+pub fn method200(v0: String, v1: Uh13, v2: Int, v3: Int, v4: Uh22, v5: Uh24, v6: Uh25, v7: Us26, v8: Uh26, v9: Uh26) -> #(Int, Int, Uh22, Uh24, Uh25, Us26, Uh26, Uh26) {
+    let #(v32, v33, v34, v35, v36, v37, v38, v39) =
+        case v1  {
+            Uh13Cons(v10, v11) -> {
+                let v12 = Uh22Nil
+                let v13 = method178(v0, v10, v4, v12)
+                let v14 = Uh24Nil
+                let v15 = method179(v0, v10, v5, v14)
+                method200(v0, v11, v2, v3, v13, v15, v6, v7, v8, v9)
+            }
+            _ -> {
+                let #(v24, v25, v26, v27, v28, v29, v30, v31) =
+                    case v1  {
+                        Uh13Nil -> #(v2, v3, v4, v5, v6, v7, v8, v9)
+                        _ -> panic as "spiral: union case ruled out by partial evaluation"
+                    }
+                #(v24, v25, v26, v27, v28, v29, v30, v31)
+            }
+        }
+    #(v32, v33, v34, v35, v36, v37, v38, v39)
+}

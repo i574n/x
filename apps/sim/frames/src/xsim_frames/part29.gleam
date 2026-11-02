@@ -2,10 +2,147 @@ import gleam/dict
 import gleam/dynamic.{type Dynamic}
 import gleam/erlang/atom
 import gleam/string
-import xsim_frames/types.{type Uh3, type Us2, type Uh29, Uh29Cons, Uh29Nil, Uh39Cons, Uh39Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us72None, Us72Some, Us94Error, Us94Ok}
-import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_string_slice}
-import xsim_frames/part26.{method444}
-import xsim_frames/part28.{method471, method472}
+import xsim_frames/types.{type Uh3, type Us2, type Uh29, Uh29Cons, Uh29Nil, Uh39Cons, Uh39Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us72None, Us72Some, Us94Error, Us94Ok}
+import xsim_frames/part1.{count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
+import xsim_frames/part28.{first_value_474, following_body_475, method471, method472}
+
+pub fn following_473(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic, v13: String) -> #(Int, Dynamic) {
+    let v14 = "max_results"
+    let v15 = v13 == ""
+    let v19 =
+        case v15 {
+            True -> Uh3Nil
+            False -> {
+                let v17 = "&"
+                split_list_2(v17, v13)
+            }
+        }
+    let v20 = first_value_474(v14, v19)
+    let v21 = v20 == ""
+    let v23 =
+        case v21 {
+            True -> {
+                let v22 = "100"
+                v22
+            }
+            False -> v20
+        }
+    let v24 = count_of_text_10(v23)
+    let v30 =
+        case v24  {
+            Us3None -> False
+            Us3Some(v25) -> {
+                let v26 = v25 >= 1
+                case v26 {
+                    True -> {
+                        let v27 = v25 <= 1000
+                        v27
+                    }
+                    False -> False
+                }
+            }
+        }
+    case v30 {
+        True -> {
+            let v31 = "pagination_token"
+            let v35 =
+                case v15 {
+                    True -> Uh3Nil
+                    False -> {
+                        let v33 = "&"
+                        split_list_2(v33, v13)
+                    }
+                }
+            let v36 = first_value_474(v31, v35)
+            let v37 = v36 == ""
+            let v39 =
+                case v37 {
+                    True -> {
+                        let v38 = "p0"
+                        v38
+                    }
+                    False -> v36
+                }
+            let v40 = spiral_string_length(v39)
+            let v41 = spiral_wrap_signed(v40 - 1, 32)
+            let v42 = spiral_wrap_signed(1 + v41, 32)
+            let v43 = spiral_wrap_signed(v42 - 1, 32)
+            let v44 = spiral_string_slice(v39, 1, v43)
+            let v45 = count_of_text_10(v44)
+            let v48 =
+                case v45  {
+                    Us3None -> 0
+                    Us3Some(v46) -> v46
+                }
+            let v49 = count_of_text_10(v23)
+            let v52 =
+                case v49  {
+                    Us3None -> 0
+                    Us3Some(v50) -> v50
+                }
+            let v53 = v52 < v4
+            let v54 =
+                case v53 {
+                    True -> v52
+                    False -> v4
+                }
+            let v55 = following_body_475(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v48, v54)
+            #(200, v55)
+        }
+        False -> {
+            let v56 = "max_results must be 1..1000, got "
+            let v57 = v56 <> v23 
+            let v58 = "Invalid Request"
+            let v59 = erlang_term_coerce(v58)
+            let v60 = erlang_term_coerce(v57)
+            let v61 = "about:blank"
+            let v62 = erlang_term_coerce(v61)
+            let v63 = erlang_term_coerce(400)
+            let v64 = "status"
+            let v65 = atom.create(v64)
+            let v66 = erlang_term_coerce(v65)
+            let v67 = []
+            let v68 = [v63, ..v67]
+            let v69 = [v66, ..v68]
+            let v70 = erlang_term_tuple(v69)
+            let v71 = "type"
+            let v72 = atom.create(v71)
+            let v73 = erlang_term_coerce(v72)
+            let v74 = []
+            let v75 = [v62, ..v74]
+            let v76 = [v73, ..v75]
+            let v77 = erlang_term_tuple(v76)
+            let v78 = "detail"
+            let v79 = atom.create(v78)
+            let v80 = erlang_term_coerce(v79)
+            let v81 = []
+            let v82 = [v60, ..v81]
+            let v83 = [v80, ..v82]
+            let v84 = erlang_term_tuple(v83)
+            let v85 = "title"
+            let v86 = atom.create(v85)
+            let v87 = erlang_term_coerce(v86)
+            let v88 = []
+            let v89 = [v59, ..v88]
+            let v90 = [v87, ..v89]
+            let v91 = erlang_term_tuple(v90)
+            let v92 = []
+            let v93 = [v70, ..v92]
+            let v94 = [v77, ..v93]
+            let v95 = [v84, ..v94]
+            let v96 = [v91, ..v95]
+            let v97 = erlang_term_coerce(v96)
+            let v98 = "maps"
+            let v99 = atom.create(v98)
+            let v100 = "from_list"
+            let v101 = atom.create(v100)
+            let v102 = []
+            let v103 = [v97, ..v102]
+            let v104 = erlang_term_apply(v99, v101, v103)
+            #(400, v104)
+        }
+    }
+}
 
 pub fn timeline_fault_485(v0: Dynamic) -> Us2 {
     let v1 = "plain_status"
@@ -22,548 +159,564 @@ pub fn timeline_fault_485(v0: Dynamic) -> Us2 {
     case v11 {
         True -> {
             let v12 = erlang_term_coerce(v1)
-            let v13 = atom.create(v3)
-            let v14 = "get"
-            let v15 = atom.create(v14)
-            let v16 = []
-            let v17 = [v0, ..v16]
-            let v18 = [v12, ..v17]
-            let v19 = erlang_term_apply(v13, v15, v18)
-            let v20 = erlang_term_coerce(v19)
-            let v21 = "plain_body"
+            let v13 = erlang_term_coerce(0)
+            let v14 = atom.create(v3)
+            let v15 = "get"
+            let v16 = atom.create(v15)
+            let v17 = []
+            let v18 = [v13, ..v17]
+            let v19 = [v0, ..v18]
+            let v20 = [v12, ..v19]
+            let v21 = erlang_term_apply(v14, v16, v20)
             let v22 = erlang_term_coerce(v21)
             let v23 = ""
             let v24 = erlang_term_coerce(v23)
-            let v25 = atom.create(v3)
-            let v26 = atom.create(v14)
-            let v27 = []
-            let v28 = [v24, ..v27]
-            let v29 = [v0, ..v28]
-            let v30 = [v22, ..v29]
-            let v31 = erlang_term_apply(v25, v26, v30)
-            let v32 = erlang_term_coerce(v31)
-            let v33 = string.inspect(v20)
-            let v34 = "HTTP/1.1 "
-            let v35 = v34 <> v33 
-            let v36 = " "
-            let v37 = v35 <> v36 
-            let v38 = 503 == v20
-            let v43 =
-                case v38 {
+            let v25 = "plain_body"
+            let v26 = erlang_term_coerce(v25)
+            let v27 = erlang_term_coerce(v24)
+            let v28 = atom.create(v3)
+            let v29 = atom.create(v15)
+            let v30 = []
+            let v31 = [v27, ..v30]
+            let v32 = [v0, ..v31]
+            let v33 = [v26, ..v32]
+            let v34 = erlang_term_apply(v28, v29, v33)
+            let v35 = erlang_term_coerce(v34)
+            let v36 = erlang_term_coerce(v35)
+            let v37 = string.inspect(v22)
+            let v38 = "HTTP/1.1 "
+            let v39 = v38 <> v37 
+            let v40 = " "
+            let v41 = v39 <> v40 
+            let v42 = 503 == v22
+            let v47 =
+                case v42 {
                     True -> {
-                        let v39 = "Service Unavailable"
-                        let v40 = Uh39Nil
-                        Uh39Cons(503, v39, v40)
+                        let v43 = "Service Unavailable"
+                        let v44 = Uh39Nil
+                        Uh39Cons(503, v43, v44)
                     }
                     False -> Uh39Nil
                 }
-            let v44 = 502 == v20
-            let v47 =
-                case v44 {
-                    True -> {
-                        let v45 = "Bad Gateway"
-                        Uh39Cons(502, v45, v43)
-                    }
-                    False -> v43
-                }
-            let v48 = 500 == v20
+            let v48 = 502 == v22
             let v51 =
                 case v48 {
                     True -> {
-                        let v49 = "Internal Server Error"
-                        Uh39Cons(500, v49, v47)
+                        let v49 = "Bad Gateway"
+                        Uh39Cons(502, v49, v47)
                     }
                     False -> v47
                 }
-            let v52 = 429 == v20
+            let v52 = 500 == v22
             let v55 =
                 case v52 {
                     True -> {
-                        let v53 = "Too Many Requests"
-                        Uh39Cons(429, v53, v51)
+                        let v53 = "Internal Server Error"
+                        Uh39Cons(500, v53, v51)
                     }
                     False -> v51
                 }
-            let v56 = 422 == v20
+            let v56 = 429 == v22
             let v59 =
                 case v56 {
                     True -> {
-                        let v57 = "Unprocessable Entity"
-                        Uh39Cons(422, v57, v55)
+                        let v57 = "Too Many Requests"
+                        Uh39Cons(429, v57, v55)
                     }
                     False -> v55
                 }
-            let v60 = 404 == v20
+            let v60 = 422 == v22
             let v63 =
                 case v60 {
                     True -> {
-                        let v61 = "Not Found"
-                        Uh39Cons(404, v61, v59)
+                        let v61 = "Unprocessable Entity"
+                        Uh39Cons(422, v61, v59)
                     }
                     False -> v59
                 }
-            let v64 = 403 == v20
+            let v64 = 404 == v22
             let v67 =
                 case v64 {
                     True -> {
-                        let v65 = "Forbidden"
-                        Uh39Cons(403, v65, v63)
+                        let v65 = "Not Found"
+                        Uh39Cons(404, v65, v63)
                     }
                     False -> v63
                 }
-            let v68 = 402 == v20
+            let v68 = 403 == v22
             let v71 =
                 case v68 {
                     True -> {
-                        let v69 = "Payment Required"
-                        Uh39Cons(402, v69, v67)
+                        let v69 = "Forbidden"
+                        Uh39Cons(403, v69, v67)
                     }
                     False -> v67
                 }
-            let v72 = 401 == v20
+            let v72 = 402 == v22
             let v75 =
                 case v72 {
                     True -> {
-                        let v73 = "Unauthorized"
-                        Uh39Cons(401, v73, v71)
+                        let v73 = "Payment Required"
+                        Uh39Cons(402, v73, v71)
                     }
                     False -> v71
                 }
-            let v76 = 400 == v20
+            let v76 = 401 == v22
             let v79 =
                 case v76 {
                     True -> {
-                        let v77 = "Bad Request"
-                        Uh39Cons(400, v77, v75)
+                        let v77 = "Unauthorized"
+                        Uh39Cons(401, v77, v75)
                     }
                     False -> v75
                 }
-            let v80 = 201 == v20
+            let v80 = 400 == v22
             let v83 =
                 case v80 {
                     True -> {
-                        let v81 = "Created"
-                        Uh39Cons(201, v81, v79)
+                        let v81 = "Bad Request"
+                        Uh39Cons(400, v81, v79)
                     }
                     False -> v79
                 }
-            let v84 = 200 == v20
+            let v84 = 201 == v22
             let v87 =
                 case v84 {
                     True -> {
-                        let v85 = "OK"
-                        Uh39Cons(200, v85, v83)
+                        let v85 = "Created"
+                        Uh39Cons(201, v85, v83)
                     }
                     False -> v83
                 }
-            let v93 =
-                case v87  {
-                    Uh39Cons(v88, v89, v90) -> v89
+            let v88 = 200 == v22
+            let v91 =
+                case v88 {
+                    True -> {
+                        let v89 = "OK"
+                        Uh39Cons(200, v89, v87)
+                    }
+                    False -> v87
+                }
+            let v97 =
+                case v91  {
+                    Uh39Cons(v92, v93, v94) -> v93
                     Uh39Nil -> {
-                        let v91 = "Status"
-                        v91
+                        let v95 = "Status"
+                        v95
                     }
                 }
-            let v94 = v37 <> v93 
-            let v95 = erlang_term_coerce(v32)
-            let v96 = "erlang"
-            let v97 = atom.create(v96)
-            let v98 = "byte_size"
-            let v99 = atom.create(v98)
-            let v100 = []
-            let v101 = [v95, ..v100]
-            let v102 = erlang_term_apply(v97, v99, v101)
-            let v103 = erlang_term_coerce(v102)
-            let v104 = string.inspect(v103)
-            let v105 = "\r\nContent-Length: "
-            let v106 = v105 <> v104 
-            let v107 = "\r\nContent-Type: application/json; charset=utf-8"
-            let v108 = v107 <> v106 
-            let v109 = "\r\nConnection: close\r\n\r\n"
-            let v110 = v108 <> v109 
-            let v111 = v94 <> v110 
-            let v112 = v111 <> v32 
-            Us2Some(v112)
+            let v98 = v41 <> v97 
+            let v99 = erlang_term_coerce(v36)
+            let v100 = "erlang"
+            let v101 = atom.create(v100)
+            let v102 = "byte_size"
+            let v103 = atom.create(v102)
+            let v104 = []
+            let v105 = [v99, ..v104]
+            let v106 = erlang_term_apply(v101, v103, v105)
+            let v107 = erlang_term_coerce(v106)
+            let v108 = string.inspect(v107)
+            let v109 = "\r\nContent-Length: "
+            let v110 = v109 <> v108 
+            let v111 = "\r\nContent-Type: application/json; charset=utf-8"
+            let v112 = v111 <> v110 
+            let v113 = "\r\nConnection: close\r\n\r\n"
+            let v114 = v112 <> v113 
+            let v115 = v98 <> v114 
+            let v116 = v115 <> v36 
+            Us2Some(v116)
         }
         False -> {
-            let v114 = "status"
-            let v115 = erlang_term_coerce(v114)
-            let v116 = atom.create(v3)
-            let v117 = atom.create(v5)
-            let v118 = []
-            let v119 = [v0, ..v118]
-            let v120 = [v115, ..v119]
-            let v121 = erlang_term_apply(v116, v117, v120)
-            let v122 = erlang_term_coerce(v121)
-            case v122 {
+            let v118 = "status"
+            let v119 = erlang_term_coerce(v118)
+            let v120 = atom.create(v3)
+            let v121 = atom.create(v5)
+            let v122 = []
+            let v123 = [v0, ..v122]
+            let v124 = [v119, ..v123]
+            let v125 = erlang_term_apply(v120, v121, v124)
+            let v126 = erlang_term_coerce(v125)
+            case v126 {
                 True -> {
-                    let v123 = erlang_term_coerce(v114)
-                    let v124 = atom.create(v3)
-                    let v125 = "get"
-                    let v126 = atom.create(v125)
-                    let v127 = []
-                    let v128 = [v0, ..v127]
-                    let v129 = [v123, ..v128]
-                    let v130 = erlang_term_apply(v124, v126, v129)
-                    let v131 = erlang_term_coerce(v130)
-                    let v132 = erlang_term_coerce(v114)
-                    let v133 = atom.create(v3)
-                    let v134 = atom.create(v125)
-                    let v135 = []
-                    let v136 = [v0, ..v135]
-                    let v137 = [v132, ..v136]
-                    let v138 = erlang_term_apply(v133, v134, v137)
-                    let v139 = erlang_term_coerce(v138)
-                    let v140 = "problem_title"
-                    let v141 = erlang_term_coerce(v140)
-                    let v142 = ""
-                    let v143 = erlang_term_coerce(v142)
-                    let v144 = atom.create(v3)
-                    let v145 = atom.create(v125)
-                    let v146 = []
-                    let v147 = [v143, ..v146]
-                    let v148 = [v0, ..v147]
-                    let v149 = [v141, ..v148]
-                    let v150 = erlang_term_apply(v144, v145, v149)
+                    let v127 = erlang_term_coerce(v118)
+                    let v128 = erlang_term_coerce(0)
+                    let v129 = atom.create(v3)
+                    let v130 = "get"
+                    let v131 = atom.create(v130)
+                    let v132 = []
+                    let v133 = [v128, ..v132]
+                    let v134 = [v0, ..v133]
+                    let v135 = [v127, ..v134]
+                    let v136 = erlang_term_apply(v129, v131, v135)
+                    let v137 = erlang_term_coerce(v136)
+                    let v138 = erlang_term_coerce(v118)
+                    let v139 = erlang_term_coerce(0)
+                    let v140 = atom.create(v3)
+                    let v141 = atom.create(v130)
+                    let v142 = []
+                    let v143 = [v139, ..v142]
+                    let v144 = [v0, ..v143]
+                    let v145 = [v138, ..v144]
+                    let v146 = erlang_term_apply(v140, v141, v145)
+                    let v147 = erlang_term_coerce(v146)
+                    let v148 = ""
+                    let v149 = erlang_term_coerce(v148)
+                    let v150 = "problem_title"
                     let v151 = erlang_term_coerce(v150)
-                    let v152 = "problem_detail"
-                    let v153 = erlang_term_coerce(v152)
-                    let v154 = erlang_term_coerce(v142)
-                    let v155 = atom.create(v3)
-                    let v156 = atom.create(v125)
-                    let v157 = []
-                    let v158 = [v154, ..v157]
-                    let v159 = [v0, ..v158]
-                    let v160 = [v153, ..v159]
-                    let v161 = erlang_term_apply(v155, v156, v160)
-                    let v162 = erlang_term_coerce(v161)
-                    let v163 = erlang_term_coerce(v151)
-                    let v164 = erlang_term_coerce(v162)
-                    let v165 = "about:blank"
-                    let v166 = erlang_term_coerce(v165)
-                    let v167 = erlang_term_coerce(v139)
-                    let v168 = atom.create(v114)
-                    let v169 = erlang_term_coerce(v168)
-                    let v170 = []
-                    let v171 = [v167, ..v170]
-                    let v172 = [v169, ..v171]
-                    let v173 = erlang_term_tuple(v172)
-                    let v174 = "type"
-                    let v175 = atom.create(v174)
-                    let v176 = erlang_term_coerce(v175)
-                    let v177 = []
-                    let v178 = [v166, ..v177]
-                    let v179 = [v176, ..v178]
-                    let v180 = erlang_term_tuple(v179)
-                    let v181 = "detail"
-                    let v182 = atom.create(v181)
-                    let v183 = erlang_term_coerce(v182)
-                    let v184 = []
-                    let v185 = [v164, ..v184]
-                    let v186 = [v183, ..v185]
-                    let v187 = erlang_term_tuple(v186)
-                    let v188 = "title"
-                    let v189 = atom.create(v188)
-                    let v190 = erlang_term_coerce(v189)
-                    let v191 = []
-                    let v192 = [v163, ..v191]
-                    let v193 = [v190, ..v192]
-                    let v194 = erlang_term_tuple(v193)
-                    let v195 = []
-                    let v196 = [v173, ..v195]
-                    let v197 = [v180, ..v196]
-                    let v198 = [v187, ..v197]
-                    let v199 = [v194, ..v198]
-                    let v200 = erlang_term_coerce(v199)
-                    let v201 = atom.create(v3)
-                    let v202 = "from_list"
-                    let v203 = atom.create(v202)
-                    let v204 = []
-                    let v205 = [v200, ..v204]
-                    let v206 = erlang_term_apply(v201, v203, v205)
-                    let v207 = "json"
-                    let v208 = atom.create(v207)
-                    let v209 = "encode"
-                    let v210 = atom.create(v209)
-                    let v211 = []
-                    let v212 = [v206, ..v211]
-                    let v213 = erlang_term_apply(v208, v210, v212)
-                    let v214 = "erlang"
+                    let v152 = erlang_term_coerce(v149)
+                    let v153 = atom.create(v3)
+                    let v154 = atom.create(v130)
+                    let v155 = []
+                    let v156 = [v152, ..v155]
+                    let v157 = [v0, ..v156]
+                    let v158 = [v151, ..v157]
+                    let v159 = erlang_term_apply(v153, v154, v158)
+                    let v160 = erlang_term_coerce(v159)
+                    let v161 = erlang_term_coerce(v160)
+                    let v162 = erlang_term_coerce(v148)
+                    let v163 = "problem_detail"
+                    let v164 = erlang_term_coerce(v163)
+                    let v165 = erlang_term_coerce(v162)
+                    let v166 = atom.create(v3)
+                    let v167 = atom.create(v130)
+                    let v168 = []
+                    let v169 = [v165, ..v168]
+                    let v170 = [v0, ..v169]
+                    let v171 = [v164, ..v170]
+                    let v172 = erlang_term_apply(v166, v167, v171)
+                    let v173 = erlang_term_coerce(v172)
+                    let v174 = erlang_term_coerce(v173)
+                    let v175 = erlang_term_coerce(v161)
+                    let v176 = erlang_term_coerce(v174)
+                    let v177 = "about:blank"
+                    let v178 = erlang_term_coerce(v177)
+                    let v179 = erlang_term_coerce(v147)
+                    let v180 = atom.create(v118)
+                    let v181 = erlang_term_coerce(v180)
+                    let v182 = []
+                    let v183 = [v179, ..v182]
+                    let v184 = [v181, ..v183]
+                    let v185 = erlang_term_tuple(v184)
+                    let v186 = "type"
+                    let v187 = atom.create(v186)
+                    let v188 = erlang_term_coerce(v187)
+                    let v189 = []
+                    let v190 = [v178, ..v189]
+                    let v191 = [v188, ..v190]
+                    let v192 = erlang_term_tuple(v191)
+                    let v193 = "detail"
+                    let v194 = atom.create(v193)
+                    let v195 = erlang_term_coerce(v194)
+                    let v196 = []
+                    let v197 = [v176, ..v196]
+                    let v198 = [v195, ..v197]
+                    let v199 = erlang_term_tuple(v198)
+                    let v200 = "title"
+                    let v201 = atom.create(v200)
+                    let v202 = erlang_term_coerce(v201)
+                    let v203 = []
+                    let v204 = [v175, ..v203]
+                    let v205 = [v202, ..v204]
+                    let v206 = erlang_term_tuple(v205)
+                    let v207 = []
+                    let v208 = [v185, ..v207]
+                    let v209 = [v192, ..v208]
+                    let v210 = [v199, ..v209]
+                    let v211 = [v206, ..v210]
+                    let v212 = erlang_term_coerce(v211)
+                    let v213 = atom.create(v3)
+                    let v214 = "from_list"
                     let v215 = atom.create(v214)
-                    let v216 = "iolist_to_binary"
-                    let v217 = atom.create(v216)
-                    let v218 = []
-                    let v219 = [v213, ..v218]
-                    let v220 = erlang_term_apply(v215, v217, v219)
-                    let v221 = erlang_term_coerce(v220)
-                    let v222 = string.inspect(v131)
-                    let v223 = "HTTP/1.1 "
-                    let v224 = v223 <> v222 
-                    let v225 = " "
-                    let v226 = v224 <> v225 
-                    let v227 = 503 == v131
-                    let v232 =
-                        case v227 {
+                    let v216 = []
+                    let v217 = [v212, ..v216]
+                    let v218 = erlang_term_apply(v213, v215, v217)
+                    let v219 = "json"
+                    let v220 = atom.create(v219)
+                    let v221 = "encode"
+                    let v222 = atom.create(v221)
+                    let v223 = []
+                    let v224 = [v218, ..v223]
+                    let v225 = erlang_term_apply(v220, v222, v224)
+                    let v226 = "erlang"
+                    let v227 = atom.create(v226)
+                    let v228 = "iolist_to_binary"
+                    let v229 = atom.create(v228)
+                    let v230 = []
+                    let v231 = [v225, ..v230]
+                    let v232 = erlang_term_apply(v227, v229, v231)
+                    let v233 = erlang_term_coerce(v232)
+                    let v234 = string.inspect(v137)
+                    let v235 = "HTTP/1.1 "
+                    let v236 = v235 <> v234 
+                    let v237 = " "
+                    let v238 = v236 <> v237 
+                    let v239 = 503 == v137
+                    let v244 =
+                        case v239 {
                             True -> {
-                                let v228 = "Service Unavailable"
-                                let v229 = Uh39Nil
-                                Uh39Cons(503, v228, v229)
+                                let v240 = "Service Unavailable"
+                                let v241 = Uh39Nil
+                                Uh39Cons(503, v240, v241)
                             }
                             False -> Uh39Nil
                         }
-                    let v233 = 502 == v131
-                    let v236 =
-                        case v233 {
-                            True -> {
-                                let v234 = "Bad Gateway"
-                                Uh39Cons(502, v234, v232)
-                            }
-                            False -> v232
-                        }
-                    let v237 = 500 == v131
-                    let v240 =
-                        case v237 {
-                            True -> {
-                                let v238 = "Internal Server Error"
-                                Uh39Cons(500, v238, v236)
-                            }
-                            False -> v236
-                        }
-                    let v241 = 429 == v131
-                    let v244 =
-                        case v241 {
-                            True -> {
-                                let v242 = "Too Many Requests"
-                                Uh39Cons(429, v242, v240)
-                            }
-                            False -> v240
-                        }
-                    let v245 = 422 == v131
+                    let v245 = 502 == v137
                     let v248 =
                         case v245 {
                             True -> {
-                                let v246 = "Unprocessable Entity"
-                                Uh39Cons(422, v246, v244)
+                                let v246 = "Bad Gateway"
+                                Uh39Cons(502, v246, v244)
                             }
                             False -> v244
                         }
-                    let v249 = 404 == v131
+                    let v249 = 500 == v137
                     let v252 =
                         case v249 {
                             True -> {
-                                let v250 = "Not Found"
-                                Uh39Cons(404, v250, v248)
+                                let v250 = "Internal Server Error"
+                                Uh39Cons(500, v250, v248)
                             }
                             False -> v248
                         }
-                    let v253 = 403 == v131
+                    let v253 = 429 == v137
                     let v256 =
                         case v253 {
                             True -> {
-                                let v254 = "Forbidden"
-                                Uh39Cons(403, v254, v252)
+                                let v254 = "Too Many Requests"
+                                Uh39Cons(429, v254, v252)
                             }
                             False -> v252
                         }
-                    let v257 = 402 == v131
+                    let v257 = 422 == v137
                     let v260 =
                         case v257 {
                             True -> {
-                                let v258 = "Payment Required"
-                                Uh39Cons(402, v258, v256)
+                                let v258 = "Unprocessable Entity"
+                                Uh39Cons(422, v258, v256)
                             }
                             False -> v256
                         }
-                    let v261 = 401 == v131
+                    let v261 = 404 == v137
                     let v264 =
                         case v261 {
                             True -> {
-                                let v262 = "Unauthorized"
-                                Uh39Cons(401, v262, v260)
+                                let v262 = "Not Found"
+                                Uh39Cons(404, v262, v260)
                             }
                             False -> v260
                         }
-                    let v265 = 400 == v131
+                    let v265 = 403 == v137
                     let v268 =
                         case v265 {
                             True -> {
-                                let v266 = "Bad Request"
-                                Uh39Cons(400, v266, v264)
+                                let v266 = "Forbidden"
+                                Uh39Cons(403, v266, v264)
                             }
                             False -> v264
                         }
-                    let v269 = 201 == v131
+                    let v269 = 402 == v137
                     let v272 =
                         case v269 {
                             True -> {
-                                let v270 = "Created"
-                                Uh39Cons(201, v270, v268)
+                                let v270 = "Payment Required"
+                                Uh39Cons(402, v270, v268)
                             }
                             False -> v268
                         }
-                    let v273 = 200 == v131
+                    let v273 = 401 == v137
                     let v276 =
                         case v273 {
                             True -> {
-                                let v274 = "OK"
-                                Uh39Cons(200, v274, v272)
+                                let v274 = "Unauthorized"
+                                Uh39Cons(401, v274, v272)
                             }
                             False -> v272
                         }
-                    let v282 =
-                        case v276  {
-                            Uh39Cons(v277, v278, v279) -> v278
+                    let v277 = 400 == v137
+                    let v280 =
+                        case v277 {
+                            True -> {
+                                let v278 = "Bad Request"
+                                Uh39Cons(400, v278, v276)
+                            }
+                            False -> v276
+                        }
+                    let v281 = 201 == v137
+                    let v284 =
+                        case v281 {
+                            True -> {
+                                let v282 = "Created"
+                                Uh39Cons(201, v282, v280)
+                            }
+                            False -> v280
+                        }
+                    let v285 = 200 == v137
+                    let v288 =
+                        case v285 {
+                            True -> {
+                                let v286 = "OK"
+                                Uh39Cons(200, v286, v284)
+                            }
+                            False -> v284
+                        }
+                    let v294 =
+                        case v288  {
+                            Uh39Cons(v289, v290, v291) -> v290
                             Uh39Nil -> {
-                                let v280 = "Status"
-                                v280
+                                let v292 = "Status"
+                                v292
                             }
                         }
-                    let v283 = v226 <> v282 
-                    let v284 = erlang_term_coerce(v221)
-                    let v285 = atom.create(v214)
-                    let v286 = "byte_size"
-                    let v287 = atom.create(v286)
-                    let v288 = []
-                    let v289 = [v284, ..v288]
-                    let v290 = erlang_term_apply(v285, v287, v289)
-                    let v291 = erlang_term_coerce(v290)
-                    let v292 = string.inspect(v291)
-                    let v293 = "\r\nContent-Length: "
-                    let v294 = v293 <> v292 
-                    let v295 = "\r\nContent-Type: application/json; charset=utf-8"
-                    let v296 = v295 <> v294 
-                    let v297 = "\r\nConnection: close\r\n\r\n"
-                    let v298 = v296 <> v297 
-                    let v299 = v283 <> v298 
-                    let v300 = v299 <> v221 
-                    Us2Some(v300)
+                    let v295 = v238 <> v294 
+                    let v296 = erlang_term_coerce(v233)
+                    let v297 = atom.create(v226)
+                    let v298 = "byte_size"
+                    let v299 = atom.create(v298)
+                    let v300 = []
+                    let v301 = [v296, ..v300]
+                    let v302 = erlang_term_apply(v297, v299, v301)
+                    let v303 = erlang_term_coerce(v302)
+                    let v304 = string.inspect(v303)
+                    let v305 = "\r\nContent-Length: "
+                    let v306 = v305 <> v304 
+                    let v307 = "\r\nContent-Type: application/json; charset=utf-8"
+                    let v308 = v307 <> v306 
+                    let v309 = "\r\nConnection: close\r\n\r\n"
+                    let v310 = v308 <> v309 
+                    let v311 = v295 <> v310 
+                    let v312 = v311 <> v233 
+                    Us2Some(v312)
                 }
                 False -> {
-                    let v302 = erlang_term_coerce(False)
-                    let v303 = "protected"
-                    let v304 = erlang_term_coerce(v303)
-                    let v305 = atom.create(v3)
-                    let v306 = "get"
-                    let v307 = atom.create(v306)
-                    let v308 = []
-                    let v309 = [v302, ..v308]
-                    let v310 = [v0, ..v309]
-                    let v311 = [v304, ..v310]
-                    let v312 = erlang_term_apply(v305, v307, v311)
-                    let v313 = erlang_term_coerce(v312)
-                    case v313 {
+                    let v314 = erlang_term_coerce(False)
+                    let v315 = "protected"
+                    let v316 = erlang_term_coerce(v315)
+                    let v317 = erlang_term_coerce(v314)
+                    let v318 = atom.create(v3)
+                    let v319 = "get"
+                    let v320 = atom.create(v319)
+                    let v321 = []
+                    let v322 = [v317, ..v321]
+                    let v323 = [v0, ..v322]
+                    let v324 = [v316, ..v323]
+                    let v325 = erlang_term_apply(v318, v320, v324)
+                    let v326 = erlang_term_coerce(v325)
+                    let v327 = erlang_term_coerce(v326)
+                    case v327 {
                         True -> {
-                            let v314 = "https://api.x.com/2/problems/not-authorized-for-resource"
-                            let v315 = erlang_term_coerce(v314)
-                            let v316 = "Authorization Error"
-                            let v317 = erlang_term_coerce(v316)
-                            let v318 = "username"
-                            let v319 = erlang_term_coerce(v318)
-                            let v320 = ""
-                            let v321 = erlang_term_coerce(v320)
-                            let v322 = atom.create(v3)
-                            let v323 = atom.create(v306)
-                            let v324 = []
-                            let v325 = [v321, ..v324]
-                            let v326 = [v0, ..v325]
-                            let v327 = [v319, ..v326]
-                            let v328 = erlang_term_apply(v322, v323, v327)
+                            let v328 = "https://api.x.com/2/problems/not-authorized-for-resource"
                             let v329 = erlang_term_coerce(v328)
-                            let v330 = "Sorry, you are not authorized to see the posts of @"
-                            let v331 = v330 <> v329 
-                            let v332 = "."
-                            let v333 = v331 <> v332 
-                            let v334 = erlang_term_coerce(v333)
-                            let v335 = "type"
-                            let v336 = atom.create(v335)
-                            let v337 = erlang_term_coerce(v336)
-                            let v338 = []
-                            let v339 = [v315, ..v338]
-                            let v340 = [v337, ..v339]
-                            let v341 = erlang_term_tuple(v340)
-                            let v342 = "detail"
-                            let v343 = atom.create(v342)
+                            let v330 = "Authorization Error"
+                            let v331 = erlang_term_coerce(v330)
+                            let v332 = ""
+                            let v333 = erlang_term_coerce(v332)
+                            let v334 = "username"
+                            let v335 = erlang_term_coerce(v334)
+                            let v336 = erlang_term_coerce(v333)
+                            let v337 = atom.create(v3)
+                            let v338 = atom.create(v319)
+                            let v339 = []
+                            let v340 = [v336, ..v339]
+                            let v341 = [v0, ..v340]
+                            let v342 = [v335, ..v341]
+                            let v343 = erlang_term_apply(v337, v338, v342)
                             let v344 = erlang_term_coerce(v343)
-                            let v345 = []
-                            let v346 = [v334, ..v345]
-                            let v347 = [v344, ..v346]
-                            let v348 = erlang_term_tuple(v347)
-                            let v349 = "title"
-                            let v350 = atom.create(v349)
-                            let v351 = erlang_term_coerce(v350)
-                            let v352 = []
-                            let v353 = [v317, ..v352]
-                            let v354 = [v351, ..v353]
-                            let v355 = erlang_term_tuple(v354)
-                            let v356 = []
-                            let v357 = [v341, ..v356]
-                            let v358 = [v348, ..v357]
-                            let v359 = [v355, ..v358]
+                            let v345 = erlang_term_coerce(v344)
+                            let v346 = "Sorry, you are not authorized to see the posts of @"
+                            let v347 = v346 <> v345 
+                            let v348 = "."
+                            let v349 = v347 <> v348 
+                            let v350 = erlang_term_coerce(v349)
+                            let v351 = "type"
+                            let v352 = atom.create(v351)
+                            let v353 = erlang_term_coerce(v352)
+                            let v354 = []
+                            let v355 = [v329, ..v354]
+                            let v356 = [v353, ..v355]
+                            let v357 = erlang_term_tuple(v356)
+                            let v358 = "detail"
+                            let v359 = atom.create(v358)
                             let v360 = erlang_term_coerce(v359)
-                            let v361 = atom.create(v3)
-                            let v362 = "from_list"
-                            let v363 = atom.create(v362)
-                            let v364 = []
-                            let v365 = [v360, ..v364]
-                            let v366 = erlang_term_apply(v361, v363, v365)
-                            let v367 = []
-                            let v368 = [v366, ..v367]
-                            let v369 = erlang_term_coerce(v368)
-                            let v370 = "errors"
-                            let v371 = atom.create(v370)
-                            let v372 = erlang_term_coerce(v371)
-                            let v373 = []
-                            let v374 = [v369, ..v373]
-                            let v375 = [v372, ..v374]
-                            let v376 = erlang_term_tuple(v375)
-                            let v377 = []
-                            let v378 = [v376, ..v377]
-                            let v379 = erlang_term_coerce(v378)
-                            let v380 = atom.create(v3)
-                            let v381 = atom.create(v362)
-                            let v382 = []
-                            let v383 = [v379, ..v382]
-                            let v384 = erlang_term_apply(v380, v381, v383)
-                            let v385 = "json"
-                            let v386 = atom.create(v385)
-                            let v387 = "encode"
-                            let v388 = atom.create(v387)
+                            let v361 = []
+                            let v362 = [v350, ..v361]
+                            let v363 = [v360, ..v362]
+                            let v364 = erlang_term_tuple(v363)
+                            let v365 = "title"
+                            let v366 = atom.create(v365)
+                            let v367 = erlang_term_coerce(v366)
+                            let v368 = []
+                            let v369 = [v331, ..v368]
+                            let v370 = [v367, ..v369]
+                            let v371 = erlang_term_tuple(v370)
+                            let v372 = []
+                            let v373 = [v357, ..v372]
+                            let v374 = [v364, ..v373]
+                            let v375 = [v371, ..v374]
+                            let v376 = erlang_term_coerce(v375)
+                            let v377 = atom.create(v3)
+                            let v378 = "from_list"
+                            let v379 = atom.create(v378)
+                            let v380 = []
+                            let v381 = [v376, ..v380]
+                            let v382 = erlang_term_apply(v377, v379, v381)
+                            let v383 = []
+                            let v384 = [v382, ..v383]
+                            let v385 = erlang_term_coerce(v384)
+                            let v386 = "errors"
+                            let v387 = atom.create(v386)
+                            let v388 = erlang_term_coerce(v387)
                             let v389 = []
-                            let v390 = [v384, ..v389]
-                            let v391 = erlang_term_apply(v386, v388, v390)
-                            let v392 = "erlang"
-                            let v393 = atom.create(v392)
-                            let v394 = "iolist_to_binary"
-                            let v395 = atom.create(v394)
-                            let v396 = []
-                            let v397 = [v391, ..v396]
-                            let v398 = erlang_term_apply(v393, v395, v397)
-                            let v399 = erlang_term_coerce(v398)
-                            let v400 = string.inspect(200)
-                            let v401 = "HTTP/1.1 "
-                            let v402 = v401 <> v400 
-                            let v403 = " "
-                            let v404 = v402 <> v403 
-                            let v405 = "OK"
-                            let v406 = v404 <> v405 
-                            let v407 = erlang_term_coerce(v399)
-                            let v408 = atom.create(v392)
-                            let v409 = "byte_size"
-                            let v410 = atom.create(v409)
-                            let v411 = []
-                            let v412 = [v407, ..v411]
-                            let v413 = erlang_term_apply(v408, v410, v412)
-                            let v414 = erlang_term_coerce(v413)
-                            let v415 = string.inspect(v414)
-                            let v416 = "\r\nContent-Length: "
-                            let v417 = v416 <> v415 
-                            let v418 = "\r\nContent-Type: application/json; charset=utf-8"
-                            let v419 = v418 <> v417 
-                            let v420 = "\r\nConnection: close\r\n\r\n"
-                            let v421 = v419 <> v420 
-                            let v422 = v406 <> v421 
-                            let v423 = v422 <> v399 
-                            Us2Some(v423)
+                            let v390 = [v385, ..v389]
+                            let v391 = [v388, ..v390]
+                            let v392 = erlang_term_tuple(v391)
+                            let v393 = []
+                            let v394 = [v392, ..v393]
+                            let v395 = erlang_term_coerce(v394)
+                            let v396 = atom.create(v3)
+                            let v397 = atom.create(v378)
+                            let v398 = []
+                            let v399 = [v395, ..v398]
+                            let v400 = erlang_term_apply(v396, v397, v399)
+                            let v401 = "json"
+                            let v402 = atom.create(v401)
+                            let v403 = "encode"
+                            let v404 = atom.create(v403)
+                            let v405 = []
+                            let v406 = [v400, ..v405]
+                            let v407 = erlang_term_apply(v402, v404, v406)
+                            let v408 = "erlang"
+                            let v409 = atom.create(v408)
+                            let v410 = "iolist_to_binary"
+                            let v411 = atom.create(v410)
+                            let v412 = []
+                            let v413 = [v407, ..v412]
+                            let v414 = erlang_term_apply(v409, v411, v413)
+                            let v415 = erlang_term_coerce(v414)
+                            let v416 = string.inspect(200)
+                            let v417 = "HTTP/1.1 "
+                            let v418 = v417 <> v416 
+                            let v419 = " "
+                            let v420 = v418 <> v419 
+                            let v421 = "OK"
+                            let v422 = v420 <> v421 
+                            let v423 = erlang_term_coerce(v415)
+                            let v424 = atom.create(v408)
+                            let v425 = "byte_size"
+                            let v426 = atom.create(v425)
+                            let v427 = []
+                            let v428 = [v423, ..v427]
+                            let v429 = erlang_term_apply(v424, v426, v428)
+                            let v430 = erlang_term_coerce(v429)
+                            let v431 = string.inspect(v430)
+                            let v432 = "\r\nContent-Length: "
+                            let v433 = v432 <> v431 
+                            let v434 = "\r\nContent-Type: application/json; charset=utf-8"
+                            let v435 = v434 <> v433 
+                            let v436 = "\r\nConnection: close\r\n\r\n"
+                            let v437 = v435 <> v436 
+                            let v438 = v422 <> v437 
+                            let v439 = v438 <> v415 
+                            Us2Some(v439)
                         }
                         False -> Us2None
                     }
@@ -591,45 +744,47 @@ pub fn method489(v0: Uh29, v1: Uh3) -> Uh3 {
     case v0  {
         Uh29Cons(v2, v3) -> {
             let v4 = method489(v3, v1)
-            let v5 = "id"
+            let v5 = ""
             let v6 = erlang_term_coerce(v5)
-            let v7 = ""
+            let v7 = "id"
             let v8 = erlang_term_coerce(v7)
-            let v9 = "maps"
-            let v10 = atom.create(v9)
-            let v11 = "get"
-            let v12 = atom.create(v11)
-            let v13 = []
-            let v14 = [v8, ..v13]
-            let v15 = [v2, ..v14]
-            let v16 = [v6, ..v15]
-            let v17 = erlang_term_apply(v10, v12, v16)
-            let v18 = "erlang"
-            let v19 = atom.create(v18)
-            let v20 = "is_binary"
+            let v9 = erlang_term_coerce(v6)
+            let v10 = "maps"
+            let v11 = atom.create(v10)
+            let v12 = "get"
+            let v13 = atom.create(v12)
+            let v14 = []
+            let v15 = [v9, ..v14]
+            let v16 = [v2, ..v15]
+            let v17 = [v8, ..v16]
+            let v18 = erlang_term_apply(v11, v13, v17)
+            let v19 = erlang_term_coerce(v18)
+            let v20 = "erlang"
             let v21 = atom.create(v20)
-            let v22 = []
-            let v23 = [v17, ..v22]
-            let v24 = erlang_term_apply(v19, v21, v23)
-            let v25 = erlang_term_coerce(v24)
-            let v34 =
-                case v25 {
+            let v22 = "is_binary"
+            let v23 = atom.create(v22)
+            let v24 = []
+            let v25 = [v19, ..v24]
+            let v26 = erlang_term_apply(v21, v23, v25)
+            let v27 = erlang_term_coerce(v26)
+            let v36 =
+                case v27 {
                     True -> {
-                        let v26 = erlang_term_coerce(v17)
-                        v26
+                        let v28 = erlang_term_coerce(v19)
+                        v28
                     }
                     False -> {
-                        let v27 = atom.create(v18)
-                        let v28 = "integer_to_binary"
-                        let v29 = atom.create(v28)
-                        let v30 = []
-                        let v31 = [v17, ..v30]
-                        let v32 = erlang_term_apply(v27, v29, v31)
-                        let v33 = erlang_term_coerce(v32)
-                        v33
+                        let v29 = atom.create(v20)
+                        let v30 = "integer_to_binary"
+                        let v31 = atom.create(v30)
+                        let v32 = []
+                        let v33 = [v19, ..v32]
+                        let v34 = erlang_term_apply(v29, v31, v33)
+                        let v35 = erlang_term_coerce(v34)
+                        v35
                     }
                 }
-            Uh3Cons(v34, v4)
+            Uh3Cons(v36, v4)
         }
         Uh29Nil -> v1
     }
@@ -664,7 +819,7 @@ pub fn method491(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dic
                 }
             let v29 =
                 case v25  {
-                    Us72None -> panic as "dictm.present: the key is not in the dict"
+                    Us72None -> panic as "dict.present: the key is not in the dict"
                     Us72Some(v26) -> v26
                 }
             Uh29Cons(v29, v16)
@@ -704,21 +859,23 @@ pub fn method495(v0: Uh29, v1: Uh3) -> Uh3 {
     case v0  {
         Uh29Cons(v2, v3) -> {
             let v4 = method495(v3, v1)
-            let v5 = "type"
+            let v5 = ""
             let v6 = erlang_term_coerce(v5)
-            let v7 = ""
+            let v7 = "type"
             let v8 = erlang_term_coerce(v7)
-            let v9 = "maps"
-            let v10 = atom.create(v9)
-            let v11 = "get"
-            let v12 = atom.create(v11)
-            let v13 = []
-            let v14 = [v8, ..v13]
-            let v15 = [v2, ..v14]
-            let v16 = [v6, ..v15]
-            let v17 = erlang_term_apply(v10, v12, v16)
-            let v18 = erlang_term_coerce(v17)
-            Uh3Cons(v18, v4)
+            let v9 = erlang_term_coerce(v6)
+            let v10 = "maps"
+            let v11 = atom.create(v10)
+            let v12 = "get"
+            let v13 = atom.create(v12)
+            let v14 = []
+            let v15 = [v9, ..v14]
+            let v16 = [v2, ..v15]
+            let v17 = [v8, ..v16]
+            let v18 = erlang_term_apply(v11, v13, v17)
+            let v19 = erlang_term_coerce(v18)
+            let v20 = erlang_term_coerce(v19)
+            Uh3Cons(v20, v4)
         }
         Uh29Nil -> v1
     }
@@ -787,157 +944,4 @@ pub fn closure150(capt: Nil) -> fn(String) -> Bool {
 
 pub fn method500() -> fn(String) -> Bool {
     closure150(Nil)
-}
-
-pub fn method501(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
-    case v1  {
-        Uh3Cons(v2, v3) -> {
-            let v4 = v0(v2)
-            case v4 {
-                True -> True
-                False -> {
-                    let v5 = method500()
-                    method501(v5, v3)
-                }
-            }
-        }
-        Uh3Nil -> False
-    }
-}
-
-pub fn method492(v0: Uh3, v1: Uh29, v2: Uh29) -> Uh29 {
-    case v1  {
-        Uh29Cons(v3, v4) -> {
-            let v5 = method492(v0, v4, v2)
-            let v6 = method493()
-            let v7 = method494(v6, v0)
-            let v35 =
-                case v7 {
-                    True -> {
-                        let v8 = "refs"
-                        let v9 = erlang_term_coerce(v8)
-                        let v10 = []
-                        let v11 = erlang_term_coerce(v10)
-                        let v12 = "maps"
-                        let v13 = atom.create(v12)
-                        let v14 = "get"
-                        let v15 = atom.create(v14)
-                        let v16 = []
-                        let v17 = [v11, ..v16]
-                        let v18 = [v3, ..v17]
-                        let v19 = [v9, ..v18]
-                        let v20 = erlang_term_apply(v13, v15, v19)
-                        let v21 = "erlang"
-                        let v22 = atom.create(v21)
-                        let v23 = "length"
-                        let v24 = atom.create(v23)
-                        let v25 = []
-                        let v26 = [v20, ..v25]
-                        let v27 = erlang_term_apply(v22, v24, v26)
-                        let v28 = erlang_term_coerce(v27)
-                        let v29 = 0
-                        let v30 = method444(v28, v20, v29)
-                        let v31 = Uh3Nil
-                        let v32 = method495(v30, v31)
-                        let v33 = method496()
-                        method497(v33, v32)
-                    }
-                    False -> False
-                }
-            let v66 =
-                case v35 {
-                    True -> True
-                    False -> {
-                        let v36 = method498()
-                        let v37 = method499(v36, v0)
-                        case v37 {
-                            True -> {
-                                let v38 = "refs"
-                                let v39 = erlang_term_coerce(v38)
-                                let v40 = []
-                                let v41 = erlang_term_coerce(v40)
-                                let v42 = "maps"
-                                let v43 = atom.create(v42)
-                                let v44 = "get"
-                                let v45 = atom.create(v44)
-                                let v46 = []
-                                let v47 = [v41, ..v46]
-                                let v48 = [v3, ..v47]
-                                let v49 = [v39, ..v48]
-                                let v50 = erlang_term_apply(v43, v45, v49)
-                                let v51 = "erlang"
-                                let v52 = atom.create(v51)
-                                let v53 = "length"
-                                let v54 = atom.create(v53)
-                                let v55 = []
-                                let v56 = [v50, ..v55]
-                                let v57 = erlang_term_apply(v52, v54, v56)
-                                let v58 = erlang_term_coerce(v57)
-                                let v59 = 0
-                                let v60 = method444(v58, v50, v59)
-                                let v61 = Uh3Nil
-                                let v62 = method495(v60, v61)
-                                let v63 = method500()
-                                method501(v63, v62)
-                            }
-                            False -> False
-                        }
-                    }
-                }
-            let v67 = v66 == False
-            case v67 {
-                True -> Uh29Cons(v3, v5)
-                False -> v5
-            }
-        }
-        Uh29Nil -> v2
-    }
-}
-
-pub fn method502(v0: String, v1: Uh29, v2: Uh29) -> Uh29 {
-    case v1  {
-        Uh29Cons(v3, v4) -> {
-            let v5 = method502(v0, v4, v2)
-            let v6 = v0 == ""
-            let v34 =
-                case v6 {
-                    True -> True
-                    False -> {
-                        let v7 = "created_at"
-                        let v8 = erlang_term_coerce(v7)
-                        let v9 = ""
-                        let v10 = erlang_term_coerce(v9)
-                        let v11 = "maps"
-                        let v12 = atom.create(v11)
-                        let v13 = "get"
-                        let v14 = atom.create(v13)
-                        let v15 = []
-                        let v16 = [v10, ..v15]
-                        let v17 = [v3, ..v16]
-                        let v18 = [v8, ..v17]
-                        let v19 = erlang_term_apply(v12, v14, v18)
-                        let v20 = erlang_term_coerce(v19)
-                        let v21 = spiral_string_slice(v20, 0, 18)
-                        let v22 = spiral_string_slice(v0, 0, 18)
-                        let v23 = erlang_term_coerce(v21)
-                        let v24 = erlang_term_coerce(v22)
-                        let v25 = "erlang"
-                        let v26 = atom.create(v25)
-                        let v27 = ">="
-                        let v28 = atom.create(v27)
-                        let v29 = []
-                        let v30 = [v24, ..v29]
-                        let v31 = [v23, ..v30]
-                        let v32 = erlang_term_apply(v26, v28, v31)
-                        let v33 = erlang_term_coerce(v32)
-                        v33
-                    }
-                }
-            case v34 {
-                True -> Uh29Cons(v3, v5)
-                False -> v5
-            }
-        }
-        Uh29Nil -> v2
-    }
 }

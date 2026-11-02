@@ -142,7 +142,7 @@ pub fn method381(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict
                                     }
                                 let v82 =
                                     case v78  {
-                                        Us2None -> panic as "dictm.present: the key is not in the dict"
+                                        Us2None -> panic as "dict.present: the key is not in the dict"
                                         Us2Some(v79) -> v79
                                     }
                                 let v83 = dict.has_key(v36, v82)
@@ -185,7 +185,7 @@ pub fn method383(v0: dict.Dict(String, Int), v1: Uh3, v2: Int) -> Int {
                 }
             let v17 =
                 case v13  {
-                    Us3None -> panic as "dictm.present: the key is not in the dict"
+                    Us3None -> panic as "dict.present: the key is not in the dict"
                     Us3Some(v14) -> v14
                 }
             let v18 = spiral_wrap_signed(v2 + v17, 32)

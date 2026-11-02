@@ -38,7 +38,7 @@ pub fn method293(v0: dict.Dict(String, process.Pid), v1: Uh3, v2: dict.Dict(Int,
                     }
                 let v54 =
                     case v50  {
-                        Us63None -> panic as "dictm.present: the key is not in the dict"
+                        Us63None -> panic as "dict.present: the key is not in the dict"
                         Us63Some(v51) -> v51
                     }
                 process.kill(v54)
@@ -211,7 +211,7 @@ pub fn method296(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict
                 }
             let _v30 =
                 case v26  {
-                    Us60None -> panic as "dictm.present: the key is not in the dict"
+                    Us60None -> panic as "dict.present: the key is not in the dict"
                     Us60Some(v27) -> v27
                 }
             let v31 = dict.get(v6, v16)
@@ -315,7 +315,7 @@ pub fn method297(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String, #(dict
                 }
             let v53 =
                 case v49  {
-                    Us2None -> panic as "dictm.present: the key is not in the dict"
+                    Us2None -> panic as "dict.present: the key is not in the dict"
                     Us2Some(v50) -> v50
                 }
             let v54 = dict.get(v15, v53)

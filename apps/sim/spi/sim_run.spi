@@ -124,8 +124,8 @@
     := p = picked_pair b o
     { p ?| notes = notes_for b o; memory_mb = b::beam_mb; clock_ms = b::clock_ms }
 
-:= broken_set (s : scenario) : dictm::set string =
-    listm::fold (\ acc k => dictm::set_add k acc) (dictm::set_empty ()) s::broken
+:= broken_set (s : scenario) : dict::set string =
+    listm::fold (\ acc k => dict::set_add k acc) (dict::set_empty ()) s::broken
 
 := breaking_finding (s : scenario) (sched : scheduler) : finding =
     { rule = BreakingEditsFail; verdict = breaking_failed sched (broken_set s) }
@@ -185,7 +185,7 @@
 := inspected (r : task_result) : string = "%{out: \"" ++# r::out ++# "\", status: :" ++# status_word r::status ++# "}"
 
 := concurrent_text (sched : scheduler) (id : string) : string =
-    ?= dictm::find id sched::visible_map ?|
+    ?= dict::find id sched::visible_map ?|
     | Some e => inspected e::result
     | None => "nil"
 

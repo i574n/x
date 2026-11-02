@@ -1,21 +1,25 @@
 import gleam/dict
 import gleam/dynamic.{type Dynamic}
 import gleam/erlang/process
+import gleam/option
 
 pub type SpiralHashKind {
   Sha256
 }
 
-pub type SpiralArrayKey
+pub type SpiralArrayStore(a)
 
 
 pub type SpiralArray(a) {
-  SpiralArray(key: SpiralArrayKey, size: Int)
+  SpiralArray(store: SpiralArrayStore(option.Option(a)), size: Int)
 }
 
 
+pub type SpiralRefCell(a)
+
+
 pub type SpiralRef(a) {
-  SpiralRef(key: SpiralArrayKey)
+  SpiralRef(cell: SpiralRefCell(a))
 }
 
 

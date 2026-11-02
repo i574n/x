@@ -198,12 +198,12 @@ pub fn closure110(capt: Nil) -> fn(String) -> Int {
                 Us36RunParsed(v169, v170, v171, v172, v173, v174, v175, v176, v177, v178, v179, v180, v181, v182, v183, v184, v185, v186, v187, v188) -> Us34Some(v169, v170, v171, v172, v173, v174, v175)
                 Us36RunRejected(v190) -> Us34None
             }
-        let #(v258, v259) =
+        let #(v270, v271) =
             case v193  {
                 Us34None -> {
-                    let v254 = Uh8Nil
-                    let v255 = "."
-                    #(v254, v255)
+                    let v266 = Uh8Nil
+                    let v267 = "."
+                    #(v266, v267)
                 }
                 Us34Some(v194, v195, v196, v197, v198, v199, v200) -> {
                     let v201 = v195 == ""
@@ -254,288 +254,300 @@ pub fn closure110(capt: Nil) -> fn(String) -> Int {
                             let v238 = []
                             let v239 = [v233, ..v238]
                             let v240 = erlang_term_apply(v235, v237, v239)
-                            let v241 = atom.create(v234)
-                            let v242 = "dirname"
-                            let v243 = atom.create(v242)
-                            let v244 = []
-                            let v245 = [v240, ..v244]
-                            let v246 = erlang_term_apply(v241, v243, v245)
+                            let v241 = atom.create(v103)
+                            let v242 = atom.create(v105)
+                            let v243 = []
+                            let v244 = [v240, ..v243]
+                            let v245 = erlang_term_apply(v241, v242, v244)
+                            let v246 = erlang_term_coerce(v245)
                             let v247 = erlang_term_coerce(v246)
-                            #(v232, v247)
+                            let v248 = atom.create(v234)
+                            let v249 = "dirname"
+                            let v250 = atom.create(v249)
+                            let v251 = []
+                            let v252 = [v247, ..v251]
+                            let v253 = erlang_term_apply(v248, v250, v252)
+                            let v254 = atom.create(v103)
+                            let v255 = atom.create(v105)
+                            let v256 = []
+                            let v257 = [v253, ..v256]
+                            let v258 = erlang_term_apply(v254, v255, v257)
+                            let v259 = erlang_term_coerce(v258)
+                            #(v232, v259)
                         }
                         Uh3Nil -> {
-                            let v248 = Uh8Nil
-                            let v249 = "."
-                            #(v248, v249)
+                            let v260 = Uh8Nil
+                            let v261 = "."
+                            #(v260, v261)
                         }
                     }
                 }
             }
-        let v260 = "atomics"
-        let v261 = atom.create(v260)
-        let v262 = erlang_term_coerce(v261)
-        let v263 = []
-        let v264 = [v262, ..v263]
-        let v265 = erlang_term_coerce(v264)
-        let v266 = erlang_term_coerce(2)
-        let v267 = "counters"
-        let v268 = atom.create(v267)
-        let v269 = "new"
-        let v270 = atom.create(v269)
-        let v271 = []
-        let v272 = [v265, ..v271]
-        let v273 = [v266, ..v272]
-        let v274 = erlang_term_apply(v268, v270, v273)
-        let v275 = Uh3Nil
-        let v276 = -1
-        let v277 = 0
-        let v278 = 0
-        let v279 = False
-        let v280 = 1
-        let v281 = 8
-        let v282 = 3
-        let v283 = 2
-        let v284 = 100
-        let v285 = Us29FakeExecutor
-        let v286 = 4
-        let v287 = Us30NoEviction
-        let v288 = 0
-        let v289 = False
-        let v290 = False
-        let v291 = flags_parsed_236(v116, v117, v275, v119, v276, v277, v278, v119, v279, v280, v281, v282, v283, v284, v119, v119, v285, v286, v287, v288, v289, v290, v115)
-        let v324 =
-            case v291  {
-                Us33Error(v321) -> Us36RunRejected(v321)
-                Us33Ok(v292, v293, v294, v295, v296, v297, v298, v299, v300, v301, v302, v303, v304, v305, v306, v307, v308, v309, v310, v311) -> {
-                    let v312 = 0
-                    let v313 = method20(v292, v312)
-                    let v314 = v313 == 0
-                    let v316 =
-                        case v314 {
+        let v272 = "atomics"
+        let v273 = atom.create(v272)
+        let v274 = erlang_term_coerce(v273)
+        let v275 = []
+        let v276 = [v274, ..v275]
+        let v277 = erlang_term_coerce(v276)
+        let v278 = erlang_term_coerce(2)
+        let v279 = "counters"
+        let v280 = atom.create(v279)
+        let v281 = "new"
+        let v282 = atom.create(v281)
+        let v283 = []
+        let v284 = [v277, ..v283]
+        let v285 = [v278, ..v284]
+        let v286 = erlang_term_apply(v280, v282, v285)
+        let v287 = Uh3Nil
+        let v288 = -1
+        let v289 = 0
+        let v290 = 0
+        let v291 = False
+        let v292 = 1
+        let v293 = 8
+        let v294 = 3
+        let v295 = 2
+        let v296 = 100
+        let v297 = Us29FakeExecutor
+        let v298 = 4
+        let v299 = Us30NoEviction
+        let v300 = 0
+        let v301 = False
+        let v302 = False
+        let v303 = flags_parsed_236(v116, v117, v287, v119, v288, v289, v290, v119, v291, v292, v293, v294, v295, v296, v119, v119, v297, v298, v299, v300, v301, v302, v115)
+        let v336 =
+            case v303  {
+                Us33Error(v333) -> Us36RunRejected(v333)
+                Us33Ok(v304, v305, v306, v307, v308, v309, v310, v311, v312, v313, v314, v315, v316, v317, v318, v319, v320, v321, v322, v323) -> {
+                    let v324 = 0
+                    let v325 = method20(v304, v324)
+                    let v326 = v325 == 0
+                    let v328 =
+                        case v326 {
                             True -> {
-                                let v315 = v293 == ""
-                                v315
+                                let v327 = v305 == ""
+                                v327
                             }
                             False -> False
                         }
-                    case v316 {
+                    case v328 {
                         True -> {
-                            let v317 = "missing --spi or --spi-file"
-                            Us36RunRejected(v317)
+                            let v329 = "missing --spi or --spi-file"
+                            Us36RunRejected(v329)
                         }
-                        False -> Us36RunParsed(v292, v293, v294, v295, v296, v297, v298, v299, v300, v301, v302, v303, v304, v305, v306, v307, v308, v309, v310, v311)
+                        False -> Us36RunParsed(v304, v305, v306, v307, v308, v309, v310, v311, v312, v313, v314, v315, v316, v317, v318, v319, v320, v321, v322, v323)
                     }
                 }
             }
-        let v501 =
-            case v324  {
-                Us36RunParsed(v325, v326, v327, v328, v329, v330, v331, v332, v333, v334, v335, v336, v337, v338, v339, v340, v341, v342, v343, v344) -> {
-                    let #(v399, v400, v401, _v402, _v403, _v404, v405) =
-                        case v339  {
+        let v513 =
+            case v336  {
+                Us36RunParsed(v337, v338, v339, v340, v341, v342, v343, v344, v345, v346, v347, v348, v349, v350, v351, v352, v353, v354, v355, v356) -> {
+                    let #(v411, v412, v413, _v414, _v415, _v416, v417) =
+                        case v351  {
                             Us29FakeExecutor -> {
-                                let v345 = closure35(Nil)
-                                let v346 = closure36(Nil)
-                                let v347 = closure37(Nil)
-                                let v348 = quiet_c38(Nil)
-                                let v349 = closure39(Nil)
-                                #(v345, v346, False, v347, v348, v348, v349)
+                                let v357 = closure35(Nil)
+                                let v358 = closure36(Nil)
+                                let v359 = closure37(Nil)
+                                let v360 = quiet_c38(Nil)
+                                let v361 = closure39(Nil)
+                                #(v357, v358, False, v359, v360, v360, v361)
                             }
                             _ -> {
-                                let #(v392, v393, v394, v395, v396, v397, v398) =
-                                    case v339  {
+                                let #(v404, v405, v406, v407, v408, v409, v410) =
+                                    case v351  {
                                         Us29CellsExecutor -> {
-                                            let v350 = closure69(#(v259, v343, v274))
-                                            let v351 = closure72(#(v259))
-                                            let v352 = closure37(Nil)
-                                            let v353 = quiet_c38(Nil)
-                                            let v354 = closure39(Nil)
-                                            #(v350, v351, True, v352, v353, v353, v354)
+                                            let v362 = closure69(#(v271, v355, v286))
+                                            let v363 = closure72(#(v271))
+                                            let v364 = closure37(Nil)
+                                            let v365 = quiet_c38(Nil)
+                                            let v366 = closure39(Nil)
+                                            #(v362, v363, True, v364, v365, v365, v366)
                                         }
                                         _ -> {
-                                            let #(v385, v386, v387, v388, v389, v390, v391) =
-                                                case v339  {
+                                            let #(v397, v398, v399, v400, v401, v402, v403) =
+                                                case v351  {
                                                     Us29LeakingExecutor -> {
-                                                        let v355 = actor.new(v119)
-                                                        let v356 = closure73(Nil)
-                                                        let v357 = actor.on_message(v355, fn(state, message) { v356(state)(message) })
-                                                        let v358 = actor.start(v357)
-                                                        let v359 = result.is_ok(v358)
-                                                        let v363 =
-                                                            case v359 {
+                                                        let v367 = actor.new(v119)
+                                                        let v368 = closure73(Nil)
+                                                        let v369 = actor.on_message(v367, fn(state, message) { v368(state)(message) })
+                                                        let v370 = actor.start(v369)
+                                                        let v371 = result.is_ok(v370)
+                                                        let v375 =
+                                                            case v371 {
                                                                 True -> {
-                                                                    let v360 = result.lazy_unwrap(v358, fn() { panic }).data
-                                                                    Us69Some(v360)
+                                                                    let v372 = result.lazy_unwrap(v370, fn() { panic }).data
+                                                                    Us69Some(v372)
                                                                 }
                                                                 False -> Us69None
                                                             }
-                                                        let v368 =
-                                                            case v363  {
+                                                        let v380 =
+                                                            case v375  {
                                                                 Us69None -> closure75(Nil)
-                                                                Us69Some(v364) -> closure76(#(v364))
+                                                                Us69Some(v376) -> closure76(#(v376))
                                                             }
-                                                        let v369 = actor.new(v119)
-                                                        let v370 = actor.on_message(v369, fn(state, message) { v356(state)(message) })
-                                                        let v371 = actor.start(v370)
-                                                        let v372 = result.is_ok(v371)
-                                                        let v376 =
-                                                            case v372 {
+                                                        let v381 = actor.new(v119)
+                                                        let v382 = actor.on_message(v381, fn(state, message) { v368(state)(message) })
+                                                        let v383 = actor.start(v382)
+                                                        let v384 = result.is_ok(v383)
+                                                        let v388 =
+                                                            case v384 {
                                                                 True -> {
-                                                                    let v373 = result.lazy_unwrap(v371, fn() { panic }).data
-                                                                    Us69Some(v373)
+                                                                    let v385 = result.lazy_unwrap(v383, fn() { panic }).data
+                                                                    Us69Some(v385)
                                                                 }
                                                                 False -> Us69None
                                                             }
-                                                        let v381 =
-                                                            case v376  {
+                                                        let v393 =
+                                                            case v388  {
                                                                 Us69None -> closure78(Nil)
-                                                                Us69Some(v377) -> closure76(#(v377))
+                                                                Us69Some(v389) -> closure76(#(v389))
                                                             }
-                                                        let v382 = closure37(Nil)
-                                                        let v383 = quiet_c38(Nil)
-                                                        let v384 = closure39(Nil)
-                                                        #(v368, v381, False, v382, v383, v383, v384)
+                                                        let v394 = closure37(Nil)
+                                                        let v395 = quiet_c38(Nil)
+                                                        let v396 = closure39(Nil)
+                                                        #(v380, v393, False, v394, v395, v395, v396)
                                                     }
                                                     _ -> panic as "spiral: union case ruled out by partial evaluation"
                                                 }
-                                            #(v385, v386, v387, v388, v389, v390, v391)
+                                            #(v397, v398, v399, v400, v401, v402, v403)
                                         }
                                     }
-                                #(v392, v393, v394, v395, v396, v397, v398)
+                                #(v404, v405, v406, v407, v408, v409, v410)
                             }
                         }
-                    let v408 =
-                        case v343 {
-                            True -> closure79(#(v259, v274, v259, v274))
+                    let v420 =
+                        case v355 {
+                            True -> closure79(#(v271, v286, v271, v286))
                             False -> closure80(Nil)
                         }
-                    let v490 =
-                        case v344 {
+                    let v502 =
+                        case v356 {
                             True -> {
-                                let v409 = "Elixir.System"
-                                let v410 = atom.create(v409)
-                                let v411 = "tmp_dir!"
-                                let v412 = atom.create(v411)
-                                let v413 = []
-                                let v414 = erlang_term_apply(v410, v412, v413)
-                                let v415 = erlang_term_coerce(v414)
-                                let v416 = "/xsim-tree-sample-"
-                                let v417 = v415 <> v416 
-                                let v418 = atom.create(v409)
-                                let v419 = "pid"
-                                let v420 = atom.create(v419)
-                                let v421 = []
-                                let v422 = erlang_term_apply(v418, v420, v421)
-                                let v423 = erlang_term_coerce(v422)
-                                let v424 = v417 <> v423 
-                                let v425 = ".ps1"
-                                let v426 = v424 <> v425 
-                                let v427 = "\n"
-                                let v428 = "param([int]%Root)"
-                                let v429 = "%all = @(Get-CimInstance Win32_Process)"
-                                let v430 = "if (-not (%all | ? ProcessId -eq %Root)) { exit 0 }"
-                                let v431 = "%tree = [Collections.Generic.List[int]]::new()"
-                                let v432 = "%tree.Add(%Root)"
-                                let v433 = "for (%i = 0; %i -lt %tree.Count; %i++) {"
-                                let v434 = "  foreach (%p in %all) {"
-                                let v435 = "    %kid = [int]%p.ProcessId"
-                                let v436 = "    %up = %p.ParentProcessId -eq %tree[%i]"
-                                let v437 = "    if (%up -and %kid -ne %tree[%i]) { %tree.Add(%kid) }"
-                                let v438 = "  }"
-                                let v439 = "}"
-                                let v440 = "%mine = %all | ? { %tree.Contains([int]%_.ProcessId) }"
-                                let v441 = "%bytes = (%mine | Measure-Object WorkingSetSize -Sum).Sum"
-                                let v442 = "\"%(%tree.Count) %([int64](%bytes / 1MB))\""
-                                let v443 = Uh3Nil
-                                let v444 = Uh3Cons(v442, v443)
-                                let v445 = Uh3Cons(v441, v444)
-                                let v446 = Uh3Cons(v440, v445)
-                                let v447 = Uh3Cons(v439, v446)
-                                let v448 = Uh3Cons(v438, v447)
-                                let v449 = Uh3Cons(v437, v448)
-                                let v450 = Uh3Cons(v436, v449)
-                                let v451 = Uh3Cons(v435, v450)
-                                let v452 = Uh3Cons(v434, v451)
-                                let v453 = Uh3Cons(v433, v452)
-                                let v454 = Uh3Cons(v432, v453)
-                                let v455 = Uh3Cons(v431, v454)
-                                let v456 = Uh3Cons(v430, v455)
-                                let v457 = Uh3Cons(v429, v456)
-                                let v458 = Uh3Cons(v428, v457)
-                                let v459 = concat_balanced_22(v427, v458)
-                                let v460 = "%"
-                                let v461 = "$"
-                                let v462 = v459 |> string.replace(v460, v461)
-                                let v463 = spiral_fs_write_file(v426, v462)
-                                let v464 = spiral_fs_coerce(v463)
-                                let v465 = atom.create(v20)
-                                let v466 = v464 == v465
-                                let v467 = v466 == False
-                                case v467 {
+                                let v421 = "Elixir.System"
+                                let v422 = atom.create(v421)
+                                let v423 = "tmp_dir!"
+                                let v424 = atom.create(v423)
+                                let v425 = []
+                                let v426 = erlang_term_apply(v422, v424, v425)
+                                let v427 = erlang_term_coerce(v426)
+                                let v428 = "/xsim-tree-sample-"
+                                let v429 = v427 <> v428 
+                                let v430 = atom.create(v421)
+                                let v431 = "pid"
+                                let v432 = atom.create(v431)
+                                let v433 = []
+                                let v434 = erlang_term_apply(v430, v432, v433)
+                                let v435 = erlang_term_coerce(v434)
+                                let v436 = v429 <> v435 
+                                let v437 = ".ps1"
+                                let v438 = v436 <> v437 
+                                let v439 = "\n"
+                                let v440 = "param([int]%Root)"
+                                let v441 = "%all = @(Get-CimInstance Win32_Process)"
+                                let v442 = "if (-not (%all | ? ProcessId -eq %Root)) { exit 0 }"
+                                let v443 = "%tree = [Collections.Generic.List[int]]::new()"
+                                let v444 = "%tree.Add(%Root)"
+                                let v445 = "for (%i = 0; %i -lt %tree.Count; %i++) {"
+                                let v446 = "  foreach (%p in %all) {"
+                                let v447 = "    %kid = [int]%p.ProcessId"
+                                let v448 = "    %up = %p.ParentProcessId -eq %tree[%i]"
+                                let v449 = "    if (%up -and %kid -ne %tree[%i]) { %tree.Add(%kid) }"
+                                let v450 = "  }"
+                                let v451 = "}"
+                                let v452 = "%mine = %all | ? { %tree.Contains([int]%_.ProcessId) }"
+                                let v453 = "%bytes = (%mine | Measure-Object WorkingSetSize -Sum).Sum"
+                                let v454 = "\"%(%tree.Count) %([int64](%bytes / 1MB))\""
+                                let v455 = Uh3Nil
+                                let v456 = Uh3Cons(v454, v455)
+                                let v457 = Uh3Cons(v453, v456)
+                                let v458 = Uh3Cons(v452, v457)
+                                let v459 = Uh3Cons(v451, v458)
+                                let v460 = Uh3Cons(v450, v459)
+                                let v461 = Uh3Cons(v449, v460)
+                                let v462 = Uh3Cons(v448, v461)
+                                let v463 = Uh3Cons(v447, v462)
+                                let v464 = Uh3Cons(v446, v463)
+                                let v465 = Uh3Cons(v445, v464)
+                                let v466 = Uh3Cons(v444, v465)
+                                let v467 = Uh3Cons(v443, v466)
+                                let v468 = Uh3Cons(v442, v467)
+                                let v469 = Uh3Cons(v441, v468)
+                                let v470 = Uh3Cons(v440, v469)
+                                let v471 = concat_balanced_22(v439, v470)
+                                let v472 = "%"
+                                let v473 = "$"
+                                let v474 = v471 |> string.replace(v472, v473)
+                                let v475 = spiral_fs_write_file(v438, v474)
+                                let v476 = spiral_fs_coerce(v475)
+                                let v477 = atom.create(v20)
+                                let v478 = v476 == v477
+                                let v479 = v478 == False
+                                case v479 {
                                     True -> panic as "file_system.write_all_text: the write failed"
                                     False -> Nil
                                 }
-                                let v468 = closure81(#(v426))
-                                let v469 = actor.new_with_initialiser(10000, fn(me) { Ok(actor.initialised(v468(me)) |> actor.returning(me)) })
-                                let v470 = closure84(Nil)
-                                let v471 = actor.on_message(v469, fn(state, message) { v470(state)(message) })
-                                let v472 = actor.start(v471)
-                                let v473 = result.is_ok(v472)
-                                let v477 =
-                                    case v473 {
+                                let v480 = closure81(#(v438))
+                                let v481 = actor.new_with_initialiser(10000, fn(me) { Ok(actor.initialised(v480(me)) |> actor.returning(me)) })
+                                let v482 = closure84(Nil)
+                                let v483 = actor.on_message(v481, fn(state, message) { v482(state)(message) })
+                                let v484 = actor.start(v483)
+                                let v485 = result.is_ok(v484)
+                                let v489 =
+                                    case v485 {
                                         True -> {
-                                            let v474 = result.lazy_unwrap(v472, fn() { panic }).data
-                                            Us74Some(v474)
+                                            let v486 = result.lazy_unwrap(v484, fn() { panic }).data
+                                            Us74Some(v486)
                                         }
                                         False -> Us74None
                                     }
-                                let v483 =
-                                    case v477  {
+                                let v495 =
+                                    case v489  {
                                         Us74None -> Us74None
-                                        Us74Some(v478) -> {
-                                            let v479 = Us70Tick
-                                            actor.send(v478, v479)
-                                            Us74Some(v478)
+                                        Us74Some(v490) -> {
+                                            let v491 = Us70Tick
+                                            actor.send(v490, v491)
+                                            Us74Some(v490)
                                         }
                                     }
-                                case v483  {
+                                case v495  {
                                     Us74None -> closure86(Nil)
-                                    Us74Some(v484) -> closure87(#(v484))
+                                    Us74Some(v496) -> closure87(#(v496))
                                 }
                             }
                             False -> closure89(Nil)
                         }
-                    let v491 = closure90(#(v408, v490))
-                    let v492 = closure91(Nil)
-                    let v493 = closure92(Nil)
-                    let v494 = simulated_by_305(v399, v400, v401, v491, v492, v493, v405, v325, v326, v327, v328, v329, v330, v331, v332, v333, v334, v335, v336, v337, v338, v339, v340, v341, v342, v343, v344, v258)
-                    let v495 = "\n"
-                    delimited_21(v495, v494)
+                    let v503 = closure90(#(v420, v502))
+                    let v504 = closure91(Nil)
+                    let v505 = closure92(Nil)
+                    let v506 = simulated_by_305(v411, v412, v413, v503, v504, v505, v417, v337, v338, v339, v340, v341, v342, v343, v344, v345, v346, v347, v348, v349, v350, v351, v352, v353, v354, v355, v356, v270)
+                    let v507 = "\n"
+                    delimited_21(v507, v506)
                 }
-                Us36RunRejected(v497) -> {
-                    let v498 = "XSIM rejected "
-                    let v499 = v498 <> v497 
-                    v499
+                Us36RunRejected(v509) -> {
+                    let v510 = "XSIM rejected "
+                    let v511 = v510 <> v509 
+                    v511
                 }
             }
-        let v502 = "\n"
-        let v503 = v501 <> v502 
-        let v504 = erlang_term_coerce(v503)
-        let v505 = "io"
-        let v506 = atom.create(v505)
-        let v507 = "put_chars"
-        let v508 = atom.create(v507)
-        let v509 = []
-        let v510 = [v504, ..v509]
-        let _v511 = erlang_term_apply(v506, v508, v510)
-        let v512 = v501 == ""
-        let v515 =
-            case v512 {
+        let v514 = "\n"
+        let v515 = v513 <> v514 
+        let v516 = erlang_term_coerce(v515)
+        let v517 = "io"
+        let v518 = atom.create(v517)
+        let v519 = "put_chars"
+        let v520 = atom.create(v519)
+        let v521 = []
+        let v522 = [v516, ..v521]
+        let _v523 = erlang_term_apply(v518, v520, v522)
+        let v524 = v513 == ""
+        let v527 =
+            case v524 {
                 True -> Uh3Nil
-                False -> split_list_2(v502, v501)
+                False -> split_list_2(v514, v513)
             }
-        let v516 = method399()
-        let v517 = method400(v516, v515)
-        case v517 {
+        let v528 = method399()
+        let v529 = method400(v528, v527)
+        case v529 {
             True -> 1
             False -> 0
         }

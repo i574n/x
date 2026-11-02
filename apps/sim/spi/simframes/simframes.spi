@@ -146,8 +146,7 @@
 := plain_cells (limit : i32) (spi : string) : list string =
     cells_executor::plain_spi spi |> cells_executor::document_sources |> limited limit
 
-:= base_name (path : string) : string =
-    erlang_term::apply "filename" "basename" [ erlang_term::of path ] |> erlang_term::cast
+:= base_name (path : string) : string = erlang_file::base_name path
 
 := byte_count (s : string) : i32 = erlang_term::apply "erlang" "byte_size" [ erlang_term::of s ] |> erlang_term::cast
 
@@ -199,9 +198,7 @@
     | Ok o => world_written o
     | Error why => "XSIM rejected world: " ++# why
 
-:= dir_of (path : string) : string =
-    := absolute = erlang_term::apply "filename" "absname" [ erlang_term::of path ]
-    erlang_term::apply "filename" "dirname" [ absolute ] |> erlang_term::cast
+:= dir_of (path : string) : string = erlang_file::dir_name (erlang_file::absolute_path path)
 
 := cli_threads (limit : i32) (files : list string) : list (list string) * string =
     ?= files ?|
@@ -216,7 +213,7 @@
 := failed_line (l : string) : bool = sm'::starts_with "XSIM rejected" l || sm'::ends_with "result=fail" l
 
 := printed (text : string) : i32 =
-    erlang_term::apply "io" "put_chars" [ erlang_term::of (text ++# "\n") ] |> ignore
+    erlang_file::put_text (text ++# "\n")
     ? has failed_line (pieces "\n" text) ?> 1i32 |: 0i32
 
 := run_command (argv : list string) : string =
@@ -227,8 +224,7 @@
     := encoded = erlang_term::apply "json" "encode" [ erlang_term::of s ]
     erlang_term::apply "erlang" "iolist_to_binary" [ encoded ] |> erlang_term::cast
 
-:= nfc (s : string) : string =
-    erlang_term::apply "unicode" "characters_to_nfc_binary" [ erlang_term::of s ] |> erlang_term::cast
+:= nfc (s : string) : string = unicode::nfc s
 
 := json_list (items : list string) : string =
     ?= items ?|
@@ -259,8 +255,7 @@
     | Ok o => frames_written o
     | Error why => "XSIM rejected frames: " ++# why
 
-:= absolute (path : string) : string =
-    erlang_term::apply "filename" "absname" [ erlang_term::of path ] |> erlang_term::cast
+:= absolute (path : string) : string = erlang_file::absolute_path path
 
 := json_program (path : string) : erlang_term::term =
     := doc = erlang_term::apply "json" "decode" [ erlang_term::of (file_system::read_all_text path) ]
@@ -277,9 +272,7 @@
 
 :== verdict = { ok : bool; rows : list string }
 
-:= warned (text : string) : () =
-    := line = erlang_term::of (text ++# "\n")
-    erlang_term::apply "io" "put_chars" [ erlang_term::atom "standard_error"; line ] |> ignore
+:= warned (text : string) : () = erlang_file::put_error_text (text ++# "\n")
 
 := checked_status (result : erlang_term::term) : bool =
     := ok = cells_executor::result_ok result

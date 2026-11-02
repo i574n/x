@@ -1,5 +1,3 @@
-import gary
-import gary/array
 import gleam/bit_array
 import gleam/dynamic.{type Dynamic}
 import gleam/erlang/atom
@@ -9,7 +7,7 @@ import gleam/option
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type SpiralHashKind, type SpiralArrayKey, type SpiralArray, type SpiralRef, type Uh0, type Uh3, type Mut0, type Us0, type Uh5, type Us1, type Us2, type Us3, type Us4, Mut0, SpiralArray, SpiralRef, Uh0Cons, Uh0Nil, Uh3Cons, Uh3Nil, Uh5Cons, Uh5Nil, Us0Null, Us0Text, Us0Whole, Us1None, Us1Some, Us2None, Us2Some, Us3None, Us3Some, Us4None, Us4Some}
+import xsim_frames/types.{type SpiralHashKind, type SpiralArrayStore, type SpiralArray, type SpiralRefCell, type SpiralRef, type Uh3, type Mut0, type Us0, type Uh5, type Us1, type Us2, type Us3, type Us4, Mut0, SpiralArray, SpiralRef, Uh3Cons, Uh3Nil, Uh5Cons, Uh5Nil, Us0Null, Us0Text, Us0Whole, Us1None, Us1Some, Us2None, Us2Some, Us3None, Us3Some, Us4None, Us4Some}
 
 @external(erlang, "string", "find")
 pub fn spiral_sm_find_trailing(text: String, search: String, direction: atom.Atom) -> Dynamic
@@ -56,29 +54,39 @@ pub fn spiral_string_length(text: String) -> Int {
 }
 
 
-@external(erlang, "erlang", "make_ref")
-pub fn spiral_array_new_key() -> SpiralArrayKey
+@external(erlang, "simframes_ffi", "array_new")
+@external(javascript, "./simframes_ffi.mjs", "array_new")
+pub fn spiral_array_store_new(size: Int, fill: a) -> SpiralArrayStore(a)
 
 
-@external(erlang, "erlang", "put")
-pub fn spiral_array_store(key: SpiralArrayKey, storage: gary.ErlangArray(option.Option(a))) -> b
+@external(erlang, "simframes_ffi", "array_get")
+@external(javascript, "./simframes_ffi.mjs", "array_get")
+pub fn spiral_array_store_get(store: SpiralArrayStore(a), i: Int) -> a
 
 
-@external(erlang, "erlang", "get")
-pub fn spiral_array_load(key: SpiralArrayKey) -> gary.ErlangArray(option.Option(a))
+@external(erlang, "simframes_ffi", "array_set")
+@external(javascript, "./simframes_ffi.mjs", "array_set")
+pub fn spiral_array_store_set(store: SpiralArrayStore(a), i: Int, value: a) -> Nil
 
 
-pub fn spiral_array_from_storage(storage: gary.ErlangArray(option.Option(a)), size: Int) -> SpiralArray(a) {
-  let key = spiral_array_new_key()
-  let _ = spiral_array_store(key, storage)
-  SpiralArray(key: key, size: size)
+pub fn spiral_array_create(size: Int) -> SpiralArray(a) {
+  SpiralArray(store: spiral_array_store_new(size, option.None), size: size)
 }
 
 
 
+pub fn spiral_array_set(xs: SpiralArray(a), i: Int, value: a) -> Nil {
+  case i >= 0 && i < xs.size {
+    True -> spiral_array_store_set(xs.store, i, option.Some(value))
+    False -> panic as "spiral array: index out of bounds"
+  }
+}
+
 
 pub fn spiral_array_from_list(values: List(a)) -> SpiralArray(a) {
-  values |> list.map(option.Some) |> array.from_list(option.None) |> spiral_array_from_storage(list.length(values))
+  let xs = spiral_array_create(list.length(values))
+  let _ = list.index_map(values, fn(x, i) { spiral_array_set(xs, i, x) })
+  xs
 }
 
 
@@ -86,39 +94,42 @@ pub fn spiral_array_from_list(values: List(a)) -> SpiralArray(a) {
 pub fn spiral_array_get(xs: SpiralArray(a), i: Int) -> a {
   case i >= 0 && i < xs.size {
     True ->
-      case spiral_array_load(xs.key) |> array.get(i) {
-        Ok(option.Some(x)) -> x
-        _ -> panic as "spiral array: read of an element that was never set"
+      case spiral_array_store_get(xs.store, i) {
+        option.Some(x) -> x
+        option.None -> panic as "spiral array: read of an element that was never set"
       }
     False -> panic as "spiral array: index out of bounds"
   }
 }
 
 
+@external(erlang, "simframes_ffi", "ref_new")
+@external(javascript, "./simframes_ffi.mjs", "ref_new")
+pub fn spiral_ref_cell_new(value: a) -> SpiralRefCell(a)
 
-@external(erlang, "erlang", "put")
-pub fn spiral_ref_store(key: SpiralArrayKey, value: a) -> b
+
+@external(erlang, "simframes_ffi", "ref_get")
+@external(javascript, "./simframes_ffi.mjs", "ref_get")
+pub fn spiral_ref_cell_get(cell: SpiralRefCell(a)) -> a
 
 
-@external(erlang, "erlang", "get")
-pub fn spiral_ref_load(key: SpiralArrayKey) -> a
+@external(erlang, "simframes_ffi", "ref_set")
+@external(javascript, "./simframes_ffi.mjs", "ref_set")
+pub fn spiral_ref_cell_set(cell: SpiralRefCell(a), value: a) -> Nil
 
 
 pub fn spiral_ref_new(value: a) -> SpiralRef(a) {
-  let key = spiral_array_new_key()
-  let _ = spiral_ref_store(key, value)
-  SpiralRef(key: key)
+  SpiralRef(cell: spiral_ref_cell_new(value))
 }
 
 
 pub fn spiral_ref_get(reference: SpiralRef(a)) -> a {
-  spiral_ref_load(reference.key)
+  spiral_ref_cell_get(reference.cell)
 }
 
 
 pub fn spiral_ref_set(reference: SpiralRef(a), value: a) -> Nil {
-  let _ = spiral_ref_store(reference.key, value)
-  Nil
+  spiral_ref_cell_set(reference.cell, value)
 }
 
 
@@ -939,15 +950,5 @@ pub fn count_at_16(v0: String, v1: Uh5) -> Int {
     case v2  {
         Us0Whole(v3) -> v3
         _ -> -1
-    }
-}
-
-pub fn method17(v0: Uh0, v1: Uh0) -> Uh0 {
-    case v0  {
-        Uh0Cons(v2, v3, v4, v5, v6) -> {
-            let v7 = method17(v6, v1)
-            Uh0Cons(v2, v3, v4, v5, v7)
-        }
-        Uh0Nil -> v1
     }
 }

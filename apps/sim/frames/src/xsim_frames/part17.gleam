@@ -397,22 +397,18 @@ pub fn method356(v0: Uh31, v1: Int) -> Int {
 pub fn closure101(capt: #(Us75)) -> fn(String) -> Int {
     fn (v1) {
         let #(v0) = capt
-        let v13 =
+        let v2 = units_on_348(v0, v1)
+        let v9 =
             case v0  {
-                Us75OnBluesky(v8, v9) -> units_on_348(v0, v1)
+                Us75OnBluesky(v5, v6) -> v2
                 Us75OnMastodon -> {
-                    let v4 = Us75OnMastodon
-                    let v5 = units_on_348(v4, v1)
-                    let v6 = Uh31Nil
-                    linked_352(v5, v6)
+                    let v3 = Uh31Nil
+                    linked_352(v2, v3)
                 }
-                Us75OnX -> {
-                    let v2 = Us75OnX
-                    units_on_348(v2, v1)
-                }
+                Us75OnX -> v2
             }
-        let v14 = 0
-        method356(v13, v14)
+        let v10 = 0
+        method356(v9, v10)
     }
 }
 
@@ -667,21 +663,17 @@ pub fn split_units_357(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh31) -> 
 pub fn split_cell_on_347(v0: Us75, v1: String, v2: Int, v3: String) -> Uh3 {
     let v4 = closure101(#(v0))
     let v5 = unicode_erlang_nfc(v3)
-    let v17 =
+    let v6 = units_on_348(v0, v5)
+    let v13 =
         case v0  {
-            Us75OnBluesky(v12, v13) -> units_on_348(v0, v5)
+            Us75OnBluesky(v9, v10) -> v6
             Us75OnMastodon -> {
-                let v8 = Us75OnMastodon
-                let v9 = units_on_348(v8, v5)
-                let v10 = Uh31Nil
-                linked_352(v9, v10)
+                let v7 = Uh31Nil
+                linked_352(v6, v7)
             }
-            Us75OnX -> {
-                let v6 = Us75OnX
-                units_on_348(v6, v5)
-            }
+            Us75OnX -> v6
         }
-    split_units_357(v2, v1, v4, v17)
+    split_units_357(v2, v1, v4, v13)
 }
 
 pub fn split_cell_306(v0: String, v1: Int, v2: String) -> Uh3 {
@@ -819,7 +811,7 @@ pub fn method370(v0: dict.Dict(String, #(String, Us45, String)), v1: Uh3, v2: Uh
                     _ -> {
                         let #(v22, v23, v24) =
                             case v15  {
-                                Us78None -> panic as "dictm.present: the key is not in the dict"
+                                Us78None -> panic as "dict.present: the key is not in the dict"
                                 _ -> panic as "spiral: union case ruled out by partial evaluation"
                             }
                         #(v22, v23, v24)
@@ -869,7 +861,7 @@ pub fn method374(v0: dict.Dict(String, String), v1: Uh3, v2: Uh1) -> Uh1 {
                 }
             let v17 =
                 case v13  {
-                    Us2None -> panic as "dictm.present: the key is not in the dict"
+                    Us2None -> panic as "dict.present: the key is not in the dict"
                     Us2Some(v14) -> v14
                 }
             let v18 = Uh1Cons(v3, v17, v2)
@@ -893,7 +885,7 @@ pub fn method375(v0: dict.Dict(String, Int), v1: Uh3, v2: Uh2) -> Uh2 {
                 }
             let v17 =
                 case v13  {
-                    Us3None -> panic as "dictm.present: the key is not in the dict"
+                    Us3None -> panic as "dict.present: the key is not in the dict"
                     Us3Some(v14) -> v14
                 }
             let v18 = Uh2Cons(v3, v17, v2)

@@ -129,7 +129,7 @@ pub fn method278(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(Strin
                                             }
                                         let v120 =
                                             case v116  {
-                                                Us3None -> panic as "dictm.present: the key is not in the dict"
+                                                Us3None -> panic as "dict.present: the key is not in the dict"
                                                 Us3Some(v117) -> v117
                                             }
                                         let v121 = spiral_wrap_signed(v120 - 1, 32)
@@ -400,7 +400,7 @@ pub fn chain_sources_284(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String
                     _ -> {
                         let #(v33, v34, v35) =
                             case v26  {
-                                Us55None -> panic as "dictm.present: the key is not in the dict"
+                                Us55None -> panic as "dict.present: the key is not in the dict"
                                 _ -> panic as "spiral: union case ruled out by partial evaluation"
                             }
                         #(v33, v34, v35)
@@ -431,7 +431,7 @@ pub fn chain_sources_284(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(String
                 }
             let v62 =
                 case v58  {
-                    Us2None -> panic as "dictm.present: the key is not in the dict"
+                    Us2None -> panic as "dict.present: the key is not in the dict"
                     Us2Some(v59) -> v59
                 }
             let v63 = Uh3Cons(v62, v14)
@@ -459,7 +459,7 @@ pub fn started_queued_283(v0: dict.Dict(Int, Nil), v1: Uh15, v2: dict.Dict(Strin
                             }
                         let v52 =
                             case v48  {
-                                Us2None -> panic as "dictm.present: the key is not in the dict"
+                                Us2None -> panic as "dict.present: the key is not in the dict"
                                 Us2Some(v49) -> v49
                             }
                         let v53 = Uh3Nil

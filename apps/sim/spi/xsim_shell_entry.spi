@@ -1,4 +1,4 @@
-///- --package .
+///- --package . --timeout 600000
 ///> gleam
 :# xsim_shell_entry static =
     :< testing
@@ -46,8 +46,8 @@
     | Ok deliveries => settled_in_shell limit deliveries
 
 := shell_line (s : scheduler) : string =
-    := visible = sm'::obj_to_string (dictm::size s::visible_map)
-    "XSHELL visible=" ++# visible ++# " results=" ++# sm'::obj_to_string (dictm::size s::task_work::results)
+    := visible = sm'::obj_to_string (dict::size s::visible_map)
+    "XSHELL visible=" ++# visible ++# " results=" ++# sm'::obj_to_string (dict::size s::task_work::results)
 
 := reported_settled (s : scheduler) : i32 =
     console::write_line (shell_line s)

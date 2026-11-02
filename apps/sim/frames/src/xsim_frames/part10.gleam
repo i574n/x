@@ -727,7 +727,7 @@ pub fn method250(v0: Int, v1: dict.Dict(Int, #(Int, Int, String)), v2: Int) -> U
                     _ -> {
                         let #(v22, v23, v24) =
                             case v15  {
-                                Us51None -> panic as "dictm.present: the key is not in the dict"
+                                Us51None -> panic as "dict.present: the key is not in the dict"
                                 _ -> panic as "spiral: union case ruled out by partial evaluation"
                             }
                         #(v22, v23, v24)
@@ -825,7 +825,7 @@ pub fn method262(v0: dict.Dict(Int, String), v1: Uh13, v2: Int) -> Int {
                 }
             let _v17 =
                 case v13  {
-                    Us2None -> panic as "dictm.present: the key is not in the dict"
+                    Us2None -> panic as "dict.present: the key is not in the dict"
                     Us2Some(v14) -> v14
                 }
             let v18 = v3 > v2

@@ -1,4 +1,4 @@
-///- --package .
+///- --package . --timeout 600000
 ///> gleam
 :# runner_guard static =
     :< testing

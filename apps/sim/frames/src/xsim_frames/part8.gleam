@@ -3,33 +3,11 @@ import gleam/option
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh3, type Uh13, type Uh19, type Uh20, type Uh21, type Us26, type Uh23, type Uh22, type Uh24, type Uh25, type Uh26, type Uh27, Uh13Cons, Uh13Nil, Uh20Cons, Uh20Nil, Uh21Cons, Uh21Nil, Uh22Cons, Uh22Nil, Uh23Cons, Uh23Nil, Uh24Cons, Uh24Nil, Uh25Nil, Uh26Cons, Uh26Nil, Uh27Cons, Uh27Nil, Uh3Cons, Uh3Nil, Us26None, Us26Some, Us28None, Us28Some, Us2None, Us2Some}
+import xsim_frames/types.{type Uh3, type Uh19, type Uh20, type Uh21, type Us26, type Uh23, type Uh22, type Uh24, type Uh25, type Uh26, type Uh27, Uh13Nil, Uh20Cons, Uh20Nil, Uh21Cons, Uh21Nil, Uh22Cons, Uh22Nil, Uh23Cons, Uh23Nil, Uh24Cons, Uh24Nil, Uh25Nil, Uh26Cons, Uh26Nil, Uh27Cons, Uh27Nil, Uh3Cons, Uh3Nil, Us26None, Us26Some, Us28None, Us28Some, Us2None, Us2Some}
 import xsim_frames/part1.{closure1, spiral_string_length, spiral_string_slice, spiral_wrap_signed, unicode_erlang_characters_to_binary}
 import xsim_frames/part2.{delimited_21, method18, method20}
 import xsim_frames/part5.{quoted_119}
-import xsim_frames/part7.{method162, method168, method169, method172, method174, method175, method178, method179, method183, method184, method186, method187, method188, method190, method193, method194, method197, method198, taken_189}
-
-pub fn method200(v0: String, v1: Uh13, v2: Int, v3: Int, v4: Uh22, v5: Uh24, v6: Uh25, v7: Us26, v8: Uh26, v9: Uh26) -> #(Int, Int, Uh22, Uh24, Uh25, Us26, Uh26, Uh26) {
-    let #(v32, v33, v34, v35, v36, v37, v38, v39) =
-        case v1  {
-            Uh13Cons(v10, v11) -> {
-                let v12 = Uh22Nil
-                let v13 = method178(v0, v10, v4, v12)
-                let v14 = Uh24Nil
-                let v15 = method179(v0, v10, v5, v14)
-                method200(v0, v11, v2, v3, v13, v15, v6, v7, v8, v9)
-            }
-            _ -> {
-                let #(v24, v25, v26, v27, v28, v29, v30, v31) =
-                    case v1  {
-                        Uh13Nil -> #(v2, v3, v4, v5, v6, v7, v8, v9)
-                        _ -> panic as "spiral: union case ruled out by partial evaluation"
-                    }
-                #(v24, v25, v26, v27, v28, v29, v30, v31)
-            }
-        }
-    #(v32, v33, v34, v35, v36, v37, v38, v39)
-}
+import xsim_frames/part7.{method162, method168, method169, method172, method174, method175, method183, method184, method186, method187, method188, method190, method193, method194, method197, method198, method200, taken_189}
 
 pub fn method199(v0: Uh26, v1: Int, v2: Int, v3: Uh22, v4: Uh24, v5: Uh25, v6: Us26, v7: Uh26, v8: Uh26) -> #(Int, Int, Uh22, Uh24, Uh25, Us26, Uh26, Uh26) {
     let #(v42, v43, v44, v45, v46, v47, v48, v49) =

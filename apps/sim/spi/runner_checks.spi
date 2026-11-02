@@ -27,15 +27,15 @@
 
 := visible_of (s : scheduler) : list shown =
     s::visible_map
-    |> dictm::fold \ acc id (e : visible_entry) =>
+    |> dict::fold \ acc id (e : visible_entry) =>
             shown_inserted { id = id; key = e::key; result = outcome_of e::result } acc
         []
 
-:= tallies_of (d : dictm::dict string i32) : list tally =
-    d |> dictm::fold (\ acc key count => { key count } :: acc) []
+:= tallies_of (d : dict::dict string i32) : list tally =
+    d |> dict::fold (\ acc key count => { key count } :: acc) []
 
 := demands_of (s : scheduler) : list demand =
-    wanted_keys s::in_box |> dictm::fold (\ acc id key => { id key } :: acc) []
+    wanted_keys s::in_box |> dict::fold (\ acc id key => { id key } :: acc) []
 
 := evicting_on (f : fault_set) : bool =
     ?= f::eviction ?|
@@ -51,22 +51,22 @@
 
 := snapshot_of (s : scheduler) : snapshot =
     := b = base_snapshot s |> counted_snapshot s::run_counts
-    { b ?| results = dictm::keys s::task_work::results; evicting = evicting_on s::faults }
+    { b ?| results = dict::keys s::task_work::results; evicting = evicting_on s::faults }
 
 := runner_checks (s : scheduler) (baseline : list string -> task_result) : list finding =
     checked (snapshot_of s) (\ id => sources s::in_box id |> baseline |> outcome_of)
 
 := runs_commute (a : scheduler) (b : scheduler) : verdict = commute (snapshot_of a) (snapshot_of b)
 
-:= source_broken (s : scheduler) (broken : dictm::set string) (id : string) : bool =
-    ?= dictm::find id s::in_box::graph::posts ?|
-    | Some p => dictm::set_has (latest_source p) broken
+:= source_broken (s : scheduler) (broken : dict::set string) (id : string) : bool =
+    ?= dict::find id s::in_box::graph::posts ?|
+    | Some p => dict::set_has (latest_source p) broken
     | None => !-
 
-:= broken_shown (s : scheduler) (broken : dictm::set string) (v : shown) : bool =
+:= broken_shown (s : scheduler) (broken : dict::set string) (v : shown) : bool =
     v::result::ok && source_broken s broken v::id
 
-:= breaking_failed (s : scheduler) (broken : dictm::set string) : verdict =
+:= breaking_failed (s : scheduler) (broken : dict::set string) : verdict =
     snapshot_of s |> ids_where (broken_shown s broken)
 
 := fake_baseline (l : list string) : task_result = { status = Done; out = fake_out l }
@@ -117,8 +117,8 @@
     runs_commute (sync_run (plain_faults ()) l) (deferred_run (plain_faults ()) l) |> verdict_text |> _assert_eq "ok"
 
 := broken_pair (s : scheduler) : string * string =
-    breaking_failed s (dictm::set_add "x" (dictm::set_empty ())) |> verdict_text,
-    breaking_failed s (dictm::set_empty ())
+    breaking_failed s (dict::set_add "x" (dict::set_empty ())) |> verdict_text,
+    breaking_failed s (dict::set_empty ())
     |> verdict_text
 
 :# a_broken_source_that_runs_ok_is_named =
@@ -166,12 +166,12 @@
     sync_run (graced 1i32) (listm::append (lapse_of id) more)
 
 := lapse_shape (s : scheduler) : i32 * i32 * i32 =
-    s::run_counts::rescues, s::run_counts::recomputes, dictm::size s::life_cycle::doomed
+    s::run_counts::rescues, s::run_counts::recomputes, dict::size s::life_cycle::doomed
 
 := grace_shape (id : string) : (i32 * i32 * i32) * string * bool =
     := short = relapsed (graced 12i32) id
     lapse_shape short, runs_commute short (relapsed (plain_faults ()) id)
-    |> verdict_text, dictm::size (long_lapse id)::run_counts::evicted > 0i32
+    |> verdict_text, dict::size (long_lapse id)::run_counts::evicted > 0i32
 
 :# a_grace_window_keeps_a_result_through_a_short_lapse_and_frees_it_after =
     := ~id = "p0"

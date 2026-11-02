@@ -227,12 +227,12 @@ pub fn closure112(capt: Nil) -> fn(String) -> Int {
                 }
                 _ -> v130
             }
-        let v277 =
+        let v282 =
             case v161  {
-                Us81Error(v273) -> {
-                    let v274 = "XSIM rejected events: "
-                    let v275 = v274 <> v273 
-                    v275
+                Us81Error(v278) -> {
+                    let v279 = "XSIM rejected events: "
+                    let v280 = v279 <> v278 
+                    v280
                 }
                 Us81Ok(v162, v163, v164, v165, v166, v167, v168, v169, v170, v171) -> {
                     let v172 = spiral_fs_read_file(v162)
@@ -331,49 +331,54 @@ pub fn closure112(capt: Nil) -> fn(String) -> Int {
                     let v253 = []
                     let v254 = [v248, ..v253]
                     let v255 = erlang_term_apply(v250, v252, v254)
-                    let v256 = erlang_term_coerce(v255)
-                    let v257 = "xsim.events "
-                    let v258 = v257 <> v256 
-                    let v259 = " deliveries="
-                    let v260 = v258 <> v259 
-                    let v261 = v234 == ""
-                    let v265 =
-                        case v261 {
+                    let v256 = atom.create(v103)
+                    let v257 = atom.create(v105)
+                    let v258 = []
+                    let v259 = [v255, ..v258]
+                    let v260 = erlang_term_apply(v256, v257, v259)
+                    let v261 = erlang_term_coerce(v260)
+                    let v262 = "xsim.events "
+                    let v263 = v262 <> v261 
+                    let v264 = " deliveries="
+                    let v265 = v263 <> v264 
+                    let v266 = v234 == ""
+                    let v270 =
+                        case v266 {
                             True -> Uh3Nil
                             False -> {
-                                let v263 = "\n"
-                                split_list_2(v263, v234)
+                                let v268 = "\n"
+                                split_list_2(v268, v234)
                             }
                         }
-                    let v266 = Uh3Nil
-                    let v267 = method405(v265, v266)
-                    let v268 = 0
-                    let v269 = method20(v267, v268)
-                    let v270 = spiral_wrap_signed(v269 - 1, 32)
-                    let v271 = string.inspect(v270)
-                    let v272 = v260 <> v271 
-                    v272
+                    let v271 = Uh3Nil
+                    let v272 = method405(v270, v271)
+                    let v273 = 0
+                    let v274 = method20(v272, v273)
+                    let v275 = spiral_wrap_signed(v274 - 1, 32)
+                    let v276 = string.inspect(v275)
+                    let v277 = v265 <> v276 
+                    v277
                 }
             }
-        let v278 = "\n"
-        let v279 = v277 <> v278 
-        let v280 = erlang_term_coerce(v279)
-        let v281 = "io"
-        let v282 = atom.create(v281)
-        let v283 = "put_chars"
-        let v284 = atom.create(v283)
-        let v285 = []
-        let v286 = [v280, ..v285]
-        let _v287 = erlang_term_apply(v282, v284, v286)
-        let v288 = v277 == ""
-        let v291 =
-            case v288 {
+        let v283 = "\n"
+        let v284 = v282 <> v283 
+        let v285 = erlang_term_coerce(v284)
+        let v286 = "io"
+        let v287 = atom.create(v286)
+        let v288 = "put_chars"
+        let v289 = atom.create(v288)
+        let v290 = []
+        let v291 = [v285, ..v290]
+        let _v292 = erlang_term_apply(v287, v289, v291)
+        let v293 = v282 == ""
+        let v296 =
+            case v293 {
                 True -> Uh3Nil
-                False -> split_list_2(v278, v277)
+                False -> split_list_2(v283, v282)
             }
-        let v292 = method399()
-        let v293 = method400(v292, v291)
-        case v293 {
+        let v297 = method399()
+        let v298 = method400(v297, v296)
+        case v298 {
             True -> 1
             False -> 0
         }

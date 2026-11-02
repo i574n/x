@@ -2,7 +2,23 @@ import gleam/int
 import gleam/string
 import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Us2, type Uh6, type Us14, type Uh7, type Uh8, type Uh9, type Uh10, type Uh12, type Uh13, type Us20, Uh0Cons, Uh0Nil, Uh10Cons, Uh10Nil, Uh12Cons, Uh12Nil, Uh13Cons, Uh13Nil, Uh2Nil, Uh3Cons, Uh3Nil, Uh6Cons, Uh6Nil, Uh7Cons, Uh7Nil, Uh8Cons, Uh9Cons, Uh9Nil, Us12Broken, Us12Held, Us13BreakingEditsFail, Us13NoStaleResults, Us13OneCompilePerPrefix, Us13SequentialEquivalence, Us13UnwantedResultsFreed, Us13WithdrawnDemandHidden, Us14Breaker, Us14Editor, Us14Fickle, Us14Lurker, Us15None, Us15Some, Us16Reaction, Us19Unliked, Us20None, Us20Some, Us2Some, Us3Some}
 import xsim_frames/part1.{count_of_text_10, method4, spiral_string_index, spiral_string_length, spiral_string_slice, spiral_wrap_signed, spiral_wrap_unsigned, split_list_2}
-import xsim_frames/part2.{delimited_21, masked_cells_28, masked_threads_29, method20, method24, method30, method32, method33, method36, method37, method40, snapshot_read_1, taken_31}
+import xsim_frames/part2.{delimited_21, masked_cells_28, masked_threads_29, method20, method24, method30, method32, method33, method36, method37, method41, method42, snapshot_read_1, taken_31}
+
+pub fn method40(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool, v7: Uh3, v8: Uh3) -> Uh3 {
+    case v7  {
+        Uh3Cons(v9, v10) -> {
+            let v11 = method40(v0, v1, v2, v3, v4, v5, v6, v10, v8)
+            let v12 = method41(v9)
+            let v13 = method42(v9, v12, v1)
+            let v14 = v13 == False
+            case v14 {
+                True -> Uh3Cons(v9, v11)
+                False -> v11
+            }
+        }
+        Uh3Nil -> v8
+    }
+}
 
 pub fn method43(v0: Uh6, v1: Uh3) -> Uh3 {
     case v0  {

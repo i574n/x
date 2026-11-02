@@ -1,13 +1,18 @@
-pub type SpiralArrayKey
+import gleam/option
+
+pub type SpiralArrayStore(a)
 
 
 pub type SpiralArray(a) {
-  SpiralArray(key: SpiralArrayKey, size: Int)
+  SpiralArray(store: SpiralArrayStore(option.Option(a)), size: Int)
 }
 
 
+pub type SpiralRefCell(a)
+
+
 pub type SpiralRef(a) {
-  SpiralRef(key: SpiralArrayKey)
+  SpiralRef(cell: SpiralRefCell(a))
 }
 
 

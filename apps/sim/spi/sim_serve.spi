@@ -88,7 +88,7 @@
     := path, query = split_once "?" target
     { method = method_of head; path; query; head; raw }
 
-:= url_decoded (s : string) : string = call "uri_string" "percent_decode" [ str (sm'::replace "+" " " s) ] |> text
+:= url_decoded (s : string) : string = erlang_text::percent_decoded (sm'::replace "+" " " s)
 
 := pair_value (name : string) (item : string) : option string =
     := k, v = split_once "=" item
@@ -104,32 +104,45 @@
 := listed (name : string) (query : string) : list string =
     first_value name (pieces "&" query) |> pieces "," |> keep (\ s => s <> "")
 
-:== index = dictm::dict string term
+:== index = dict::dict string term
 
-:== write_state = { me : term; created : dictm::dict string (); next_id : i32 }
+:== write_state = { me : term; created : dict::dict string (); next_id : i32 }
 
 :== api_world =
     { token : string; user_token : string; by_handle : index; by_id : index; page_size : i32; by_post : index;
         now : string; raw : term; issued : list string; writes : write_state }
 
-:= writes_of (me : term) (created : dictm::dict string ()) (next_id : i32) : write_state = { me; created; next_id }
+:= writes_of (me : term) (created : dict::dict string ()) (next_id : i32) : write_state = { me; created; next_id }
 
-:= no_writes () : write_state = writes_of (erlang_term::of "") (dictm::empty ()) 9001i32
+:= no_writes () : write_state = writes_of (erlang_term::of "") (dict::empty ()) 9001i32
 
-:= field (key : string) (m : term) : term = call "maps" "get" [ str key; m; str "" ]
+:== fields = erlang_map::erl_map string term
 
-:= items_at (key : string) (m : term) : term = call "maps" "get" [ str key; m; erlang_term::list_term [] ]
+:= fields_of (m : term) : fields = erlang_map::map_view m
 
-:= terms_of (items : term) : list term =
-    := n = call "erlang" "length" [ items ] |> erlang_term::cast
-    listm::init n (\ i => call "lists" "nth" [ int (i + 1i32); items ])
+:== numbers = erlang_map::erl_map string i32
+
+:= numbers_of (m : term) : numbers = erlang_map::map_view m
+
+:= has_key (key : string) (m : term) : bool = fields_of m |> erlang_map::map_has key
+
+:= field_or (key : string) (fallback : term) (m : term) : term = fields_of m |> erlang_map::map_get_or key fallback
+
+:= field (key : string) (m : term) : term = field_or key (str "") m
+
+:= items_at (key : string) (m : term) : term = field_or key (erlang_term::list_term []) m
+
+:= with_field (key : string) (value : term) (m : term) : term =
+    fields_of m |> erlang_map::map_put key value |> erlang_map::map_term
+
+:= terms_of (items : term) : list term = erlang_term::items_of items
 
 := id_text (id : term) : string =
     ? truth (call "erlang" "is_binary" [ id ]) ?> text id |: text (call "erlang" "integer_to_binary" [ id ])
 
 := json_file (path : string) : term = call "json" "decode" [ str (file_system::read_all_text path) ]
 
-:= dir_of (path : string) : string = call "filename" "dirname" [ str path ] |> text
+:= dir_of (path : string) : string = erlang_file::dir_name path
 
 := sibling (path : string) (name : term) : string = dir_of path ++# "/" ++# text name
 
@@ -139,22 +152,22 @@
     := extras = terms_of (items_at "include" w) |> each (\ t => users_in (json_file (sibling path t)))
     listm::append (users_in w) (listm::concat extras)
 
-:= with_author (u : term) (p : term) : term = call "maps" "put" [ str "author_id"; field "id" u; p ]
+:= with_author (u : term) (p : term) : term = with_field "author_id" (field "id" u) p
 
 := post_key (p : term) : string = id_text (field "id" p)
 
 := handle_of (u : term) : string = sm'::to_lower (text (field "username" u))
 
-:~ with_posts (u : term) (posts : dictm::dict string term) : dictm::dict string term =
-    terms_of (items_at "posts" u) |> listm::fold (\ d p => dictm::insert (post_key p) (with_author u p) d) posts
+:~ with_posts (u : term) (posts : dict::dict string term) : dict::dict string term =
+    terms_of (items_at "posts" u) |> listm::fold (\ d p => dict::insert (post_key p) (with_author u p) d) posts
 
 := with_user (w : api_world) (u : term) : api_world =
-    := handles = dictm::insert (handle_of u) u w::by_handle
-    { w ?| by_handle = handles; by_id = dictm::insert (post_key u) u w::by_id; by_post = with_posts u w::by_post }
+    := handles = dict::insert (handle_of u) u w::by_handle
+    { w ?| by_handle = handles; by_id = dict::insert (post_key u) u w::by_id; by_post = with_posts u w::by_post }
 
-:= page_size_of (w : term) : i32 = call "maps" "get" [ str "following_page_size"; w; int 100i32 ] |> erlang_term::cast
+:= page_size_of (w : term) : i32 = numbers_of w |> erlang_map::map_get_or "following_page_size" 100i32
 
-:= fresh () : dictm::dict string term = dictm::empty ()
+:= fresh () : dict::dict string term = dict::empty ()
 
 := blank_world (token : string) (user_token : string) (now : string) : api_world =
     { token; user_token; by_handle = fresh (); by_id = fresh (); page_size = 100i32; by_post = fresh ();
@@ -173,9 +186,9 @@
     := w = json_file path
     included_users path w |> listm::fold with_user (empty_world w)
 
-:= pct (s : string) : string = call "uri_string" "quote" [ str s; erlang_term::charlist "" ] |> text
+:= pct (s : string) : string = erlang_text::percent_encoded s
 
-:= unescaped (s : string) : string = call "uri_string" "percent_decode" [ str s ] |> text
+:= unescaped (s : string) : string = erlang_text::percent_decoded s
 
 := base64_of (bytes : term) : string = call "base64" "encode" [ bytes ] |> text
 
@@ -292,9 +305,9 @@
     := resource = [ ("resource_type", str "user"); ("parameter", str "usernames"); ("type", problem_kind ()) ]
     map_of (listm::append (missing_about handle) resource)
 
-:= known (h : string) (w : api_world) : bool = dictm::has (sm'::to_lower h) w::by_handle
+:= known (h : string) (w : api_world) : bool = dict::has (sm'::to_lower h) w::by_handle
 
-:= user_of (h : string) (w : api_world) : term = dictm::present (sm'::to_lower h) w::by_handle |> public
+:= user_of (h : string) (w : api_world) : term = dict::present (sm'::to_lower h) w::by_handle |> public
 
 := listed_field (key : string) (items : list term) : list (string * term) =
     ?= items ?| [] => [] | _ => [ (key, erlang_term::list_term items) ]
@@ -311,8 +324,8 @@
     map_of (listm::append (listed_field "data" (found_users w handles)) errors)
 
 :~ users_by_ids (w : api_world) (query : string) : term =
-    := ids = listed "ids" query |> keep (\ i => dictm::has i w::by_id)
-    map_of [ ("data", ids |> each (\ i => dictm::present i w::by_id |> public) |> erlang_term::list_term) ]
+    := ids = listed "ids" query |> keep (\ i => dict::has i w::by_id)
+    map_of [ ("data", ids |> each (\ i => dict::present i w::by_id |> public) |> erlang_term::list_term) ]
 
 := problem (status : i32) (title : string) (detail : string) : term =
     := words = [ ("title", str title); ("detail", str detail) ]
@@ -334,8 +347,8 @@
     | _ => []
 
 :~ followed (w : api_world) (u : term) : list term =
-    := ids = terms_of (items_at "following" u) |> each id_text |> keep (\ i => dictm::has i w::by_id)
-    ids |> each (\ i => dictm::present i w::by_id)
+    := ids = terms_of (items_at "following" u) |> each id_text |> keep (\ i => dict::has i w::by_id)
+    ids |> each (\ i => dict::present i w::by_id)
 
 := following_meta (shown : i32) (next : i32) (more : bool) : term =
     := token = ? more ?> [ ("next_token", str ("p" ++# sm'::obj_to_string next)) ] |: []
@@ -402,8 +415,7 @@
     map_of (listm::concat [ asked_fields r; auth; body ])
 
 :~ logged (log : string) (r : request) (kind : string) : () =
-    := line = str (encoded (log_row r kind) ++# "\n")
-    call "file" "write_file" [ str log; line; erlang_term::list_term [ atom "append" ] ] |> ignore
+    erlang_file::file_appended log (encoded (log_row r kind) ++# "\n") |> ignore
 
 :| api_route =
     | UsersBy
@@ -417,9 +429,9 @@
     | Elsewhere
 
 := user_route (w : api_world) (id : string) (rest : string) : api_route =
-    ? not (dictm::has id w::by_id) ?> Elsewhere
-    |? rest = "following" ?> Following (dictm::present id w::by_id)
-    |? rest = "tweets" ?> Timeline (dictm::present id w::by_id) |: Elsewhere
+    ? not (dict::has id w::by_id) ?> Elsewhere
+    |? rest = "following" ?> Following (dict::present id w::by_id)
+    |? rest = "tweets" ?> Timeline (dict::present id w::by_id) |: Elsewhere
 
 := users_route (w : api_world) (parts : list string) : api_route =
     ?= parts ?| "by" :: [] => UsersBy | [] => UsersByIds | id :: rest :: [] => user_route w id rest | _ => Elsewhere
@@ -438,11 +450,7 @@
 
 := json_reply (status : i32) (body : term) : string = response_text status (encoded body)
 
-:= has_key (key : string) (m : term) : bool = truth (call "maps" "is_key" [ str key; m ])
-
-:= field_or (key : string) (fallback : term) (m : term) : term = call "maps" "get" [ str key; m; fallback ]
-
-:= escaped (s : string) : string = s |> sm'::replace "&" "&amp;" |> sm'::replace "<" "&lt;" |> sm'::replace ">" "&gt;"
+:= escaped (s : string) : string = xml::escape_text_xml s
 
 := asked (fields : list string) (name : string) : bool = has (\ f => f = name) fields
 
@@ -490,13 +498,13 @@
 :~ rendered (p : term) (fields : list string) : term =
     map_of (listm::concat [ base_pairs p; simple_pairs p fields; nested_pairs p fields ])
 
-:~ ^ deduped (seen : dictm::dict string ()) (items : list (string * term)) : list term =
+:~ ^ deduped (seen : dict::dict string ()) (items : list (string * term)) : list term =
     ?= items ?|
-    | (k, v) :: rest ?& dictm::has k seen => deduped seen rest
-    | (k, v) :: rest => v :: deduped (dictm::insert k () seen) rest
+    | (k, v) :: rest ?& dict::has k seen => deduped seen rest
+    | (k, v) :: rest => v :: deduped (dict::insert k () seen) rest
     | [] => []
 
-:= unique (items : list (string * term)) : list term = deduped (dictm::empty ()) items
+:= unique (items : list (string * term)) : list term = deduped (dict::empty ()) items
 
 :== expansion_ask = { fields : list string; expansions : list string; media_fields : list string }
 
@@ -504,10 +512,10 @@
     := media_fields = listed "media.fields" query
     { fields = listed "post.fields" query; expansions = listed "expansions" query; media_fields }
 
-:= post_of (w : api_world) (i : string) : term = dictm::present i w::by_post
+:= post_of (w : api_world) (i : string) : term = dict::present i w::by_post
 
 := posts_of (w : api_world) (ids : list string) : list term =
-    ids |> keep (\ i => dictm::has i w::by_post) |> each (post_of w)
+    ids |> keep (\ i => dict::has i w::by_post) |> each (post_of w)
 
 := ref_targets (w : api_world) (p : term) : list term = terms_of (items_at "refs" p) |> each post_key |> posts_of w
 
@@ -515,7 +523,7 @@
 
 :~ data_item (a : expansion_ask) (p : term) : term =
     := item = rendered p a::fields
-    ? expands_refs a p ?> call "maps" "put" [ str "referenced_posts"; items_at "refs" p; item ] |: item
+    ? expands_refs a p ?> with_field "referenced_posts" (items_at "refs" p) item |: item
 
 := targets_of (w : api_world) (a : expansion_ask) (posts : list term) : list term =
     posts |> keep (expands_refs a) |> each (ref_targets w) |> listm::concat
@@ -528,7 +536,7 @@
 := wanted_key (a : expansion_ask) (k : string) : bool = k = "media_key" || asked a::media_fields k
 
 := kept_media (a : expansion_ask) (m : term) : term =
-    := keys = call "maps" "keys" [ m ] |> terms_of |> each text |> keep (wanted_key a)
+    := keys = fields_of m |> erlang_map::map_keys |> keep (wanted_key a)
     map_of (keys |> each (\ k => (k, field k m)))
 
 := media_entries (a : expansion_ask) (p : term) : list (string * term) =
@@ -557,7 +565,7 @@
 := post_missing (id : string) : term = map_of (not_found_post "Could not find post with ids: [" id)
 
 := missing_posts (w : api_world) (ids : list string) : list (string * term) =
-    ids |> keep (\ i => not (dictm::has i w::by_post)) |> each post_missing |> listed_field "errors"
+    ids |> keep (\ i => not (dict::has i w::by_post)) |> each post_missing |> listed_field "errors"
 
 :~ lookup (w : api_world) (query : string) : term =
     := ids = listed "ids" query
@@ -570,7 +578,7 @@
 
 :~ single (w : api_world) (id : string) (query : string) : term =
     := found = \ () => map_of [ ("data", rendered (post_of w id) (listed "post.fields" query)) ]
-    ? dictm::has id w::by_post ?> found () |: single_missing id
+    ? dict::has id w::by_post ?> found () |: single_missing id
 
 := stamp (p : term) : string = cut 0i32 19i32 (text (field "created_at" p))
 
@@ -620,7 +628,7 @@
 
 := protected_body (u : term) : term = map_of [ ("errors", erlang_term::list_term [ protected_entry u ]) ]
 
-:= status_of (key : string) (u : term) : i32 = call "maps" "get" [ str key; u ] |> erlang_term::cast
+:= status_of (key : string) (u : term) : i32 = numbers_of u |> erlang_map::map_get_or key 0i32
 
 := user_problem (u : term) : term =
     problem (status_of "status" u) (text (field "problem_title" u)) (text (field "problem_detail" u))
@@ -662,18 +670,18 @@
 
 := spaced (q : string) : string = q |> sm'::replace "\t" " " |> sm'::replace "\r" " " |> sm'::replace "\n" " "
 
-:= with_term (d : dictm::dict string string) (token : string) : dictm::dict string string =
-    split_once ":" token |> \ (k, v) => dictm::insert k v d
+:= with_term (d : dict::dict string string) (token : string) : dict::dict string string =
+    split_once ":" token |> \ (k, v) => dict::insert k v d
 
-:~ search_terms (query : string) : dictm::dict string string =
+:~ search_terms (query : string) : dict::dict string string =
     := tokens = pieces " " (spaced (query_first "query" "" query)) |> keep (\ s => sm'::index_of ":" s >= 0)
-    tokens |> listm::fold with_term (dictm::empty ())
+    tokens |> listm::fold with_term (dict::empty ())
 
-:= term_or (key : string) (terms : dictm::dict string string) : string =
-    ? dictm::has key terms ?> dictm::present key terms |: ""
+:= term_or (key : string) (terms : dict::dict string string) : string =
+    ? dict::has key terms ?> dict::present key terms |: ""
 
 := author_id_of (w : api_world) (author : string) : string =
-    ? known author w ?> post_key (dictm::present (sm'::to_lower author) w::by_handle) |: author
+    ? known author w ?> post_key (dict::present (sm'::to_lower author) w::by_handle) |: author
 
 :== search_ask = { conversation : string; author : string; oldest : string }
 
@@ -681,9 +689,7 @@
     := mine = s::author = "" || id_text (field "author_id" p) = s::author
     id_text (conversation p) = s::conversation && mine && not_before (stamp p) s::oldest
 
-:= zero_padded (digits : string) : string =
-    := padded = call "string" "pad" [ str digits; int 10i32; atom "leading"; int 48i32 ]
-    call "erlang" "iolist_to_binary" [ padded ] |> text
+:= zero_padded (digits : string) : string = erlang_text::padded_leading 10i32 "0" digits
 
 := id_order (p : term) : string =
     := id = post_key p
@@ -695,7 +701,7 @@
     | _ => p :: sorted
 
 :~ found_posts (w : api_world) (s : search_ask) : list term =
-    := all = w::by_post |> dictm::fold (\ acc _ p => p :: acc) []
+    := all = w::by_post |> dict::fold (\ acc _ p => p :: acc) []
     all |> keep (matches s) |> listm::fold (\ acc p => by_id_desc p acc) []
 
 := edge_meta (page : list term) : list (string * term) =
@@ -721,7 +727,7 @@
     := page = sliced start size found
     map_of (listm::append (search_data page query) (meta_after page (start + size) found))
 
-:= author_of (w : api_world) (terms : dictm::dict string string) : string = author_id_of w (term_or "from" terms)
+:= author_of (w : api_world) (terms : dict::dict string string) : string = author_id_of w (term_or "from" terms)
 
 := search_ask_of (w : api_world) (all : bool) (query : string) : search_ask =
     := terms = search_terms query
@@ -800,11 +806,11 @@
 
 := kept (w : api_world) (status : i32) (body : term) : string * api_world = json_reply status body, w
 
-:= empty_map () : term = call "maps" "new" []
+:= empty_map () : term = (erlang_map::map_new () : fields) |> erlang_map::map_term
 
 := json_body (r : request) : term = ? body_of r = "" ?> empty_map () |: call "json" "decode" [ str (body_of r) ]
 
-:= trimmed_end (s : string) : string = call "string" "trim" [ str s; atom "trailing" ] |> text
+:= trimmed_end (s : string) : string = erlang_text::trimmed_trailing s
 
 := sent_text (b : term) : string = trimmed_end (text (field_or "text" (str "") b))
 
@@ -815,8 +821,7 @@
 := stamp_after (w : api_world) (n : i32) : string =
     cut 0i32 19i32 (rfc3339_of (call "erlang" "+" [ seconds_of w::now; int n ])) ++# ".000Z"
 
-:= stored_map (pairs : list (string * term)) : term =
-    call "maps" "from_list" [ pairs |> each (\ (k, v) => erlang_term::tuple [ str k; v ]) |> erlang_term::list_term ]
+:= stored_map (pairs : list (string * term)) : term = erlang_map::map_of_pairs pairs |> erlang_map::map_term
 
 := replied_ref (parent : string) : term = stored_map [ ("type", str "replied_to"); ("id", str parent) ]
 
@@ -826,7 +831,7 @@
     ? parent = "" ?> str id |: field_or "conversation_id" (str parent) (post_of w parent)
 
 := created_head (w : api_world) (id : string) (t : string) : list (string * term) =
-    := made = str (stamp_after w (dictm::size w::writes::created))
+    := made = str (stamp_after w (dict::size w::writes::created))
     [ ("id", str id); ("text", str t); ("author_id", w::writes::me); ("created_at", made) ]
 
 :~ created_post (w : api_world) (id : string) (t : string) (parent : string) : term =
@@ -840,11 +845,11 @@
 
 := counted (w : api_world) (id : string) : api_world =
     := ws = w::writes
-    { w ?| writes = writes_of ws::me (dictm::insert id () ws::created) (ws::next_id + 1i32) }
+    { w ?| writes = writes_of ws::me (dict::insert id () ws::created) (ws::next_id + 1i32) }
 
 := with_created (w : api_world) (id : string) (t : string) (parent : string) : api_world =
     := w' = counted w id
-    { w' ?| by_post = dictm::insert id (created_post w' id t parent) w'::by_post }
+    { w' ?| by_post = dict::insert id (created_post w' id t parent) w'::by_post }
 
 :~ posted (w : api_world) (t : string) (parent : string) : string * api_world =
     := id = sm'::obj_to_string w::writes::next_id
@@ -855,7 +860,7 @@
 := bad_parent (parent : string) : term =
     problem 400i32 "Invalid Request" ("in_reply_to_tweet_id " ++# parent ++# " does not exist")
 
-:= orphan (w : api_world) (parent : string) : bool = parent <> "" && not (dictm::has parent w::by_post)
+:= orphan (w : api_world) (parent : string) : bool = parent <> "" && not (dict::has parent w::by_post)
 
 := too_heavy (t : string) : bool = t = "" || splitter::x_weight t > splitter::post_limit ()
 
@@ -871,12 +876,12 @@
     problem 404i32 "Not Found Error" ("Could not find post with id: [" ++# id ++# "].")
 
 := dropped (w : api_world) (id : string) : api_world =
-    := writes = writes_of w::writes::me (dictm::remove id w::writes::created) w::writes::next_id
-    { w ?| writes = writes; by_post = dictm::remove id w::by_post }
+    := writes = writes_of w::writes::me (dict::remove id w::writes::created) w::writes::next_id
+    { w ?| writes = writes; by_post = dict::remove id w::by_post }
 
 :~ removed (w : api_world) (id : string) : string * api_world =
     := deleted = \ () => (json_reply 200i32 (deleted_body ()), dropped w id)
-    ? dictm::has id w::writes::created ?> deleted () |: kept w 404i32 (missing_created id)
+    ? dict::has id w::writes::created ?> deleted () |: kept w 404i32 (missing_created id)
 
 := delete_target (r : request) : option string =
     ?= pieces "/" r::path ?| "" :: "2" :: "tweets" :: id :: [] ?& r::method = "DELETE" => Some id | _ => None
@@ -898,8 +903,7 @@
     | _ => user_write w r who
 
 := noted (r : request) : () =
-    := line = str ("xsim serve / answered " ++# r::method ++# " " ++# r::path ++# "\n")
-    call "io" "put_chars" [ atom "standard_error"; line ] |> ignore
+    erlang_file::put_error_text ("xsim serve / answered " ++# r::method ++# " " ++# r::path ++# "\n")
 
 :~ reply_as \* c. (w : api_world) (log : string) (r : request) (who : caller c) : string * api_world =
     logged log r (caller_word who)

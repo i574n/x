@@ -4,7 +4,17 @@ import gleam/pair
 import gleam/result
 import gleam/string
 import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Us11, Uh0Cons, Uh0Nil, Uh1Cons, Uh1Nil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Uh5Nil, Us10PlainRow, Us10TallyRow, Us11None, Us11Some, Us1None, Us1Some, Us2None, Us2Some, Us5BrokenId, Us5Evicting, Us5Result, Us5Visible, Us5Wanted, Us6None, Us6Some, Us7Cancelled, Us7Evicted, Us7Started, Us8None, Us8Some, Us9None, Us9Some}
-import xsim_frames/part1.{closure1, count_at_16, digits_end_9, fields_from_6, method17, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, text_at_13}
+import xsim_frames/part1.{closure1, count_at_16, digits_end_9, fields_from_6, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, text_at_13}
+
+pub fn method17(v0: Uh0, v1: Uh0) -> Uh0 {
+    case v0  {
+        Uh0Cons(v2, v3, v4, v5, v6) -> {
+            let v7 = method17(v6, v1)
+            Uh0Cons(v2, v3, v4, v5, v7)
+        }
+        Uh0Nil -> v1
+    }
+}
 
 pub fn method18(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
@@ -926,21 +936,5 @@ pub fn method42(v0: String, v1: fn(#(String, String)) -> Bool, v2: Uh1) -> Bool 
             }
         }
         Uh1Nil -> False
-    }
-}
-
-pub fn method40(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool, v7: Uh3, v8: Uh3) -> Uh3 {
-    case v7  {
-        Uh3Cons(v9, v10) -> {
-            let v11 = method40(v0, v1, v2, v3, v4, v5, v6, v10, v8)
-            let v12 = method41(v9)
-            let v13 = method42(v9, v12, v1)
-            let v14 = v13 == False
-            case v14 {
-                True -> Uh3Cons(v9, v11)
-                False -> v11
-            }
-        }
-        Uh3Nil -> v8
     }
 }

@@ -226,22 +226,18 @@ pub fn method56(v0: Uh2, v1: Int) -> Int {
 pub fn closure7(capt: #(Us0)) -> fn(String) -> Int {
     fn (v1) {
         let #(v0) = capt
-        let v13 =
+        let v2 = units_on_46(v0, v1)
+        let v9 =
             case v0  {
-                Us0OnBluesky(v8, v9) -> units_on_46(v0, v1)
+                Us0OnBluesky(v5, v6) -> v2
                 Us0OnMastodon -> {
-                    let v4 = Us0OnMastodon
-                    let v5 = units_on_46(v4, v1)
-                    let v6 = Uh2Nil
-                    linked_50(v5, v6)
+                    let v3 = Uh2Nil
+                    linked_50(v2, v3)
                 }
-                Us0OnX -> {
-                    let v2 = Us0OnX
-                    units_on_46(v2, v1)
-                }
+                Us0OnX -> v2
             }
-        let v14 = 0
-        method56(v13, v14)
+        let v10 = 0
+        method56(v9, v10)
     }
 }
 
@@ -506,21 +502,17 @@ pub fn split_units_57(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh2) -> Li
 pub fn split_cell_on_45(v0: Us0, v1: String, v2: Int, v3: String) -> ListString {
     let v4 = closure7(#(v0))
     let v5 = unicode_erlang_nfc(v3)
-    let v17 =
+    let v6 = units_on_46(v0, v5)
+    let v13 =
         case v0  {
-            Us0OnBluesky(v12, v13) -> units_on_46(v0, v5)
+            Us0OnBluesky(v9, v10) -> v6
             Us0OnMastodon -> {
-                let v8 = Us0OnMastodon
-                let v9 = units_on_46(v8, v5)
-                let v10 = Uh2Nil
-                linked_50(v9, v10)
+                let v7 = Uh2Nil
+                linked_50(v6, v7)
             }
-            Us0OnX -> {
-                let v6 = Us0OnX
-                units_on_46(v6, v5)
-            }
+            Us0OnX -> v6
         }
-    split_units_57(v2, v1, v4, v17)
+    split_units_57(v2, v1, v4, v13)
 }
 
 pub fn split_cell_0(v0: String, v1: Int, v2: String) -> ListString {
@@ -942,4 +934,16 @@ pub fn closure13(capt: Nil) -> fn(String) -> ListString {
         let v3 = Uh4Nil
         thread_of_74(v1, v2, v3)
     }
+}
+
+pub fn main() {
+    let _v0 = closure0(Nil)
+    let _ = Nil
+    let _v1 = closure11(Nil)
+    let _ = Nil
+    let _v2 = closure12(Nil)
+    let _ = Nil
+    let _v3 = closure13(Nil)
+    let _ = Nil
+    0
 }

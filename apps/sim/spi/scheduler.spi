@@ -1,4 +1,4 @@
-///- --package .
+///- --package . --timeout 600000
 ///> rust -d sha2
 ///> gleam
 :# scheduler static =
@@ -31,18 +31,18 @@
     | CancelTask : string
 
 :== task_work =
-    { running : dictm::dict string (list string); queue : list string; results : dictm::dict string task_result }
+    { running : dict::dict string (list string); queue : list string; results : dict::dict string task_result }
 
 :== owner_map =
     {
-        refs : dictm::dict string i32
-        post_key : dictm::dict string string
-        owner : dictm::dict string string
+        refs : dict::dict string i32
+        post_key : dict::dict string string
+        owner : dict::dict string string
     }
 
-:== life_cycle = { doomed : dictm::dict string i32; clock : i32 }
+:== life_cycle = { doomed : dict::dict string i32; clock : i32 }
 
-:== counts = dictm::dict string i32
+:== counts = dict::dict string i32
 
 :== run_counts =
     { starts : counts; cancelled : counts; evicted : counts; cancels : i32; rescues : i32; recomputes : i32;
@@ -50,27 +50,27 @@
 
 :== scheduler =
     { in_box : inbox; task_work : task_work; owner_map : owner_map; life_cycle : life_cycle; run_counts : run_counts;
-        visible_map : dictm::dict string visible_entry; faults : fault_set; out_commands : list task_command }
+        visible_map : dict::dict string visible_entry; faults : fault_set; out_commands : list task_command }
 
 := no_counts () : run_counts =
-    { starts = dictm::empty (); cancelled = dictm::empty (); evicted = dictm::empty (); cancels = 0i32; rescues = 0i32
+    { starts = dict::empty (); cancelled = dict::empty (); evicted = dict::empty (); cancels = 0i32; rescues = 0i32
         recomputes = 0i32; peak_inflight = 0i32; peak_results = 0i32 }
 
-:= no_work () : task_work = { running = dictm::empty (); queue = []; results = dictm::empty () }
+:= no_work () : task_work = { running = dict::empty (); queue = []; results = dict::empty () }
 
-:= no_owners () : owner_map = { refs = dictm::empty (); post_key = dictm::empty (); owner = dictm::empty () }
+:= no_owners () : owner_map = { refs = dict::empty (); post_key = dict::empty (); owner = dict::empty () }
 
-:= no_life () : life_cycle = { doomed = dictm::empty (); clock = 0i32 }
+:= no_life () : life_cycle = { doomed = dict::empty (); clock = 0i32 }
 
 := new_scheduler (f : fault_set) : scheduler =
     { in_box = new_inbox (); task_work = no_work (); owner_map = no_owners (); life_cycle = no_life ()
-        run_counts = no_counts (); visible_map = dictm::empty (); faults = f; out_commands = [] }
+        run_counts = no_counts (); visible_map = dict::empty (); faults = f; out_commands = [] }
 
 := counted_with (bump : run_counts -> run_counts) (s : scheduler) : scheduler =
     { s ?| run_counts = bump s::run_counts }
 
-:= bumped (key : string) (d : dictm::dict string i32) : dictm::dict string i32 =
-    dictm::updated key 0i32 (\ n => n + 1i32) d
+:= bumped (key : string) (d : dict::dict string i32) : dict::dict string i32 =
+    dict::updated key 0i32 (\ n => n + 1i32) d
 
 := with_work (g : task_work -> task_work) (s : scheduler) : scheduler = { s ?| task_work = g s::task_work }
 
@@ -82,69 +82,69 @@
 
 := result_evicted (key : string) (s : scheduler) : scheduler =
     s
-    |> with_work (\ w => { w ?| results = dictm::remove key w::results })
+    |> with_work (\ w => { w ?| results = dict::remove key w::results })
     |> counted_with \ c => { c ?| evicted = bumped key c::evicted }
 
 := evicted_key (key : string) (s : scheduler) : scheduler =
-    ? dictm::has key s::task_work::results |> not ?> s |: result_evicted key s
+    ? dict::has key s::task_work::results |> not ?> s |: result_evicted key s
 
 := doomed_key (key : string) (s : scheduler) : scheduler =
     ?= s::faults::eviction ?|
     | NoEviction => s
     | EvictNow => evicted_key key s
-    | EvictAfter n => s |> with_life (\ l => { l ?| doomed = dictm::insert key (l::clock + n) l::doomed })
+    | EvictAfter n => s |> with_life (\ l => { l ?| doomed = dict::insert key (l::clock + n) l::doomed })
 
 := due_keys (all : bool) (l : life_cycle) : list string =
-    dictm::keys l::doomed |> keep (\ k => all || dictm::present k l::doomed <= l::clock)
+    dict::keys l::doomed |> keep (\ k => all || dict::present k l::doomed <= l::clock)
 
 := undoomed (due : list string) (l : life_cycle) : life_cycle =
-    { l ?| doomed = due |> listm::fold (\ d k => dictm::remove k d) l::doomed }
+    { l ?| doomed = due |> listm::fold (\ d k => dict::remove k d) l::doomed }
 
 := evicted_unless_held (s : scheduler) (k : string) : scheduler =
-    ? dictm::has k s::owner_map::refs ?> s |: evicted_key k s
+    ? dict::has k s::owner_map::refs ?> s |: evicted_key k s
 
 := expired (all : bool) (s : scheduler) : scheduler =
     := due = due_keys all s::life_cycle
     due |> listm::fold evicted_unless_held (s |> with_life (undoomed due))
 
 := rescue_counted (key : string) (s : scheduler) : scheduler =
-    ? dictm::has key s::task_work::results ?> s |> counted_with (\ c => { c ?| rescues = c::rescues + 1i32 }) |: s
+    ? dict::has key s::task_work::results ?> s |> counted_with (\ c => { c ?| rescues = c::rescues + 1i32 }) |: s
 
 := rescued (key : string) (s : scheduler) : scheduler =
-    ? dictm::has key s::life_cycle::doomed |> not ?> s
-    |: s |> with_life (\ l => { l ?| doomed = dictm::remove key l::doomed }) |> rescue_counted key
+    ? dict::has key s::life_cycle::doomed |> not ?> s
+    |: s |> with_life (\ l => { l ?| doomed = dict::remove key l::doomed }) |> rescue_counted key
 
 := cancelled_task (key : string) (s : scheduler) : scheduler =
-    s |> with_work (\ w => { w ?| running = dictm::remove key w::running }) |> emitted (CancelTask key)
+    s |> with_work (\ w => { w ?| running = dict::remove key w::running }) |> emitted (CancelTask key)
     |> counted_with (\ c => { c ?| cancels = c::cancels + 1i32; cancelled = bumped key c::cancelled })
 
 := dropped_ref (key : string) (s : scheduler) : scheduler =
     s
-    |> with_owners (\ o => { o ?| refs = dictm::remove key o::refs })
+    |> with_owners (\ o => { o ?| refs = dict::remove key o::refs })
     |> with_work \ w => { w ?| queue = w::queue |> keep \ q => q <> key }
 
 := unreferenced (key : string) (s : scheduler) : scheduler =
     := s = dropped_ref key s |> doomed_key key
-    ? s::faults::cancel && dictm::has key s::task_work::running ?> cancelled_task key s |: s
+    ? s::faults::cancel && dict::has key s::task_work::running ?> cancelled_task key s |: s
 
 := released_key (key : string) (s : scheduler) : scheduler =
-    := n = dictm::present key s::owner_map::refs - 1i32
-    ? n > 0i32 ?> s |> with_owners (\ o => { o ?| refs = dictm::insert key n o::refs }) |: unreferenced key s
+    := n = dict::present key s::owner_map::refs - 1i32
+    ? n > 0i32 ?> s |> with_owners (\ o => { o ?| refs = dict::insert key n o::refs }) |: unreferenced key s
 
 := queued_has (key : string) (s : scheduler) : bool = has (\ q => q = key) s::task_work::queue
 
 := idle_key (key : string) (s : scheduler) : bool =
-    not (dictm::has key s::task_work::results || dictm::has key s::task_work::running || queued_has key s)
+    not (dict::has key s::task_work::results || dict::has key s::task_work::running || queued_has key s)
 
 := enqueued (key : string) (s : scheduler) : scheduler =
     := s = s |> with_work (\ w => { w ?| queue = listm::append w::queue [ key ] })
-    ? dictm::has key s::run_counts::evicted ?> s |> counted_with \ c => { c ?| recomputes = c::recomputes + 1i32 }
+    ? dict::has key s::run_counts::evicted ?> s |> counted_with \ c => { c ?| recomputes = c::recomputes + 1i32 }
     |: s
 
-:= ref_count (key : string) (s : scheduler) : i32 = ?= dictm::find key s::owner_map::refs ?| Some x => x | None => 0i32
+:= ref_count (key : string) (s : scheduler) : i32 = ?= dict::find key s::owner_map::refs ?| Some x => x | None => 0i32
 
 := owned_by (key : string) (id : string) (n : i32) (o : owner_map) : owner_map =
-    { o ?| refs = dictm::insert key n o::refs; owner = dictm::insert key id o::owner }
+    { o ?| refs = dict::insert key n o::refs; owner = dict::insert key id o::owner }
 
 := acquired_key (key : string) (id : string) (s : scheduler) : scheduler =
     := n = ref_count key s + 1i32
@@ -159,8 +159,8 @@
 
 := with_post_key (id : string) (k : option string) (o : owner_map) : owner_map =
     ?= k ?|
-    | Some key => { o ?| post_key = dictm::insert id key o::post_key }
-    | None => { o ?| post_key = dictm::remove id o::post_key }
+    | Some key => { o ?| post_key = dict::insert id key o::post_key }
+    | None => { o ?| post_key = dict::remove id o::post_key }
 
 := released_old (old : option string) (s : scheduler) : scheduler = ?= old ?| Some k => released_key k s | None => s
 
@@ -171,31 +171,31 @@
     s |> with_owners (with_post_key id next) |> released_old old |> acquired_next next id
 
 := retargeted (s : scheduler) (id : string) : scheduler =
-    := old = dictm::find id s::owner_map::post_key
+    := old = dict::find id s::owner_map::post_key
     := next = wanted_key s::in_box id
     ? same_key old next ?> s |: moved_target s id old next
 
 := rerun_due (s : scheduler) (k : string) : bool =
-    dictm::has k s::task_work::results && not (dictm::has k s::task_work::running || queued_has k s)
+    dict::has k s::task_work::results && not (dict::has k s::task_work::running || queued_has k s)
 
 := requeued_completed (s : scheduler) : scheduler =
-    := again = dictm::keys s::owner_map::refs |> keep (rerun_due s)
+    := again = dict::keys s::owner_map::refs |> keep (rerun_due s)
     s |> with_work (\ w => { w ?| queue = listm::append w::queue again })
 
 := running_one (key : string) (id : string) (s : scheduler) : scheduler =
-    s |> with_work (\ w => { w ?| running = dictm::insert key [ id ] w::running })
+    s |> with_work (\ w => { w ?| running = dict::insert key [ id ] w::running })
 
 := start_command (key : string) (id : string) (s : scheduler) : task_command =
     StartTask { key; sources = sources s::in_box id }
 
 := started_one (key : string) (s : scheduler) : scheduler =
-    := id = dictm::present key s::owner_map::owner
+    := id = dict::present key s::owner_map::owner
     := s = running_one key id s
     s |> counted_with (\ c => { c ?| starts = bumped key c::starts }) |> emitted (start_command key id s)
 
 :~ ^ started_queued (s : scheduler) : scheduler =
     ?= s::task_work::queue ?|
-    | key :: rest ?& dictm::size s::task_work::running < s::faults::limit =>
+    | key :: rest ?& dict::size s::task_work::running < s::faults::limit =>
         s |> with_work (\ w => { w ?| queue = rest }) |> started_one key |> started_queued
     | _ => s
 
@@ -204,7 +204,7 @@
         peak_results = ? r > c::peak_results ?> r |: c::peak_results }
 
 := with_peak (s : scheduler) : scheduler =
-    s |> counted_with (peaked (dictm::size s::task_work::running) (dictm::size s::task_work::results))
+    s |> counted_with (peaked (dict::size s::task_work::running) (dict::size s::task_work::results))
 
 := reconciled_with (rerun : bool) (s : scheduler) : scheduler =
     := dirty, b = dirty_taken s::in_box
@@ -216,19 +216,19 @@
 
 := drained (s : scheduler) : scheduler = reconciled_with !- s
 
-:== visible_by_id = dictm::dict string visible_entry
+:== visible_by_id = dict::dict string visible_entry
 
 := shown_for (key : string) (r : task_result) (owners : list string) (v : visible_by_id) : visible_by_id =
-    owners |> listm::fold (\ v id => dictm::insert id { key; result = r } v) v
+    owners |> listm::fold (\ v id => dict::insert id { key; result = r } v) v
 
 := work_finished (key : string) (r : task_result) (w : task_work) : task_work =
-    { w ?| running = dictm::remove key w::running; results = dictm::insert key r w::results }
+    { w ?| running = dict::remove key w::running; results = dict::insert key r w::results }
 
 := shown_if_naive (key : string) (r : task_result) (owners : list string) (s : scheduler) : scheduler =
     ? s::faults::naive ?> { s ?| visible_map = shown_for key r owners s::visible_map } |: s
 
 := finished_task (key : string) (r : task_result) (s : scheduler) : scheduler =
-    ?= dictm::find key s::task_work::running ?|
+    ?= dict::find key s::task_work::running ?|
     | Some owners => s |> with_work (work_finished key r) |> shown_if_naive key r owners
     | None => s
 
@@ -239,13 +239,13 @@
     |> reconciled
 
 := result_shown (s : scheduler) (v : visible_by_id) (id : string) (key : string) : visible_by_id =
-    ?= dictm::find key s::task_work::results ?|
-    | Some r => dictm::insert id { key; result = r } v
+    ?= dict::find key s::task_work::results ?|
+    | Some r => dict::insert id { key; result = r } v
     | None => v
 
 := settled_view (s : scheduler) : scheduler =
-    ? dictm::size s::visible_map > 0i32 ?> s
-    |: { s ?| visible_map = wanted_keys s::in_box |> dictm::fold (result_shown s) (dictm::empty ()) }
+    ? dict::size s::visible_map > 0i32 ?> s
+    |: { s ?| visible_map = wanted_keys s::in_box |> dict::fold (result_shown s) (dict::empty ()) }
 
 := commands_taken (s : scheduler) : list task_command * scheduler =
     listm::rev s::out_commands, { s ?| out_commands = [] }
@@ -289,14 +289,14 @@
     |> settled_view
 
 := visible_out (s : scheduler) (id : string) : string =
-    ?= dictm::find id s::visible_map ?|
+    ?= dict::find id s::visible_map ?|
     | Some e => e::result::out
     | None => "-"
 
 := liked_post (id : string) : list delivery = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u" ]
 
 := computed_once_shape (id : string) (s : scheduler) : i32 * string * i32 =
-    dictm::size s::run_counts::starts, visible_out s id, sm'::length (visible_out s id)
+    dict::size s::run_counts::starts, visible_out s id, sm'::length (visible_out s id)
 
 :# a_liked_post_is_computed_once =
     := ~id = "p0"
@@ -306,7 +306,7 @@
 :# withdrawn_demand_cancels_the_running_task =
     := ~id = "p0"
     := s = deferred_run (plain_faults ()) [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u" ]
-    (s::run_counts::cancels, dictm::size s::visible_map) |> _assert_eq (1i32, 0i32)
+    (s::run_counts::cancels, dict::size s::visible_map) |> _assert_eq (1i32, 0i32)
 
 := same_source_roots (a : string) : list delivery =
     [ post_at 0i32 a None "x"; post_at 1i32 "b" None "x"; like_at 2i32 a "u"; like_at 3i32 "b" "u" ]
@@ -314,7 +314,7 @@
 :# same_source_roots_share_one_task =
     := ~a = "a"
     := s = sync_run (plain_faults ()) (same_source_roots a)
-    (dictm::size s::run_counts::starts, visible_out s a = visible_out s "b") |> _assert_eq (1i32, !+)
+    (dict::size s::run_counts::starts, visible_out s a = visible_out s "b") |> _assert_eq (1i32, !+)
 
 := evict_now () : fault_set =
     := plain = plain_faults ()
@@ -324,7 +324,7 @@
     [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u"; like_at 3i32 id "u" ]
 
 := recompute_shape (id : string) (s : scheduler) : i32 * i32 =
-    s::run_counts::recomputes, dictm::present (dictm::present id s::owner_map::post_key) s::run_counts::evicted
+    s::run_counts::recomputes, dict::present (dict::present id s::owner_map::post_key) s::run_counts::evicted
 
 :# eviction_then_relike_recomputes =
     := ~id = "p0"
@@ -343,7 +343,7 @@
     cmds |> listm::fold crash_finished s |> drained |> expired !+ |> settled_view
 
 := crash_out (s : scheduler) (id : string) : string =
-    ?= dictm::find id s::visible_map ?|
+    ?= dict::find id s::visible_map ?|
     | Some e =>
         ?= e::result::status ?|
         | Crashed => e::result::out
@@ -353,4 +353,4 @@
 :# a_crashed_task_is_a_visible_crash_result =
     := ~id = "p0"
     := s = crashed_run id
-    (crash_out s id, dictm::size s::run_counts::starts) |> _assert_eq ("boom", 1i32)
+    (crash_out s id, dict::size s::run_counts::starts) |> _assert_eq ("boom", 1i32)

@@ -51,7 +51,7 @@ pub fn rekeyed_256(v0: String, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(
             _ -> {
                 let #(v40, v41, v42) =
                     case v33  {
-                        Us55None -> panic as "dictm.present: the key is not in the dict"
+                        Us55None -> panic as "dict.present: the key is not in the dict"
                         _ -> panic as "spiral: union case ruled out by partial evaluation"
                     }
                 #(v40, v41, v42)
@@ -74,7 +74,7 @@ pub fn rekeyed_256(v0: String, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(
                         Us56Ok(v51) -> Us2Some(v51)
                     }
                 case v55  {
-                    Us2None -> panic as "dictm.present: the key is not in the dict"
+                    Us2None -> panic as "dict.present: the key is not in the dict"
                     Us2Some(v56) -> v56
                 }
             }
@@ -104,7 +104,7 @@ pub fn rekeyed_256(v0: String, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(
         }
     let v86 =
         case v82  {
-            Us2None -> panic as "dictm.present: the key is not in the dict"
+            Us2None -> panic as "dict.present: the key is not in the dict"
             Us2Some(v83) -> v83
         }
     let v87 = unicode_erlang_characters_to_binary([0])
@@ -616,7 +616,7 @@ pub fn method273(v0: dict.Dict(String, Int), v1: Int, v2: Uh3, v3: Uh3) -> Uh3 {
                 }
             let v19 =
                 case v15  {
-                    Us3None -> panic as "dictm.present: the key is not in the dict"
+                    Us3None -> panic as "dict.present: the key is not in the dict"
                     Us3Some(v16) -> v16
                 }
             let v20 = v19 <= v1

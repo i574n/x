@@ -1,4 +1,4 @@
-///- --package .
+///- --package . --timeout 600000
 ///> gleam
 :# memory_watch static =
     :< testing
