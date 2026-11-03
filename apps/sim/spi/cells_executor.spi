@@ -66,15 +66,18 @@
 
 := term_length (l : term) : i32 = erlang_term::apply "erlang" "length" [ l ] |> erlang_term::cast
 
-:= flag_count (flags : term) (flag : string) : i32 =
-    := wanted = \ (f : term) => erlang_term::equal f (erlang_term::atom flag)
-    term_length (erlang_term::apply "lists" "filter" [ erlang_term::of wanted; flags ])
+:= flag_count (flags : list term) (flag : string) : i32 =
+    listm::fold (\ n f => ? erlang_term::equal f (erlang_term::atom flag) ?> n + 1i32 |: n) 0i32 flags
 
 := counter_added (tally : term) (slot : i32) (n : i32) : () =
     erlang_term::apply "counters" "add" [ tally; erlang_term::of slot; erlang_term::of n ] |> ignore
 
+:= memo_flags (result : term) : list term =
+    := memo : erlang_map::erl_map term term = erlang_map::map_view (at "memo" result (erlang_term::apply "maps" "new" []))
+    erlang_map::map_values memo
+
 := memo_counted (tally : term) (result : term) : () =
-    := flags = erlang_term::apply "maps" "values" [ at "memo" result (erlang_term::apply "maps" "new" []) ]
+    := flags = memo_flags result
     counter_added tally 1i32 (flag_count flags "hit")
     counter_added tally 2i32 (flag_count flags "miss")
 
@@ -85,8 +88,7 @@
     := total = erlang_term::apply "erlang" "memory" [ erlang_term::atom "total" ]
     erlang_term::apply "erlang" "div" [ total; erlang_term::of 1048576i32 ] |> erlang_term::cast
 
-:= clock_ms () : i32 =
-    erlang_term::apply "erlang" "monotonic_time" [ erlang_term::atom "millisecond" ] |> erlang_term::cast
+:= clock_ms () : i32 = conv (date_time::monotonic_milliseconds ())
 
 := memo_counts (tally : term) : i32 * i32 = counter_at tally 1i32, counter_at tally 2i32
 
@@ -254,19 +256,19 @@
     | Some (key, from, r) => collected reply 0i32 (finished_in a key from r)
     | None => a
 
-:= now_ms () : term = erlang_term::apply "erlang" "monotonic_time" [ erlang_term::atom "millisecond" ]
+:! deadline_ms = i64
 
-:= deadline_after (ms : i32) : term = erlang_term::apply "erlang" "+" [ now_ms (); erlang_term::of ms ]
+:= deadline_after (ms : i32) : deadline_ms = deadline_ms (date_time::monotonic_milliseconds () + conv ms)
 
-:= left_until (deadline : term) : i32 =
-    := left = erlang_term::apply "erlang" "-" [ deadline; now_ms () ]
-    erlang_term::apply "erlang" "max" [ erlang_term::of 0i32; left ] |> erlang_term::cast
+:= left_until ((deadline_ms at) : deadline_ms) : i32 =
+    := left = at - date_time::monotonic_milliseconds ()
+    conv (? left > 0i64 ?> left |: 0i64)
 
-:= next_reply (reply : reply_to) (deadline : term) (a : async_state) : option task_reply =
+:= next_reply (reply : reply_to) (deadline : deadline_ms) (a : async_state) : option task_reply =
     ? dict::size a::pids = 0i32 ?> None
     |: erlang_process::receive_within reply (left_until deadline) |> erlang_process::receipt_value
 
-:~ ^ harvested (reply : reply_to) (deadline : term) (a : async_state) : async_state =
+:~ ^ harvested (reply : reply_to) (deadline : deadline_ms) (a : async_state) : async_state =
     ?= next_reply reply deadline a ?|
     | Some (key, from, r) => harvested reply deadline (finished_in a key from r)
     | None => a
@@ -419,7 +421,7 @@
     (first::out, second::out) |> _assert_eq (fake_out a, fake_out a ++# fake_out a)
 
 :# memo_flags_are_counted_per_kind =
-    := flags = erlang_term::list_term [ erlang_term::atom "hit"; erlang_term::atom "miss"; erlang_term::atom "hit" ]
+    := flags = [ erlang_term::atom "hit"; erlang_term::atom "miss"; erlang_term::atom "hit" ]
     (flag_count flags "hit", flag_count flags "miss") |> _assert_eq (2i32, 1i32)
 
 :# the_daemon_line_matches_the_elixir_format =

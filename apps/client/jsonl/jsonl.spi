@@ -8,7 +8,7 @@
 :< protocol
 :< posts
 
-:= quoted (s : string) : string = $'Rc::<str>::from(serde_json::Value::from(&*!s).to_string())'
+:= quoted (s : string) : string = json::quote s
 
 := ref_json (r : reference) : string =
     "{\"type\":" ++# quoted (ref_word r::kind) ++# ",\"id\":" ++# quoted (post_text r::id) ++# "}"
