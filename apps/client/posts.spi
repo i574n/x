@@ -36,7 +36,19 @@
     | last :: _ => same_post last f::id
     | [] => !+
 
-:== medium = { media_key : string; kind : string; alt_text : string }
+:| media_kind =
+    | Photo
+    | Video
+    | AnimatedGif
+    | UnknownMedia : string
+
+:= media_kind_of (raw : string) : media_kind =
+    ? raw = "photo" ?> Photo |? raw = "video" ?> Video |? raw = "animated_gif" ?> AnimatedGif |: UnknownMedia raw
+
+:= media_kind_text (k : media_kind) : string =
+    ?= k ?| Photo => "photo" | Video => "video" | AnimatedGif => "animated_gif" | UnknownMedia raw => raw
+
+:== medium = { media_key : string; kind : media_kind; alt_text : string }
 
 :== public_metrics = { reply_count : i32; repost_count : i32; like_count : i32 }
 
@@ -54,6 +66,135 @@
 
 := empty_pool () : pool = { posts = []; media = []; users = [] }
 
+/// ## archive records: provenance and removal sit beside a post, keyed by its id
+:| provenance =
+    | Live
+    | WaybackApiJson
+    | WaybackHtml
+
+:| removal =
+    | NotRemoved
+    | Suspended
+    | DeletedByAuthor
+    | AccountGone
+    | Protected
+    | OtherRemoval : string
+
+/// ## survival: where each copy was seen, and what became of the post (refines archival)
+:| seen_at =
+    | SeenLive
+    | SeenWayback : string
+
+:== seen = list seen_at
+
+:| fate =
+    | Standing
+    | Removed : removal
+    | Lost : string
+
+:| observation =
+    | Observed
+    | Inferred
+
+:== archival =
+    {
+        id : post_id
+        seen : seen
+        observed : observation
+        fate : fate
+        utc : i64
+    }
+
+:= removal_named (text : string) : removal =
+    ? sm'::contains "suspended" text ?> Suspended
+    |? sm'::contains "deleted by" text ?> DeletedByAuthor
+    |? sm'::contains "no longer exists" text ?> AccountGone
+    |: OtherRemoval text
+
+:= removal_of (text : string) : removal =
+    ? text = "" ?> NotRemoved |? sm'::contains "limits who can view" text ?> Protected |: removal_named text
+
+///> zig
+:# media_kinds_round_trip_their_api_text =
+    [ "photo"; "video"; "animated_gif"; "gif_v2" ] |> listm::map (\ r => media_kind_text (media_kind_of r))
+    |> _assert_eq [ "photo"; "video"; "animated_gif"; "gif_v2" ]
+
+///> zig
+:# x_removal_notices_map_to_reasons =
+    := texts = [ "This Post is from a suspended account."; "This Post was deleted by the Post author." ]
+    listm::map removal_of texts |> _assert_eq [ Suspended; DeletedByAuthor ]
+
+///> zig
+:# other_removal_notices_map_to_reasons =
+    := texts = [ ""; "account that no longer exists."; "owner limits who can view their Posts."; "?" ]
+    listm::map removal_of texts |> _assert_eq [ NotRemoved; AccountGone; Protected; OtherRemoval "?" ]
+
+/// ## raw archival fields -> the typed survival model (the ndjson -> spi mapping)
+:= seen_of (sources : list string) (capture : string) : seen =
+    sources |> spread (\ s => ? s = "live" ?> [ SeenLive ] |? s = "wayback" ?> [ SeenWayback capture ] |: [])
+
+:= observation_of (inferred : bool) : observation = ? inferred ?> Inferred |: Observed
+
+:= fate_of (kind : string) (lost : string) (removed : string) (has_content : bool) : fate =
+    ? has_content && removed <> "" ?> Removed (removal_of removed)
+    |? has_content ?> Standing
+    |: Lost (? lost <> "" ?> lost |: removed)
+
+:== raw_row =
+    {
+        sources : list string
+        capture : string
+        inferred : bool
+        kind : string
+        lost : string
+        removed : string
+        has_content : bool
+    }
+
+:= archival_of (id : post_id) (r : raw_row) (utc : i64) : archival =
+    := seen, observed = seen_of r::sources r::capture, observation_of r::inferred
+    { id; seen; observed; fate = fate_of r::kind r::lost r::removed r::has_content; utc }
+
+:= surviving (a : archival) : bool =
+    ?= a::fate ?| Lost _ => !- | _ => !+
+
+:= live_row () : raw_row =
+    { sources = [ "live" ]; capture = ""; inferred = !-; kind = "tweet"; lost = ""; removed = ""; has_content = !+ }
+
+///> zig
+:# survival_maps_from_the_raw_fields =
+    := a = archival_of (post_id "1") (live_row ()) 100i64
+    (surviving a, a::observed) |> _assert_eq (!+, Observed)
+
+:= wayback_row (capture : string) : raw_row =
+    := base = live_row ()
+    { base ?| sources = [ "wayback" ]; capture }
+
+///> zig
+:# a_contentless_lost_row_does_not_survive =
+    := base = wayback_row "20240508"
+    := a = archival_of (post_id "2") { base ?| kind = "lost"; lost = "archive 404"; has_content = !- } 200i64
+    (surviving a, a::fate) |> _assert_eq (!-, Lost "archive 404")
+
+:= recovered () : archival =
+    := base = wayback_row "20240101"
+    archival_of (post_id "3") { base ?| sources = [ "live"; "wayback" ]; inferred = !+; lost = "gone" } 300i64
+
+///> zig
+:# recovered_text_outlives_a_stale_lost_reason =
+    := a = recovered ()
+    (surviving a, a::observed, a::seen) |> _assert_eq (!+, Inferred, [ SeenLive; SeenWayback "20240101" ])
+
+:= deleted_notice () : string = "This Post was deleted by the Post author."
+
+:= archived_removal () : archival =
+    := base = wayback_row "20240101"
+    archival_of (post_id "4") { base ?| removed = deleted_notice () } 400i64
+
+///> zig
+:# a_removed_but_archived_post_shows =
+    := a = archived_removal ()
+    (surviving a, a::fate) |> _assert_eq (!+, Removed DeletedByAuthor)
 := media_in (p : pool) : list medium =
     := { media } = p
     media
@@ -90,7 +231,8 @@
 :~ shown_text (p : post) : string = p::text |> expand_urls p::urls |> single_line
 
 := medium_text (m : medium) : string =
-    ? m::alt_text = "" ?> "[" ++# m::kind ++# "]" |: "[" ++# m::kind ++# "] " ++# single_line m::alt_text
+    := kind = media_kind_text m::kind
+    ? m::alt_text = "" ?> "[" ++# kind ++# "]" |: "[" ++# kind ++# "] " ++# single_line m::alt_text
 
 := medium_hint (pl : pool) (key : string) : string =
     ?= first_where (\ (m : medium) => m::media_key = key) (media_in pl) ?|

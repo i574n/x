@@ -1,0 +1,103 @@
+///- --package .
+///> rust
+:# feed_merge static =
+    :< testing
+
+:< sm'_operators
+
+/// ## newest-first feeds merged into pages, resumable from a typed cursor
+:! feed_cursor t = list (list t)
+
+:= cursor_of \* t. (feeds : list (list t)) : feed_cursor t = feed_cursor feeds
+
+:= feeds_of \* t. (c : feed_cursor t) : list (list t) = ?= c ?| feed_cursor f => f
+
+:= better \* t. (newer : t -> t -> bool) (i : i32) (x : t) (best : option (i32 * t)) : option (i32 * t) =
+    ?= best ?|
+    | Some (j, b) ?& not (newer x b) => Some (j, b)
+    | _ => Some (i, x)
+
+:= head_better \* t. (nw : t -> t -> bool) (i : i32) (f : list t) (best : option (i32 * t)) : option (i32 * t) =
+    ?= f ?| x :: _ => better nw i x best | [] => best
+
+:~ ^ best_from \* t. (nw : t -> t -> bool) (fs : list (list t)) (i : i32) (best : option (i32 * t)) : option (i32 * t) =
+    ?= fs ?| [] => best | f :: rest => best_from nw rest (i + 1i32) (head_better nw i f best)
+
+:= tail_of \* t. (f : list t) : list t = ?= f ?| _ :: tail => tail | [] => []
+
+:~ ^ popped \* t. (feeds : list (list t)) (i : i32) : list (list t) =
+    ?= feeds ?|
+    | [] => []
+    | f :: rest => ? i = 0i32 ?> tail_of f :: rest |: f :: popped rest (i - 1i32)
+
+:= next_pick \* t. (nw : t -> t -> bool) (n : i32) (fs : list (list t)) : option (i32 * t) =
+    ? n > 0i32 ?> best_from nw fs 0i32 None |: None
+
+:~ ^ page_from \* t. (nw : t -> t -> bool) (n : i32) (fs : list (list t)) : list t * list (list t) =
+    ?= next_pick nw n fs ?|
+    | Some (i, x) =>
+        := xs, rest = page_from nw (n - 1i32) (popped fs i)
+        x :: xs, rest
+    | None => [], fs
+
+:= merged_page \* t. (newer : t -> t -> bool) (budget : i32) (c : feed_cursor t) : list t * feed_cursor t =
+    := items, rest = page_from newer budget (feeds_of c)
+    items, feed_cursor rest
+
+:~ ^ length_from \* t. (acc : i32) (f : list t) : i32 = ?= f ?| _ :: tail => length_from (acc + 1i32) tail | [] => acc
+
+:~ ^ dropped \* t. (n : i32) (f : list t) : list t =
+    ?= f ?|
+    | _ :: tail ?& n > 0i32 => dropped (n - 1i32) tail
+    | _ => f
+
+:= head_or_empty \* t. (fs : list (list t)) : list t = ?= fs ?| f :: _ => f | [] => []
+
+:= head_or_zero (xs : list i32) : i32 = ?= xs ?| x :: _ => x | [] => 0i32
+
+:~ ^ consumed \* t. (all : list (list t)) (rest : list (list t)) : list i32 =
+    ?= all ?|
+    | [] => []
+    | f :: fs => (length_from 0i32 f - length_from 0i32 (head_or_empty rest)) :: consumed fs (tail_of rest)
+
+:= offsets_of \* t. (all : list (list t)) (c : feed_cursor t) : list i32 = consumed all (feeds_of c)
+
+:~ ^ resumed_from \* t. (all : list (list t)) (offsets : list i32) : list (list t) =
+    ?= all ?|
+    | [] => []
+    | f :: fs => dropped (head_or_zero offsets) f :: resumed_from fs (tail_of offsets)
+
+:= resumed \* t. (all : list (list t)) (offsets : list i32) : feed_cursor t = feed_cursor (resumed_from all offsets)
+
+:= sample_feeds () : list (list i64) = [ [ 90i64; 70i64; 10i64 ]; [ 80i64; 75i64; 20i64; 5i64 ]; [ 60i64 ] ]
+
+:= newer_i64 (a : i64) (b : i64) : bool = a > b
+
+:# pages_resume_from_the_cursor =
+    := first, c = merged_page newer_i64 3i32 (cursor_of (sample_feeds ()))
+    := second, _ = merged_page newer_i64 100i32 c
+    (first, second) |> _assert_eq ([ 90i64; 80i64; 75i64 ], [ 70i64; 60i64; 20i64; 10i64; 5i64 ])
+
+:# an_exhausted_cursor_pages_empty =
+    := _, c = merged_page newer_i64 100i32 (cursor_of (sample_feeds ()))
+    := last, _ = merged_page newer_i64 5i32 c
+    (last, merged_page newer_i64 0i32 (cursor_of [ [ 1i64 ] ]) |> fst) |> _assert_eq ([], [])
+
+:# equal_heads_keep_the_earlier_feed_first =
+    merged_page newer_i64 4i32 (cursor_of [ [ 5i64; 1i64 ]; [ 5i64; 2i64 ] ])
+    |> fst
+    |> _assert_eq [ 5i64; 5i64; 2i64; 1i64 ]
+
+:= first_page_offsets () : list i32 =
+    := all = sample_feeds ()
+    merged_page newer_i64 3i32 (cursor_of all) |> snd |> offsets_of all
+
+:# offsets_count_each_feed_consumed =
+    first_page_offsets () |> _assert_eq [ 1i32; 2i32; 0i32 ]
+
+:# resumed_offsets_page_like_the_cursor =
+    merged_page newer_i64 100i32 (resumed (sample_feeds ()) (first_page_offsets ())) |> fst
+    |> _assert_eq [ 70i64; 60i64; 20i64; 10i64; 5i64 ]
+
+:# offsets_past_the_end_or_missing_resume_safely =
+    merged_page newer_i64 5i32 (resumed [ [ 3i64 ]; [ 2i64 ] ] [ 9i32 ]) |> fst |> _assert_eq [ 2i64 ]

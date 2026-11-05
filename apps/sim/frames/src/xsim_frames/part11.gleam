@@ -1,6 +1,6 @@
 import gleam/dict
+import gleam/int
 import gleam/list
-import gleam/string
 import xsim_frames/types.{type Uh3, type Us2, type Us17, type Us18, type Us16, type Uh15, type Us30, type Us45, type Uh28, type Us47, type Us57, type Us59, type Us61, Uh13Cons, Uh13Nil, Uh15Cons, Uh15Nil, Uh3Cons, Uh3Nil, Us16Content, Us16Reaction, Us16Revision, Us17Framed, Us17Posted, Us18Deleted, Us18Edited, Us18FrameEdited, Us19Liked, Us19Unliked, Us2None, Us2Some, Us3None, Us3Some, Us47Applied, Us47Waiting, Us48Error, Us48Ok, Us49None, Us49Some, Us52Error, Us52Ok, Us53None, Us53Some, Us54Error, Us54Ok, Us55None, Us55Some, Us56Error, Us56Ok, Us57Error, Us57Ok, Us58None, Us58Some, Us59Error, Us59Ok, Us60None, Us60Some, Us61Error, Us61Ok}
 import xsim_frames/part1.{dictm_term_sorted, spiral_string_slice, spiral_wrap_signed, unicode_erlang_characters_to_binary}
 import xsim_frames/part10.{closure43, closure44, hash_text_239, method245, method246, method249, method253, method254, method256, method257, method258, method259, method260, method261}
@@ -191,7 +191,7 @@ pub fn frame_edit_gathered_268(v0: Int, v1: String, v2: Int, v3: Int, v4: Int, v
     let v20 = v19 <> v1 
     let v21 = "\n"
     let v22 = v20 <> v21 
-    let v23 = string.inspect(v2)
+    let v23 = int.to_string(v2)
     let v24 = v22 <> v23 
     let v25 = closure59(#(v1, v2, v3, v4, v5))
     let v26 = closure60(Nil)

@@ -49,6 +49,14 @@ pub fn spiral_fs_coerce(value: a) -> b
 @ external(erlang, "unicode", "characters_to_nfc_binary")
 pub fn unicode_erlang_nfc(s: String) -> String
 
+@external(erlang, "crypto", "hash")
+pub fn spiral_crypto_hash_by(kind: atom.Atom, data: String) -> BitArray
+
+
+@external(erlang, "crypto", "mac")
+pub fn spiral_crypto_mac(kind: atom.Atom, sub: atom.Atom, key: String, data: String) -> BitArray
+
+
 pub fn spiral_string_length(text: String) -> Int {
   bit_array.byte_size(bit_array.from_string(text))
 }
@@ -485,52 +493,52 @@ pub fn digits_end_9(v0: String, v1: Int) -> Int {
                 let v5 = spiral_wrap_signed(v1 + v4, 32)
                 let v6 = spiral_wrap_signed(v5 - 1, 32)
                 let v7 = spiral_string_slice(v0, v1, v6)
-                let v8 = string.inspect(0)
+                let v8 = int.to_string(0)
                 let v9 = v7 |> string.starts_with(v8)
                 case v9 {
                     True -> True
                     False -> {
-                        let v10 = string.inspect(1)
+                        let v10 = int.to_string(1)
                         let v11 = v7 |> string.starts_with(v10)
                         case v11 {
                             True -> True
                             False -> {
-                                let v12 = string.inspect(2)
+                                let v12 = int.to_string(2)
                                 let v13 = v7 |> string.starts_with(v12)
                                 case v13 {
                                     True -> True
                                     False -> {
-                                        let v14 = string.inspect(3)
+                                        let v14 = int.to_string(3)
                                         let v15 = v7 |> string.starts_with(v14)
                                         case v15 {
                                             True -> True
                                             False -> {
-                                                let v16 = string.inspect(4)
+                                                let v16 = int.to_string(4)
                                                 let v17 = v7 |> string.starts_with(v16)
                                                 case v17 {
                                                     True -> True
                                                     False -> {
-                                                        let v18 = string.inspect(5)
+                                                        let v18 = int.to_string(5)
                                                         let v19 = v7 |> string.starts_with(v18)
                                                         case v19 {
                                                             True -> True
                                                             False -> {
-                                                                let v20 = string.inspect(6)
+                                                                let v20 = int.to_string(6)
                                                                 let v21 = v7 |> string.starts_with(v20)
                                                                 case v21 {
                                                                     True -> True
                                                                     False -> {
-                                                                        let v22 = string.inspect(7)
+                                                                        let v22 = int.to_string(7)
                                                                         let v23 = v7 |> string.starts_with(v22)
                                                                         case v23 {
                                                                             True -> True
                                                                             False -> {
-                                                                                let v24 = string.inspect(8)
+                                                                                let v24 = int.to_string(8)
                                                                                 let v25 = v7 |> string.starts_with(v24)
                                                                                 case v25 {
                                                                                     True -> True
                                                                                     False -> {
-                                                                                        let v26 = string.inspect(9)
+                                                                                        let v26 = int.to_string(9)
                                                                                         let v27 = v7 |> string.starts_with(v26)
                                                                                         v27
                                                                                     }
@@ -618,26 +626,26 @@ pub fn count_of_text_10(v0: String) -> Us3 {
         case v1 {
             True -> True
             False -> {
-                let v2 = string.inspect(0)
+                let v2 = int.to_string(0)
                 let v3 = ""
                 let v4 = v0 |> string.replace(v2, v3)
-                let v5 = string.inspect(1)
+                let v5 = int.to_string(1)
                 let v6 = v4 |> string.replace(v5, v3)
-                let v7 = string.inspect(2)
+                let v7 = int.to_string(2)
                 let v8 = v6 |> string.replace(v7, v3)
-                let v9 = string.inspect(3)
+                let v9 = int.to_string(3)
                 let v10 = v8 |> string.replace(v9, v3)
-                let v11 = string.inspect(4)
+                let v11 = int.to_string(4)
                 let v12 = v10 |> string.replace(v11, v3)
-                let v13 = string.inspect(5)
+                let v13 = int.to_string(5)
                 let v14 = v12 |> string.replace(v13, v3)
-                let v15 = string.inspect(6)
+                let v15 = int.to_string(6)
                 let v16 = v14 |> string.replace(v15, v3)
-                let v17 = string.inspect(7)
+                let v17 = int.to_string(7)
                 let v18 = v16 |> string.replace(v17, v3)
-                let v19 = string.inspect(8)
+                let v19 = int.to_string(8)
                 let v20 = v18 |> string.replace(v19, v3)
-                let v21 = string.inspect(9)
+                let v21 = int.to_string(9)
                 let v22 = v20 |> string.replace(v21, v3)
                 let v23 = v22 != ""
                 v23
@@ -942,13 +950,5 @@ pub fn text_at_13(v0: String, v1: Uh5) -> String {
             let v4 = ""
             v4
         }
-    }
-}
-
-pub fn count_at_16(v0: String, v1: Uh5) -> Int {
-    let v2 = value_of_14(v0, v1)
-    case v2  {
-        Us0Whole(v3) -> v3
-        _ -> -1
     }
 }

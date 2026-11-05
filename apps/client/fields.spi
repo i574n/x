@@ -86,11 +86,17 @@
     := z = blank ()
     { z ?| kind = kind; payload = payload }
 
+:= more_payload (t : thread_op) : i32 * string =
+    ?= t ?|
+    | Events words => 13i32, delimited "\n" words
+    | _ => 3i32, ""
+
 := thread_edit_payload (t : thread_op) : i32 * string =
     ?= t ?|
     | DeleteThread id => 9i32, id
     | ResumeThread (root, path) => 10i32, root ++# "\n" ++# path
-    | _ => 3i32, ""
+    | CensusThreads paths => 12i32, delimited "\n" paths
+    | o => more_payload o
 
 := thread_op_payload (t : thread_op) : i32 * string =
     ?= t ?|

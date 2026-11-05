@@ -10,12 +10,15 @@
 
 :== term = erlang_term::term
 
+:= atom_map (t : term) : erlang_map::erl_map term term = erlang_map::map_view t
+
+:= no_map () : term = erlang_map::map_term (erlang_map::map_new () : erlang_map::erl_map term term)
+
 := at (key : string) (map : term) (fallback : term) : term =
-    erlang_term::apply "maps" "get" [ erlang_term::atom key; map; fallback ]
+    atom_map map |> erlang_map::map_get_or (erlang_term::atom key) fallback
 
 := keyed (pairs : list (string * term)) : term =
-    := tuples = pairs |> each (\ (k, v) => erlang_term::tuple [ erlang_term::atom k; v ])
-    erlang_term::apply "maps" "from_list" [ erlang_term::list_term tuples ]
+    pairs |> each (\ (k, v) => erlang_term::atom k, v) |> erlang_map::map_of_pairs |> erlang_map::map_term
 
 := spiral_cell (source : string) : term =
     keyed [ ("kind", erlang_term::atom "spiral"); ("source", erlang_term::of source) ]
@@ -33,8 +36,8 @@
     erlang_term::apply "Elixir.Spiral.Cells.Notebook" "evaluate" [ cells_doc sources; run_opts root memo ]
 
 := indexed (result : term) (field : string) (index : i32) : term =
-    := table = at field result (erlang_term::apply "maps" "new" [])
-    erlang_term::apply "maps" "get" [ erlang_term::of index; table; erlang_term::atom "nil" ]
+    := table : erlang_map::erl_map i32 term = erlang_map::map_view (at field result (no_map ()))
+    table |> erlang_map::map_get_or index (erlang_term::atom "nil")
 
 := last_of (result : term) (index : i32) : term =
     := status = at "status" result (erlang_term::atom "nil")
@@ -44,17 +47,17 @@
     := ok = erlang_term::equal (at "status" result (erlang_term::atom "nil")) (erlang_term::atom "ok")
     { status = ? ok ?> Done |: Erred; out = erlang_term::inspect (last_of result index) }
 
-:= is_map (t : term) : bool = erlang_term::apply "erlang" "is_map" [ t ] |> erlang_term::cast
-
 := counted_result (count : term -> ()) (result : term) (index : i32) : task_result =
     count result
     ran_result result index
 
 := unexpected (result : term) : task_result = { status = Erred; out = "unexpected " ++# erlang_term::inspect result }
 
+:= counted_or_unexpected (count : term -> ()) (sources : list string) (result : term) : task_result =
+    ? erlang_term::is_map result ?> counted_result count result (listm::length sources - 1i32) |: unexpected result
+
 := cells_ran_with (memo : bool) (count : term -> ()) (sources : list string) (root : string) : task_result =
-    := result = evaluated sources root memo
-    ? is_map result ?> counted_result count result (listm::length sources - 1i32) |: unexpected result
+    counted_or_unexpected count sources (evaluated sources root memo)
 
 := cells_ran (sources : list string) (root : string) : task_result = cells_ran_with !- (\ _ => ()) sources root
 
@@ -64,8 +67,6 @@
     := atomics = erlang_term::list_term [ erlang_term::atom "atomics" ]
     erlang_term::apply "counters" "new" [ erlang_term::of 2i32; atomics ]
 
-:= term_length (l : term) : i32 = erlang_term::apply "erlang" "length" [ l ] |> erlang_term::cast
-
 := flag_count (flags : list term) (flag : string) : i32 =
     listm::fold (\ n f => ? erlang_term::equal f (erlang_term::atom flag) ?> n + 1i32 |: n) 0i32 flags
 
@@ -73,7 +74,7 @@
     erlang_term::apply "counters" "add" [ tally; erlang_term::of slot; erlang_term::of n ] |> ignore
 
 := memo_flags (result : term) : list term =
-    := memo : erlang_map::erl_map term term = erlang_map::map_view (at "memo" result (erlang_term::apply "maps" "new" []))
+    := memo : erlang_map::erl_map term term = erlang_map::map_view (at "memo" result (no_map ()))
     erlang_map::map_values memo
 
 := memo_counted (tally : term) (result : term) : () =
@@ -84,10 +85,6 @@
 := counter_at (tally : term) (slot : i32) : i32 =
     erlang_term::apply "counters" "get" [ tally; erlang_term::of slot ] |> erlang_term::cast
 
-:= beam_mb () : i32 =
-    := total = erlang_term::apply "erlang" "memory" [ erlang_term::atom "total" ]
-    erlang_term::apply "erlang" "div" [ total; erlang_term::of 1048576i32 ] |> erlang_term::cast
-
 := clock_ms () : i32 = conv (date_time::monotonic_milliseconds ())
 
 := memo_counts (tally : term) : i32 * i32 = counter_at tally 1i32, counter_at tally 2i32
@@ -96,7 +93,7 @@
     \ sources => cells_ran_with memo (memo_counted tally) sources root
 
 := leak_swap (key : string) (digest : string) : string =
-    := previous = erlang_term::apply "erlang" "put" [ erlang_term::atom key; erlang_term::of digest ]
+    := previous = erlang_process::dictionary_put (erlang_term::atom key) (erlang_term::of digest)
     ? erlang_term::equal previous (erlang_term::atom "undefined") ?> "" |: erlang_term::cast previous
 
 := dictionary_leak (key : string) : executor =
@@ -109,41 +106,27 @@
     | Some leak => leaking_executor leak
     | None => \ _ => { status = Crashed; out = "leak cell did not start for " ++# key }
 
-:= is_tuple (t : term) : bool = erlang_term::apply "erlang" "is_tuple" [ t ] |> erlang_term::cast
-
-:= element_at (n : i32) (t : term) : term = erlang_term::apply "erlang" "element" [ erlang_term::of n; t ]
+:= ok_tagged (t : term) : bool = erlang_term::equal (erlang_term::element_at 1i32 t) (erlang_term::atom "ok")
 
 := ok_value (t : term) : option term =
-    ? not (is_tuple t) ?> None
-    |? erlang_term::equal (element_at 1i32 t) (erlang_term::atom "ok") ?> Some (element_at 2i32 t)
+    ? not (erlang_term::is_tuple t) ?> None
+    |? ok_tagged t ?> Some (erlang_term::element_at 2i32 t)
     |: None
 
-:= tcp (name : string) (args : list term) : term = erlang_term::apply "gen_tcp" name args
-
-:= tcp_options () : term =
-    := line_packets = option_pair "packet" (erlang_term::atom "line")
-    erlang_term::list_term [ erlang_term::atom "binary"; line_packets; option_pair "active" (erlang_term::of !-) ]
-
-:= received_line (got : term) : string =
-    ?= ok_value got ?|
-    | Some line => erlang_term::cast line
-    | None => ""
-
-:= hello_on (sock : term) : string =
-    tcp "send" [ sock; erlang_term::of "hello\n" ] |> ignore
-    := got = tcp "recv" [ sock; erlang_term::of 0i32; erlang_term::of 2000i32 ]
-    tcp "close" [ sock ] |> ignore
-    received_line got
+:= hello_on (s : erlang_tcp::socket) : string =
+    erlang_tcp::send_line s "hello" |> ignore
+    := got = erlang_tcp::receive_line_within s 2000i32
+    erlang_tcp::close s
+    ?= got ?| Ok line => line | Error _ => ""
 
 := daemon_port () : term = erlang_term::apply "Elixir.Spiral.Cells.CompilerDaemon" "port" []
 
-:= loopback () : term = erlang_term::charlist "127.0.0.1"
+:= daemon_port_number () : i32 = daemon_port () |> erlang_term::cast
 
 := daemon_hello () : string =
-    := opened = tcp "connect" [ loopback (); daemon_port (); tcp_options (); erlang_term::of 1000i32 ]
-    ?= ok_value opened ?|
-    | Some sock => hello_on sock
-    | None => ""
+    ?= erlang_tcp::connect_local (daemon_port_number ()) 1000i32 ?|
+    | Ok s => hello_on s
+    | Error _ => ""
 
 := daemon_pid_text () : string =
     ?= tree_memory::daemon_pid_of (daemon_hello ()) ?|
@@ -274,7 +257,7 @@
     | None => a
 
 := sampled (a : async_state) : async_state =
-    := mb = beam_mb ()
+    := mb = erlang_process::beam_memory_mb ()
     { a ?| peak_mb = ? mb > a::peak_mb ?> mb |: a::peak_mb }
 
 := stepped (exec : executor) (reply : reply_to) (pace : i32) (a : async_state) (d : events::delivery) : async_state =
@@ -308,12 +291,12 @@
 := ebins (lib : string) : term = erlang_term::apply "filelib" "wildcard" [ erlang_term::charlist (lib ++# "/*/ebin") ]
 
 := vm_paths_added (build_lib : string) (elixir_lib : string) : () =
-    := paths = erlang_term::apply "lists" "append" [ ebins build_lib; ebins elixir_lib ]
+    := paths = erlang_term::appended (ebins build_lib) (ebins elixir_lib)
     erlang_term::apply "code" "add_paths" [ paths ] |> ignore
 
 := started_ok (started : term) : bool =
     erlang_term::equal
-        (erlang_term::apply "erlang" "element" [ erlang_term::of 1i32; started ])
+        (erlang_term::element_at 1i32 started)
         (erlang_term::atom "ok")
 
 := cells_vm_started (build_lib : string) (elixir_lib : string) : bool =
@@ -322,14 +305,12 @@
 
 := cell_count (doc : term) : i32 =
     := cells = at "cells" doc (erlang_term::list_term [])
-    erlang_term::apply "erlang" "length" [ cells ] |> erlang_term::cast
+    erlang_term::length_of cells
 
 := last_source (doc : term) : string =
     := cells = at "cells" doc (erlang_term::list_term [])
-    := last = erlang_term::apply "lists" "last" [ cells ]
+    := last = erlang_term::last_of cells
     at "source" last (erlang_term::of "") |> erlang_term::cast
-
-:= nth_cell (cells : term) (i : i32) : term = erlang_term::apply "lists" "nth" [ erlang_term::of (i + 1i32); cells ]
 
 := spiral_kind (cell : term) : bool =
     erlang_term::equal (at "kind" cell (erlang_term::atom "none")) (erlang_term::atom "spiral")
@@ -338,7 +319,7 @@
 
 := document_sources (doc : term) : list string =
     := cells = at "cells" doc (erlang_term::list_term [])
-    listm::init (term_length cells) (nth_cell cells) |> keep spiral_kind |> each cell_source
+    erlang_term::items_of cells |> keep spiral_kind |> each cell_source
 
 := real_spir (spi : string) : string =
     := stem = ? sm'::ends_with ".spi" spi ?> cut 0i32 (sm'::length spi - 4i32) spi |: spi
@@ -363,22 +344,23 @@
 := evaluated_tests (doc : term) (file : string) (root : string) : term =
     erlang_term::apply "Elixir.Spiral.Cells.Notebook" "evaluate" [ doc; test_plan file root ]
 
-:= text_at (key : string) (m : term) : string =
-    erlang_term::apply "maps" "get" [ erlang_term::of key; m; erlang_term::of "" ] |> erlang_term::inspect
+:= text_map (m : term) : erlang_map::erl_map string term = erlang_map::map_view m
 
-:= list_at (key : string) (m : term) : term =
-    erlang_term::apply "maps" "get" [ erlang_term::of key; m; erlang_term::list_term [] ]
+:= text_at (key : string) (m : term) : string =
+    text_map m |> erlang_map::map_get_or key (erlang_term::of "") |> erlang_term::inspect
+
+:= list_at (key : string) (m : term) : term = text_map m |> erlang_map::map_get_or key (erlang_term::list_term [])
 
 := target_text (t : term) : string = text_at "target" t ++# "=" ++# text_at "status" t
 
 := row_text (test : term) : string =
     := targets = list_at "targets" test
-    := shown = listm::init (term_length targets) (nth_cell targets) |> each target_text |> delimited ","
+    := shown = erlang_term::items_of targets |> each target_text |> delimited ","
     text_at "name" test ++# " " ++# text_at "status" test ++# " [" ++# shown ++# "]"
 
 := test_rows (result : term) : list string =
     := tests = list_at "tests" (at "report" result (keyed []))
-    listm::init (term_length tests) (nth_cell tests) |> each row_text
+    erlang_term::items_of tests |> each row_text
 
 := elixir_inspect (t : term) (opts : list term) : string =
     erlang_term::apply "Elixir.Kernel" "inspect" [ t; erlang_term::list_term opts ] |> erlang_term::cast
@@ -391,7 +373,8 @@
     erlang_term::apply "Elixir.Spiral.Cells.Notebook" "evaluate" [ cells_doc sources; rooted_plan root ]
 
 := indexed (key : string) (i : i32) (result : term) : term =
-    erlang_term::apply "maps" "get" [ erlang_term::of i; at key result (keyed []); erlang_term::atom "nil" ]
+    := table : erlang_map::erl_map i32 term = erlang_map::map_view (at key result (keyed []))
+    table |> erlang_map::map_get_or i (erlang_term::atom "nil")
 
 := status_text (result : term) : string = at "status" result (erlang_term::atom "none") |> erlang_term::inspect
 

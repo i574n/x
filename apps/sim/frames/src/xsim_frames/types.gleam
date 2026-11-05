@@ -554,25 +554,47 @@ pub type Us71 {
     Us71FreshLine(f1i0 : fn(Nil) -> String)
 }
 
-pub type Us72 {
-    Us72Some(f0i0 : Dynamic)
-    Us72None
+pub type Us73 {
+    Us73Refused
+    Us73TimedOut
+    Us73Closed
+    Us73Failed(f3i0 : String)
 }
 
-pub type Us73 {
-    Us73Some(f0i0 : Int, f0i1 : Int)
-    Us73None
+pub type Us72 {
+    Us72Ok(f0i0 : Dynamic)
+    Us72Error(f1i0 : Us73)
 }
 
 pub type Us74 {
-    Us74Some(f0i0 : process.Subject(Us70))
-    Us74None
+    Us74Ok(f0i0 : Dynamic)
+    Us74Error(f1i0 : Us73)
 }
 
 pub type Us75 {
-    Us75OnX
-    Us75OnMastodon
-    Us75OnBluesky(f2i0 : String, f2i1 : String)
+    Us75Ok
+    Us75Error(f1i0 : Us73)
+}
+
+pub type Us76 {
+    Us76Ok(f0i0 : String)
+    Us76Error(f1i0 : Us73)
+}
+
+pub type Us77 {
+    Us77Some(f0i0 : Int, f0i1 : Int)
+    Us77None
+}
+
+pub type Us78 {
+    Us78Some(f0i0 : process.Subject(Us70))
+    Us78None
+}
+
+pub type Us79 {
+    Us79OnX
+    Us79OnMastodon
+    Us79OnBluesky(f2i0 : String, f2i1 : String)
 }
 
 pub type Uh30 {
@@ -590,19 +612,19 @@ pub type Uh32 {
     Uh32Cons(String, dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int, dict.Dict(String, Uh3), Uh3, dict.Dict(String, #(Us45, String)), dict.Dict(String, Int), dict.Dict(String, String), dict.Dict(String, String), dict.Dict(String, Int), Int, dict.Dict(String, Int), dict.Dict(String, Int), dict.Dict(String, Int), Int, Int, Int, Int, Int, dict.Dict(String, #(String, Us45, String)), Bool, Bool, Us30, Bool, Int, Uh28, Uh6, Uh32)
 }
 
-pub type Us76 {
-    Us76Ok(f0i0 : BitArray)
-    Us76Error(f1i0 : Dynamic)
+pub type Us80 {
+    Us80Ok(f0i0 : BitArray)
+    Us80Error(f1i0 : Dynamic)
 }
 
-pub type Us77 {
-    Us77Ok(f0i0 : String, f0i1 : Us45, f0i2 : String)
-    Us77Error
+pub type Us81 {
+    Us81Ok(f0i0 : String, f0i1 : Us45, f0i2 : String)
+    Us81Error
 }
 
-pub type Us78 {
-    Us78Some(f0i0 : String, f0i1 : Us45, f0i2 : String)
-    Us78None
+pub type Us82 {
+    Us82Some(f0i0 : String, f0i1 : Us45, f0i2 : String)
+    Us82None
 }
 
 pub type Uh33 {
@@ -610,9 +632,9 @@ pub type Uh33 {
     Uh33Cons(String, Us45, String, Uh33)
 }
 
-pub type Us79 {
-    Us79Some(f0i0 : String, f0i1 : Us45, f0i2 : String)
-    Us79None
+pub type Us83 {
+    Us83Some(f0i0 : String, f0i1 : Us45, f0i2 : String)
+    Us83None
 }
 
 pub type Uh34 {
@@ -625,66 +647,66 @@ pub type Uh35 {
     Uh35Cons(Uh6, Uh35)
 }
 
-pub type Us80 {
-    Us80Some(f0i0 : String, f0i1 : Int, f0i2 : Int, f0i3 : Int, f0i4 : Int, f0i5 : String, f0i6 : Int, f0i7 : Bool, f0i8 : String, f0i9 : String)
-    Us80None
-}
-
-pub type Us81 {
-    Us81Ok(f0i0 : String, f0i1 : Int, f0i2 : Int, f0i3 : Int, f0i4 : Int, f0i5 : String, f0i6 : Int, f0i7 : Bool, f0i8 : String, f0i9 : String)
-    Us81Error(f1i0 : String)
-}
-
-pub type Us82 {
-    Us82EventsCells
-    Us82EventsSeed
-    Us82EventsUsers
-    Us82EventsEdits
-}
-
-pub type Us83 {
-    Us83Some(f0i0 : Us82)
-    Us83None
-}
-
 pub type Us84 {
-    Us84Some(f0i0 : String, f0i1 : String, f0i2 : String, f0i3 : Int, f0i4 : Int, f0i5 : Int, f0i6 : String, f0i7 : Int, f0i8 : String, f0i9 : String, f0i10 : Int, f0i11 : Int, f0i12 : String)
+    Us84Some(f0i0 : String, f0i1 : Int, f0i2 : Int, f0i3 : Int, f0i4 : Int, f0i5 : String, f0i6 : Int, f0i7 : Bool, f0i8 : String, f0i9 : String)
     Us84None
 }
 
 pub type Us85 {
-    Us85Ok(f0i0 : String, f0i1 : String, f0i2 : String, f0i3 : Int, f0i4 : Int, f0i5 : Int, f0i6 : String, f0i7 : Int, f0i8 : String, f0i9 : String, f0i10 : Int, f0i11 : Int, f0i12 : String)
+    Us85Ok(f0i0 : String, f0i1 : Int, f0i2 : Int, f0i3 : Int, f0i4 : Int, f0i5 : String, f0i6 : Int, f0i7 : Bool, f0i8 : String, f0i9 : String)
     Us85Error(f1i0 : String)
 }
 
 pub type Us86 {
-    Us86Some(f0i0 : String, f0i1 : String)
-    Us86None
+    Us86EventsCells
+    Us86EventsSeed
+    Us86EventsUsers
+    Us86EventsEdits
 }
 
 pub type Us87 {
-    Us87Ok(f0i0 : String, f0i1 : String)
-    Us87Error(f1i0 : String)
+    Us87Some(f0i0 : Us86)
+    Us87None
 }
 
 pub type Us88 {
-    Us88Some(f0i0 : String, f0i1 : String, f0i2 : String)
+    Us88Some(f0i0 : String, f0i1 : String, f0i2 : String, f0i3 : Int, f0i4 : Int, f0i5 : Int, f0i6 : String, f0i7 : Int, f0i8 : String, f0i9 : String, f0i10 : Int, f0i11 : Int, f0i12 : String)
     Us88None
 }
 
 pub type Us89 {
-    Us89Ok(f0i0 : String, f0i1 : String, f0i2 : String)
+    Us89Ok(f0i0 : String, f0i1 : String, f0i2 : String, f0i3 : Int, f0i4 : Int, f0i5 : Int, f0i6 : String, f0i7 : Int, f0i8 : String, f0i9 : String, f0i10 : Int, f0i11 : Int, f0i12 : String)
     Us89Error(f1i0 : String)
 }
 
 pub type Us90 {
-    Us90Some(f0i0 : String, f0i1 : Int)
+    Us90Some(f0i0 : String, f0i1 : String)
     Us90None
 }
 
 pub type Us91 {
-    Us91Ok(f0i0 : String, f0i1 : Int)
+    Us91Ok(f0i0 : String, f0i1 : String)
     Us91Error(f1i0 : String)
+}
+
+pub type Us92 {
+    Us92Some(f0i0 : String, f0i1 : String, f0i2 : String)
+    Us92None
+}
+
+pub type Us93 {
+    Us93Ok(f0i0 : String, f0i1 : String, f0i2 : String)
+    Us93Error(f1i0 : String)
+}
+
+pub type Us94 {
+    Us94Some(f0i0 : String, f0i1 : Int)
+    Us94None
+}
+
+pub type Us95 {
+    Us95Ok(f0i0 : String, f0i1 : Int)
+    Us95Error(f1i0 : String)
 }
 
 pub type Uh36 {
@@ -697,8 +719,18 @@ pub type Uh37 {
     Uh37Cons(Uh29, Uh37)
 }
 
-pub type Us92 {
-    Us92AppBearer
+pub type Us96 {
+    Us96Ok(f0i0 : Dynamic)
+    Us96Error
+}
+
+pub type Us97 {
+    Us97Some(f0i0 : Dynamic)
+    Us97None
+}
+
+pub type Us98 {
+    Us98AppBearer
 }
 
 pub type Uh38 {
@@ -706,21 +738,16 @@ pub type Uh38 {
     Uh38Cons(String, Dynamic, Uh38)
 }
 
-pub type Us93 {
-    Us93UsersBy
-    Us93UsersByIds
-    Us93Following(f2i0 : Dynamic)
-    Us93Timeline(f3i0 : Dynamic)
-    Us93Lookup
-    Us93Single(f5i0 : String)
-    Us93SearchRecent
-    Us93SearchAll
-    Us93Elsewhere
-}
-
-pub type Us94 {
-    Us94Ok(f0i0 : Dynamic)
-    Us94Error
+pub type Us99 {
+    Us99UsersBy
+    Us99UsersByIds
+    Us99Following(f2i0 : Dynamic)
+    Us99Timeline(f3i0 : Dynamic)
+    Us99Lookup
+    Us99Single(f5i0 : String)
+    Us99SearchRecent
+    Us99SearchAll
+    Us99Elsewhere
 }
 
 pub type Uh39 {
@@ -733,15 +760,15 @@ pub type Uh40 {
     Uh40Cons(Uh38, Uh40)
 }
 
-pub type Us95 {
-    Us95UserBearer
-    Us95OAuth1User
+pub type Us100 {
+    Us100UserBearer
+    Us100OAuth1User
 }
 
-pub type Us96 {
-    Us96ClientBasic
+pub type Us101 {
+    Us101ClientBasic
 }
 
-pub type Us97 {
-    Us97Unauthenticated
+pub type Us102 {
+    Us102Unauthenticated
 }

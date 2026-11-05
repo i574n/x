@@ -24,25 +24,25 @@ fn from_2(mut v0: serde_json::Value, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
     loop {
         let v3: bool = v1 < 0i32;
         if v3 {
-            return v2.clone();
+            return v2;
         } else {
             let v4: i32 = v1.wrapping_sub(1i32);
             let v5: usize = ((v1) as usize);
             let mut v6: serde_json::Value = v0.get(v5).cloned().unwrap_or_default();
-            let v7: Rc<UH0> = Rc::new(UH0::UH0_Cons(v6.clone(), v2.clone()));
-            (v0, v1, v2) = (v0.clone(), v4, v7.clone());
+            let v7: Rc<UH0> = Rc::new(UH0::UH0_Cons(v6, v2));
+            (v1, v2) = (v4, v7);
             continue;
         }
     }
 }
 fn method3(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
     loop {
-        match &*v0 {
+        match Rc::unwrap_or_clone(v0) {
             UH0::UH0_Cons(v2, v3) => {
-                let v2: serde_json::Value = v2.clone();
-                let v3: Rc<UH0> = v3.clone();
+                let v2: serde_json::Value = v2;
+                let v3: Rc<UH0> = v3;
                 let v4: i32 = v1.wrapping_add(1i32);
-                (v0, v1) = (v3.clone(), v4);
+                (v0, v1) = (v3, v4);
                 continue;
             }
             UH0::UH0_Nil => {
@@ -53,10 +53,10 @@ fn method3(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
 }
 fn method1(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
     loop {
-        match &*v0 {
+        match Rc::unwrap_or_clone(v0) {
             UH0::UH0_Cons(v2, v3) => {
-                let v2: serde_json::Value = v2.clone();
-                let v3: Rc<UH0> = v3.clone();
+                let v2: serde_json::Value = v2;
+                let v3: Rc<UH0> = v3;
                 let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("role"); } LIT.with(|lit| lit.clone()) };
                 let v5: serde_json::Value = v2.get(&*v4).cloned().unwrap_or_default();
                 let mut v6: Rc<str> = Rc::<str>::from(v5.as_str().unwrap_or(""));
@@ -76,9 +76,9 @@ fn method1(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
                     let v15: i32 = ((v14) as i32);
                     let v16: i32 = v15.wrapping_sub(1i32);
                     let v17: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                    let v18: Rc<UH0> = from_2(v13.clone(), v16, v17.clone());
+                    let v18: Rc<UH0> = from_2(v13, v16, v17);
                     let v19: i32 = 0i32;
-                    let v20: i32 = method3(v18.clone(), v19);
+                    let v20: i32 = method3(v18, v19);
                     let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("includes"); } LIT.with(|lit| lit.clone()) };
                     let v22: serde_json::Value = v11.get(&*v21).cloned().unwrap_or_default();
                     let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts"); } LIT.with(|lit| lit.clone()) };
@@ -87,16 +87,16 @@ fn method1(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
                     let v26: i32 = ((v25) as i32);
                     let v27: i32 = v26.wrapping_sub(1i32);
                     let v28: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                    let v29: Rc<UH0> = from_2(v24.clone(), v27, v28.clone());
+                    let v29: Rc<UH0> = from_2(v24, v27, v28);
                     let v30: i32 = 0i32;
-                    let v31: i32 = method3(v29.clone(), v30);
+                    let v31: i32 = method3(v29, v30);
                     let v32: i32 = v20.wrapping_add(v31);
                     v32
                 } else {
                     0i32
                 };
                 let v34: i32 = v1.wrapping_add(v33);
-                (v0, v1) = (v3.clone(), v34);
+                (v0, v1) = (v3, v34);
                 continue;
             }
             UH0::UH0_Nil => {
@@ -117,7 +117,7 @@ fn posts_read_0(mut v0: Rc<str>) -> i32 {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> i32> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> i32> = Rc::new(move |mut v0: Rc<str>| -> i32 {
-        posts_read_0(v0.clone())
+        posts_read_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn single_line_6(mut v0: Rc<str>) -> Rc<str> {
@@ -147,9 +147,9 @@ fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
             let v8: i32 = (v2.clone().len() as i32);
             let v9: bool = v8 <= 300i32;
             let mut v13: Rc<str> = if v9 {
-                v2.clone()
+                v2
             } else {
-                let v10: Rc<str> = string_slice(&v2.clone(), 0i32 as i64, 299i32 as i64);
+                let v10: Rc<str> = string_slice(&v2, 0i32 as i64, 299i32 as i64);
                 let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
                 let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
                 v12
@@ -160,7 +160,7 @@ fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
             let v18: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v15, v16)), v13));
             US0::US0_Error(v18)
         } else {
-            US0::US0_Ok(v2.clone())
+            US0::US0_Ok(v2)
         }
     } else {
         let v22: bool = v1 == 0i32;
@@ -207,7 +207,7 @@ fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
                         let v45: i32 = (v44.clone().len() as i32);
                         let v46: bool = v45 <= 300i32;
                         if v46 {
-                            v44.clone()
+                            v44
                         } else {
                             let v47: Rc<str> = string_slice(&v44, 0i32 as i64, 299i32 as i64);
                             let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
@@ -217,7 +217,7 @@ fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
                     }
                 }
             };
-            let v54: Rc<str> = Rc::<str>::from(format!("{:?}", v1));
+            let v54: Rc<str> = Rc::<str>::from((v1).to_string());
             let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) };
             let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v54));
             let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
@@ -231,20 +231,20 @@ fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
 }
 fn classified_reply_4(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> (i32, Rc<str>) {
     let v3: US0 = classified_5(v0, v1, v2);
-    match &v3 {
+    match v3 {
         US0::US0_Error(v5) => {
-            let v5: Rc<str> = v5.clone();
+            let v5: Rc<str> = v5;
             (4i32, v5)
         }
         US0::US0_Ok(v4) => {
-            let v4: Rc<str> = v4.clone();
+            let v4: Rc<str> = v4;
             (0i32, v4)
         }
     }
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>, i32, Rc<str>) -> (i32, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, i32, Rc<str>) -> (i32, Rc<str>)> = Rc::new(move |mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>| -> (i32, Rc<str>) {
-        classified_reply_4(v0.clone(), v1, v2.clone())
+        classified_reply_4(v0, v1, v2)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn xc_posts_read(v0: &str) -> i32 {

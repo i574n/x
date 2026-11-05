@@ -358,6 +358,19 @@
 
 := run_preview_threads (payload : string) : i32 = split_on "\n" payload |> listm::fold previewed_into 0i32
 
+:= census_files (site : string) (payload : string) : string = $'xc_census::xc_census_files(&*!site, &*!payload)'
+
+:= run_census (payload : string) : i32 =
+    write_line (census_files (platform_name ()) payload)
+    0i32
+
+:= run_events (payload : string) : i32 =
+    write_line ($'xc_events::xc_events(&*!payload)' : string)
+    0i32
+
+:= run_post_or_events (kind : i32) (payload : string) : i32 =
+    ? kind = 13i32 ?> run_events payload |: run_post_thread (kind = 8i32) payload
+
 := thread_ids (s : site) (id : string) : i32 * string * string =
     := { base bearer } = s
     $'xc_thread::xc_thread_ids(&*!base, &*!bearer, &*!id)'
@@ -397,7 +410,8 @@
 := run_thread_more (kind : i32) (payload : string) : i32 =
     ? kind = 10i32 ?> run_resume_thread payload
     |? kind = 11i32 ?> run_preview_threads payload
-    |: run_post_thread (kind = 8i32) payload
+    |? kind = 12i32 ?> run_census payload
+    |: run_post_or_events kind payload
 
 := x_only (site : string) : i32 =
     write_error ("xc: delete-thread and --resume read threads through X's API, which needs XC_SITE=x, not " ++# site)

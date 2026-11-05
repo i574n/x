@@ -1,7 +1,8 @@
+import gleam/int
 import gleam/string
 import xsim_frames/types.{type Uh3, type Uh5, type Us2, type Uh7, type Uh8, type Uh9, type Us16, type Uh10, type Uh11, type Uh14, type Uh15, type Us21, type Us22, Uh10Cons, Uh10Nil, Uh11Cons, Uh11Nil, Uh12Nil, Uh14Cons, Uh14Nil, Uh15Cons, Uh15Nil, Uh3Cons, Uh3Nil, Uh5Nil, Uh7Nil, Uh8Cons, Uh8Nil, Uh9Cons, Uh9Nil, Us0Text, Us16Content, Us16Reaction, Us16Revision, Us17Framed, Us17Posted, Us18Deleted, Us18Edited, Us18FrameEdited, Us19Liked, Us19Unliked, Us1None, Us1Some, Us21Error, Us21Ok, Us22Error, Us22Ok, Us23None, Us23Some, Us2None, Us2Some}
-import xsim_frames/part1.{count_at_16, fields_from_6, spiral_string_length, spiral_string_slice, spiral_wrap_signed, spiral_wrap_unsigned, split_list_2, text_at_13, unicode_erlang_characters_to_binary, value_of_14}
-import xsim_frames/part2.{concat_balanced_22, delimited_21, method18}
+import xsim_frames/part1.{fields_from_6, spiral_string_length, spiral_string_slice, spiral_wrap_signed, spiral_wrap_unsigned, split_list_2, text_at_13, unicode_erlang_characters_to_binary, value_of_14}
+import xsim_frames/part2.{concat_balanced_22, count_at_16, delimited_21, method18}
 import xsim_frames/part3.{method54, method55, method56, method57, method60, method64, method65, method68, method73, method74, method75, method76, method77, seeded_66}
 import xsim_frames/part4.{method100, method101, method102, method78, method81, method87, method96, persona_events_88, round_robin_94, woven_104}
 
@@ -139,7 +140,7 @@ pub fn method62(v0: Int, v1: Int, v2: Int, v3: Int, v4: Int, v5: Uh7, v6: Bool, 
         case v7  {
             Uh8Cons(v10, v11) -> {
                 let v12 = spiral_wrap_signed(v0 + v9, 32)
-                let v13 = string.inspect(v9)
+                let v13 = int.to_string(v9)
                 let v14 = "f"
                 let v15 = v14 <> v13 
                 let #(v16, v17, v18) = from_cells_63(v12, v1, v2, v3, v4, v5, v6, v15, v10)
@@ -377,20 +378,20 @@ pub fn encoded_117(v0: Int, v1: Us16) -> String {
                 case v2  {
                     Us17Framed(v31, v32, v33, v34, v35) -> {
                         let v36 = "at"
-                        let v37 = string.inspect(v0)
+                        let v37 = int.to_string(v0)
                         let v38 = field_118(v36, v37)
                         let v39 = "body"
                         let v40 = quoted_119(v35)
                         let v41 = field_118(v39, v40)
                         let v42 = "k"
-                        let v43 = string.inspect(v33)
+                        let v43 = int.to_string(v33)
                         let v44 = field_118(v42, v43)
                         let v45 = "kind"
                         let v46 = "frame"
                         let v47 = quoted_119(v46)
                         let v48 = field_118(v45, v47)
                         let v49 = "n"
-                        let v50 = string.inspect(v34)
+                        let v50 = int.to_string(v34)
                         let v51 = field_118(v49, v50)
                         let v52 = "parent"
                         let v57 =
@@ -416,7 +417,7 @@ pub fn encoded_117(v0: Int, v1: Us16) -> String {
                     }
                     Us17Posted(v3, v4, v5) -> {
                         let v6 = "at"
-                        let v7 = string.inspect(v0)
+                        let v7 = int.to_string(v0)
                         let v8 = field_118(v6, v7)
                         let v9 = "kind"
                         let v10 = "post"
@@ -450,7 +451,7 @@ pub fn encoded_117(v0: Int, v1: Us16) -> String {
                 case v146  {
                     Us19Liked(v147, v148) -> {
                         let v149 = "at"
-                        let v150 = string.inspect(v0)
+                        let v150 = int.to_string(v0)
                         let v151 = field_118(v149, v150)
                         let v152 = "kind"
                         let v153 = "like"
@@ -470,7 +471,7 @@ pub fn encoded_117(v0: Int, v1: Us16) -> String {
                     }
                     Us19Unliked(v167, v168) -> {
                         let v169 = "at"
-                        let v170 = string.inspect(v0)
+                        let v170 = int.to_string(v0)
                         let v171 = field_118(v169, v170)
                         let v172 = "kind"
                         let v173 = "unlike"
@@ -494,7 +495,7 @@ pub fn encoded_117(v0: Int, v1: Us16) -> String {
                 case v72  {
                     Us18Deleted(v128) -> {
                         let v129 = "at"
-                        let v130 = string.inspect(v0)
+                        let v130 = int.to_string(v0)
                         let v131 = field_118(v129, v130)
                         let v132 = "kind"
                         let v133 = "delete"
@@ -510,7 +511,7 @@ pub fn encoded_117(v0: Int, v1: Us16) -> String {
                     }
                     Us18Edited(v73, v74) -> {
                         let v75 = "at"
-                        let v76 = string.inspect(v0)
+                        let v76 = int.to_string(v0)
                         let v77 = field_118(v75, v76)
                         let v78 = "kind"
                         let v79 = "edit"
@@ -530,26 +531,26 @@ pub fn encoded_117(v0: Int, v1: Us16) -> String {
                     }
                     Us18FrameEdited(v93, v94, v95, v96, v97) -> {
                         let v98 = "at"
-                        let v99 = string.inspect(v0)
+                        let v99 = int.to_string(v0)
                         let v100 = field_118(v98, v99)
                         let v101 = "body"
                         let v102 = quoted_119(v97)
                         let v103 = field_118(v101, v102)
                         let v104 = "k"
-                        let v105 = string.inspect(v95)
+                        let v105 = int.to_string(v95)
                         let v106 = field_118(v104, v105)
                         let v107 = "kind"
                         let v108 = "edit_frame"
                         let v109 = quoted_119(v108)
                         let v110 = field_118(v107, v109)
                         let v111 = "n"
-                        let v112 = string.inspect(v96)
+                        let v112 = int.to_string(v96)
                         let v113 = field_118(v111, v112)
                         let v114 = "post"
                         let v115 = quoted_119(v93)
                         let v116 = field_118(v114, v115)
                         let v117 = "rev"
-                        let v118 = string.inspect(v94)
+                        let v118 = int.to_string(v94)
                         let v119 = field_118(v117, v118)
                         let v120 = Uh3Nil
                         let v121 = Uh3Cons(v119, v120)

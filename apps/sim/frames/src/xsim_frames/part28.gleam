@@ -6,12 +6,634 @@ import gleam/option
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh3, type Uh29, type Uh38, type Us93, type Us94, Uh29Cons, Uh29Nil, Uh38Cons, Uh38Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us72None, Us72Some, Us93Elsewhere, Us93Following, Us93Lookup, Us93SearchAll, Us93SearchRecent, Us93Single, Us93Timeline, Us93UsersBy, Us93UsersByIds, Us94Error, Us94Ok}
-import xsim_frames/part1.{closure1, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
-import xsim_frames/part13.{method300}
-import xsim_frames/part27.{items_from_443}
+import xsim_frames/types.{type Uh3, type Uh29, type Uh38, Uh29Cons, Uh29Nil, Uh38Cons, Uh38Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us56Error, Us56Ok, Us80Error, Us80Ok, Us96Error, Us96Ok, Us97None, Us97Some}
+import xsim_frames/part1.{closure1, count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_fs_read_file, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
+import xsim_frames/part10.{method258, method259}
+import xsim_frames/part13.{items_from_301, method300}
+import xsim_frames/part18.{method370, method371}
+import xsim_frames/part27.{included_users_450, method455, method456}
+import xsim_frames/part3.{method56, method57}
 
-pub fn request_of_460(v0: String) -> #(String, String, String, String, String) {
+pub fn method457(v0: Uh29, v1: Uh3) -> Uh3 {
+    case v0  {
+        Uh29Cons(v2, v3) -> {
+            let v4 = method457(v3, v1)
+            let v5 = ""
+            let v6 = erlang_term_coerce(v5)
+            let v7 = "created_at"
+            let v8 = erlang_term_coerce(v7)
+            let v9 = erlang_term_coerce(v6)
+            let v10 = "maps"
+            let v11 = atom.create(v10)
+            let v12 = "get"
+            let v13 = atom.create(v12)
+            let v14 = []
+            let v15 = [v9, ..v14]
+            let v16 = [v2, ..v15]
+            let v17 = [v8, ..v16]
+            let v18 = erlang_term_apply(v11, v13, v17)
+            let v19 = erlang_term_coerce(v18)
+            let v20 = erlang_term_coerce(v19)
+            let v21 = spiral_string_slice(v20, 0, 18)
+            Uh3Cons(v21, v4)
+        }
+        Uh29Nil -> v1
+    }
+}
+
+pub fn method458(v0: Uh3, v1: String) -> String {
+    case v0  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = erlang_term_coerce(v1)
+            let v5 = erlang_term_coerce(v2)
+            let v6 = "erlang"
+            let v7 = atom.create(v6)
+            let v8 = ">="
+            let v9 = atom.create(v8)
+            let v10 = []
+            let v11 = [v5, ..v10]
+            let v12 = [v4, ..v11]
+            let v13 = erlang_term_apply(v7, v9, v12)
+            let v14 = erlang_term_coerce(v13)
+            let v15 =
+                case v14 {
+                    True -> v1
+                    False -> v2
+                }
+            method458(v3, v15)
+        }
+        Uh3Nil -> v1
+    }
+}
+
+pub fn method460(v0: Dynamic, v1: Uh29, v2: dict.Dict(String, Dynamic)) -> dict.Dict(String, Dynamic) {
+    case v1  {
+        Uh29Cons(v3, v4) -> {
+            let v5 = ""
+            let v6 = erlang_term_coerce(v5)
+            let v7 = "id"
+            let v8 = erlang_term_coerce(v7)
+            let v9 = erlang_term_coerce(v6)
+            let v10 = "maps"
+            let v11 = atom.create(v10)
+            let v12 = "get"
+            let v13 = atom.create(v12)
+            let v14 = []
+            let v15 = [v9, ..v14]
+            let v16 = [v3, ..v15]
+            let v17 = [v8, ..v16]
+            let v18 = erlang_term_apply(v11, v13, v17)
+            let v19 = erlang_term_coerce(v18)
+            let v20 = "erlang"
+            let v21 = atom.create(v20)
+            let v22 = "is_binary"
+            let v23 = atom.create(v22)
+            let v24 = []
+            let v25 = [v19, ..v24]
+            let v26 = erlang_term_apply(v21, v23, v25)
+            let v27 = erlang_term_coerce(v26)
+            let v36 =
+                case v27 {
+                    True -> {
+                        let v28 = erlang_term_coerce(v19)
+                        v28
+                    }
+                    False -> {
+                        let v29 = atom.create(v20)
+                        let v30 = "integer_to_binary"
+                        let v31 = atom.create(v30)
+                        let v32 = []
+                        let v33 = [v19, ..v32]
+                        let v34 = erlang_term_apply(v29, v31, v33)
+                        let v35 = erlang_term_coerce(v34)
+                        v35
+                    }
+                }
+            let v37 = erlang_term_coerce(v5)
+            let v38 = erlang_term_coerce(v7)
+            let v39 = erlang_term_coerce(v37)
+            let v40 = atom.create(v10)
+            let v41 = atom.create(v12)
+            let v42 = []
+            let v43 = [v39, ..v42]
+            let v44 = [v0, ..v43]
+            let v45 = [v38, ..v44]
+            let v46 = erlang_term_apply(v40, v41, v45)
+            let v47 = erlang_term_coerce(v46)
+            let v48 = "author_id"
+            let v49 = erlang_term_coerce(v48)
+            let v50 = erlang_term_coerce(v47)
+            let v51 = atom.create(v10)
+            let v52 = "put"
+            let v53 = atom.create(v52)
+            let v54 = []
+            let v55 = [v3, ..v54]
+            let v56 = [v50, ..v55]
+            let v57 = [v49, ..v56]
+            let v58 = erlang_term_apply(v51, v53, v57)
+            let v59 = dict.insert(v2, v36, v58)
+            method460(v0, v4, v59)
+        }
+        Uh29Nil -> v2
+    }
+}
+
+pub fn with_posts_459(v0: Dynamic, v1: dict.Dict(String, Dynamic)) -> dict.Dict(String, Dynamic) {
+    let v2 = []
+    let v3 = erlang_term_coerce(v2)
+    let v4 = "posts"
+    let v5 = erlang_term_coerce(v4)
+    let v6 = erlang_term_coerce(v3)
+    let v7 = "maps"
+    let v8 = atom.create(v7)
+    let v9 = "get"
+    let v10 = atom.create(v9)
+    let v11 = []
+    let v12 = [v6, ..v11]
+    let v13 = [v0, ..v12]
+    let v14 = [v5, ..v13]
+    let v15 = erlang_term_apply(v8, v10, v14)
+    let v16 = erlang_term_coerce(v15)
+    let v17 = "lists"
+    let v18 = atom.create(v17)
+    let v19 = "reverse"
+    let v20 = atom.create(v19)
+    let v21 = []
+    let v22 = [v16, ..v21]
+    let v23 = erlang_term_apply(v18, v20, v22)
+    let v24 = Uh29Nil
+    let v25 = items_from_301(v23, v24)
+    method460(v0, v25, v1)
+}
+
+pub fn method454(v0: Uh29, v1: String, v2: String, v3: dict.Dict(String, Dynamic), v4: dict.Dict(String, Dynamic), v5: Int, v6: dict.Dict(String, Dynamic), v7: String, v8: Dynamic, v9: Uh3, v10: Dynamic, v11: dict.Dict(String, Nil), v12: Int) -> #(String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+    let #(v172, v173, v174, v175, v176, v177, v178, v179, v180, v181, v182, v183) =
+        case v0  {
+            Uh29Cons(v13, v14) -> {
+                let v15 = ""
+                let v16 = erlang_term_coerce(v15)
+                let v17 = "username"
+                let v18 = erlang_term_coerce(v17)
+                let v19 = erlang_term_coerce(v16)
+                let v20 = "maps"
+                let v21 = atom.create(v20)
+                let v22 = "get"
+                let v23 = atom.create(v22)
+                let v24 = []
+                let v25 = [v19, ..v24]
+                let v26 = [v13, ..v25]
+                let v27 = [v18, ..v26]
+                let v28 = erlang_term_apply(v21, v23, v27)
+                let v29 = erlang_term_coerce(v28)
+                let v30 = erlang_term_coerce(v29)
+                let v31 = v30 |> string.lowercase
+                let v32 = dict.get(v3, v31)
+                let v33 = method455()
+                let v34 = method456()
+                let v35 = case v32 { Ok(x) -> v33(x) Error(x) -> v34(x) }
+                let v40 =
+                    case v35  {
+                        Us96Error -> Us97None
+                        Us96Ok(v36) -> Us97Some(v36)
+                    }
+                let v101 =
+                    case v40  {
+                        Us97None -> True
+                        Us97Some(v41) -> {
+                            let v42 = []
+                            let v43 = erlang_term_coerce(v42)
+                            let v44 = "posts"
+                            let v45 = erlang_term_coerce(v44)
+                            let v46 = erlang_term_coerce(v43)
+                            let v47 = atom.create(v20)
+                            let v48 = atom.create(v22)
+                            let v49 = []
+                            let v50 = [v46, ..v49]
+                            let v51 = [v13, ..v50]
+                            let v52 = [v45, ..v51]
+                            let v53 = erlang_term_apply(v47, v48, v52)
+                            let v54 = erlang_term_coerce(v53)
+                            let v55 = "lists"
+                            let v56 = atom.create(v55)
+                            let v57 = "reverse"
+                            let v58 = atom.create(v57)
+                            let v59 = []
+                            let v60 = [v54, ..v59]
+                            let v61 = erlang_term_apply(v56, v58, v60)
+                            let v62 = Uh29Nil
+                            let v63 = items_from_301(v61, v62)
+                            let v64 = Uh3Nil
+                            let v65 = method457(v63, v64)
+                            let v66 = method458(v65, v15)
+                            let v67 = []
+                            let v68 = erlang_term_coerce(v67)
+                            let v69 = erlang_term_coerce(v44)
+                            let v70 = erlang_term_coerce(v68)
+                            let v71 = atom.create(v20)
+                            let v72 = atom.create(v22)
+                            let v73 = []
+                            let v74 = [v70, ..v73]
+                            let v75 = [v41, ..v74]
+                            let v76 = [v69, ..v75]
+                            let v77 = erlang_term_apply(v71, v72, v76)
+                            let v78 = erlang_term_coerce(v77)
+                            let v79 = atom.create(v55)
+                            let v80 = atom.create(v57)
+                            let v81 = []
+                            let v82 = [v78, ..v81]
+                            let v83 = erlang_term_apply(v79, v80, v82)
+                            let v84 = Uh29Nil
+                            let v85 = items_from_301(v83, v84)
+                            let v86 = Uh3Nil
+                            let v87 = method457(v85, v86)
+                            let v88 = method458(v87, v15)
+                            let v89 = erlang_term_coerce(v66)
+                            let v90 = erlang_term_coerce(v88)
+                            let v91 = "erlang"
+                            let v92 = atom.create(v91)
+                            let v93 = ">="
+                            let v94 = atom.create(v93)
+                            let v95 = []
+                            let v96 = [v90, ..v95]
+                            let v97 = [v89, ..v96]
+                            let v98 = erlang_term_apply(v92, v94, v97)
+                            let v99 = erlang_term_coerce(v98)
+                            v99
+                        }
+                    }
+                let v116 =
+                    case v101 {
+                        True -> {
+                            let v102 = erlang_term_coerce(v15)
+                            let v103 = erlang_term_coerce(v17)
+                            let v104 = erlang_term_coerce(v102)
+                            let v105 = atom.create(v20)
+                            let v106 = atom.create(v22)
+                            let v107 = []
+                            let v108 = [v104, ..v107]
+                            let v109 = [v13, ..v108]
+                            let v110 = [v103, ..v109]
+                            let v111 = erlang_term_apply(v105, v106, v110)
+                            let v112 = erlang_term_coerce(v111)
+                            let v113 = erlang_term_coerce(v112)
+                            let v114 = v113 |> string.lowercase
+                            let v115 = dict.insert(v3, v114, v13)
+                            v115
+                        }
+                        False -> v3
+                    }
+                let v117 = erlang_term_coerce(v15)
+                let v118 = "id"
+                let v119 = erlang_term_coerce(v118)
+                let v120 = erlang_term_coerce(v117)
+                let v121 = atom.create(v20)
+                let v122 = atom.create(v22)
+                let v123 = []
+                let v124 = [v120, ..v123]
+                let v125 = [v13, ..v124]
+                let v126 = [v119, ..v125]
+                let v127 = erlang_term_apply(v121, v122, v126)
+                let v128 = erlang_term_coerce(v127)
+                let v129 = "erlang"
+                let v130 = atom.create(v129)
+                let v131 = "is_binary"
+                let v132 = atom.create(v131)
+                let v133 = []
+                let v134 = [v128, ..v133]
+                let v135 = erlang_term_apply(v130, v132, v134)
+                let v136 = erlang_term_coerce(v135)
+                let v145 =
+                    case v136 {
+                        True -> {
+                            let v137 = erlang_term_coerce(v128)
+                            v137
+                        }
+                        False -> {
+                            let v138 = atom.create(v129)
+                            let v139 = "integer_to_binary"
+                            let v140 = atom.create(v139)
+                            let v141 = []
+                            let v142 = [v128, ..v141]
+                            let v143 = erlang_term_apply(v138, v140, v142)
+                            let v144 = erlang_term_coerce(v143)
+                            v144
+                        }
+                    }
+                let v146 = dict.insert(v4, v145, v13)
+                let v147 = with_posts_459(v13, v6)
+                method454(v14, v1, v2, v116, v146, v5, v147, v7, v8, v9, v10, v11, v12)
+            }
+            _ -> {
+                let #(v160, v161, v162, v163, v164, v165, v166, v167, v168, v169, v170, v171) =
+                    case v0  {
+                        Uh29Nil -> #(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
+                        _ -> panic as "spiral: union case ruled out by partial evaluation"
+                    }
+                #(v160, v161, v162, v163, v164, v165, v166, v167, v168, v169, v170, v171)
+            }
+        }
+    #(v172, v173, v174, v175, v176, v177, v178, v179, v180, v181, v182, v183)
+}
+
+pub fn world_of_449(v0: String) -> #(String, String, dict.Dict(String, Dynamic), dict.Dict(String, Dynamic), Int, dict.Dict(String, Dynamic), String, Dynamic, Uh3, Dynamic, dict.Dict(String, Nil), Int) {
+    let v1 = spiral_fs_read_file(v0)
+    let v2 = method370()
+    let v3 = method371()
+    let v4 = case v1 { Ok(x) -> v2(x) Error(x) -> v3(x) }
+    let v17 =
+        case v4  {
+            Us80Error(v14) -> panic as "file_system.read_all_text: file:read_file failed"
+            Us80Ok(v5) -> {
+                let v6 = bit_array.to_string(v5)
+                let v7 = method258()
+                let v8 = method259()
+                let v9 = case v6 { Ok(x) -> v7(x) Error(x) -> v8(x) }
+                case v9  {
+                    Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
+                    Us56Ok(v10) -> v10
+                }
+            }
+        }
+    let v18 = erlang_term_coerce(v17)
+    let v19 = "json"
+    let v20 = atom.create(v19)
+    let v21 = "decode"
+    let v22 = atom.create(v21)
+    let v23 = []
+    let v24 = [v18, ..v23]
+    let v25 = erlang_term_apply(v20, v22, v24)
+    let v26 = included_users_450(v0, v25)
+    let v27 = ""
+    let v28 = erlang_term_coerce(v27)
+    let v29 = "token"
+    let v30 = erlang_term_coerce(v29)
+    let v31 = erlang_term_coerce(v28)
+    let v32 = "maps"
+    let v33 = atom.create(v32)
+    let v34 = "get"
+    let v35 = atom.create(v34)
+    let v36 = []
+    let v37 = [v31, ..v36]
+    let v38 = [v25, ..v37]
+    let v39 = [v30, ..v38]
+    let v40 = erlang_term_apply(v33, v35, v39)
+    let v41 = erlang_term_coerce(v40)
+    let v42 = erlang_term_coerce(v41)
+    let v43 = erlang_term_coerce(v27)
+    let v44 = "user_token"
+    let v45 = erlang_term_coerce(v44)
+    let v46 = erlang_term_coerce(v43)
+    let v47 = atom.create(v32)
+    let v48 = atom.create(v34)
+    let v49 = []
+    let v50 = [v46, ..v49]
+    let v51 = [v25, ..v50]
+    let v52 = [v45, ..v51]
+    let v53 = erlang_term_apply(v47, v48, v52)
+    let v54 = erlang_term_coerce(v53)
+    let v55 = erlang_term_coerce(v54)
+    let v56 = erlang_term_coerce(v27)
+    let v57 = "now"
+    let v58 = erlang_term_coerce(v57)
+    let v59 = erlang_term_coerce(v56)
+    let v60 = atom.create(v32)
+    let v61 = atom.create(v34)
+    let v62 = []
+    let v63 = [v59, ..v62]
+    let v64 = [v25, ..v63]
+    let v65 = [v58, ..v64]
+    let v66 = erlang_term_apply(v60, v61, v65)
+    let v67 = erlang_term_coerce(v66)
+    let v68 = erlang_term_coerce(v67)
+    let v69 = dict.new()
+    let v70 = dict.new()
+    let v71 = dict.new()
+    let _v72 = erlang_term_coerce(v27)
+    let _v73 = erlang_term_coerce(v27)
+    let v74 = dict.new()
+    let v75 = erlang_term_coerce(v27)
+    let v76 = "me"
+    let v77 = erlang_term_coerce(v76)
+    let v78 = erlang_term_coerce(v75)
+    let v79 = atom.create(v32)
+    let v80 = atom.create(v34)
+    let v81 = []
+    let v82 = [v78, ..v81]
+    let v83 = [v25, ..v82]
+    let v84 = [v77, ..v83]
+    let v85 = erlang_term_apply(v79, v80, v84)
+    let v86 = erlang_term_coerce(v85)
+    let v87 = erlang_term_coerce(v27)
+    let v88 = "oauth2"
+    let v89 = erlang_term_coerce(v88)
+    let v90 = erlang_term_coerce(v87)
+    let v91 = atom.create(v32)
+    let v92 = atom.create(v34)
+    let v93 = []
+    let v94 = [v90, ..v93]
+    let v95 = [v25, ..v94]
+    let v96 = [v89, ..v95]
+    let v97 = erlang_term_apply(v91, v92, v96)
+    let v98 = erlang_term_coerce(v97)
+    let v99 = erlang_term_coerce(v27)
+    let v100 = "refresh_token"
+    let v101 = erlang_term_coerce(v100)
+    let v102 = erlang_term_coerce(v99)
+    let v103 = atom.create(v32)
+    let v104 = atom.create(v34)
+    let v105 = []
+    let v106 = [v102, ..v105]
+    let v107 = [v98, ..v106]
+    let v108 = [v101, ..v107]
+    let v109 = erlang_term_apply(v103, v104, v108)
+    let v110 = erlang_term_coerce(v109)
+    let v111 = erlang_term_coerce(v110)
+    let v112 = "following_page_size"
+    let v113 = erlang_term_coerce(v112)
+    let v114 = erlang_term_coerce(100)
+    let v115 = atom.create(v32)
+    let v116 = atom.create(v34)
+    let v117 = []
+    let v118 = [v114, ..v117]
+    let v119 = [v25, ..v118]
+    let v120 = [v113, ..v119]
+    let v121 = erlang_term_apply(v115, v116, v120)
+    let v122 = erlang_term_coerce(v121)
+    let v123 = Uh3Nil
+    let v124 = Uh3Cons(v111, v123)
+    let v125 = 9001
+    let #(v126, v127, v128, v129, v130, v131, v132, v133, v134, v135, v136, v137) = method454(v26, v42, v55, v69, v70, v122, v71, v68, v25, v124, v86, v74, v125)
+    #(v126, v127, v128, v129, v130, v131, v132, v133, v134, v135, v136, v137)
+}
+
+pub fn method465(v0: String, v1: Uh3, v2: Uh3) -> Uh3 {
+    case v1  {
+        Uh3Cons(v3, v4) -> {
+            let v5 = method465(v0, v4, v2)
+            let v6 = v3 |> string.lowercase
+            let v7 = v6 |> string.starts_with(v0)
+            case v7 {
+                True -> Uh3Cons(v3, v5)
+                False -> v5
+            }
+        }
+        Uh3Nil -> v2
+    }
+}
+
+pub fn header_value_464(v0: String, v1: String) -> String {
+    let v2 = ":"
+    let v3 = v0 <> v2 
+    let v4 = v1 == ""
+    let v8 =
+        case v4 {
+            True -> Uh3Nil
+            False -> {
+                let v6 = "\r\n"
+                split_list_2(v6, v1)
+            }
+        }
+    let v9 = Uh3Nil
+    let v10 = method465(v3, v8, v9)
+    case v10  {
+        Uh3Cons(v11, v12) -> {
+            let v13 = spiral_string_length(v3)
+            let v14 = spiral_string_length(v11)
+            let v15 = spiral_wrap_signed(v14 - v13, 32)
+            let v16 = spiral_wrap_signed(v13 + v15, 32)
+            let v17 = spiral_wrap_signed(v16 - 1, 32)
+            let v18 = spiral_string_slice(v11, v13, v17)
+            let v19 = spiral_string_length(v18)
+            let v20 = 0
+            let v21 = method56(v18, v19, v20)
+            let v22 = spiral_wrap_signed(v19 - 1, 32)
+            let v23 = spiral_string_slice(v18, v21, v22)
+            let v24 = spiral_string_length(v23)
+            let v25 = method57(v23, v24)
+            let v26 = spiral_string_slice(v23, 0, v25)
+            v26
+        }
+        Uh3Nil -> {
+            let v27 = ""
+            v27
+        }
+    }
+}
+
+pub fn received_463(v0: Dynamic, v1: String) -> String {
+    let v2 = "\r\n\r\n"
+    let v3 = option.from_result(result.map(string.split_once(v1, v2), pair.first))
+    let v4 = closure1(Nil)
+    let v5 = v3 |> option.map(v4)
+    let v6 = Us2None
+    let v7 = v5 |> option.unwrap(v6)
+    let v11 =
+        case v7  {
+            Us2None -> -1
+            Us2Some(v8) -> {
+                let v9 = bit_array.byte_size(bit_array.from_string(v8))
+                v9
+            }
+        }
+    let v12 = v11 >= 0
+    let v33 =
+        case v12 {
+            True -> {
+                let v13 = erlang_term_coerce(v1)
+                let v14 = "erlang"
+                let v15 = atom.create(v14)
+                let v16 = "byte_size"
+                let v17 = atom.create(v16)
+                let v18 = []
+                let v19 = [v13, ..v18]
+                let v20 = erlang_term_apply(v15, v17, v19)
+                let v21 = erlang_term_coerce(v20)
+                let v22 = spiral_wrap_signed(v11 + 4, 32)
+                let v23 = spiral_wrap_signed(v11 - 1, 32)
+                let v24 = spiral_string_slice(v1, 0, v23)
+                let v25 = "content-length"
+                let v26 = header_value_464(v25, v24)
+                let v27 = count_of_text_10(v26)
+                let v30 =
+                    case v27  {
+                        Us3None -> 0
+                        Us3Some(v28) -> v28
+                    }
+                let v31 = spiral_wrap_signed(v22 + v30, 32)
+                let v32 = v21 >= v31
+                v32
+            }
+            False -> False
+        }
+    let v48 =
+        case v33 {
+            True -> {
+                let v34 = "done"
+                let v35 = atom.create(v34)
+                let v36 = erlang_term_coerce(v35)
+                v36
+            }
+            False -> {
+                let v37 = erlang_term_coerce(0)
+                let v38 = erlang_term_coerce(10000)
+                let v39 = "gen_tcp"
+                let v40 = atom.create(v39)
+                let v41 = "recv"
+                let v42 = atom.create(v41)
+                let v43 = []
+                let v44 = [v38, ..v43]
+                let v45 = [v37, ..v44]
+                let v46 = [v0, ..v45]
+                let v47 = erlang_term_apply(v40, v42, v46)
+                v47
+            }
+        }
+    let v49 = "erlang"
+    let v50 = atom.create(v49)
+    let v51 = "is_tuple"
+    let v52 = atom.create(v51)
+    let v53 = []
+    let v54 = [v48, ..v53]
+    let v55 = erlang_term_apply(v50, v52, v54)
+    let v56 = erlang_term_coerce(v55)
+    let v69 =
+        case v56 {
+            True -> {
+                let v57 = erlang_term_coerce(1)
+                let v58 = atom.create(v49)
+                let v59 = "element"
+                let v60 = atom.create(v59)
+                let v61 = []
+                let v62 = [v48, ..v61]
+                let v63 = [v57, ..v62]
+                let v64 = erlang_term_apply(v58, v60, v63)
+                let v65 = "ok"
+                let v66 = atom.create(v65)
+                let v67 = erlang_term_coerce(v66)
+                let v68 = v64 == v67
+                v68
+            }
+            False -> False
+        }
+    case v69 {
+        True -> {
+            let v70 = erlang_term_coerce(2)
+            let v71 = atom.create(v49)
+            let v72 = "element"
+            let v73 = atom.create(v72)
+            let v74 = []
+            let v75 = [v48, ..v74]
+            let v76 = [v70, ..v75]
+            let v77 = erlang_term_apply(v71, v73, v76)
+            let v78 = erlang_term_coerce(v77)
+            let v79 = v1 <> v78 
+            received_463(v0, v79)
+        }
+        False -> v1
+    }
+}
+
+pub fn request_of_467(v0: String) -> #(String, String, String, String, String) {
     let v1 = "\r\n\r\n"
     let v2 = option.from_result(result.map(string.split_once(v0, v1), pair.first))
     let v3 = closure1(Nil)
@@ -152,20 +774,20 @@ pub fn request_of_460(v0: String) -> #(String, String, String, String, String) {
     #(v88, v77, v78, v12, v0)
 }
 
-pub fn method465(v0: Uh38, v1: Uh38) -> Uh38 {
+pub fn method472(v0: Uh38, v1: Uh38) -> Uh38 {
     case v0  {
         Uh38Cons(v2, v3, v4) -> {
-            let v5 = method465(v4, v1)
+            let v5 = method472(v4, v1)
             Uh38Cons(v2, v3, v5)
         }
         Uh38Nil -> v1
     }
 }
 
-pub fn method466(v0: Uh38, v1: Uh29) -> Uh29 {
+pub fn method473(v0: Uh38, v1: Uh29) -> Uh29 {
     case v0  {
         Uh38Cons(v2, v3, v4) -> {
-            let v5 = method466(v4, v1)
+            let v5 = method473(v4, v1)
             let v6 = atom.create(v2)
             let v7 = erlang_term_coerce(v6)
             let v8 = []
@@ -178,7 +800,7 @@ pub fn method466(v0: Uh38, v1: Uh29) -> Uh29 {
     }
 }
 
-pub fn log_row_464(v0: String, v1: String, v2: String, _v3: String, v4: String, v5: String) -> Dynamic {
+pub fn log_row_471(v0: String, v1: String, v2: String, _v3: String, v4: String, v5: String) -> Dynamic {
     let v6 = v0 == "POST"
     let v7 = "\r\n\r\n"
     let v8 = option.from_result(result.map(string.split_once(v4, v7), pair.first))
@@ -230,9 +852,9 @@ pub fn log_row_464(v0: String, v1: String, v2: String, _v3: String, v4: String, 
     let v38 = erlang_term_coerce(v1)
     let v39 = erlang_term_coerce(v2)
     let v40 = Uh38Nil
-    let v41 = method465(v28, v40)
+    let v41 = method472(v28, v40)
     let v42 = Uh29Nil
-    let v43 = method466(v41, v42)
+    let v43 = method473(v41, v42)
     let v44 = "context"
     let v45 = atom.create(v44)
     let v46 = erlang_term_coerce(v45)
@@ -286,8 +908,8 @@ pub fn log_row_464(v0: String, v1: String, v2: String, _v3: String, v4: String, 
     v93
 }
 
-pub fn logged_463(v0: String, v1: String, v2: String, v3: String, v4: String, v5: String, v6: String) -> Nil {
-    let v7 = log_row_464(v1, v2, v3, v4, v5, v6)
+pub fn logged_470(v0: String, v1: String, v2: String, v3: String, v4: String, v5: String, v6: String) -> Nil {
+    let v7 = log_row_471(v1, v2, v3, v4, v5, v6)
     let v8 = "json"
     let v9 = atom.create(v8)
     let v10 = "encode"
@@ -305,650 +927,26 @@ pub fn logged_463(v0: String, v1: String, v2: String, v3: String, v4: String, v5
     let v22 = erlang_term_coerce(v21)
     let v23 = "\n"
     let v24 = v22 <> v23 
-    let v25 = "append"
-    let v26 = atom.create(v25)
-    let v27 = erlang_term_coerce(v26)
-    let v28 = []
-    let v29 = [v27, ..v28]
-    let v30 = erlang_term_coerce(v29)
-    let v31 = erlang_term_coerce(v0)
-    let v32 = erlang_term_coerce(v24)
+    let v25 = erlang_term_coerce(v0)
+    let v26 = erlang_term_coerce(v24)
+    let v27 = "append"
+    let v28 = atom.create(v27)
+    let v29 = erlang_term_coerce(v28)
+    let v30 = []
+    let v31 = [v29, ..v30]
+    let v32 = erlang_term_coerce(v31)
     let v33 = "file"
     let v34 = atom.create(v33)
     let v35 = "write_file"
     let v36 = atom.create(v35)
     let v37 = []
-    let v38 = [v30, ..v37]
-    let v39 = [v32, ..v38]
-    let v40 = [v31, ..v39]
+    let v38 = [v32, ..v37]
+    let v39 = [v26, ..v38]
+    let v40 = [v25, ..v39]
     let v41 = erlang_term_apply(v34, v36, v40)
     let v42 = "ok"
     let v43 = atom.create(v42)
     let v44 = erlang_term_coerce(v43)
     let _v45 = v41 == v44
     Nil
-}
-
-pub fn ok_c145(capt: Nil) -> fn(Dynamic) -> Us94 {
-    fn (v0) {
-        Us94Ok(v0)
-    }
-}
-
-pub fn method470() -> fn(Dynamic) -> Us94 {
-    ok_c145(Nil)
-}
-
-pub fn error_c146(capt: Nil) -> fn(Nil) -> Us94 {
-    fn (dom) {
-        Us94Error
-    }
-}
-
-pub fn method471() -> fn(Nil) -> Us94 {
-    error_c146(Nil)
-}
-
-pub fn route_of_469(_v0: String, _v1: String, _v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), _v4: Int, _v5: dict.Dict(String, Dynamic), _v6: String, _v7: Dynamic, _v8: Uh3, _v9: Dynamic, _v10: dict.Dict(String, Nil), _v11: Int, v12: String) -> Us93 {
-    let v13 = v12 == ""
-    let v17 =
-        case v13 {
-            True -> Uh3Nil
-            False -> {
-                let v15 = "/"
-                split_list_2(v15, v12)
-            }
-        }
-    case v17  {
-        Uh3Cons(v18, v19) -> {
-            let v20 = "" == v18
-            case v20 {
-                True -> {
-                    case v19  {
-                        Uh3Cons(v21, v22) -> {
-                            let v23 = "2" == v21
-                            case v23 {
-                                True -> {
-                                    case v22  {
-                                        Uh3Cons(v24, v25) -> {
-                                            let v26 = "users" == v24
-                                            case v26 {
-                                                True -> {
-                                                    case v25  {
-                                                        Uh3Cons(v27, v28) -> {
-                                                            let v29 = "by" == v27
-                                                            case v29 {
-                                                                True -> {
-                                                                    case v28  {
-                                                                        Uh3Cons(v31, v32) -> {
-                                                                            case v32  {
-                                                                                Uh3Nil -> {
-                                                                                    let v33 = dict.has_key(v3, v27)
-                                                                                    let v34 = v33 == False
-                                                                                    case v34 {
-                                                                                        True -> Us93Elsewhere
-                                                                                        False -> {
-                                                                                            let v36 = v31 == "following"
-                                                                                            case v36 {
-                                                                                                True -> {
-                                                                                                    let v37 = dict.get(v3, v27)
-                                                                                                    let v38 = method470()
-                                                                                                    let v39 = method471()
-                                                                                                    let v40 = case v37 { Ok(x) -> v38(x) Error(x) -> v39(x) }
-                                                                                                    let v45 =
-                                                                                                        case v40  {
-                                                                                                            Us94Error -> Us72None
-                                                                                                            Us94Ok(v41) -> Us72Some(v41)
-                                                                                                        }
-                                                                                                    let v49 =
-                                                                                                        case v45  {
-                                                                                                            Us72None -> panic as "dict.present: the key is not in the dict"
-                                                                                                            Us72Some(v46) -> v46
-                                                                                                        }
-                                                                                                    Us93Following(v49)
-                                                                                                }
-                                                                                                False -> {
-                                                                                                    let v51 = v31 == "tweets"
-                                                                                                    case v51 {
-                                                                                                        True -> {
-                                                                                                            let v52 = dict.get(v3, v27)
-                                                                                                            let v53 = method470()
-                                                                                                            let v54 = method471()
-                                                                                                            let v55 = case v52 { Ok(x) -> v53(x) Error(x) -> v54(x) }
-                                                                                                            let v60 =
-                                                                                                                case v55  {
-                                                                                                                    Us94Error -> Us72None
-                                                                                                                    Us94Ok(v56) -> Us72Some(v56)
-                                                                                                                }
-                                                                                                            let v64 =
-                                                                                                                case v60  {
-                                                                                                                    Us72None -> panic as "dict.present: the key is not in the dict"
-                                                                                                                    Us72Some(v61) -> v61
-                                                                                                                }
-                                                                                                            Us93Timeline(v64)
-                                                                                                        }
-                                                                                                        False -> Us93Elsewhere
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                                _ -> Us93Elsewhere
-                                                                            }
-                                                                        }
-                                                                        Uh3Nil -> Us93UsersBy
-                                                                    }
-                                                                }
-                                                                False -> {
-                                                                    case v28  {
-                                                                        Uh3Cons(v74, v75) -> {
-                                                                            case v75  {
-                                                                                Uh3Nil -> {
-                                                                                    let v76 = dict.has_key(v3, v27)
-                                                                                    let v77 = v76 == False
-                                                                                    case v77 {
-                                                                                        True -> Us93Elsewhere
-                                                                                        False -> {
-                                                                                            let v79 = v74 == "following"
-                                                                                            case v79 {
-                                                                                                True -> {
-                                                                                                    let v80 = dict.get(v3, v27)
-                                                                                                    let v81 = method470()
-                                                                                                    let v82 = method471()
-                                                                                                    let v83 = case v80 { Ok(x) -> v81(x) Error(x) -> v82(x) }
-                                                                                                    let v88 =
-                                                                                                        case v83  {
-                                                                                                            Us94Error -> Us72None
-                                                                                                            Us94Ok(v84) -> Us72Some(v84)
-                                                                                                        }
-                                                                                                    let v92 =
-                                                                                                        case v88  {
-                                                                                                            Us72None -> panic as "dict.present: the key is not in the dict"
-                                                                                                            Us72Some(v89) -> v89
-                                                                                                        }
-                                                                                                    Us93Following(v92)
-                                                                                                }
-                                                                                                False -> {
-                                                                                                    let v94 = v74 == "tweets"
-                                                                                                    case v94 {
-                                                                                                        True -> {
-                                                                                                            let v95 = dict.get(v3, v27)
-                                                                                                            let v96 = method470()
-                                                                                                            let v97 = method471()
-                                                                                                            let v98 = case v95 { Ok(x) -> v96(x) Error(x) -> v97(x) }
-                                                                                                            let v103 =
-                                                                                                                case v98  {
-                                                                                                                    Us94Error -> Us72None
-                                                                                                                    Us94Ok(v99) -> Us72Some(v99)
-                                                                                                                }
-                                                                                                            let v107 =
-                                                                                                                case v103  {
-                                                                                                                    Us72None -> panic as "dict.present: the key is not in the dict"
-                                                                                                                    Us72Some(v104) -> v104
-                                                                                                                }
-                                                                                                            Us93Timeline(v107)
-                                                                                                        }
-                                                                                                        False -> Us93Elsewhere
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                                _ -> Us93Elsewhere
-                                                                            }
-                                                                        }
-                                                                        _ -> Us93Elsewhere
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                        Uh3Nil -> Us93UsersByIds
-                                                    }
-                                                }
-                                                False -> {
-                                                    let v121 = "tweets" == v24
-                                                    case v121 {
-                                                        True -> {
-                                                            case v25  {
-                                                                Uh3Cons(v123, v124) -> {
-                                                                    case v124  {
-                                                                        Uh3Nil -> Us93Single(v123)
-                                                                        _ -> {
-                                                                            let v126 = "search" == v123
-                                                                            case v126 {
-                                                                                True -> {
-                                                                                    case v124  {
-                                                                                        Uh3Cons(v127, v128) -> {
-                                                                                            case v128  {
-                                                                                                Uh3Nil -> {
-                                                                                                    let v129 = v127 == "recent"
-                                                                                                    case v129 {
-                                                                                                        True -> Us93SearchRecent
-                                                                                                        False -> {
-                                                                                                            let v131 = v127 == "all"
-                                                                                                            case v131 {
-                                                                                                                True -> Us93SearchAll
-                                                                                                                False -> Us93Elsewhere
-                                                                                                            }
-                                                                                                        }
-                                                                                                    }
-                                                                                                }
-                                                                                                _ -> Us93Elsewhere
-                                                                                            }
-                                                                                        }
-                                                                                        _ -> panic as "spiral: union case ruled out by partial evaluation"
-                                                                                    }
-                                                                                }
-                                                                                False -> Us93Elsewhere
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                                Uh3Nil -> Us93Lookup
-                                                            }
-                                                        }
-                                                        False -> Us93Elsewhere
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        _ -> Us93Elsewhere
-                                    }
-                                }
-                                False -> Us93Elsewhere
-                            }
-                        }
-                        _ -> Us93Elsewhere
-                    }
-                }
-                False -> Us93Elsewhere
-            }
-        }
-        _ -> Us93Elsewhere
-    }
-}
-
-pub fn first_value_473(v0: String, v1: Uh3) -> String {
-    case v1  {
-        Uh3Cons(v2, v3) -> {
-            let v4 = "="
-            let v5 = option.from_result(result.map(string.split_once(v2, v4), pair.first))
-            let v6 = closure1(Nil)
-            let v7 = v5 |> option.map(v6)
-            let v8 = Us2None
-            let v9 = v7 |> option.unwrap(v8)
-            let v13 =
-                case v9  {
-                    Us2None -> -1
-                    Us2Some(v10) -> {
-                        let v11 = bit_array.byte_size(bit_array.from_string(v10))
-                        v11
-                    }
-                }
-            let v14 = spiral_wrap_signed(v13 + 1, 32)
-            let v15 = v13 < 0
-            let #(v24, v25) =
-                case v15 {
-                    True -> {
-                        let v16 = ""
-                        #(v2, v16)
-                    }
-                    False -> {
-                        let v17 = spiral_wrap_signed(v13 - 1, 32)
-                        let v18 = spiral_string_slice(v2, 0, v17)
-                        let v19 = spiral_string_length(v2)
-                        let v20 = spiral_wrap_signed(v19 - v14, 32)
-                        let v21 = spiral_wrap_signed(v14 + v20, 32)
-                        let v22 = spiral_wrap_signed(v21 - 1, 32)
-                        let v23 = spiral_string_slice(v2, v14, v22)
-                        #(v18, v23)
-                    }
-                }
-            let v26 = v25 != ""
-            let v40 =
-                case v26 {
-                    True -> {
-                        let v27 = "+"
-                        let v28 = " "
-                        let v29 = v24 |> string.replace(v27, v28)
-                        let v30 = erlang_term_coerce(v29)
-                        let v31 = "uri_string"
-                        let v32 = atom.create(v31)
-                        let v33 = "percent_decode"
-                        let v34 = atom.create(v33)
-                        let v35 = []
-                        let v36 = [v30, ..v35]
-                        let v37 = erlang_term_apply(v32, v34, v36)
-                        let v38 = erlang_term_coerce(v37)
-                        let v39 = v38 == v0
-                        v39
-                    }
-                    False -> False
-                }
-            let v55 =
-                case v40 {
-                    True -> {
-                        let v41 = "+"
-                        let v42 = " "
-                        let v43 = v25 |> string.replace(v41, v42)
-                        let v44 = erlang_term_coerce(v43)
-                        let v45 = "uri_string"
-                        let v46 = atom.create(v45)
-                        let v47 = "percent_decode"
-                        let v48 = atom.create(v47)
-                        let v49 = []
-                        let v50 = [v44, ..v49]
-                        let v51 = erlang_term_apply(v46, v48, v50)
-                        let v52 = erlang_term_coerce(v51)
-                        Us2Some(v52)
-                    }
-                    False -> Us2None
-                }
-            case v55  {
-                Us2None -> first_value_473(v0, v3)
-                Us2Some(v56) -> v56
-            }
-        }
-        Uh3Nil -> {
-            let v60 = ""
-            v60
-        }
-    }
-}
-
-pub fn method476(v0: Uh29, v1: Uh3) -> Uh3 {
-    case v0  {
-        Uh29Cons(v2, v3) -> {
-            let v4 = method476(v3, v1)
-            let v5 = "erlang"
-            let v6 = atom.create(v5)
-            let v7 = "is_binary"
-            let v8 = atom.create(v7)
-            let v9 = []
-            let v10 = [v2, ..v9]
-            let v11 = erlang_term_apply(v6, v8, v10)
-            let v12 = erlang_term_coerce(v11)
-            let v21 =
-                case v12 {
-                    True -> {
-                        let v13 = erlang_term_coerce(v2)
-                        v13
-                    }
-                    False -> {
-                        let v14 = atom.create(v5)
-                        let v15 = "integer_to_binary"
-                        let v16 = atom.create(v15)
-                        let v17 = []
-                        let v18 = [v2, ..v17]
-                        let v19 = erlang_term_apply(v14, v16, v18)
-                        let v20 = erlang_term_coerce(v19)
-                        v20
-                    }
-                }
-            Uh3Cons(v21, v4)
-        }
-        Uh29Nil -> v1
-    }
-}
-
-pub fn method477(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh3) -> Uh3 {
-    case v12  {
-        Uh3Cons(v14, v15) -> {
-            let v16 = method477(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
-            let v17 = dict.has_key(v3, v14)
-            case v17 {
-                True -> Uh3Cons(v14, v16)
-                False -> v16
-            }
-        }
-        Uh3Nil -> v13
-    }
-}
-
-pub fn method478(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh3, v13: Uh29) -> Uh29 {
-    case v12  {
-        Uh3Cons(v14, v15) -> {
-            let v16 = method478(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v15, v13)
-            let v17 = dict.get(v3, v14)
-            let v18 = method470()
-            let v19 = method471()
-            let v20 = case v17 { Ok(x) -> v18(x) Error(x) -> v19(x) }
-            let v25 =
-                case v20  {
-                    Us94Error -> Us72None
-                    Us94Ok(v21) -> Us72Some(v21)
-                }
-            let v29 =
-                case v25  {
-                    Us72None -> panic as "dict.present: the key is not in the dict"
-                    Us72Some(v26) -> v26
-                }
-            Uh29Cons(v29, v16)
-        }
-        Uh3Nil -> v13
-    }
-}
-
-pub fn followed_475(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic) -> Uh29 {
-    let v13 = []
-    let v14 = erlang_term_coerce(v13)
-    let v15 = "following"
-    let v16 = erlang_term_coerce(v15)
-    let v17 = erlang_term_coerce(v14)
-    let v18 = "maps"
-    let v19 = atom.create(v18)
-    let v20 = "get"
-    let v21 = atom.create(v20)
-    let v22 = []
-    let v23 = [v17, ..v22]
-    let v24 = [v12, ..v23]
-    let v25 = [v16, ..v24]
-    let v26 = erlang_term_apply(v19, v21, v25)
-    let v27 = erlang_term_coerce(v26)
-    let v28 = "lists"
-    let v29 = atom.create(v28)
-    let v30 = "reverse"
-    let v31 = atom.create(v30)
-    let v32 = []
-    let v33 = [v27, ..v32]
-    let v34 = erlang_term_apply(v29, v31, v33)
-    let v35 = Uh29Nil
-    let v36 = items_from_443(v34, v35)
-    let v37 = Uh3Nil
-    let v38 = method476(v36, v37)
-    let v39 = Uh3Nil
-    let v40 = method477(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v38, v39)
-    let v41 = Uh29Nil
-    method478(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v40, v41)
-}
-
-pub fn sliced_479(v0: Int, v1: Int, v2: Uh29) -> Uh29 {
-    case v2  {
-        Uh29Cons(v3, v4) -> {
-            let v5 = v0 > 0
-            case v5 {
-                True -> {
-                    let v6 = spiral_wrap_signed(v0 - 1, 32)
-                    sliced_479(v6, v1, v4)
-                }
-                False -> {
-                    let v8 = v1 > 0
-                    case v8 {
-                        True -> {
-                            let v9 = 0
-                            let v10 = spiral_wrap_signed(v1 - 1, 32)
-                            let v11 = sliced_479(v9, v10, v4)
-                            Uh29Cons(v3, v11)
-                        }
-                        False -> Uh29Nil
-                    }
-                }
-            }
-        }
-        _ -> Uh29Nil
-    }
-}
-
-pub fn method480(v0: Uh29, v1: Int) -> Int {
-    case v0  {
-        Uh29Cons(v2, v3) -> {
-            let v4 = spiral_wrap_signed(v1 + 1, 32)
-            method480(v3, v4)
-        }
-        Uh29Nil -> v1
-    }
-}
-
-pub fn method481(v0: Uh29, v1: Uh29) -> Uh29 {
-    case v0  {
-        Uh29Cons(v2, v3) -> {
-            let v4 = method481(v3, v1)
-            let v5 = ""
-            let v6 = erlang_term_coerce(v5)
-            let v7 = "username"
-            let v8 = erlang_term_coerce(v7)
-            let v9 = erlang_term_coerce(v6)
-            let v10 = "maps"
-            let v11 = atom.create(v10)
-            let v12 = "get"
-            let v13 = atom.create(v12)
-            let v14 = []
-            let v15 = [v9, ..v14]
-            let v16 = [v2, ..v15]
-            let v17 = [v8, ..v16]
-            let v18 = erlang_term_apply(v11, v13, v17)
-            let v19 = erlang_term_coerce(v18)
-            let v20 = erlang_term_coerce(v5)
-            let v21 = "name"
-            let v22 = erlang_term_coerce(v21)
-            let v23 = erlang_term_coerce(v20)
-            let v24 = atom.create(v10)
-            let v25 = atom.create(v12)
-            let v26 = []
-            let v27 = [v23, ..v26]
-            let v28 = [v2, ..v27]
-            let v29 = [v22, ..v28]
-            let v30 = erlang_term_apply(v24, v25, v29)
-            let v31 = erlang_term_coerce(v30)
-            let v32 = erlang_term_coerce(v5)
-            let v33 = "id"
-            let v34 = erlang_term_coerce(v33)
-            let v35 = erlang_term_coerce(v32)
-            let v36 = atom.create(v10)
-            let v37 = atom.create(v12)
-            let v38 = []
-            let v39 = [v35, ..v38]
-            let v40 = [v2, ..v39]
-            let v41 = [v34, ..v40]
-            let v42 = erlang_term_apply(v36, v37, v41)
-            let v43 = erlang_term_coerce(v42)
-            let v44 = atom.create(v7)
-            let v45 = erlang_term_coerce(v44)
-            let v46 = []
-            let v47 = [v19, ..v46]
-            let v48 = [v45, ..v47]
-            let v49 = erlang_term_tuple(v48)
-            let v50 = atom.create(v21)
-            let v51 = erlang_term_coerce(v50)
-            let v52 = []
-            let v53 = [v31, ..v52]
-            let v54 = [v51, ..v53]
-            let v55 = erlang_term_tuple(v54)
-            let v56 = atom.create(v33)
-            let v57 = erlang_term_coerce(v56)
-            let v58 = []
-            let v59 = [v43, ..v58]
-            let v60 = [v57, ..v59]
-            let v61 = erlang_term_tuple(v60)
-            let v62 = []
-            let v63 = [v49, ..v62]
-            let v64 = [v55, ..v63]
-            let v65 = [v61, ..v64]
-            let v66 = erlang_term_coerce(v65)
-            let v67 = atom.create(v10)
-            let v68 = "from_list"
-            let v69 = atom.create(v68)
-            let v70 = []
-            let v71 = [v66, ..v70]
-            let v72 = erlang_term_apply(v67, v69, v71)
-            Uh29Cons(v72, v4)
-        }
-        Uh29Nil -> v1
-    }
-}
-
-pub fn following_body_474(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Dynamic, v13: Int, v14: Int) -> Dynamic {
-    let v15 = followed_475(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
-    let v16 = sliced_479(v13, v14, v15)
-    let v17 = 0
-    let v18 = method480(v16, v17)
-    let v19 = spiral_wrap_signed(v13 + v14, 32)
-    let v20 = 0
-    let v21 = method480(v15, v20)
-    let v22 = v19 < v21
-    let v31 =
-        case v22 {
-            True -> {
-                let v23 = string.inspect(v19)
-                let v24 = "p"
-                let v25 = v24 <> v23 
-                let v26 = erlang_term_coerce(v25)
-                let v27 = "next_token"
-                let v28 = Uh38Nil
-                Uh38Cons(v27, v26, v28)
-            }
-            False -> Uh38Nil
-        }
-    let v32 = erlang_term_coerce(v18)
-    let v33 = Uh29Nil
-    let v34 = method466(v31, v33)
-    let v35 = "result_count"
-    let v36 = atom.create(v35)
-    let v37 = erlang_term_coerce(v36)
-    let v38 = []
-    let v39 = [v32, ..v38]
-    let v40 = [v37, ..v39]
-    let v41 = erlang_term_tuple(v40)
-    let v42 = []
-    let v43 = method300(v34, v42)
-    let v44 = [v41, ..v43]
-    let v45 = erlang_term_coerce(v44)
-    let v46 = "maps"
-    let v47 = atom.create(v46)
-    let v48 = "from_list"
-    let v49 = atom.create(v48)
-    let v50 = []
-    let v51 = [v45, ..v50]
-    let v52 = erlang_term_apply(v47, v49, v51)
-    let v53 = Uh29Nil
-    let v54 = method481(v16, v53)
-    let v62 =
-        case v54  {
-            Uh29Nil -> Uh38Nil
-            _ -> {
-                let v56 = []
-                let v57 = method300(v54, v56)
-                let v58 = erlang_term_coerce(v57)
-                let v59 = "data"
-                let v60 = Uh38Nil
-                Uh38Cons(v59, v58, v60)
-            }
-        }
-    let v63 = "meta"
-    let v64 = Uh38Nil
-    let v65 = Uh38Cons(v63, v52, v64)
-    let v66 = method465(v62, v65)
-    let v67 = Uh29Nil
-    let v68 = method466(v66, v67)
-    let v69 = []
-    let v70 = method300(v68, v69)
-    let v71 = erlang_term_coerce(v70)
-    let v72 = atom.create(v46)
-    let v73 = atom.create(v48)
-    let v74 = []
-    let v75 = [v71, ..v74]
-    let v76 = erlang_term_apply(v72, v73, v75)
-    v76
 }

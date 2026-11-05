@@ -24,6 +24,8 @@
     | PostThread : string
     | PreviewThread : string
     | PreviewThreads : list string
+    | CensusThreads : list string
+    | Events : list string
     | DeleteThread : string
     | ResumeThread : string * string
 
@@ -81,6 +83,7 @@
 
 := usage_thread_previews () : string =
     "       xc post-thread --dry-run FILE...   preview each FILE's thread after a '=== FILE' line\n"
+    ++# "       xc postable census FILE...   a row of cells and posts per FILE, then their total\n"
 
 := usage_thread_deletes () : string =
     "       xc delete-thread ID   delete your posts of that thread (user credentials)\n"
@@ -331,14 +334,28 @@
     | flag :: root :: path :: [] ?& flag = "--resume" => OnThread (ResumeThread (root, path))
     | _ => dry_or_post rest
 
+:= postable_command (rest : args) : command =
+    ?= rest ?|
+    | word :: path :: more ?& word = "census" => OnThread (CensusThreads (path :: more))
+    | _ => Rejected "postable takes census FILE..."
+
+:= events_command (rest : args) : command =
+    ?= rest ?|
+    | verb :: more ?& verb = "publish" || verb = "finish" || verb = "count" => OnThread (Events (verb :: more))
+    | _ => Rejected "events takes publish, finish or count"
+
+:= events_or_unknown (sub : string) (rest : args) : command =
+    ? sub = "events" ?> events_command rest |: Rejected (unknown_command sub)
+
 :~ thread_command (sub : string) (rest : args) : command =
     ? sub = "post-thread" ?> thread_post_command rest
     |? sub = "delete-thread" ?> one_value sub rest (DeleteThread >> OnThread)
-    |: Rejected (unknown_command sub)
+    |: events_or_unknown sub rest
 
 :~ other_command (sub : string) (rest : args) : command =
     ? sub = "refresh" ?> one_value sub rest RefreshToken
     |? sub = "thread" ?> one_value sub rest (ReadThread >> OnThread)
+    |? sub = "postable" ?> postable_command rest
     |: thread_command sub rest
 
 :~ write_command (sub : string) (rest : args) : command =
@@ -389,10 +406,16 @@
     := hints = (? r::hints ?> " hints" |: "") ++# (? r::json ?> " json" |: "")
     source_text r::source ++# counts_text r ++# views_text r ++# flags_text r::filters ++# hints
 
+:= more_text (t : thread_op) : string =
+    ?= t ?|
+    | Events words => "events " ++# delimited " " words
+    | _ => ""
+
 := thread_batch_text (t : thread_op) : string =
     ?= t ?|
     | PreviewThreads paths => "post-thread --dry-run " ++# delimited " " paths
-    | _ => ""
+    | CensusThreads paths => "postable census " ++# delimited " " paths
+    | o => more_text o
 
 := thread_edit_text (t : thread_op) : string =
     ?= t ?|
@@ -529,6 +552,16 @@
     := ~path = "prelude.spi"
     parsed [ "post-thread"; "--dry-run"; path; "glyphs.spi" ]
     |> _assert_eq "post-thread --dry-run prelude.spi glyphs.spi"
+
+///> zig
+:# postable_census_takes_one_or_more_files =
+    parsed [ "postable"; "census"; "prelude.spi"; "glyphs.spi" ] |> _assert_eq "postable census prelude.spi glyphs.spi"
+    parsed [ "postable"; "census" ] |> _assert_eq "rejected: postable takes census FILE..."
+
+///> zig
+:# events_takes_publish_or_count =
+    parsed [ "events"; "count"; "r1" ] |> _assert_eq "events count r1"
+    parsed [ "events"; "tail" ] |> _assert_eq "rejected: events takes publish, finish or count"
 
 ///> zig
 :# post_thread_resumes_from_a_root =

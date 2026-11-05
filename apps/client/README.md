@@ -56,6 +56,7 @@ usage: xc timeline [options] USERNAME...
        xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)
        xc post-thread --resume ROOT_ID FILE   finish a half-posted thread of FILE after its last post
        xc post-thread --dry-run FILE...   preview each FILE's thread after a '=== FILE' line
+       xc postable census FILE...   a row of cells and posts per FILE, then their total
        xc delete-thread ID   delete your posts of that thread (user credentials)
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts shown per account, 1..100 (default 5)
@@ -681,6 +682,7 @@ usage: xc timeline [options] USERNAME...
        xc post-thread [--dry-run] FILE   post FILE as such a thread (user credentials)
        xc post-thread --resume ROOT_ID FILE   finish a half-posted thread of FILE after its last post
        xc post-thread --dry-run FILE...   preview each FILE's thread after a '=== FILE' line
+       xc postable census FILE...   a row of cells and posts per FILE, then their total
        xc delete-thread ID   delete your posts of that thread (user credentials)
 env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-account N   posts shown per account, 1..100 (default 5)

@@ -16,7 +16,7 @@ fn from_1(mut v0: serde_json::Value, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
     loop {
         let v3: bool = v1 < 0i32;
         if v3 {
-            return v2.clone();
+            return v2;
         } else {
             let mut v4: i32 = v1.wrapping_sub(1i32);
             let v5: usize = ((v1) as usize);
@@ -24,8 +24,8 @@ fn from_1(mut v0: serde_json::Value, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
             let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("text"); } LIT.with(|lit| lit.clone()) };
             let v8: serde_json::Value = v6.get(&*v7).cloned().unwrap_or_default();
             let v9: Rc<str> = Rc::<str>::from(v8.as_str().unwrap_or(""));
-            let v10: Rc<UH0> = Rc::new(UH0::UH0_Cons(v9.clone(), v2.clone()));
-            (v0, v1, v2) = (v0.clone(), v4, v10.clone());
+            let v10: Rc<UH0> = Rc::new(UH0::UH0_Cons(v9, v2));
+            (v1, v2) = (v4, v10);
             continue;
         }
     }
@@ -42,12 +42,12 @@ fn closure1() -> Rc<dyn Fn((usize)) -> i32> {
 }
 fn method4(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
     loop {
-        match &*v0 {
+        match Rc::unwrap_or_clone(v0) {
             UH0::UH0_Cons(v2, v3) => {
-                let v2: Rc<str> = v2.clone();
-                let v3: Rc<UH0> = v3.clone();
+                let v2: Rc<str> = v2;
+                let v3: Rc<UH0> = v3;
                 let mut v4: i32 = v1.wrapping_add(1i32);
-                (v0, v1) = (v3.clone(), v4);
+                (v0, v1) = (v3, v4);
                 continue;
             }
             UH0::UH0_Nil => {
@@ -62,61 +62,61 @@ fn resume_from_2(mut v0: i32, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> US0 {
             UH0::UH0_Cons(v3, v4) => {
                 let v3: Rc<str> = v3.clone();
                 let mut v4: Rc<UH0> = v4.clone();
-                match &*v2 {
+                match Rc::unwrap_or_clone(v2) {
                     UH0::UH0_Cons(v5, v6) => {
-                        let v5: Rc<str> = v5.clone();
-                        let v6: Rc<UH0> = v6.clone();
+                        let v5: Rc<str> = v5;
+                        let v6: Rc<UH0> = v6;
                         let v7: bool = &*v3 == &*v5;
                         if v7 {
                             let v8: i32 = v0.wrapping_add(1i32);
-                            (v0, v1, v2) = (v8, v4.clone(), v6.clone());
+                            (v0, v1, v2) = (v8, v4, v6);
                             continue;
                         } else {
                             let v10: i32 = v0.wrapping_add(1i32);
                             let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                             let v12: Option<usize> = v3.find(&*v11);
-                            let v13: Option<usize> = method3(v12.clone());
+                            let v13: Option<usize> = method3(v12);
                             let mut v14: Rc<dyn Fn((usize)) -> i32> = closure1();
                             let mut v15: Option<i32> = v13.map(|x| v14(x));
                             let v17: i32 = v15.unwrap_or(-1i32);
                             let v18: bool = v17 < 0i32;
                             let v22: Rc<str> = if v18 {
-                                v3.clone()
+                                v3
                             } else {
                                 let v19: usize = ((0i32) as usize);
                                 let v20: usize = ((v17) as usize);
                                 let v21: Rc<str> = Rc::<str>::from(&(v3)[v19..v20]);
-                                v21.clone()
+                                v21
                             };
                             let v23: Option<usize> = v5.find(&*v11);
-                            let v24: Option<usize> = method3(v23.clone());
+                            let v24: Option<usize> = method3(v23);
                             let mut v25: Option<i32> = v24.map(|x| v14(x));
                             let v27: i32 = v25.unwrap_or(-1i32);
                             let v28: bool = v27 < 0i32;
                             let v32: Rc<str> = if v28 {
-                                v5.clone()
+                                v5
                             } else {
                                 let v29: usize = ((0i32) as usize);
                                 let v30: usize = ((v27) as usize);
                                 let v31: Rc<str> = Rc::<str>::from(&(v5)[v29..v30]);
-                                v31.clone()
+                                v31
                             };
-                            return US0::US0_PostDiffers(v10, v22.clone(), v32.clone());
+                            return US0::US0_PostDiffers(v10, v22, v32);
                         }
                     }
                     UH0::UH0_Nil => {
-                        return US0::US0_ResumeAfter(v0, v1.clone());
+                        return US0::US0_ResumeAfter(v0, v1);
                     }
                 }
             }
             _ => {
                 match &*v2 {
                     UH0::UH0_Nil => {
-                        return US0::US0_ResumeAfter(v0, v1.clone());
+                        return US0::US0_ResumeAfter(v0, v1);
                     }
                     _ => {
                         let v39: i32 = 0i32;
-                        let v40: i32 = method4(v2.clone(), v39);
+                        let v40: i32 = method4(v2, v39);
                         let v41: i32 = v0.wrapping_add(v40);
                         return US0::US0_MorePostedThanPlanned(v41);
                     }
@@ -126,11 +126,11 @@ fn resume_from_2(mut v0: i32, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> US0 {
     }
 }
 fn method5(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
-    match &*v0 {
+    match Rc::unwrap_or_clone(v0) {
         UH0::UH0_Cons(v2, v3) => {
-            let v2: Rc<str> = v2.clone();
-            let v3: Rc<UH0> = v3.clone();
-            let mut v4: Rc<UH0> = method5(v3, v1.clone());
+            let v2: Rc<str> = v2;
+            let v3: Rc<UH0> = v3;
+            let mut v4: Rc<UH0> = method5(v3, v1);
             let v5: Rc<str> = Rc::<str>::from(serde_json::Value::from(&*v2).to_string());
             Rc::new(UH0::UH0_Cons(v5, v4))
         }
@@ -141,13 +141,13 @@ fn method5(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
 }
 fn method6(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH0>, mut v2: i32) -> i32 {
     loop {
-        match &*v1 {
+        match Rc::unwrap_or_clone(v1) {
             UH0::UH0_Cons(v3, v4) => {
-                let v3: Rc<str> = v3.clone();
-                let mut v4: Rc<UH0> = v4.clone();
+                let v3: Rc<str> = v3;
+                let mut v4: Rc<UH0> = v4;
                 v0.borrow_mut().push(v3);
                 let v5: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v4.clone(), v5);
+                (v1, v2) = (v4, v5);
                 continue;
             }
             UH0::UH0_Nil => {
@@ -200,10 +200,10 @@ fn resume_plan_of_0(mut v0: Rc<str>) -> (i32, i32, Rc<str>) {
             }
         }
         _ => {
-            let v64: Rc<str> = match &v17 {
+            let v64: Rc<str> = match v17 {
                 US0::US0_MorePostedThanPlanned(v57) => {
-                    let v57: i32 = *v57;
-                    let v58: Rc<str> = Rc::<str>::from(format!("{:?}", v57));
+                    let v57: i32 = v57;
+                    let v58: Rc<str> = Rc::<str>::from((v57).to_string());
                     let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the thread already has "); } LIT.with(|lit| lit.clone()) };
                     let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v59, v58));
                     let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" posts, more than the file plans; nothing posted"); } LIT.with(|lit| lit.clone()) };
@@ -211,10 +211,10 @@ fn resume_plan_of_0(mut v0: Rc<str>) -> (i32, i32, Rc<str>) {
                     v62
                 }
                 US0::US0_PostDiffers(v38, v39, v40) => {
-                    let v38: i32 = *v38;
-                    let v39: Rc<str> = v39.clone();
-                    let v40: Rc<str> = v40.clone();
-                    let v41: Rc<str> = Rc::<str>::from(format!("{:?}", v38));
+                    let v38: i32 = v38;
+                    let v39: Rc<str> = v39;
+                    let v40: Rc<str> = v40;
+                    let v41: Rc<str> = Rc::<str>::from((v38).to_string());
                     let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post "); } LIT.with(|lit| lit.clone()) };
                     let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v41));
                     let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of the thread differs from post "); } LIT.with(|lit| lit.clone()) };
@@ -237,7 +237,7 @@ fn resume_plan_of_0(mut v0: Rc<str>) -> (i32, i32, Rc<str>) {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> (i32, i32, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> (i32, i32, Rc<str>)> = Rc::new(move |mut v0: Rc<str>| -> (i32, i32, Rc<str>) {
-        resume_plan_of_0(v0.clone())
+        resume_plan_of_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn xc_resume_plan(v0: &str) -> (i32, i32, Rc<str>) {

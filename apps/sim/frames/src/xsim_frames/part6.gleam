@@ -1,8 +1,8 @@
 import gleam/string
 import xsim_split
 import xsim_frames/types.{type Uh3, type Us2, type Uh7, type Uh8, type Us16, type Uh10, type Uh15, type Us21, type Uh16, type Uh17, type Uh18, type Us24, type Uh19, type Uh20, type Uh21, Uh10Cons, Uh10Nil, Uh15Cons, Uh15Nil, Uh16Cons, Uh16Nil, Uh17Cons, Uh17Nil, Uh18Cons, Uh18Nil, Uh19Cons, Uh19Nil, Uh20Cons, Uh20Nil, Uh21Cons, Uh3Cons, Uh3Nil, Uh5Nil, Uh7Nil, Uh8Nil, Us16Content, Us16Reaction, Us16Revision, Us17Framed, Us17Posted, Us18Deleted, Us18Edited, Us18FrameEdited, Us19Liked, Us19Unliked, Us1None, Us1Some, Us21Error, Us21Ok, Us24None, Us24Some, Us25None, Us25Some, Us2None, Us2Some}
-import xsim_frames/part1.{count_at_16, fields_from_6, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, spiral_wrap_unsigned, split_list_2, text_at_13, unicode_erlang_characters_to_binary}
-import xsim_frames/part2.{delimited_21, method18, method20}
+import xsim_frames/part1.{fields_from_6, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, spiral_wrap_unsigned, split_list_2, text_at_13, unicode_erlang_characters_to_binary}
+import xsim_frames/part2.{count_at_16, delimited_21, method18, method20}
 import xsim_frames/part3.{method51, method52, method54, method55, method60, method79, seeded_66, uniform_69}
 import xsim_frames/part4.{break_source_82, method105, method96}
 import xsim_frames/part5.{all_decoded_125, from_corpus_61, method123, method124, stream_115}

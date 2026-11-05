@@ -30,3 +30,5 @@ xc_token = { path = "../token" }
 xc_view = { path = "../view" }
 xc_frames = { path = "../frames" }
 xc_preview = { path = "../preview" }
+xc_census = { path = "../census" }
+xc_events = { path = "../events" }

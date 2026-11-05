@@ -1,4 +1,5 @@
 import gleam/bit_array
+import gleam/int
 import gleam/option
 import gleam/pair
 import gleam/result
@@ -102,52 +103,52 @@ pub fn digits_start_84(v0: String, v1: Int) -> Int {
             True -> {
                 let v3 = spiral_wrap_signed(v1 - 1, 32)
                 let v4 = spiral_string_slice(v0, 0, v3)
-                let v5 = string.inspect(0)
+                let v5 = int.to_string(0)
                 let v6 = v4 |> string.ends_with(v5)
                 case v6 {
                     True -> True
                     False -> {
-                        let v7 = string.inspect(1)
+                        let v7 = int.to_string(1)
                         let v8 = v4 |> string.ends_with(v7)
                         case v8 {
                             True -> True
                             False -> {
-                                let v9 = string.inspect(2)
+                                let v9 = int.to_string(2)
                                 let v10 = v4 |> string.ends_with(v9)
                                 case v10 {
                                     True -> True
                                     False -> {
-                                        let v11 = string.inspect(3)
+                                        let v11 = int.to_string(3)
                                         let v12 = v4 |> string.ends_with(v11)
                                         case v12 {
                                             True -> True
                                             False -> {
-                                                let v13 = string.inspect(4)
+                                                let v13 = int.to_string(4)
                                                 let v14 = v4 |> string.ends_with(v13)
                                                 case v14 {
                                                     True -> True
                                                     False -> {
-                                                        let v15 = string.inspect(5)
+                                                        let v15 = int.to_string(5)
                                                         let v16 = v4 |> string.ends_with(v15)
                                                         case v16 {
                                                             True -> True
                                                             False -> {
-                                                                let v17 = string.inspect(6)
+                                                                let v17 = int.to_string(6)
                                                                 let v18 = v4 |> string.ends_with(v17)
                                                                 case v18 {
                                                                     True -> True
                                                                     False -> {
-                                                                        let v19 = string.inspect(7)
+                                                                        let v19 = int.to_string(7)
                                                                         let v20 = v4 |> string.ends_with(v19)
                                                                         case v20 {
                                                                             True -> True
                                                                             False -> {
-                                                                                let v21 = string.inspect(8)
+                                                                                let v21 = int.to_string(8)
                                                                                 let v22 = v4 |> string.ends_with(v21)
                                                                                 case v22 {
                                                                                     True -> True
                                                                                     False -> {
-                                                                                        let v23 = string.inspect(9)
+                                                                                        let v23 = int.to_string(9)
                                                                                         let v24 = v4 |> string.ends_with(v23)
                                                                                         v24
                                                                                     }
@@ -259,7 +260,7 @@ pub fn plus_one_86(v0: String) -> String {
                     let v30 = spiral_wrap_signed(v29 - 1, 32)
                     let v31 = spiral_string_slice(v0, 0, v30)
                     let v32 = spiral_wrap_signed(v17 + 1, 32)
-                    let v33 = string.inspect(v32)
+                    let v33 = int.to_string(v32)
                     let v34 = v31 <> v33 
                     v34
                 }
@@ -503,7 +504,7 @@ pub fn method89(v0: Uh9, v1: Uh7, v2: Uh14, v3: Uh3, v4: Int, v5: Int, v6: Int) 
                             v9
                         }
                     }
-                let v17 = string.inspect(v6)
+                let v17 = int.to_string(v6)
                 let v18 = v16 <> v17 
                 let #(v187, v188, v189, v190) =
                     case v7  {

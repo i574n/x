@@ -306,7 +306,7 @@
     heap { id author_id author_username = author; created_at text public_metrics refs urls media_keys }
 
 := medium_of (v : json) : medium =
-    { media_key = at_key "media_key" v; kind = at_key "type" v; alt_text = at_key "alt_text" v }
+    { media_key = at_key "media_key" v; kind = media_kind_of (at_key "type" v); alt_text = at_key "alt_text" v }
 
 := accounts_in (doc : json) : accounts = doc |> field "data" |> collect account_of
 

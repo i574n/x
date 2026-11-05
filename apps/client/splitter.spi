@@ -122,7 +122,7 @@
     := posts = listm::length chunks
     ? digit_count posts > digit_count assumed ?> chunks_of f all posts |: chunks
 
-:= mastodon_link_weight () : i32 = 23i32
+:= link_weight () : i32 = 23i32
 
 :~ ^ prefix_text (n : i32) (l : units) (acc : string) : string =
     ?= l ?|
@@ -136,18 +136,21 @@
     | u :: rest ?& not (spaced u) => link_length rest (n + 1i32)
     | _ => n
 
-:= padded_link (u : weighed) (length : i32) : weighed =
-    := short = mastodon_link_weight () - length
-    ? short > 0i32 ?> { u ?| weight = u::weight + short } |: u
+:= weighing (w : i32) (u : weighed) : weighed = { u ?| weight = w }
 
-:~ ^ linked (l : units) (acc : units) : units =
+:= next_inside (l : units) (inside : i32) : i32 =
+    ? inside > 0i32 ?> inside - 1i32 |? starts_link l ?> link_length l 0i32 - 1i32 |: 0i32
+
+:= link_weighed (l : units) (inside : i32) (u : weighed) : weighed =
+    ? inside > 0i32 ?> weighing 0i32 u |? starts_link l ?> weighing (link_weight ()) u |: u
+
+:~ ^ linked (l : units) (inside : i32) (acc : units) : units =
     ?= l ?|
     | [] => listm::rev acc
-    | u :: rest ?& starts_link l => linked rest (padded_link u (link_length l 0i32) :: acc)
-    | u :: rest => linked rest (u :: acc)
+    | u :: rest => linked rest (next_inside l inside) (link_weighed l inside u :: acc)
 
-:+ padded_as on_x = \ _ us => us
-:+ padded_as on_mastodon = \ _ us => linked us []
+:+ padded_as on_x = \ _ us => linked us 0i32 []
+:+ padded_as on_mastodon = \ _ us => linked us 0i32 []
 :+ padded_as on_bluesky = \ _ us => us
 
 := limit_on (p : platform) : i32 =
@@ -285,9 +288,22 @@
     := ~g = "e"
     weight_on OnMastodon g |> _assert_eq 1i32
 
-:# mastodon_links_weigh_at_least_twenty_three =
+:# mastodon_links_weigh_twenty_three =
     := ~short = "http://a.co"
     (weight_on OnMastodon short, weight_on OnMastodon ("see " ++# short ++# " now")) |> _assert_eq (23i32, 31i32)
+
+:= long_form () : string =
+    "RT @x: "
+    ++# sm'::replicate 9i32 (sm'::replicate 200i32 "a" ++# "\n")
+    ++# sm'::replicate 5i32 "漢"
+    ++# sm'::replicate 188i32 "b"
+
+:# a_real_long_form_shape_weighs_its_chars_plus_its_wide_ones =
+    weight_on OnX (long_form ()) |> _assert_eq 2014i32
+
+:# a_long_link_weighs_twenty_three_on_x_and_mastodon =
+    := ~long = "https://example.com/" ++# sm'::replicate 40i32 "a"
+    (weight_on OnX ("x " ++# long), weight_on OnMastodon long) |> _assert_eq (25i32, 23i32)
 
 :# bluesky_counts_a_glyph_by_its_bytes =
     := ~e = "e"

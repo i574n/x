@@ -15,7 +15,7 @@ fn from_1(mut v0: serde_json::Value, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
     loop {
         let mut v3: bool = v1 < 0i32;
         if v3 {
-            return v2.clone();
+            return v2;
         } else {
             let v4: i32 = v1.wrapping_sub(1i32);
             let v5: usize = ((v1) as usize);
@@ -27,21 +27,21 @@ fn from_1(mut v0: serde_json::Value, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
             let mut v11: serde_json::Value = v6.get(&*v10).cloned().unwrap_or_default();
             let v12: i64 = v11.as_i64().unwrap_or(0);
             let v13: i32 = (v12 as i32);
-            let v14: Rc<UH0> = Rc::new(UH0::UH0_Cons(v9.clone(), v13, v2.clone()));
-            (v0, v1, v2) = (v0.clone(), v4, v14.clone());
+            let v14: Rc<UH0> = Rc::new(UH0::UH0_Cons(v9, v13, v2));
+            (v1, v2) = (v4, v14);
             continue;
         }
     }
 }
 fn method2(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
     loop {
-        match &*v0 {
+        match Rc::unwrap_or_clone(v0) {
             UH0::UH0_Cons(v2, v3, v4) => {
-                let v2: Rc<str> = v2.clone();
-                let mut v3: i32 = *v3;
-                let v4: Rc<UH0> = v4.clone();
+                let v2: Rc<str> = v2;
+                let mut v3: i32 = v3;
+                let v4: Rc<UH0> = v4;
                 let v5: i32 = v1.wrapping_add(1i32);
-                (v0, v1) = (v4.clone(), v5);
+                (v0, v1) = (v4, v5);
                 continue;
             }
             UH0::UH0_Nil => {
@@ -52,59 +52,61 @@ fn method2(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
 }
 fn method4(mut v0: Rc<UH1>, mut v1: Rc<UH1>) -> Rc<UH1> {
     loop {
-        match &*v0 {
+        match Rc::unwrap_or_clone(v0) {
             UH1::UH1_Cons(v2, v3) => {
-                let v2: Rc<str> = v2.clone();
-                let mut v3: Rc<UH1> = v3.clone();
-                let v4: Rc<UH1> = Rc::new(UH1::UH1_Cons(v2.clone(), v1.clone()));
-                (v0, v1) = (v3.clone(), v4.clone());
+                let v2: Rc<str> = v2;
+                let mut v3: Rc<UH1> = v3;
+                let v4: Rc<UH1> = Rc::new(UH1::UH1_Cons(v2, v1));
+                (v0, v1) = (v3, v4);
                 continue;
             }
             UH1::UH1_Nil => {
-                return v1.clone();
+                return v1;
             }
         }
     }
 }
 fn previews_3(mut v0: i32, mut v1: i32, mut v2: Rc<UH0>, mut v3: Rc<UH1>) -> Rc<UH1> {
     loop {
-        match &*v2 {
+        match Rc::unwrap_or_clone(v2) {
             UH0::UH0_Cons(v6, v7, v8) => {
-                let v6: Rc<str> = v6.clone();
-                let v7: i32 = *v7;
-                let v8: Rc<UH0> = v8.clone();
+                let v6: Rc<str> = v6;
+                let v7: i32 = v7;
+                let v8: Rc<UH0> = v8;
                 let v9: i32 = v1.wrapping_add(1i32);
-                let v10: Rc<str> = Rc::<str>::from(format!("{:?}", v1));
+                let v10: Rc<str> = Rc::<str>::from((v1).to_string());
                 let mut v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--- post "); } LIT.with(|lit| lit.clone()) };
                 let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v10));
                 let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of "); } LIT.with(|lit| lit.clone()) };
                 let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v13));
-                let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v14, Rc::<str>::from(format!("{:?}", v0))));
+                let v15: Rc<str> = Rc::<str>::from((v0).to_string());
+                let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v15));
                 let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", weight "); } LIT.with(|lit| lit.clone()) };
                 let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v17));
-                let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v18, Rc::<str>::from(format!("{:?}", v7))));
+                let v19: Rc<str> = Rc::<str>::from((v7).to_string());
+                let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v19));
                 let v21: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
                 let v23: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v20, v21)), v6));
-                let v24: Rc<UH1> = Rc::new(UH1::UH1_Cons(v23.clone(), v3.clone()));
-                (v0, v1, v2, v3) = (v0, v9, v8.clone(), v24.clone());
+                let v24: Rc<UH1> = Rc::new(UH1::UH1_Cons(v23, v3));
+                (v1, v2, v3) = (v9, v8, v24);
                 continue;
             }
             UH0::UH0_Nil => {
                 let v4: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                return method4(v3.clone(), v4.clone());
+                return method4(v3, v4);
             }
         }
     }
 }
 fn method5(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH1>, mut v2: i32) -> i32 {
     loop {
-        match &*v1 {
+        match Rc::unwrap_or_clone(v1) {
             UH1::UH1_Cons(v3, v4) => {
-                let mut v3: Rc<str> = v3.clone();
-                let v4: Rc<UH1> = v4.clone();
+                let mut v3: Rc<str> = v3;
+                let v4: Rc<UH1> = v4;
                 v0.borrow_mut().push(v3);
                 let v5: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v4.clone(), v5);
+                (v1, v2) = (v4, v5);
                 continue;
             }
             UH1::UH1_Nil => {
@@ -133,7 +135,7 @@ fn preview_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
     let v18: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v17).as_ref().clone()));
     let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
     let v20: Rc<str> = Rc::<str>::from((*v18.borrow()).join(&*v19));
-    let v21: Rc<str> = Rc::<str>::from(format!("{:?}", v10));
+    let v21: Rc<str> = Rc::<str>::from((v10).to_string());
     let v22: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n--- "); } LIT.with(|lit| lit.clone()) };
     let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v21));
     let v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" posts"); } LIT.with(|lit| lit.clone()) };
@@ -157,12 +159,13 @@ fn preview_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
             }
         };
         let v36: i32 = v27.wrapping_div(1000i32);
-        let v37: Rc<str> = Rc::<str>::from(format!("{:?}", v36));
+        let v37: Rc<str> = Rc::<str>::from((v36).to_string());
         let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("$"); } LIT.with(|lit| lit.clone()) };
         let v39: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v37));
         let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("."); } LIT.with(|lit| lit.clone()) };
         let v42: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v39, v40)), v35));
-        let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v42, Rc::<str>::from(format!("{:?}", v28))));
+        let v43: Rc<str> = Rc::<str>::from((v28).to_string());
+        let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v43));
         let v45: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
         let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v44));
         let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" to create"); } LIT.with(|lit| lit.clone()) };
@@ -177,7 +180,7 @@ fn preview_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<str> {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>| -> Rc<str> {
-        preview_0(v0.clone(), v1.clone())
+        preview_0(v0, v1)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn xc_preview(v0: &str, v1: &str) -> Rc<str> {

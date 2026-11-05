@@ -686,7 +686,7 @@ pub fn method64(v0: Int, v1: Int, v2: Int, v3: Int, v4: Int, v5: Uh7, v6: Bool, 
             Uh3Cons(v12, v13) -> {
                 let v14 = "p"
                 let v15 = v7 <> v14 
-                let v16 = string.inspect(v11)
+                let v16 = int.to_string(v11)
                 let v17 = v15 <> v16 
                 let v18 = spiral_string_length(v12)
                 let v19 = 0
@@ -809,7 +809,7 @@ pub fn method71(v0: Int, v1: String, v2: Us2, v3: String, v4: Int) -> Uh12 {
     case v5 {
         True -> {
             let v6 = spiral_wrap_signed(v4 + 1, 32)
-            let v7 = string.inspect(v6)
+            let v7 = int.to_string(v6)
             let v8 = "u"
             let v9 = v8 <> v7 
             let v10 = method71(v0, v1, v2, v3, v6)

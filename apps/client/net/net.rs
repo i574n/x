@@ -108,14 +108,14 @@ fn exchange_0(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>)> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>| -> (i32, Rc<str>) {
-        exchange_0(v0.clone(), v1.clone(), v2.clone(), v3.clone())
+        exchange_0(v0, v1, v2, v3)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn method3(mut v0: Rc<Vec<u8>>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) -> Rc<UH0> {
     loop {
         let v4: bool = v2 >= v1;
         if v4 {
-            return v3.clone();
+            return v3;
         } else {
             let mut v5: usize = ((v2) as usize);
             let v6: u8 = (v0)[v5].clone();
@@ -179,8 +179,8 @@ fn method3(mut v0: Rc<Vec<u8>>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) -> Rc
                 let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ"); } LIT.with(|lit| lit.clone()) };
                 let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"); } LIT.with(|lit| lit.clone()) };
                 let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"); } LIT.with(|lit| lit.clone()) };
-                let v32: Rc<str> = string_slice(&v31.clone(), v28 as i64, v28 as i64);
-                v32.clone()
+                let v32: Rc<str> = string_slice(&v31, v28 as i64, v28 as i64);
+                v32
             } else {
                 let v33: u8 = v6.wrapping_shr((4i32) as u32);
                 let v34: i32 = (v33 as i32);
@@ -191,26 +191,26 @@ fn method3(mut v0: Rc<Vec<u8>>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) -> Rc
                 let mut v39: i32 = (v38 as i32);
                 let v40: Rc<str> = string_slice(&{ thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0123456789ABCDEF"); } LIT.with(|lit| lit.clone()) }, v39 as i64, v39 as i64);
                 let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v37, v40));
-                v41.clone()
+                v41
             };
-            let v43: Rc<UH0> = Rc::new(UH0::UH0_Cons(v42.clone(), v3.clone()));
-            (v0, v1, v2, v3) = (v0.clone(), v1, v7, v43.clone());
+            let v43: Rc<UH0> = Rc::new(UH0::UH0_Cons(v42, v3));
+            (v2, v3) = (v7, v43);
             continue;
         }
     }
 }
 fn method4(mut v0: Rc<UH0>, mut v1: Rc<str>) -> Rc<str> {
     loop {
-        match &*v0 {
+        match Rc::unwrap_or_clone(v0) {
             UH0::UH0_Cons(v2, v3) => {
-                let v2: Rc<str> = v2.clone();
-                let mut v3: Rc<UH0> = v3.clone();
+                let v2: Rc<str> = v2;
+                let mut v3: Rc<UH0> = v3;
                 let v4: Rc<str> = Rc::<str>::from(format!("{}{}", v2, v1));
-                (v0, v1) = (v3.clone(), v4.clone());
+                (v0, v1) = (v3, v4);
                 continue;
             }
             UH0::UH0_Nil => {
-                return v1.clone();
+                return v1;
             }
         }
     }
@@ -252,10 +252,10 @@ fn oauth1_inserted_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH1>) -> Rc<UH
                 v16
             };
             if v17 {
-                let v18: Rc<UH1> = oauth1_inserted_5(v0.clone(), v1.clone(), v5);
+                let v18: Rc<UH1> = oauth1_inserted_5(v0, v1, v5);
                 Rc::new(UH1::UH1_Cons(v3, v4, v18))
             } else {
-                Rc::new(UH1::UH1_Cons(v0.clone(), v1.clone(), v2.clone()))
+                Rc::new(UH1::UH1_Cons(v0, v1, v2))
             }
         }
         _ => {
@@ -264,12 +264,12 @@ fn oauth1_inserted_5(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<UH1>) -> Rc<UH
     }
 }
 fn method6(mut v0: Rc<UH1>, mut v1: Rc<UH0>) -> Rc<UH0> {
-    match &*v0 {
+    match Rc::unwrap_or_clone(v0) {
         UH1::UH1_Cons(v2, v3, v4) => {
-            let v2: Rc<str> = v2.clone();
-            let mut v3: Rc<str> = v3.clone();
-            let v4: Rc<UH1> = v4.clone();
-            let mut v5: Rc<UH0> = method6(v4, v1.clone());
+            let v2: Rc<str> = v2;
+            let mut v3: Rc<str> = v3;
+            let v4: Rc<UH1> = v4;
+            let mut v5: Rc<UH0> = method6(v4, v1);
             let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("="); } LIT.with(|lit| lit.clone()) };
             let mut v8: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v2, v6)), v3));
             Rc::new(UH0::UH0_Cons(v8, v5))
@@ -281,13 +281,13 @@ fn method6(mut v0: Rc<UH1>, mut v1: Rc<UH0>) -> Rc<UH0> {
 }
 fn method7(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH0>, mut v2: i32) -> i32 {
     loop {
-        match &*v1 {
+        match Rc::unwrap_or_clone(v1) {
             UH0::UH0_Cons(v3, v4) => {
-                let mut v3: Rc<str> = v3.clone();
-                let v4: Rc<UH0> = v4.clone();
+                let mut v3: Rc<str> = v3;
+                let v4: Rc<UH0> = v4;
                 v0.borrow_mut().push(v3);
                 let mut v5: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v4.clone(), v5);
+                (v1, v2) = (v4, v5);
                 continue;
             }
             UH0::UH0_Nil => {
@@ -582,7 +582,7 @@ fn signed_header_1(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc
 }
 fn closure1() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: Rc<str>, mut v6: Rc<str>, mut v7: Rc<str>| -> Rc<str> {
-        signed_header_1(v0.clone(), v1.clone(), v2.clone(), v3.clone(), v4.clone(), v5.clone(), v6.clone(), v7.clone())
+        signed_header_1(v0, v1, v2, v3, v4, v5, v6, v7)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure2() -> Rc<dyn Fn() -> i32> {
@@ -620,17 +620,22 @@ fn form_exchange_8(mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc
 }
 fn closure3() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>)> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>)> = Rc::new(move |mut v0: Rc<str>, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: Rc<str>| -> (i32, Rc<str>) {
-        form_exchange_8(v0.clone(), v1.clone(), v2.clone(), v3.clone())
+        form_exchange_8(v0, v1, v2, v3)
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn go_9(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> Rc<str> {
+fn process_id_9() -> u64 {
+    let mut v0: u32 = std::process::id();
+    let mut v1: u64 = (v0 as u64);
+    v1
+}
+fn go_10(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: i32, mut v3: Rc<str>) -> Rc<str> {
     loop {
         let v4: bool = v2 >= v1;
         if v4 {
-            return v3.clone();
+            return v3;
         } else {
             let mut v5: i32 = v2.wrapping_add(1i32);
-            let v6: u8 = v0.clone().borrow()[v2 as usize].clone();
+            let v6: u8 = v0.borrow()[v2 as usize];
             let mut v7: u8 = v6.wrapping_shr((4i32) as u32);
             let mut v8: i32 = (v7 as i32);
             let v9: u8 = v6 & 15u8;
@@ -638,7 +643,7 @@ fn go_9(mut v0: Rc<RefCell<Vec<u8>>>, mut v1: i32, mut v2: i32, mut v3: Rc<str>)
             let v11: Rc<str> = string_slice(&{ thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0123456789abcdef"); } LIT.with(|lit| lit.clone()) }, v8 as i64, v8 as i64);
             let mut v12: Rc<str> = string_slice(&{ thread_local!{ static LIT: Rc<str> = Rc::<str>::from("0123456789abcdef"); } LIT.with(|lit| lit.clone()) }, v10 as i64, v10 as i64);
             let mut v14: Rc<str> = Rc::<str>::from(format!("{}{}", v3, Rc::<str>::from(format!("{}{}", v11, v12))));
-            (v0, v1, v2, v3) = (v0.clone(), v1, v5, v14.clone());
+            (v2, v3) = (v5, v14);
             continue;
         }
     }
@@ -648,20 +653,22 @@ fn closure4() -> Rc<dyn Fn() -> Rc<str>> {
         let mut v0: std::time::SystemTime = std::time::SystemTime::now();
         let mut v1: std::time::Duration = v0.duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
         let v2: u64 = v1.as_secs();
-        let mut v3: u64 = v2.wrapping_mul(1000000u64);
-        let v4: u32 = v1.subsec_micros();
+        let mut v3: u64 = v2.wrapping_mul(1000000000u64);
+        let v4: u32 = v1.subsec_nanos();
         let mut v5: u64 = (v4 as u64);
         let v6: u64 = v3.wrapping_add(v5);
-        let mut v7: Rc<str> = Rc::<str>::from(format!("{:?}", v6));
-        let mut v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
-        let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
-        let mut v10: u32 = std::process::id();
-        let mut v12: Rc<str> = Rc::<str>::from(format!("{}{}", v9, Rc::<str>::from(format!("{:?}", v10))));
-        let v13: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(<sha1::Sha1 as sha1::Digest>::digest(v12.as_bytes()).to_vec()));
-        let mut v14: i32 = (v13.clone().borrow().len() as i32);
-        let v15: i32 = 0i32;
-        let mut v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-        go_9(v13.clone(), v14, v15, v16.clone())
+        let mut v7: u64 = v6.wrapping_div(1000u64);
+        let mut v8: Rc<str> = Rc::<str>::from((v7).to_string());
+        let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
+        let mut v10: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v9));
+        let v11: u64 = process_id_9();
+        let mut v12: Rc<str> = Rc::<str>::from((v11).to_string());
+        let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v12));
+        let mut v14: Rc<RefCell<Vec<u8>>> = Rc::new(RefCell::new(<sha1::Sha1 as sha1::Digest>::digest(v13.as_bytes()).to_vec()));
+        let v15: i32 = (v14.clone().borrow().len() as i32);
+        let mut v16: i32 = 0i32;
+        let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+        go_10(v14, v15, v16, v17)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure5() -> Rc<dyn Fn() -> Rc<str>> {
@@ -669,8 +676,14 @@ fn closure5() -> Rc<dyn Fn() -> Rc<str>> {
         let mut v0: std::time::SystemTime = std::time::SystemTime::now();
         let mut v1: std::time::Duration = v0.duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
         let v2: u64 = v1.as_secs();
-        let mut v3: Rc<str> = Rc::<str>::from(format!("{:?}", v2));
-        v3.clone()
+        let mut v3: u64 = v2.wrapping_mul(1000u64);
+        let v4: u32 = v1.subsec_nanos();
+        let mut v5: u64 = (v4 as u64);
+        let v6: u64 = v5.wrapping_div(1000000u64);
+        let mut v7: u64 = v3.wrapping_add(v6);
+        let mut v8: u64 = v7.wrapping_div(1000u64);
+        let v9: Rc<str> = Rc::<str>::from((v8).to_string());
+        v9
     }); } CLOSURE.with(|closure| closure.clone())
 }
 fn closure6() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
@@ -682,9 +695,9 @@ fn closure6() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
             let v4: jiff::tz::TimeZone = jiff::tz::TimeZone::system();
             let mut v5: jiff::Zoned = v3.to_zoned(v4);
             let v6: Rc<str> = Rc::<str>::from(v5.strftime("%Y-%m-%d %H:%M").to_string());
-            v6.clone()
+            v6
         } else {
-            v0.clone()
+            v0
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
@@ -700,14 +713,14 @@ fn closure7() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
             if v6 {
                 let mut v7: jiff::Zoned = v5.clone().unwrap();
                 let mut v8: Rc<str> = Rc::<str>::from(v7.timestamp().strftime("%Y-%m-%dT%H:%M:%SZ").to_string());
-                v8.clone()
+                v8
             } else {
                 let v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                v9.clone()
+                v9
             }
         } else {
             let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            v11.clone()
+            v11
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }

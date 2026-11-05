@@ -326,7 +326,7 @@ fn known_tld_0(mut v0: Rc<str>) -> bool {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> bool> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> bool> = Rc::new(move |mut v0: Rc<str>| -> bool {
-        known_tld_0(v0.clone())
+        known_tld_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn xc_is_tld(v0: &str) -> bool {

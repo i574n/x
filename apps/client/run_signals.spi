@@ -1,0 +1,46 @@
+///- --package .
+///> rust
+:# run_signals static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+
+/// ## run signals: a closed union whose payload starts with its run and kind, so a follower counts by prefix
+:| run_signal =
+    | Step : string
+    | Finished : i32 * i32
+
+:= run_prefix (run : string) : string = "{\"run\":" ++# json::quote run ++# ","
+
+:= kind_prefix (run : string) (kind : string) : string = run_prefix run ++# "\"kind\":" ++# json::quote kind
+
+:= signal_body (s : run_signal) : string =
+    ?= s ?|
+    | Step line => ",\"line\":" ++# json::quote line ++# "}"
+    | Finished (steps, failures) =>
+        ",\"steps\":" ++# sm'::obj_to_string steps ++# ",\"failures\":" ++# sm'::obj_to_string failures ++# "}"
+
+:= kind_of (s : run_signal) : string = ?= s ?| Step _ => "step" | Finished _ => "finished"
+
+:= payload_of (run : string) (s : run_signal) : string = kind_prefix run (kind_of s) ++# signal_body s
+
+:= one_if (b : bool) : i32 = ? b ?> 1i32 |: 0i32
+
+:= count_of_run (run : string) (payloads : list string) : i32 =
+    listm::fold (\ n p => n + one_if (sm'::starts_with (kind_prefix run "step") p)) 0i32 payloads
+
+:= finished_in (run : string) (payloads : list string) : bool =
+    listm::fold (\ seen p => seen || sm'::starts_with (kind_prefix run "finished") p) !- payloads
+
+:= message_body (encoded : string) : string =
+    := partition = "{\"kind\":\"partition_id\",\"value\":\"AAAAAA==\"}"
+    "{\"partitioning\":" ++# partition ++# ",\"messages\":[{\"id\":0,\"payload\":" ++# json::quote encoded ++# "}]}"
+
+:# a_step_payload_carries_its_run_and_kind_first =
+    payload_of "r1" (Step "x e2e / \"a\"")
+    |> _assert_eq "{\"run\":\"r1\",\"kind\":\"step\",\"line\":\"x e2e / \\\"a\\\"\"}"
+
+:# counts_steps_and_sees_finish =
+    := mine = [ payload_of "r1" (Step "a"); payload_of "r10" (Step "a"); payload_of "r1" (Finished (1i32, 0i32)) ]
+    (count_of_run "r1" mine, finished_in "r1" mine, finished_in "r10" mine) |> _assert_eq (1i32, !+, !-)

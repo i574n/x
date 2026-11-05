@@ -10,29 +10,29 @@ fn method2(mut v0: Rc<Vec<Rc<str>>>, mut v1: i32, mut v2: i32, mut v3: Rc<UH0>) 
     loop {
         let v4: bool = v2 >= v1;
         if v4 {
-            return v3.clone();
+            return v3;
         } else {
             let v5: usize = ((v2) as usize);
             let mut v6: Rc<str> = (v0)[v5].clone();
             let mut v7: i32 = v2.wrapping_add(1i32);
-            let mut v8: Rc<UH0> = Rc::new(UH0::UH0_Cons(v6.clone(), v3.clone()));
-            (v0, v1, v2, v3) = (v0.clone(), v1, v7, v8.clone());
+            let mut v8: Rc<UH0> = Rc::new(UH0::UH0_Cons(v6, v3));
+            (v2, v3) = (v7, v8);
             continue;
         }
     }
 }
 fn method4(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {
-        match &*v0 {
+        match Rc::unwrap_or_clone(v0) {
             UH0::UH0_Cons(v2, v3) => {
-                let v2: Rc<str> = v2.clone();
-                let v3: Rc<UH0> = v3.clone();
-                let v4: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2.clone(), v1.clone()));
-                (v0, v1) = (v3.clone(), v4.clone());
+                let v2: Rc<str> = v2;
+                let v3: Rc<UH0> = v3;
+                let v4: Rc<UH0> = Rc::new(UH0::UH0_Cons(v2, v1));
+                (v0, v1) = (v3, v4);
                 continue;
             }
             UH0::UH0_Nil => {
-                return v1.clone();
+                return v1;
             }
         }
     }
@@ -66,10 +66,10 @@ fn ascii_of_9(mut v0: Rc<str>) -> i32 {
         let v3: bool = v2 == 1i32;
         if v3 {
             let v4: Option<char> = (&*v0).chars().next();
-            let v5: Option<char> = method10(v4.clone());
+            let v5: Option<char> = method10(v4);
             let mut v6: Rc<dyn Fn((char)) -> u32> = closure1();
             let mut v7: Option<u32> = v5.map(|x| v6(x));
-            let mut v8: Option<u32> = method11(v7.clone());
+            let mut v8: Option<u32> = method11(v7);
             let mut v9: Rc<dyn Fn((u32)) -> i32> = closure2();
             let mut v10: Option<i32> = v8.map(|x| v9(x));
             let v12: i32 = 0i32.clone();
@@ -107,17 +107,17 @@ fn letters_length_7(mut v0: Rc<UH0>, mut v1: i32) -> (i32, Rc<UH0>) {
             UH0::UH0_Cons(v2, v3) => {
                 let v2: Rc<str> = v2.clone();
                 let v3: Rc<UH0> = v3.clone();
-                let v4: bool = ascii_letter_8(v2.clone());
+                let v4: bool = ascii_letter_8(v2);
                 if v4 {
                     let v5: i32 = v1.wrapping_add(1i32);
-                    (v0, v1) = (v3.clone(), v5);
+                    (v0, v1) = (v3, v5);
                     continue;
                 } else {
-                    return (v1, v0.clone());
+                    return (v1, v0);
                 }
             }
             _ => {
-                return (v1, v0.clone());
+                return (v1, v0);
             }
         }
     }
@@ -190,7 +190,7 @@ fn closure3() -> Rc<dyn Fn(Rc<str>) -> bool> {
         if v1 {
             true
         } else {
-            wide_letter_15(v0.clone())
+            wide_letter_15(v0)
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
@@ -219,10 +219,10 @@ fn suffix_ok_16(mut v0: Rc<UH0>) -> Rc<UH0> {
                 if v11 {
                     v8
                 } else {
-                    v0.clone()
+                    v0
                 }
             } else {
-                v0.clone()
+                v0
             }
         }
         _ => {
@@ -230,8 +230,8 @@ fn suffix_ok_16(mut v0: Rc<UH0>) -> Rc<UH0> {
         }
     }
 }
-fn first_is_17(mut v0: Rc<dyn Fn(Rc<str>) -> bool>, mut v1: Rc<UH0>) -> bool {
-    match &*v1 {
+fn first_is_17(mut v0: Rc<dyn Fn(Rc<str>) -> bool>, mut v1: &Rc<UH0>) -> bool {
+    match &**v1 {
         UH0::UH0_Cons(v2, v3) => {
             let v2: Rc<str> = v2.clone();
             let v3: Rc<UH0> = v3.clone();
@@ -261,7 +261,7 @@ fn cashtag_after_6(mut v0: Rc<str>, mut v1: Rc<UH0>) -> bool {
     if v9 {
         let mut v10: Rc<dyn Fn(Rc<str>) -> bool> = closure3();
         let v11: Rc<UH0> = suffix_ok_16(v4);
-        let v12: bool = first_is_17(v10, v11);
+        let v12: bool = first_is_17(v10, &v11);
         let v13: bool = v12 == false;
         v13
     } else {
@@ -274,17 +274,17 @@ fn word_length_19(mut v0: Rc<UH0>, mut v1: i32) -> (i32, Rc<UH0>) {
             UH0::UH0_Cons(v2, v3) => {
                 let v2: Rc<str> = v2.clone();
                 let v3: Rc<UH0> = v3.clone();
-                let v4: bool = word_glyph_13(v2.clone());
+                let v4: bool = word_glyph_13(v2);
                 if v4 {
                     let v5: i32 = v1.wrapping_add(1i32);
-                    (v0, v1) = (v3.clone(), v5);
+                    (v0, v1) = (v3, v5);
                     continue;
                 } else {
-                    return (v1, v0.clone());
+                    return (v1, v0);
                 }
             }
             _ => {
-                return (v1, v0.clone());
+                return (v1, v0);
             }
         }
     }
@@ -309,7 +309,7 @@ fn mention_quiet_20(mut v0: Rc<str>) -> bool {
         if v3 {
             let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("!#$%&*@"); } LIT.with(|lit| lit.clone()) };
             let v5: Option<usize> = v4.find(&*v0);
-            let mut v6: Option<usize> = method21(v5.clone());
+            let mut v6: Option<usize> = method21(v5);
             let mut v7: Rc<dyn Fn((usize)) -> i32> = closure4();
             let mut v8: Option<i32> = v6.map(|x| v7(x));
             let mut v10: i32 = v8.unwrap_or(-1i32);
@@ -339,7 +339,7 @@ fn closure5() -> Rc<dyn Fn(Rc<str>) -> bool> {
             if v3 {
                 let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("+~."); } LIT.with(|lit| lit.clone()) };
                 let v5: Option<usize> = v4.find(&*v0);
-                let mut v6: Option<usize> = method21(v5.clone());
+                let mut v6: Option<usize> = method21(v5);
                 let mut v7: Rc<dyn Fn((usize)) -> i32> = closure4();
                 let mut v8: Option<i32> = v6.map(|x| v7(x));
                 let mut v10: i32 = v8.unwrap_or(-1i32);
@@ -353,7 +353,7 @@ fn closure5() -> Rc<dyn Fn(Rc<str>) -> bool> {
 }
 fn rt_boundary_23(mut v0: Rc<UH0>) -> bool {
     let v1: Rc<dyn Fn(Rc<str>) -> bool> = closure5();
-    let v2: bool = first_is_17(v1, v0);
+    let v2: bool = first_is_17(v1, &v0);
     let v3: bool = v2 == false;
     v3
 }
@@ -363,7 +363,7 @@ fn rt_letters_24(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
     let v12: bool = if v3 {
         let v4: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("tT"); } LIT.with(|lit| lit.clone()) };
         let v5: Option<usize> = v4.find(&*v0);
-        let mut v6: Option<usize> = method21(v5.clone());
+        let mut v6: Option<usize> = method21(v5);
         let mut v7: Rc<dyn Fn((usize)) -> i32> = closure4();
         let mut v8: Option<i32> = v6.map(|x| v7(x));
         let mut v10: i32 = v8.unwrap_or(-1i32);
@@ -378,7 +378,7 @@ fn rt_letters_24(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
         if v14 {
             let v15: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("rR"); } LIT.with(|lit| lit.clone()) };
             let v16: Option<usize> = v15.find(&*v1);
-            let v17: Option<usize> = method21(v16.clone());
+            let v17: Option<usize> = method21(v16);
             let mut v18: Rc<dyn Fn((usize)) -> i32> = closure4();
             let mut v19: Option<i32> = v17.map(|x| v18(x));
             let v21: i32 = v19.unwrap_or(-1i32);
@@ -391,15 +391,15 @@ fn rt_letters_24(mut v0: Rc<str>, mut v1: Rc<str>) -> bool {
         false
     }
 }
-fn rt_before_22(mut v0: Rc<UH0>) -> bool {
-    match &*v0 {
+fn rt_before_22(mut v0: &Rc<UH0>) -> bool {
+    match &**v0 {
         UH0::UH0_Cons(v1, v2) => {
             let v1: Rc<str> = v1.clone();
             let v2: Rc<UH0> = v2.clone();
-            match &*v2 {
+            match Rc::unwrap_or_clone(v2) {
                 UH0::UH0_Cons(v3, v4) => {
-                    let v3: Rc<str> = v3.clone();
-                    let v4: Rc<UH0> = v4.clone();
+                    let v3: Rc<str> = v3;
+                    let v4: Rc<UH0> = v4;
                     match &*v4 {
                         UH0::UH0_Cons(v5, v6) => {
                             let v5: Rc<str> = v5.clone();
@@ -413,9 +413,9 @@ fn rt_before_22(mut v0: Rc<UH0>) -> bool {
                             if v9 {
                                 rt_boundary_23(v6)
                             } else {
-                                let v11: bool = rt_letters_24(v1.clone(), v3.clone());
+                                let v11: bool = rt_letters_24(v1, v3);
                                 if v11 {
-                                    rt_boundary_23(v4.clone())
+                                    rt_boundary_23(v4)
                                 } else {
                                     false
                                 }
@@ -452,7 +452,7 @@ fn closure6() -> Rc<dyn Fn(Rc<str>) -> bool> {
         }
     }); } CLOSURE.with(|closure| closure.clone())
 }
-fn mention_after_18(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> bool {
+fn mention_after_18(mut v0: Rc<str>, mut v1: &Rc<UH0>, mut v2: Rc<UH0>) -> bool {
     let v3: i32 = 0i32;
     let (mut v4, mut v5): (i32, Rc<UH0>) = word_length_19(v2, v3);
     let mut v6: bool = mention_quiet_20(v0);
@@ -475,7 +475,7 @@ fn mention_after_18(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> bool {
     };
     if v12 {
         let v13: Rc<dyn Fn(Rc<str>) -> bool> = closure6();
-        let v14: bool = first_is_17(v13, v5);
+        let v14: bool = first_is_17(v13, &v5);
         let v15: bool = v14 == false;
         v15
     } else {
@@ -484,10 +484,10 @@ fn mention_after_18(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> bool {
 }
 fn tag_has_letter_26(mut v0: Rc<UH0>) -> bool {
     loop {
-        match &*v0 {
+        match Rc::unwrap_or_clone(v0) {
             UH0::UH0_Cons(v1, v2) => {
-                let v1: Rc<str> = v1.clone();
-                let v2: Rc<UH0> = v2.clone();
+                let v1: Rc<str> = v1;
+                let v2: Rc<UH0> = v2;
                 let v3: bool = word_glyph_13(v1.clone());
                 let v5: bool = if v3 {
                     true
@@ -495,11 +495,11 @@ fn tag_has_letter_26(mut v0: Rc<UH0>) -> bool {
                     wide_letter_15(v1.clone())
                 };
                 if v5 {
-                    let mut v6: bool = wide_letter_15(v1.clone());
+                    let mut v6: bool = wide_letter_15(v1);
                     if v6 {
                         return true;
                     } else {
-                        v0 = v2.clone();
+                        v0 = v2;
                         continue;
                     }
                 } else {
@@ -533,7 +533,7 @@ fn hashtag_after_25(mut v0: Rc<str>, mut v1: Rc<UH0>) -> bool {
         false
     }
 }
-fn tags_5(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<str>, mut v3: Rc<UH0>) -> bool {
+fn tags_5(mut v0: Rc<str>, mut v1: &Rc<UH0>, mut v2: Rc<str>, mut v3: Rc<UH0>) -> bool {
     let v4: bool = &*v2 == "@";
     let mut v6: bool = if v4 {
         mention_after_18(v0.clone(), v1, v3.clone())
@@ -563,41 +563,41 @@ fn tags_5(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<str>, mut v3: Rc<UH0>) ->
 }
 fn entities_from_3(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> Rc<UH0> {
     loop {
-        match &*v1 {
+        match Rc::unwrap_or_clone(v1) {
             UH0::UH0_Cons(v3, v4) => {
-                let v3: Rc<str> = v3.clone();
-                let v4: Rc<UH0> = v4.clone();
-                let v5: bool = tags_5(v0.clone(), v2.clone(), v3.clone(), v4.clone());
+                let v3: Rc<str> = v3;
+                let v4: Rc<UH0> = v4;
+                let v5: bool = tags_5(v0, &v2, v3.clone(), v4.clone());
                 if v5 {
                     let mut v6: Option<char> = char::from_u32(8203u32);
                     let mut v8: char = v6.unwrap();
                     let mut v9: Rc<str> = Rc::<str>::from(format!("{}", v8));
-                    let mut v10: Rc<UH0> = Rc::new(UH0::UH0_Cons(v3.clone(), v2.clone()));
-                    let v11: Rc<UH0> = Rc::new(UH0::UH0_Cons(v9.clone(), v10.clone()));
-                    (v0, v1, v2) = (v3.clone(), v4.clone(), v11.clone());
+                    let mut v10: Rc<UH0> = Rc::new(UH0::UH0_Cons(v3.clone(), v2));
+                    let v11: Rc<UH0> = Rc::new(UH0::UH0_Cons(v9, v10));
+                    (v0, v1, v2) = (v3, v4, v11);
                     continue;
                 } else {
-                    let v13: Rc<UH0> = Rc::new(UH0::UH0_Cons(v3.clone(), v2.clone()));
-                    (v0, v1, v2) = (v3.clone(), v4.clone(), v13.clone());
+                    let v13: Rc<UH0> = Rc::new(UH0::UH0_Cons(v3.clone(), v2));
+                    (v0, v1, v2) = (v3, v4, v13);
                     continue;
                 }
             }
             UH0::UH0_Nil => {
                 let v16: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                return method4(v2.clone(), v16.clone());
+                return method4(v2, v16);
             }
         }
     }
 }
 fn method27(mut v0: Rc<RefCell<Vec<Rc<str>>>>, mut v1: Rc<UH0>, mut v2: i32) -> i32 {
     loop {
-        match &*v1 {
+        match Rc::unwrap_or_clone(v1) {
             UH0::UH0_Cons(v3, v4) => {
-                let v3: Rc<str> = v3.clone();
-                let v4: Rc<UH0> = v4.clone();
+                let v3: Rc<str> = v3;
+                let v4: Rc<UH0> = v4;
                 v0.borrow_mut().push(v3);
                 let v5: i32 = v2.wrapping_add(1i32);
-                (v0, v1, v2) = (v0.clone(), v4.clone(), v5);
+                (v1, v2) = (v4, v5);
                 continue;
             }
             UH0::UH0_Nil => {
@@ -630,7 +630,7 @@ fn tags_defused_0(mut v0: Rc<str>) -> Rc<str> {
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
-        tags_defused_0(v0.clone())
+        tags_defused_0(v0)
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn xc_defused_entities(v0: &str) -> Rc<str> {

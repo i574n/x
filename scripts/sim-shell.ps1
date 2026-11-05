@@ -34,6 +34,8 @@ gtempo = ">= 7.4.0 and < 8.0.0"
 '@ | Set-Content (Join-Path $package 'gleam.toml')
 if (!(BuildSpiral $entry (Join-Path $package 'src/xsim_shell.gleam') 'x/apps/sim/shell' -Backend Gleam)) { throw "GLEAM-FAILED x/apps/sim/shell / compile" }
 Push-Location $package
+$guard = $null
+if ($IsWindows) { . (Join-Path $SpiralRoot 'apps/cells/spi/erl_memory_limit.ps1'); $guard = Start-ErlMemoryLimit }
 try { gleam run --target erlang -- @ShellArgs }
-finally { Pop-Location }
+finally { Pop-Location; if ($guard) { $guard.Stop() } }
 exit $LASTEXITCODE

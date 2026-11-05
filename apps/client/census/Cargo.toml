@@ -1,0 +1,16 @@
+[package]
+name = "xc_census"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "census.spi"
+output = "census.rs"
+
+[lib]
+name = "xc_census"
+path = "census.rs"
+
+[dependencies]
+xc_preview = { path = "../preview" }

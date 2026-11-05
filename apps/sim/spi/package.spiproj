@@ -24,6 +24,9 @@ modules:
     sim_run
     executors
     cells_executor
+    sim_serve
+    timeline_serve
+    sim_publish
     runner_guard
     runner_shell
     xsim_shell_entry

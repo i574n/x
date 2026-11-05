@@ -1,3 +1,4 @@
+import gleam/int
 import gleam/list
 import gleam/string
 import xsim_split/types.{type SpiralArray, type SpiralRef, type ListString, type Us0, type Uh2, type Uh3, type Mut0, type Uh4, ListStringCons, ListStringNil, Mut0, SpiralArray, SpiralRef, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Us0OnBluesky, Us0OnMastodon, Us0OnX}
@@ -166,49 +167,74 @@ pub fn method55(v0: Uh2, v1: Uh2) -> Uh2 {
     }
 }
 
-pub fn linked_50(v0: Uh2, v1: Uh2) -> Uh2 {
+pub fn linked_50(v0: Uh2, v1: Int, v2: Uh2) -> Uh2 {
     case v0  {
-        Uh2Cons(v4, v5, v6) -> {
-            let v7 = 7
-            let v8 = ""
-            let v9 = prefix_text_51(v7, v0, v8)
-            let v10 = v9 == "http://"
-            let v14 =
-                case v10 {
-                    True -> True
+        Uh2Cons(v5, v6, v7) -> {
+            let v8 = v1 > 0
+            let v22 =
+                case v8 {
+                    True -> {
+                        let v9 = spiral_wrap_signed(v1 - 1, 32)
+                        v9
+                    }
                     False -> {
-                        let v11 = 8
-                        let v12 = prefix_text_51(v11, v0, v8)
-                        let v13 = v12 == "https://"
-                        v13
+                        let v10 = 7
+                        let v11 = ""
+                        let v12 = prefix_text_51(v10, v0, v11)
+                        let v13 = v12 == "http://"
+                        let v17 =
+                            case v13 {
+                                True -> True
+                                False -> {
+                                    let v14 = 8
+                                    let v15 = prefix_text_51(v14, v0, v11)
+                                    let v16 = v15 == "https://"
+                                    v16
+                                }
+                            }
+                        case v17 {
+                            True -> {
+                                let v18 = 0
+                                let v19 = link_length_52(v0, v18)
+                                let v20 = spiral_wrap_signed(v19 - 1, 32)
+                                v20
+                            }
+                            False -> 0
+                        }
                     }
                 }
-            case v14 {
-                True -> {
-                    let v15 = 0
-                    let v16 = link_length_52(v0, v15)
-                    let v17 = spiral_wrap_signed(23 - v16, 32)
-                    let v18 = v17 > 0
-                    let #(v20, v21) =
-                        case v18 {
-                            True -> {
-                                let v19 = spiral_wrap_signed(v5 + v17, 32)
-                                #(v4, v19)
+            let #(v33, v34) =
+                case v8 {
+                    True -> #(v5, 0)
+                    False -> {
+                        let v23 = 7
+                        let v24 = ""
+                        let v25 = prefix_text_51(v23, v0, v24)
+                        let v26 = v25 == "http://"
+                        let v30 =
+                            case v26 {
+                                True -> True
+                                False -> {
+                                    let v27 = 8
+                                    let v28 = prefix_text_51(v27, v0, v24)
+                                    let v29 = v28 == "https://"
+                                    v29
+                                }
                             }
-                            False -> #(v4, v5)
-                        }
-                    let v22 = Uh2Cons(v20, v21, v1)
-                    linked_50(v6, v22)
+                        let #(v31, v32) =
+                            case v30 {
+                                True -> #(v5, 23)
+                                False -> #(v5, v6)
+                            }
+                        #(v31, v32)
+                    }
                 }
-                False -> {
-                    let v24 = Uh2Cons(v4, v5, v1)
-                    linked_50(v6, v24)
-                }
-            }
+            let v35 = Uh2Cons(v33, v34, v2)
+            linked_50(v7, v22, v35)
         }
         Uh2Nil -> {
-            let v2 = Uh2Nil
-            method55(v1, v2)
+            let v3 = Uh2Nil
+            method55(v2, v3)
         }
     }
 }
@@ -227,17 +253,22 @@ pub fn closure7(capt: #(Us0)) -> fn(String) -> Int {
     fn (v1) {
         let #(v0) = capt
         let v2 = units_on_46(v0, v1)
-        let v9 =
+        let v13 =
             case v0  {
-                Us0OnBluesky(v5, v6) -> v2
+                Us0OnBluesky(v9, v10) -> v2
                 Us0OnMastodon -> {
-                    let v3 = Uh2Nil
-                    linked_50(v2, v3)
+                    let v6 = 0
+                    let v7 = Uh2Nil
+                    linked_50(v2, v6, v7)
                 }
-                Us0OnX -> v2
+                Us0OnX -> {
+                    let v3 = 0
+                    let v4 = Uh2Nil
+                    linked_50(v2, v3, v4)
+                }
             }
-        let v10 = 0
-        method56(v9, v10)
+        let v14 = 0
+        method56(v13, v14)
     }
 }
 
@@ -467,30 +498,28 @@ pub fn method65(v0: ListString, v1: Int) -> Int {
 pub fn chunks_of_58(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh2, v4: Int) -> ListString {
     let v5 = " "
     let v6 = v1 <> v5 
-    let v7 = string.inspect(v4)
+    let v7 = int.to_string(v4)
     let v8 = v6 <> v7 
     let v9 = "/"
     let v10 = v8 <> v9 
-    let v11 = string.inspect(v4)
-    let v12 = v10 <> v11 
-    let v13 = "\n"
-    let v14 = v12 <> v13 
-    let v15 = v2(v14)
-    let v16 = spiral_wrap_signed(v0 - v15, 32)
-    let v17 = Uh2Nil
-    let v18 = 0
-    let v19 = ListStringNil
-    let v20 = chunk_59(v16, v3, v17, v18, v19)
-    let v21 = 0
-    let v22 = method65(v20, v21)
-    let v23 = string.inspect(v22)
-    let v24 = spiral_string_length(v23)
-    let v25 = string.inspect(v4)
-    let v26 = spiral_string_length(v25)
-    let v27 = v24 > v26
-    case v27 {
-        True -> chunks_of_58(v0, v1, v2, v3, v22)
-        False -> v20
+    let v11 = v10 <> v7 
+    let v12 = "\n"
+    let v13 = v11 <> v12 
+    let v14 = v2(v13)
+    let v15 = spiral_wrap_signed(v0 - v14, 32)
+    let v16 = Uh2Nil
+    let v17 = 0
+    let v18 = ListStringNil
+    let v19 = chunk_59(v15, v3, v16, v17, v18)
+    let v20 = 0
+    let v21 = method65(v19, v20)
+    let v22 = int.to_string(v21)
+    let v23 = spiral_string_length(v22)
+    let v24 = spiral_string_length(v7)
+    let v25 = v23 > v24
+    case v25 {
+        True -> chunks_of_58(v0, v1, v2, v3, v21)
+        False -> v19
     }
 }
 
@@ -503,16 +532,21 @@ pub fn split_cell_on_45(v0: Us0, v1: String, v2: Int, v3: String) -> ListString 
     let v4 = closure7(#(v0))
     let v5 = unicode_erlang_nfc(v3)
     let v6 = units_on_46(v0, v5)
-    let v13 =
+    let v17 =
         case v0  {
-            Us0OnBluesky(v9, v10) -> v6
+            Us0OnBluesky(v13, v14) -> v6
             Us0OnMastodon -> {
-                let v7 = Uh2Nil
-                linked_50(v6, v7)
+                let v10 = 0
+                let v11 = Uh2Nil
+                linked_50(v6, v10, v11)
             }
-            Us0OnX -> v6
+            Us0OnX -> {
+                let v7 = 0
+                let v8 = Uh2Nil
+                linked_50(v6, v7, v8)
+            }
         }
-    split_units_57(v2, v1, v4, v13)
+    split_units_57(v2, v1, v4, v17)
 }
 
 pub fn split_cell_0(v0: String, v1: Int, v2: String) -> ListString {
@@ -795,7 +829,7 @@ pub fn closure15(capt: #(Us0, Int)) -> fn(String) -> ListString {
                     defused_entities_27(v4)
                 }
             }
-        let v11 = string.inspect(v1)
+        let v11 = int.to_string(v1)
         let v12 = "c"
         let v13 = v12 <> v11 
         let v18 =
@@ -821,11 +855,11 @@ pub fn numbered_78(v0: String, v1: Int, v2: Int, v3: ListString, v4: ListString)
             let v9 = spiral_wrap_signed(v2 + 1, 32)
             let v10 = " "
             let v11 = v0 <> v10 
-            let v12 = string.inspect(v2)
+            let v12 = int.to_string(v2)
             let v13 = v11 <> v12 
             let v14 = "/"
             let v15 = v13 <> v14 
-            let v16 = string.inspect(v1)
+            let v16 = int.to_string(v1)
             let v17 = v15 <> v16 
             let v18 = "\n"
             let v19 = v17 <> v18 
@@ -870,7 +904,7 @@ pub fn cell_posts_by_77(v0: fn(Int) -> fn(String) -> ListString, v1: Int, v2: St
             }
             _ -> v4
         }
-    let v9 = string.inspect(v1)
+    let v9 = int.to_string(v1)
     let v10 = "c"
     let v11 = v10 <> v9 
     let v12 = 0
@@ -920,30 +954,4 @@ pub fn thread_by_76(v0: fn(Int) -> fn(String) -> ListString, v1: Int, v2: ListSt
 pub fn thread_on_75(v0: Us0, v1: Int, v2: ListString, v3: Uh4) -> ListString {
     let v4 = closure14(#(v0))
     thread_by_76(v4, v1, v2, v3)
-}
-
-pub fn thread_of_74(v0: Int, v1: ListString, v2: Uh4) -> ListString {
-    let v3 = Us0OnX
-    thread_on_75(v3, v0, v1, v2)
-}
-
-pub fn closure13(capt: Nil) -> fn(String) -> ListString {
-    fn (v0) {
-        let v1 = 1
-        let v2 = file_cells_67(v0)
-        let v3 = Uh4Nil
-        thread_of_74(v1, v2, v3)
-    }
-}
-
-pub fn main() {
-    let _v0 = closure0(Nil)
-    let _ = Nil
-    let _v1 = closure11(Nil)
-    let _ = Nil
-    let _v2 = closure12(Nil)
-    let _ = Nil
-    let _v3 = closure13(Nil)
-    let _ = Nil
-    0
 }

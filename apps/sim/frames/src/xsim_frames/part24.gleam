@@ -1,15 +1,17 @@
 import gleam/bit_array
 import gleam/erlang/atom
+import gleam/int
 import gleam/string
-import xsim_frames/types.{type Uh3, type Uh29, type Us88, type Us89, Uh29Cons, Uh29Nil, Uh3Cons, Uh3Nil, Uh8Nil, Us56Error, Us56Ok, Us76Error, Us76Ok, Us87Error, Us87Ok, Us88None, Us88Some, Us89Error, Us89Ok}
-import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, spiral_fs_coerce, spiral_fs_read_file, spiral_fs_write_file, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, unicode_erlang_characters_to_binary}
+import xsim_frames/types.{type Uh3, type Uh29, type Us92, type Us93, Uh29Cons, Uh29Nil, Uh3Cons, Uh3Nil, Uh8Nil, Us56Error, Us56Ok, Us80Error, Us80Ok, Us91Error, Us91Ok, Us92None, Us92Some, Us93Error, Us93Ok}
+import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, spiral_fs_coerce, spiral_fs_read_file, spiral_fs_write_file, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
 import xsim_frames/part10.{method258, method259}
-import xsim_frames/part17.{method366, method367}
+import xsim_frames/part13.{items_from_301}
+import xsim_frames/part18.{method370, method371}
 import xsim_frames/part2.{delimited_21, method20}
-import xsim_frames/part20.{method395, method398, method399}
-import xsim_frames/part23.{closure125, closure127, file_cells_413, flags_parsed_409, method424, method425, thread_of_417}
+import xsim_frames/part20.{method396, method402, method403}
+import xsim_frames/part23.{closure123, closure125, file_cells_417, flags_parsed_413, method428, method429, thread_of_421}
 
-pub fn closure124(capt: Nil) -> fn(String) -> Int {
+pub fn closure122(capt: Nil) -> fn(String) -> Int {
     fn (v0) {
         let v1 = "init"
         let v2 = atom.create(v1)
@@ -17,136 +19,142 @@ pub fn closure124(capt: Nil) -> fn(String) -> Int {
         let v4 = atom.create(v3)
         let v5 = []
         let v6 = erlang_term_apply(v2, v4, v5)
-        let v7 = erlang_term_coerce(0)
-        let v8 = []
-        let v9 = [v7, ..v8]
-        let v10 = erlang_term_coerce(v9)
-        let v11 = "lists"
-        let v12 = atom.create(v11)
-        let v13 = "join"
-        let v14 = atom.create(v13)
-        let v15 = []
-        let v16 = [v6, ..v15]
-        let v17 = [v10, ..v16]
-        let v18 = erlang_term_apply(v12, v14, v17)
-        let v19 = "unicode"
-        let v20 = atom.create(v19)
-        let v21 = "characters_to_binary"
-        let v22 = atom.create(v21)
-        let v23 = []
-        let v24 = [v18, ..v23]
-        let v25 = erlang_term_apply(v20, v22, v24)
-        let v26 = erlang_term_coerce(v25)
-        let v27 = unicode_erlang_characters_to_binary([0])
-        let v28 = v26 == ""
-        let v31 =
-            case v28 {
-                True -> Uh3Nil
-                False -> split_list_2(v27, v26)
-            }
-        let v36 =
-            case v31  {
-                Uh3Cons(v32, v33) -> v33
+        let v7 = "lists"
+        let v8 = atom.create(v7)
+        let v9 = "reverse"
+        let v10 = atom.create(v9)
+        let v11 = []
+        let v12 = [v6, ..v11]
+        let v13 = erlang_term_apply(v8, v10, v12)
+        let v14 = Uh29Nil
+        let v15 = items_from_301(v13, v14)
+        let v16 = Uh3Nil
+        let v17 = method396(v15, v16)
+        let v22 =
+            case v17  {
+                Uh3Cons(v18, v19) -> v19
                 Uh3Nil -> Uh3Nil
             }
-        let v37 = closure125(Nil)
-        let v38 = closure127(Nil)
-        let v39 = ""
-        let v40 = flags_parsed_409(v37, v38, v39, v39, v36)
-        let v57 =
-            case v40  {
-                Us87Ok(v41, v42) -> {
-                    let v43 = v41 == ""
-                    let v48 =
-                        case v43 {
+        let v23 = closure123(Nil)
+        let v24 = closure125(Nil)
+        let v25 = ""
+        let v26 = flags_parsed_413(v23, v24, v25, v25, v22)
+        let v43 =
+            case v26  {
+                Us91Ok(v27, v28) -> {
+                    let v29 = v27 == ""
+                    let v34 =
+                        case v29 {
                             True -> {
-                                let v44 = "missing --file"
-                                v44
+                                let v30 = "missing --file"
+                                v30
                             }
                             False -> {
-                                let v45 = v42 == ""
-                                case v45 {
+                                let v31 = v28 == ""
+                                case v31 {
                                     True -> {
-                                        let v46 = "missing --out"
-                                        v46
+                                        let v32 = "missing --out"
+                                        v32
                                     }
-                                    False -> v39
+                                    False -> v25
                                 }
                             }
                         }
-                    let v49 = v48 != ""
-                    case v49 {
+                    let v35 = v34 != ""
+                    case v35 {
                         True -> {
-                            let v54 =
-                                case v43 {
+                            let v40 =
+                                case v29 {
                                     True -> {
-                                        let v50 = "missing --file"
-                                        v50
+                                        let v36 = "missing --file"
+                                        v36
                                     }
                                     False -> {
-                                        let v51 = v42 == ""
-                                        case v51 {
+                                        let v37 = v28 == ""
+                                        case v37 {
                                             True -> {
-                                                let v52 = "missing --out"
-                                                v52
+                                                let v38 = "missing --out"
+                                                v38
                                             }
-                                            False -> v39
+                                            False -> v25
                                         }
                                     }
                                 }
-                            Us87Error(v54)
+                            Us91Error(v40)
                         }
-                        False -> v40
+                        False -> v26
                     }
                 }
-                _ -> v40
+                _ -> v26
             }
-        let v161 =
-            case v57  {
-                Us87Error(v157) -> {
-                    let v158 = "XSIM rejected frames: "
-                    let v159 = v158 <> v157 
-                    v159
+        let v149 =
+            case v43  {
+                Us91Error(v145) -> {
+                    let v146 = "XSIM rejected frames: "
+                    let v147 = v146 <> v145 
+                    v147
                 }
-                Us87Ok(v58, v59) -> {
-                    let v60 = spiral_fs_read_file(v58)
-                    let v61 = method366()
-                    let v62 = method367()
-                    let v63 = case v60 { Ok(x) -> v61(x) Error(x) -> v62(x) }
-                    let v76 =
-                        case v63  {
-                            Us76Error(v73) -> panic as "file_system.read_all_text: file:read_file failed"
-                            Us76Ok(v64) -> {
-                                let v65 = bit_array.to_string(v64)
-                                let v66 = method258()
-                                let v67 = method259()
-                                let v68 = case v65 { Ok(x) -> v66(x) Error(x) -> v67(x) }
-                                case v68  {
+                Us91Ok(v44, v45) -> {
+                    let v46 = spiral_fs_read_file(v44)
+                    let v47 = method370()
+                    let v48 = method371()
+                    let v49 = case v46 { Ok(x) -> v47(x) Error(x) -> v48(x) }
+                    let v62 =
+                        case v49  {
+                            Us80Error(v59) -> panic as "file_system.read_all_text: file:read_file failed"
+                            Us80Ok(v50) -> {
+                                let v51 = bit_array.to_string(v50)
+                                let v52 = method258()
+                                let v53 = method259()
+                                let v54 = case v51 { Ok(x) -> v52(x) Error(x) -> v53(x) }
+                                case v54  {
                                     Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
-                                    Us56Ok(v69) -> v69
+                                    Us56Ok(v55) -> v55
                                 }
                             }
                         }
-                    let v77 = 1
-                    let v78 = file_cells_413(v76)
-                    let v79 = Uh8Nil
-                    let v80 = thread_of_417(v77, v78, v79)
-                    let v81 = file_cells_413(v76)
-                    let v82 = Uh3Nil
-                    let v83 = method424(v81, v82)
-                    let v84 = "\n\n"
-                    let v85 = delimited_21(v84, v83)
-                    let v86 = v85 == ""
-                    let v90 =
-                        case v86 {
+                    let v63 = 1
+                    let v64 = file_cells_417(v62)
+                    let v65 = Uh8Nil
+                    let v66 = thread_of_421(v63, v64, v65)
+                    let v67 = file_cells_417(v62)
+                    let v68 = Uh3Nil
+                    let v69 = method428(v67, v68)
+                    let v70 = "\n\n"
+                    let v71 = delimited_21(v70, v69)
+                    let v72 = v71 == ""
+                    let v76 =
+                        case v72 {
                             True -> Uh3Nil
                             False -> {
-                                let v88 = "\n"
-                                split_list_2(v88, v85)
+                                let v74 = "\n"
+                                split_list_2(v74, v71)
                             }
                         }
+                    let v86 =
+                        case v66  {
+                            Uh3Nil -> {
+                                let v77 = "[]"
+                                v77
+                            }
+                            _ -> {
+                                let v78 = ",\n        "
+                                let v79 = Uh3Nil
+                                let v80 = method429(v66, v79)
+                                let v81 = delimited_21(v78, v80)
+                                let v82 = "[\n        "
+                                let v83 = v82 <> v81 
+                                let v84 = "\n    ]"
+                                let v85 = v83 <> v84 
+                                v85
+                            }
+                        }
+                    let v87 = "{\n    \"posts\": "
+                    let v88 = v87 <> v86 
+                    let v89 = ",\n    \"program\": "
+                    let v90 = v88 <> v89 
                     let v100 =
-                        case v80  {
+                        case v76  {
                             Uh3Nil -> {
                                 let v91 = "[]"
                                 v91
@@ -154,7 +162,7 @@ pub fn closure124(capt: Nil) -> fn(String) -> Int {
                             _ -> {
                                 let v92 = ",\n        "
                                 let v93 = Uh3Nil
-                                let v94 = method425(v80, v93)
+                                let v94 = method429(v76, v93)
                                 let v95 = delimited_21(v92, v94)
                                 let v96 = "[\n        "
                                 let v97 = v96 <> v95 
@@ -163,162 +171,142 @@ pub fn closure124(capt: Nil) -> fn(String) -> Int {
                                 v99
                             }
                         }
-                    let v101 = "{\n    \"posts\": "
-                    let v102 = v101 <> v100 
-                    let v103 = ",\n    \"program\": "
-                    let v104 = v102 <> v103 
-                    let v114 =
-                        case v90  {
-                            Uh3Nil -> {
-                                let v105 = "[]"
-                                v105
-                            }
-                            _ -> {
-                                let v106 = ",\n        "
-                                let v107 = Uh3Nil
-                                let v108 = method425(v90, v107)
-                                let v109 = delimited_21(v106, v108)
-                                let v110 = "[\n        "
-                                let v111 = v110 <> v109 
-                                let v112 = "\n    ]"
-                                let v113 = v111 <> v112 
-                                v113
-                            }
-                        }
-                    let v115 = v104 <> v114 
-                    let v116 = "\n}\n"
-                    let v117 = v115 <> v116 
-                    let v118 = spiral_fs_write_file(v59, v117)
-                    let v119 = spiral_fs_coerce(v118)
-                    let v120 = "ok"
-                    let v121 = atom.create(v120)
-                    let v122 = v119 == v121
-                    let v123 = v122 == False
-                    case v123 {
+                    let v101 = v90 <> v100 
+                    let v102 = "\n}\n"
+                    let v103 = v101 <> v102 
+                    let v104 = spiral_fs_write_file(v45, v103)
+                    let v105 = spiral_fs_coerce(v104)
+                    let v106 = "ok"
+                    let v107 = atom.create(v106)
+                    let v108 = v105 == v107
+                    let v109 = v108 == False
+                    case v109 {
                         True -> panic as "file_system.write_all_text: the write failed"
                         False -> Nil
                     }
-                    let v124 = file_cells_413(v76)
-                    let v125 = 0
-                    let v126 = method20(v124, v125)
-                    let v127 = 1
-                    let v128 = file_cells_413(v76)
-                    let v129 = Uh8Nil
-                    let v130 = thread_of_417(v127, v128, v129)
-                    let v131 = 0
-                    let v132 = method20(v130, v131)
-                    let v133 = string.inspect(v126)
-                    let v134 = " cells="
-                    let v135 = v134 <> v133 
-                    let v136 = " posts="
-                    let v137 = v135 <> v136 
-                    let v138 = string.inspect(v132)
-                    let v139 = v137 <> v138 
-                    let v140 = erlang_term_coerce(v58)
-                    let v141 = "filename"
-                    let v142 = atom.create(v141)
-                    let v143 = "basename"
-                    let v144 = atom.create(v143)
-                    let v145 = []
-                    let v146 = [v140, ..v145]
-                    let v147 = erlang_term_apply(v142, v144, v146)
-                    let v148 = atom.create(v19)
-                    let v149 = atom.create(v21)
-                    let v150 = []
-                    let v151 = [v147, ..v150]
-                    let v152 = erlang_term_apply(v148, v149, v151)
-                    let v153 = erlang_term_coerce(v152)
-                    let v154 = "xsim.frames "
-                    let v155 = v154 <> v153 
-                    let v156 = v155 <> v139 
-                    v156
+                    let v110 = file_cells_417(v62)
+                    let v111 = 0
+                    let v112 = method20(v110, v111)
+                    let v113 = 1
+                    let v114 = file_cells_417(v62)
+                    let v115 = Uh8Nil
+                    let v116 = thread_of_421(v113, v114, v115)
+                    let v117 = 0
+                    let v118 = method20(v116, v117)
+                    let v119 = int.to_string(v112)
+                    let v120 = " cells="
+                    let v121 = v120 <> v119 
+                    let v122 = " posts="
+                    let v123 = v121 <> v122 
+                    let v124 = int.to_string(v118)
+                    let v125 = v123 <> v124 
+                    let v126 = erlang_term_coerce(v44)
+                    let v127 = "filename"
+                    let v128 = atom.create(v127)
+                    let v129 = "basename"
+                    let v130 = atom.create(v129)
+                    let v131 = []
+                    let v132 = [v126, ..v131]
+                    let v133 = erlang_term_apply(v128, v130, v132)
+                    let v134 = "unicode"
+                    let v135 = atom.create(v134)
+                    let v136 = "characters_to_binary"
+                    let v137 = atom.create(v136)
+                    let v138 = []
+                    let v139 = [v133, ..v138]
+                    let v140 = erlang_term_apply(v135, v137, v139)
+                    let v141 = erlang_term_coerce(v140)
+                    let v142 = "xsim.frames "
+                    let v143 = v142 <> v141 
+                    let v144 = v143 <> v125 
+                    v144
                 }
             }
-        let v162 = "\n"
-        let v163 = v161 <> v162 
-        let v164 = erlang_term_coerce(v163)
-        let v165 = "io"
-        let v166 = atom.create(v165)
-        let v167 = "put_chars"
-        let v168 = atom.create(v167)
-        let v169 = []
-        let v170 = [v164, ..v169]
-        let _v171 = erlang_term_apply(v166, v168, v170)
-        let v172 = v161 == ""
-        let v175 =
-            case v172 {
+        let v150 = "\n"
+        let v151 = v149 <> v150 
+        let v152 = erlang_term_coerce(v151)
+        let v153 = "io"
+        let v154 = atom.create(v153)
+        let v155 = "put_chars"
+        let v156 = atom.create(v155)
+        let v157 = []
+        let v158 = [v152, ..v157]
+        let _v159 = erlang_term_apply(v154, v156, v158)
+        let v160 = v149 == ""
+        let v163 =
+            case v160 {
                 True -> Uh3Nil
-                False -> split_list_2(v162, v161)
+                False -> split_list_2(v150, v149)
             }
-        let v176 = method398()
-        let v177 = method399(v176, v175)
-        case v177 {
+        let v164 = method402()
+        let v165 = method403(v164, v163)
+        case v165 {
             True -> 1
             False -> 0
         }
     }
 }
 
-pub fn closure134(capt: Nil) -> fn(String) -> Us88 {
+pub fn closure132(capt: Nil) -> fn(String) -> Us92 {
     fn (v0) {
-        Us88None
+        Us92None
     }
 }
 
-pub fn closure133(capt: Nil) -> fn(#(String, String, String)) -> fn(String) -> Us88 {
+pub fn closure131(capt: Nil) -> fn(#(String, String, String)) -> fn(String) -> Us92 {
     fn (dom) {
         let #(_v0, _v1, _v2) = dom
-        closure134(Nil)
+        closure132(Nil)
     }
 }
 
-pub fn closure137(capt: #(String, String, String, String)) -> fn(String) -> Us89 {
+pub fn closure135(capt: #(String, String, String, String)) -> fn(String) -> Us93 {
     fn (v4) {
         let #(v0, v1, v2, v3) = capt
         let v5 = v3 == "expected"
         let v14 =
             case v5 {
-                True -> Us88Some(v0, v1, v4)
+                True -> Us92Some(v0, v1, v4)
                 False -> {
                     let v7 = v3 == "file"
                     case v7 {
-                        True -> Us88Some(v4, v1, v2)
+                        True -> Us92Some(v4, v1, v2)
                         False -> {
                             let v9 = v3 == "program"
                             case v9 {
-                                True -> Us88Some(v0, v4, v2)
-                                False -> Us88None
+                                True -> Us92Some(v0, v4, v2)
+                                False -> Us92None
                             }
                         }
                     }
                 }
             }
         case v14  {
-            Us88None -> {
+            Us92None -> {
                 let v19 = "unknown option --"
                 let v20 = v19 <> v3 
-                Us89Error(v20)
+                Us93Error(v20)
             }
-            Us88Some(v15, v16, v17) -> Us89Ok(v15, v16, v17)
+            Us92Some(v15, v16, v17) -> Us93Ok(v15, v16, v17)
         }
     }
 }
 
-pub fn closure136(capt: #(String, String, String)) -> fn(String) -> fn(String) -> Us89 {
+pub fn closure134(capt: #(String, String, String)) -> fn(String) -> fn(String) -> Us93 {
     fn (v3) {
         let #(v0, v1, v2) = capt
-        closure137(#(v0, v1, v2, v3))
+        closure135(#(v0, v1, v2, v3))
     }
 }
 
-pub fn closure135(capt: Nil) -> fn(#(String, String, String)) -> fn(String) -> fn(String) -> Us89 {
+pub fn closure133(capt: Nil) -> fn(#(String, String, String)) -> fn(String) -> fn(String) -> Us93 {
     fn (dom) {
         let #(v0, v1, v2) = dom
-        closure136(#(v0, v1, v2))
+        closure134(#(v0, v1, v2))
     }
 }
 
-pub fn valued_then_428(v0: fn(#(String, String, String)) -> fn(String) -> Us88, v1: fn(#(String, String, String)) -> fn(String) -> fn(String) -> Us89, v2: String, v3: String, v4: String, v5: String, v6: Uh3) -> Us89 {
+pub fn valued_then_432(v0: fn(#(String, String, String)) -> fn(String) -> Us92, v1: fn(#(String, String, String)) -> fn(String) -> fn(String) -> Us93, v2: String, v3: String, v4: String, v5: String, v6: Uh3) -> Us93 {
     case v6  {
         Uh3Cons(v7, v8) -> {
             let v9 = v1(#(v2, v3, v4))
@@ -341,7 +329,7 @@ pub fn valued_then_428(v0: fn(#(String, String, String)) -> fn(String) -> Us88, 
                 }
             let v19 = v9(v18)
             let v20 = v19(v7)
-            continued_429(v0, v1, v20, v8)
+            continued_433(v0, v1, v20, v8)
         }
         Uh3Nil -> {
             let v22 = "--"
@@ -364,12 +352,12 @@ pub fn valued_then_428(v0: fn(#(String, String, String)) -> fn(String) -> Us88, 
             let v31 = v22 <> v30 
             let v32 = " needs a value"
             let v33 = v31 <> v32 
-            Us89Error(v33)
+            Us93Error(v33)
         }
     }
 }
 
-pub fn arg_parsed_427(v0: fn(#(String, String, String)) -> fn(String) -> Us88, v1: fn(#(String, String, String)) -> fn(String) -> fn(String) -> Us89, v2: String, v3: String, v4: String, v5: String, v6: Uh3) -> Us89 {
+pub fn arg_parsed_431(v0: fn(#(String, String, String)) -> fn(String) -> Us92, v1: fn(#(String, String, String)) -> fn(String) -> fn(String) -> Us93, v2: String, v3: String, v4: String, v5: String, v6: Uh3) -> Us93 {
     let v7 = v0(#(v2, v3, v4))
     let v8 = "--"
     let v9 = v5 |> string.starts_with(v8)
@@ -390,12 +378,12 @@ pub fn arg_parsed_427(v0: fn(#(String, String, String)) -> fn(String) -> Us88, v
         }
     let v17 = v7(v16)
     case v17  {
-        Us88None -> valued_then_428(v0, v1, v2, v3, v4, v5, v6)
-        Us88Some(v18, v19, v20) -> flags_parsed_426(v0, v1, v18, v19, v20, v6)
+        Us92None -> valued_then_432(v0, v1, v2, v3, v4, v5, v6)
+        Us92Some(v18, v19, v20) -> flags_parsed_430(v0, v1, v18, v19, v20, v6)
     }
 }
 
-pub fn flags_parsed_426(v0: fn(#(String, String, String)) -> fn(String) -> Us88, v1: fn(#(String, String, String)) -> fn(String) -> fn(String) -> Us89, v2: String, v3: String, v4: String, v5: Uh3) -> Us89 {
+pub fn flags_parsed_430(v0: fn(#(String, String, String)) -> fn(String) -> Us92, v1: fn(#(String, String, String)) -> fn(String) -> fn(String) -> Us93, v2: String, v3: String, v4: String, v5: Uh3) -> Us93 {
     case v5  {
         Uh3Cons(v7, v8) -> {
             let v9 = "--"
@@ -422,143 +410,152 @@ pub fn flags_parsed_426(v0: fn(#(String, String, String)) -> fn(String) -> Us88,
                     let v20 = v19 <> v7 
                     let v21 = "'"
                     let v22 = v20 <> v21 
-                    Us89Error(v22)
+                    Us93Error(v22)
                 }
-                False -> arg_parsed_427(v0, v1, v2, v3, v4, v7, v8)
+                False -> arg_parsed_431(v0, v1, v2, v3, v4, v7, v8)
             }
         }
-        Uh3Nil -> Us89Ok(v2, v3, v4)
+        Uh3Nil -> Us93Ok(v2, v3, v4)
     }
 }
 
-pub fn continued_429(v0: fn(#(String, String, String)) -> fn(String) -> Us88, v1: fn(#(String, String, String)) -> fn(String) -> fn(String) -> Us89, v2: Us89, v3: Uh3) -> Us89 {
+pub fn continued_433(v0: fn(#(String, String, String)) -> fn(String) -> Us92, v1: fn(#(String, String, String)) -> fn(String) -> fn(String) -> Us93, v2: Us93, v3: Uh3) -> Us93 {
     case v2  {
-        Us89Error(v8) -> Us89Error(v8)
-        Us89Ok(v4, v5, v6) -> flags_parsed_426(v0, v1, v4, v5, v6, v3)
+        Us93Error(v8) -> Us93Error(v8)
+        Us93Ok(v4, v5, v6) -> flags_parsed_430(v0, v1, v4, v5, v6, v3)
     }
 }
 
-pub fn method431(v0: Uh29, v1: Uh3) -> Uh3 {
+pub fn method435(v0: Uh29, v1: Uh3) -> Uh3 {
     case v0  {
         Uh29Cons(v2, v3) -> {
-            let v4 = method431(v3, v1)
-            let v5 = "target"
+            let v4 = method435(v3, v1)
+            let v5 = ""
             let v6 = erlang_term_coerce(v5)
-            let v7 = ""
+            let v7 = "target"
             let v8 = erlang_term_coerce(v7)
-            let v9 = "maps"
-            let v10 = atom.create(v9)
-            let v11 = "get"
-            let v12 = atom.create(v11)
-            let v13 = []
-            let v14 = [v8, ..v13]
-            let v15 = [v2, ..v14]
-            let v16 = [v6, ..v15]
-            let v17 = erlang_term_apply(v10, v12, v16)
-            let v18 = string.inspect(v17)
-            let v19 = "="
-            let v20 = v18 <> v19 
-            let v21 = "status"
-            let v22 = erlang_term_coerce(v21)
-            let v23 = erlang_term_coerce(v7)
-            let v24 = atom.create(v9)
-            let v25 = atom.create(v11)
-            let v26 = []
-            let v27 = [v23, ..v26]
-            let v28 = [v2, ..v27]
-            let v29 = [v22, ..v28]
-            let v30 = erlang_term_apply(v24, v25, v29)
-            let v31 = string.inspect(v30)
-            let v32 = v20 <> v31 
-            Uh3Cons(v32, v4)
-        }
-        Uh29Nil -> v1
-    }
-}
-
-pub fn method430(v0: Uh29, v1: Uh3) -> Uh3 {
-    case v0  {
-        Uh29Cons(v2, v3) -> {
-            let v4 = method430(v3, v1)
-            let v5 = "targets"
-            let v6 = erlang_term_coerce(v5)
-            let v7 = []
-            let v8 = erlang_term_coerce(v7)
-            let v9 = "maps"
-            let v10 = atom.create(v9)
-            let v11 = "get"
-            let v12 = atom.create(v11)
-            let v13 = []
-            let v14 = [v8, ..v13]
-            let v15 = [v2, ..v14]
-            let v16 = [v6, ..v15]
-            let v17 = erlang_term_apply(v10, v12, v16)
-            let v18 = "erlang"
-            let v19 = atom.create(v18)
-            let v20 = "length"
-            let v21 = atom.create(v20)
-            let v22 = []
-            let v23 = [v17, ..v22]
-            let v24 = erlang_term_apply(v19, v21, v23)
+            let v9 = erlang_term_coerce(v6)
+            let v10 = "maps"
+            let v11 = atom.create(v10)
+            let v12 = "get"
+            let v13 = atom.create(v12)
+            let v14 = []
+            let v15 = [v9, ..v14]
+            let v16 = [v2, ..v15]
+            let v17 = [v8, ..v16]
+            let v18 = erlang_term_apply(v11, v13, v17)
+            let v19 = erlang_term_coerce(v18)
+            let v20 = string.inspect(v19)
+            let v21 = "="
+            let v22 = v20 <> v21 
+            let v23 = erlang_term_coerce(v5)
+            let v24 = "status"
             let v25 = erlang_term_coerce(v24)
-            let v26 = 0
-            let v27 = method395(v25, v17, v26)
-            let v28 = Uh3Nil
-            let v29 = method431(v27, v28)
-            let v30 = ","
-            let v31 = delimited_21(v30, v29)
-            let v32 = "name"
-            let v33 = erlang_term_coerce(v32)
-            let v34 = ""
-            let v35 = erlang_term_coerce(v34)
-            let v36 = atom.create(v9)
-            let v37 = atom.create(v11)
-            let v38 = []
-            let v39 = [v35, ..v38]
-            let v40 = [v2, ..v39]
-            let v41 = [v33, ..v40]
-            let v42 = erlang_term_apply(v36, v37, v41)
-            let v43 = string.inspect(v42)
-            let v44 = " "
-            let v45 = v43 <> v44 
-            let v46 = "status"
-            let v47 = erlang_term_coerce(v46)
-            let v48 = erlang_term_coerce(v34)
-            let v49 = atom.create(v9)
-            let v50 = atom.create(v11)
-            let v51 = []
-            let v52 = [v48, ..v51]
-            let v53 = [v2, ..v52]
-            let v54 = [v47, ..v53]
-            let v55 = erlang_term_apply(v49, v50, v54)
-            let v56 = string.inspect(v55)
-            let v57 = v45 <> v56 
-            let v58 = " ["
-            let v59 = v57 <> v58 
-            let v60 = v59 <> v31 
-            let v61 = "]"
-            let v62 = v60 <> v61 
-            Uh3Cons(v62, v4)
+            let v26 = erlang_term_coerce(v23)
+            let v27 = atom.create(v10)
+            let v28 = atom.create(v12)
+            let v29 = []
+            let v30 = [v26, ..v29]
+            let v31 = [v2, ..v30]
+            let v32 = [v25, ..v31]
+            let v33 = erlang_term_apply(v27, v28, v32)
+            let v34 = erlang_term_coerce(v33)
+            let v35 = string.inspect(v34)
+            let v36 = v22 <> v35 
+            Uh3Cons(v36, v4)
         }
         Uh29Nil -> v1
     }
 }
 
-pub fn paired_rows_432(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method434(v0: Uh29, v1: Uh3) -> Uh3 {
+    case v0  {
+        Uh29Cons(v2, v3) -> {
+            let v4 = method434(v3, v1)
+            let v5 = []
+            let v6 = erlang_term_coerce(v5)
+            let v7 = "targets"
+            let v8 = erlang_term_coerce(v7)
+            let v9 = erlang_term_coerce(v6)
+            let v10 = "maps"
+            let v11 = atom.create(v10)
+            let v12 = "get"
+            let v13 = atom.create(v12)
+            let v14 = []
+            let v15 = [v9, ..v14]
+            let v16 = [v2, ..v15]
+            let v17 = [v8, ..v16]
+            let v18 = erlang_term_apply(v11, v13, v17)
+            let v19 = erlang_term_coerce(v18)
+            let v20 = "lists"
+            let v21 = atom.create(v20)
+            let v22 = "reverse"
+            let v23 = atom.create(v22)
+            let v24 = []
+            let v25 = [v19, ..v24]
+            let v26 = erlang_term_apply(v21, v23, v25)
+            let v27 = Uh29Nil
+            let v28 = items_from_301(v26, v27)
+            let v29 = Uh3Nil
+            let v30 = method435(v28, v29)
+            let v31 = ","
+            let v32 = delimited_21(v31, v30)
+            let v33 = ""
+            let v34 = erlang_term_coerce(v33)
+            let v35 = "name"
+            let v36 = erlang_term_coerce(v35)
+            let v37 = erlang_term_coerce(v34)
+            let v38 = atom.create(v10)
+            let v39 = atom.create(v12)
+            let v40 = []
+            let v41 = [v37, ..v40]
+            let v42 = [v2, ..v41]
+            let v43 = [v36, ..v42]
+            let v44 = erlang_term_apply(v38, v39, v43)
+            let v45 = erlang_term_coerce(v44)
+            let v46 = string.inspect(v45)
+            let v47 = " "
+            let v48 = v46 <> v47 
+            let v49 = erlang_term_coerce(v33)
+            let v50 = "status"
+            let v51 = erlang_term_coerce(v50)
+            let v52 = erlang_term_coerce(v49)
+            let v53 = atom.create(v10)
+            let v54 = atom.create(v12)
+            let v55 = []
+            let v56 = [v52, ..v55]
+            let v57 = [v2, ..v56]
+            let v58 = [v51, ..v57]
+            let v59 = erlang_term_apply(v53, v54, v58)
+            let v60 = erlang_term_coerce(v59)
+            let v61 = string.inspect(v60)
+            let v62 = v48 <> v61 
+            let v63 = " ["
+            let v64 = v62 <> v63 
+            let v65 = v64 <> v32 
+            let v66 = "]"
+            let v67 = v65 <> v66 
+            Uh3Cons(v67, v4)
+        }
+        Uh29Nil -> v1
+    }
+}
+
+pub fn paired_rows_436(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
             case v1  {
                 Uh3Cons(v4, v5) -> {
                     let v6 = v2 == v4
                     case v6 {
-                        True -> paired_rows_432(v3, v5)
+                        True -> paired_rows_436(v3, v5)
                         False -> {
                             let v8 = "  file="
                             let v9 = v8 <> v2 
                             let v10 = "\n  thread="
                             let v11 = v9 <> v10 
                             let v12 = v11 <> v4 
-                            let v13 = paired_rows_432(v3, v5)
+                            let v13 = paired_rows_436(v3, v5)
                             Uh3Cons(v12, v13)
                         }
                     }

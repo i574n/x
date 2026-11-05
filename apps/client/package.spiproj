@@ -12,6 +12,8 @@ modules:
     protocol
     splitter
     posts
+    feed_merge
+    run_signals
     reading
     cli
     fields
@@ -70,6 +72,10 @@ modules:
         frames
     preview/
         preview
+    census/
+        census
+    events/
+        events
     locate/
         locate
     assemble/

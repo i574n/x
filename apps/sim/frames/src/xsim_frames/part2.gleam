@@ -3,8 +3,16 @@ import gleam/option
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Us11, Uh0Cons, Uh0Nil, Uh1Cons, Uh1Nil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Uh5Nil, Us10PlainRow, Us10TallyRow, Us11None, Us11Some, Us1None, Us1Some, Us2None, Us2Some, Us5BrokenId, Us5Evicting, Us5Result, Us5Visible, Us5Wanted, Us6None, Us6Some, Us7Cancelled, Us7Evicted, Us7Started, Us8None, Us8Some, Us9None, Us9Some}
-import xsim_frames/part1.{closure1, count_at_16, digits_end_9, fields_from_6, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, text_at_13}
+import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Uh5, type Us11, Uh0Cons, Uh0Nil, Uh1Cons, Uh1Nil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Uh5Nil, Us0Whole, Us10PlainRow, Us10TallyRow, Us11None, Us11Some, Us1None, Us1Some, Us2None, Us2Some, Us5BrokenId, Us5Evicting, Us5Result, Us5Visible, Us5Wanted, Us6None, Us6Some, Us7Cancelled, Us7Evicted, Us7Started, Us8None, Us8Some, Us9None, Us9Some}
+import xsim_frames/part1.{closure1, digits_end_9, fields_from_6, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, text_at_13, value_of_14}
+
+pub fn count_at_16(v0: String, v1: Uh5) -> Int {
+    let v2 = value_of_14(v0, v1)
+    case v2  {
+        Us0Whole(v3) -> v3
+        _ -> -1
+    }
+}
 
 pub fn method17(v0: Uh0, v1: Uh0) -> Uh0 {
     case v0  {

@@ -10,11 +10,9 @@
 
 := percent (s : string) : string = sm'::percent_encode s
 
-:= process_id () : u32 = $'std::process::id()'
-
 := clock_seed () : string =
     := micros = unix_clock::nanos_count (unix_clock::unix_now_nanos ()) / 1000u64
-    sm'::obj_to_string micros ++# "-" ++# sm'::obj_to_string (process_id ())
+    sm'::obj_to_string micros ++# "-" ++# sm'::obj_to_string (env::process_id ())
 
 := unix_seconds () : string = unix_clock::unix_now_seconds () |> unix_clock::seconds_count |> sm'::obj_to_string
 

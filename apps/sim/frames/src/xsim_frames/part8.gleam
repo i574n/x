@@ -1,4 +1,5 @@
 import gleam/bit_array
+import gleam/int
 import gleam/option
 import gleam/pair
 import gleam/result
@@ -120,22 +121,21 @@ pub fn method200(v0: Int, v1: Int, v2: Uh22, v3: Uh24, v4: Uh25, v5: Us26, v6: U
     }
 }
 
-pub fn method203(v0: Int, v1: Int) -> fn(String) -> String {
-    closure24(#(v0, v1))
+pub fn method203(v0: Int, v1: String, v2: Int) -> fn(String) -> String {
+    closure24(#(v0, v1, v2))
 }
 
-pub fn closure24(capt: #(Int, Int)) -> fn(String) -> String {
-    fn (v2) {
-        let #(v0, v1) = capt
-        let v3 = v1 >= v0
-        case v3 {
-            True -> v2
+pub fn closure24(capt: #(Int, String, Int)) -> fn(String) -> String {
+    fn (v3) {
+        let #(v0, v1, v2) = capt
+        let v4 = v2 >= v0
+        case v4 {
+            True -> v3
             False -> {
-                let v4 = spiral_wrap_signed(v1 + 1, 32)
-                let v5 = method203(v0, v4)
-                let v6 = "0"
-                let v7 = v2 <> v6 
-                v5(v7)
+                let v5 = spiral_wrap_signed(v2 + 1, 32)
+                let v6 = method203(v0, v1, v5)
+                let v7 = v3 <> v1 
+                v6(v7)
             }
         }
     }
@@ -292,222 +292,272 @@ pub fn method202(v0: Int, v1: Int, v2: Uh22, v3: Uh24, v4: Uh25, v5: Us26, v6: U
             let v35 = spiral_wrap_signed(v11 + v21, 32)
             let v36 = v35 / 86400
             let v37 = spiral_wrap_signed(v10 + v36, 32)
-            let v38 = spiral_wrap_signed(v37 + 719468, 32)
-            let v39 = v38 % 146097
-            let v40 = v39 / 1460
-            let v41 = spiral_wrap_signed(v39 - v40, 32)
-            let v42 = v39 / 36524
-            let v43 = spiral_wrap_signed(v41 + v42, 32)
-            let v44 = v39 / 146096
-            let v45 = spiral_wrap_signed(v43 - v44, 32)
-            let v46 = v45 / 365
-            let v47 = v38 / 146097
-            let v48 = spiral_wrap_signed(v47 * 400, 32)
-            let v49 = spiral_wrap_signed(v46 + v48, 32)
-            let v50 = spiral_wrap_signed(365 * v46, 32)
-            let v51 = v46 / 4
-            let v52 = spiral_wrap_signed(v50 + v51, 32)
-            let v53 = v46 / 100
-            let v54 = spiral_wrap_signed(v52 - v53, 32)
-            let v55 = spiral_wrap_signed(v39 - v54, 32)
-            let v56 = spiral_wrap_signed(5 * v55, 32)
-            let v57 = spiral_wrap_signed(v56 + 2, 32)
-            let v58 = v57 / 153
-            let v59 = v58 < 10
-            let v62 =
-                case v59 {
+            let v38 = spiral_wrap_signed(v37, 64)
+            let v39 = spiral_wrap_signed(v38 * 86400000000, 64)
+            let v40 = v39 / 86400000000
+            let v41 = v39 % 86400000000
+            let v42 = v41 != 0
+            let v44 =
+                case v42 {
                     True -> {
-                        let v60 = spiral_wrap_signed(v58 + 3, 32)
-                        v60
+                        let v43 = v39 < 0
+                        v43
+                    }
+                    False -> False
+                }
+            let v46 =
+                case v44 {
+                    True -> {
+                        let v45 = spiral_wrap_signed(v40 - 1, 64)
+                        v45
+                    }
+                    False -> v40
+                }
+            let v47 = spiral_wrap_signed(v46 * 86400000000, 64)
+            let v48 = spiral_wrap_signed(v39 - v47, 64)
+            let v49 = spiral_wrap_signed(v46 + 719468, 64)
+            let v50 = v49 / 146097
+            let v51 = v49 % 146097
+            let v52 = v51 != 0
+            let v54 =
+                case v52 {
+                    True -> {
+                        let v53 = v49 < 0
+                        v53
+                    }
+                    False -> False
+                }
+            let v56 =
+                case v54 {
+                    True -> {
+                        let v55 = spiral_wrap_signed(v50 - 1, 64)
+                        v55
+                    }
+                    False -> v50
+                }
+            let v57 = spiral_wrap_signed(v56 * 146097, 64)
+            let v58 = spiral_wrap_signed(v49 - v57, 64)
+            let v59 = v58 / 1460
+            let v60 = spiral_wrap_signed(v58 - v59, 64)
+            let v61 = v58 / 36524
+            let v62 = spiral_wrap_signed(v60 + v61, 64)
+            let v63 = v58 / 146096
+            let v64 = spiral_wrap_signed(v62 - v63, 64)
+            let v65 = v64 / 365
+            let v66 = spiral_wrap_signed(365 * v65, 64)
+            let v67 = v65 / 4
+            let v68 = spiral_wrap_signed(v66 + v67, 64)
+            let v69 = v65 / 100
+            let v70 = spiral_wrap_signed(v68 - v69, 64)
+            let v71 = spiral_wrap_signed(v58 - v70, 64)
+            let v72 = spiral_wrap_signed(5 * v71, 64)
+            let v73 = spiral_wrap_signed(v72 + 2, 64)
+            let v74 = v73 / 153
+            let v75 = spiral_wrap_signed(153 * v74, 64)
+            let v76 = spiral_wrap_signed(v75 + 2, 64)
+            let v77 = v76 / 5
+            let v78 = spiral_wrap_signed(v71 - v77, 64)
+            let v79 = spiral_wrap_signed(v78 + 1, 64)
+            let v80 = v74 < 10
+            let v83 =
+                case v80 {
+                    True -> {
+                        let v81 = spiral_wrap_signed(v74 + 3, 64)
+                        v81
                     }
                     False -> {
-                        let v61 = spiral_wrap_signed(v58 - 9, 32)
-                        v61
+                        let v82 = spiral_wrap_signed(v74 - 9, 64)
+                        v82
                     }
                 }
-            let v63 = v62 <= 2
-            let v65 =
-                case v63 {
-                    True -> {
-                        let v64 = spiral_wrap_signed(v49 + 1, 32)
-                        v64
-                    }
-                    False -> v49
+            let v84 = spiral_wrap_signed(v56 * 400, 64)
+            let v85 = spiral_wrap_signed(v65 + v84, 64)
+            let v86 = v83 <= 2
+            let v87 =
+                case v86 {
+                    True -> 1
+                    False -> 0
                 }
-            let v66 = spiral_wrap_signed(153 * v58, 32)
-            let v67 = spiral_wrap_signed(v66 + 2, 32)
-            let v68 = v67 / 5
-            let v69 = spiral_wrap_signed(v55 - v68, 32)
-            let v70 = spiral_wrap_signed(v69 + 1, 32)
-            let v71 = string.inspect(v65)
-            let v72 = spiral_string_length(v71)
-            let v73 = spiral_wrap_signed(4 - v72, 32)
-            let v74 = 0
-            let v75 = method203(v73, v74)
-            let v76 = ""
-            let v77 = v75(v76)
-            let v78 = v77 <> v71 
-            let v79 = "-"
-            let v80 = v78 <> v79 
-            let v81 = string.inspect(v62)
-            let v82 = spiral_string_length(v81)
-            let v83 = spiral_wrap_signed(2 - v82, 32)
-            let v84 = 0
-            let v85 = method203(v83, v84)
-            let v86 = v85(v76)
-            let v87 = v86 <> v81 
-            let v88 = v80 <> v87 
-            let v89 = v88 <> v79 
-            let v90 = string.inspect(v70)
-            let v91 = spiral_string_length(v90)
-            let v92 = spiral_wrap_signed(2 - v91, 32)
-            let v93 = 0
-            let v94 = method203(v92, v93)
-            let v95 = v94(v76)
-            let v96 = v95 <> v90 
-            let v97 = v89 <> v96 
-            let v98 = "T"
-            let v99 = v97 <> v98 
-            let v100 = v35 % 86400
-            let v101 = v100 / 3600
-            let v102 = string.inspect(v101)
-            let v103 = spiral_string_length(v102)
-            let v104 = spiral_wrap_signed(2 - v103, 32)
-            let v105 = 0
-            let v106 = method203(v104, v105)
-            let v107 = v106(v76)
-            let v108 = v107 <> v102 
-            let v109 = ":"
-            let v110 = v108 <> v109 
-            let v111 = v100 / 60
-            let v112 = v111 % 60
-            let v113 = string.inspect(v112)
-            let v114 = spiral_string_length(v113)
-            let v115 = spiral_wrap_signed(2 - v114, 32)
-            let v116 = 0
-            let v117 = method203(v115, v116)
-            let v118 = v117(v76)
-            let v119 = v118 <> v113 
-            let v120 = v110 <> v119 
-            let v121 = v120 <> v109 
-            let v122 = v100 % 60
-            let v123 = string.inspect(v122)
-            let v124 = spiral_string_length(v123)
-            let v125 = spiral_wrap_signed(2 - v124, 32)
-            let v126 = 0
-            let v127 = method203(v125, v126)
-            let v128 = v127(v76)
-            let v129 = v128 <> v123 
-            let v130 = v121 <> v129 
-            let v131 = v99 <> v130 
-            let v132 = ".000Z"
-            let v133 = v131 <> v132 
-            let v134 = quoted_119(v133)
-            let v135 = "created_at"
-            let v136 = quoted_119(v135)
-            let v137 = v136 <> v32 
-            let v138 = v137 <> v134 
-            let v139 = Uh3Nil
-            let v140 = method204(v17, v139)
-            let v141 = "["
-            let v142 = "]"
-            let v143 = 5
-            let v144 = shared_layout_205(v140, v141, v142, v143)
-            let v145 = "edit_history"
-            let v146 = quoted_119(v145)
-            let v147 = v146 <> v32 
-            let v148 = v147 <> v144 
-            let v149 = quoted_119(v20)
-            let v150 = "id"
-            let v151 = quoted_119(v150)
-            let v152 = v151 <> v32 
-            let v153 = v152 <> v149 
-            let v154 = v14 != 1
-            let v161 =
-                case v154 {
-                    True -> 0
-                    False -> {
-                        let v155 = Uh20Nil
-                        let v156 = method207(v13, v9, v155)
-                        let v157 = Uh3Nil
-                        let v158 = method208(v156, v157)
-                        let v159 = 0
-                        method20(v158, v159)
-                    }
-                }
-            let v162 = string.inspect(v161)
-            let v163 = "like_count"
+            let v88 = spiral_wrap_signed(v85 + v87, 64)
+            let v89 = v48 / 1000000
+            let _v90 = v89 / 3600
+            let v91 = v89 % 3600
+            let _v92 = v91 / 60
+            let _v93 = v89 % 60
+            let _v94 = v48 % 1000000
+            let v95 = spiral_wrap_signed(v88, 32)
+            let v96 = spiral_wrap_signed(v83, 32)
+            let v97 = spiral_wrap_signed(v79, 32)
+            let v98 = int.to_string(v95)
+            let v99 = "0"
+            let v100 = spiral_string_length(v98)
+            let v101 = spiral_wrap_signed(4 - v100, 32)
+            let v102 = 0
+            let v103 = method203(v101, v99, v102)
+            let v104 = ""
+            let v105 = v103(v104)
+            let v106 = v105 <> v98 
+            let v107 = "-"
+            let v108 = v106 <> v107 
+            let v109 = int.to_string(v96)
+            let v110 = spiral_string_length(v109)
+            let v111 = spiral_wrap_signed(2 - v110, 32)
+            let v112 = 0
+            let v113 = method203(v111, v99, v112)
+            let v114 = v113(v104)
+            let v115 = v114 <> v109 
+            let v116 = v108 <> v115 
+            let v117 = v116 <> v107 
+            let v118 = int.to_string(v97)
+            let v119 = spiral_string_length(v118)
+            let v120 = spiral_wrap_signed(2 - v119, 32)
+            let v121 = 0
+            let v122 = method203(v120, v99, v121)
+            let v123 = v122(v104)
+            let v124 = v123 <> v118 
+            let v125 = v117 <> v124 
+            let v126 = "T"
+            let v127 = v125 <> v126 
+            let v128 = v35 % 86400
+            let v129 = v128 / 3600
+            let v130 = int.to_string(v129)
+            let v131 = spiral_string_length(v130)
+            let v132 = spiral_wrap_signed(2 - v131, 32)
+            let v133 = 0
+            let v134 = method203(v132, v99, v133)
+            let v135 = v134(v104)
+            let v136 = v135 <> v130 
+            let v137 = ":"
+            let v138 = v136 <> v137 
+            let v139 = v128 / 60
+            let v140 = v139 % 60
+            let v141 = int.to_string(v140)
+            let v142 = spiral_string_length(v141)
+            let v143 = spiral_wrap_signed(2 - v142, 32)
+            let v144 = 0
+            let v145 = method203(v143, v99, v144)
+            let v146 = v145(v104)
+            let v147 = v146 <> v141 
+            let v148 = v138 <> v147 
+            let v149 = v148 <> v137 
+            let v150 = v128 % 60
+            let v151 = int.to_string(v150)
+            let v152 = spiral_string_length(v151)
+            let v153 = spiral_wrap_signed(2 - v152, 32)
+            let v154 = 0
+            let v155 = method203(v153, v99, v154)
+            let v156 = v155(v104)
+            let v157 = v156 <> v151 
+            let v158 = v149 <> v157 
+            let v159 = v127 <> v158 
+            let v160 = ".000Z"
+            let v161 = v159 <> v160 
+            let v162 = quoted_119(v161)
+            let v163 = "created_at"
             let v164 = quoted_119(v163)
             let v165 = v164 <> v32 
             let v166 = v165 <> v162 
-            let v167 = Uh22Nil
-            let v168 = method209(v12, v2, v167)
-            let v169 = 0
-            let v170 = method210(v168, v169)
-            let v171 = string.inspect(v170)
-            let v172 = "reply_count"
-            let v173 = quoted_119(v172)
-            let v174 = v173 <> v32 
-            let v175 = v174 <> v171 
-            let v176 = Uh3Nil
-            let v177 = Uh3Cons(v175, v176)
-            let v178 = Uh3Cons(v166, v177)
-            let v179 = "{"
-            let v180 = "}"
-            let v181 = 5
-            let v182 = shared_layout_205(v178, v179, v180, v181)
-            let v183 = "metrics"
-            let v184 = quoted_119(v183)
-            let v185 = v184 <> v32 
-            let v186 = v185 <> v182 
-            let v209 =
-                case v16  {
-                    Us26None -> {
-                        let v207 = "[]"
-                        v207
-                    }
-                    Us26Some(v187) -> {
-                        let v188 = quoted_119(v187)
-                        let v189 = quoted_119(v150)
-                        let v190 = v189 <> v32 
-                        let v191 = v190 <> v188 
-                        let v192 = "replied_to"
-                        let v193 = quoted_119(v192)
-                        let v194 = "type"
-                        let v195 = quoted_119(v194)
-                        let v196 = v195 <> v32 
-                        let v197 = v196 <> v193 
-                        let v198 = Uh3Nil
-                        let v199 = Uh3Cons(v197, v198)
-                        let v200 = Uh3Cons(v191, v199)
-                        let v201 = 6
-                        let v202 = shared_layout_205(v200, v179, v180, v201)
-                        let v203 = Uh3Nil
-                        let v204 = Uh3Cons(v202, v203)
-                        let v205 = 5
-                        shared_layout_205(v204, v141, v142, v205)
+            let v167 = Uh3Nil
+            let v168 = method204(v17, v167)
+            let v169 = "["
+            let v170 = "]"
+            let v171 = 5
+            let v172 = shared_layout_205(v168, v169, v170, v171)
+            let v173 = "edit_history"
+            let v174 = quoted_119(v173)
+            let v175 = v174 <> v32 
+            let v176 = v175 <> v172 
+            let v177 = quoted_119(v20)
+            let v178 = "id"
+            let v179 = quoted_119(v178)
+            let v180 = v179 <> v32 
+            let v181 = v180 <> v177 
+            let v182 = v14 != 1
+            let v189 =
+                case v182 {
+                    True -> 0
+                    False -> {
+                        let v183 = Uh20Nil
+                        let v184 = method207(v13, v9, v183)
+                        let v185 = Uh3Nil
+                        let v186 = method208(v184, v185)
+                        let v187 = 0
+                        method20(v186, v187)
                     }
                 }
-            let v210 = "refs"
-            let v211 = quoted_119(v210)
-            let v212 = v211 <> v32 
-            let v213 = v212 <> v209 
-            let v214 = quoted_119(v22)
-            let v215 = "text"
-            let v216 = quoted_119(v215)
-            let v217 = v216 <> v32 
-            let v218 = v217 <> v214 
-            let v219 = Uh3Nil
-            let v220 = Uh3Cons(v218, v219)
-            let v221 = Uh3Cons(v213, v220)
-            let v222 = Uh3Cons(v186, v221)
-            let v223 = Uh3Cons(v153, v222)
-            let v224 = Uh3Cons(v148, v223)
-            let v225 = Uh3Cons(v138, v224)
-            let v226 = Uh3Cons(v34, v225)
-            let v227 = 4
-            let v228 = shared_layout_205(v226, v179, v180, v227)
-            Uh3Cons(v228, v24)
+            let v190 = int.to_string(v189)
+            let v191 = "like_count"
+            let v192 = quoted_119(v191)
+            let v193 = v192 <> v32 
+            let v194 = v193 <> v190 
+            let v195 = Uh22Nil
+            let v196 = method209(v12, v2, v195)
+            let v197 = 0
+            let v198 = method210(v196, v197)
+            let v199 = int.to_string(v198)
+            let v200 = "reply_count"
+            let v201 = quoted_119(v200)
+            let v202 = v201 <> v32 
+            let v203 = v202 <> v199 
+            let v204 = Uh3Nil
+            let v205 = Uh3Cons(v203, v204)
+            let v206 = Uh3Cons(v194, v205)
+            let v207 = "{"
+            let v208 = "}"
+            let v209 = 5
+            let v210 = shared_layout_205(v206, v207, v208, v209)
+            let v211 = "metrics"
+            let v212 = quoted_119(v211)
+            let v213 = v212 <> v32 
+            let v214 = v213 <> v210 
+            let v237 =
+                case v16  {
+                    Us26None -> {
+                        let v235 = "[]"
+                        v235
+                    }
+                    Us26Some(v215) -> {
+                        let v216 = quoted_119(v215)
+                        let v217 = quoted_119(v178)
+                        let v218 = v217 <> v32 
+                        let v219 = v218 <> v216 
+                        let v220 = "replied_to"
+                        let v221 = quoted_119(v220)
+                        let v222 = "type"
+                        let v223 = quoted_119(v222)
+                        let v224 = v223 <> v32 
+                        let v225 = v224 <> v221 
+                        let v226 = Uh3Nil
+                        let v227 = Uh3Cons(v225, v226)
+                        let v228 = Uh3Cons(v219, v227)
+                        let v229 = 6
+                        let v230 = shared_layout_205(v228, v207, v208, v229)
+                        let v231 = Uh3Nil
+                        let v232 = Uh3Cons(v230, v231)
+                        let v233 = 5
+                        shared_layout_205(v232, v169, v170, v233)
+                    }
+                }
+            let v238 = "refs"
+            let v239 = quoted_119(v238)
+            let v240 = v239 <> v32 
+            let v241 = v240 <> v237 
+            let v242 = quoted_119(v22)
+            let v243 = "text"
+            let v244 = quoted_119(v243)
+            let v245 = v244 <> v32 
+            let v246 = v245 <> v242 
+            let v247 = Uh3Nil
+            let v248 = Uh3Cons(v246, v247)
+            let v249 = Uh3Cons(v241, v248)
+            let v250 = Uh3Cons(v214, v249)
+            let v251 = Uh3Cons(v181, v250)
+            let v252 = Uh3Cons(v176, v251)
+            let v253 = Uh3Cons(v166, v252)
+            let v254 = Uh3Cons(v34, v253)
+            let v255 = 4
+            let v256 = shared_layout_205(v254, v207, v208, v255)
+            Uh3Cons(v256, v24)
         }
         Uh23Nil -> v19
     }

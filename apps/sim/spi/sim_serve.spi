@@ -18,19 +18,19 @@
 
 := atom (a : string) : term = erlang_term::atom a
 
-:= second (t : term) : term = call "erlang" "element" [ int 2i32; t ]
+:= second (t : term) : term = erlang_term::element_at 2i32 t
 
 := truth (t : term) : bool = erlang_term::cast t
 
-:= tag_of (t : term) : term = call "erlang" "element" [ int 1i32; t ]
+:= tag_of (t : term) : term = erlang_term::element_at 1i32 t
 
-:= is_ok (t : term) : bool = truth (call "erlang" "is_tuple" [ t ]) && erlang_term::equal (tag_of t) (atom "ok")
+:= is_ok (t : term) : bool = erlang_term::is_tuple t && erlang_term::equal (tag_of t) (atom "ok")
 
 := pair (k : string) (v : term) : term = erlang_term::tuple [ atom k; v ]
 
 := tcp (f : string) (args : list term) : term = call "gen_tcp" f args
 
-:= byte_count (s : string) : i32 = call "erlang" "byte_size" [ str s ] |> erlang_term::cast
+:= byte_count (s : string) : i32 = erlang_term::byte_size_of s
 
 := loopback () : term = erlang_term::tuple [ int 127i32; int 0i32; int 0i32; int 1i32 ]
 
@@ -138,9 +138,9 @@
 := terms_of (items : term) : list term = erlang_term::items_of items
 
 := id_text (id : term) : string =
-    ? truth (call "erlang" "is_binary" [ id ]) ?> text id |: text (call "erlang" "integer_to_binary" [ id ])
+    ? erlang_term::is_binary id ?> text id |: erlang_term::integer_text id
 
-:= json_file (path : string) : term = call "json" "decode" [ str (file_system::read_all_text path) ]
+:= json_file (path : string) : term = erlang_term::json_decoded (file_system::read_all_text path)
 
 := dir_of (path : string) : string = erlang_file::dir_name path
 
@@ -161,8 +161,19 @@
 :~ with_posts (u : term) (posts : dict::dict string term) : dict::dict string term =
     terms_of (items_at "posts" u) |> listm::fold (\ d p => dict::insert (post_key p) (with_author u p) d) posts
 
+:= created_of (p : term) : string = cut 0i32 19i32 (text (field "created_at" p))
+
+:= later_of (a : string) (b : string) : string = ? erlang_term::text_at_least a b ?> a |: b
+
+:= newest_of (u : term) : string = terms_of (items_at "posts" u) |> each created_of |> listm::fold later_of ""
+
+:= keeps_handle (w : api_world) (u : term) : bool =
+    ?= dict::find (handle_of u) w::by_handle ?|
+    | Some held => erlang_term::text_at_least (newest_of u) (newest_of held)
+    | None => !+
+
 := with_user (w : api_world) (u : term) : api_world =
-    := handles = dict::insert (handle_of u) u w::by_handle
+    := handles = ? keeps_handle w u ?> dict::insert (handle_of u) u w::by_handle |: w::by_handle
     { w ?| by_handle = handles; by_id = dict::insert (post_key u) u w::by_id; by_post = with_posts u w::by_post }
 
 := page_size_of (w : term) : i32 = numbers_of w |> erlang_map::map_get_or "following_page_size" 100i32
@@ -190,12 +201,9 @@
 
 := unescaped (s : string) : string = erlang_text::percent_decoded s
 
-:= base64_of (bytes : term) : string = call "base64" "encode" [ bytes ] |> text
+:= hmac_sha1 (key : string) (base : string) : string = crypto::hmac_sha1_base64 key base
 
-:= hmac_sha1 (key : string) (base : string) : string =
-    base64_of (call "crypto" "mac" [ atom "hmac"; atom "sha"; str key; str base ])
-
-:= pair_text (t : term) : string = text (call "erlang" "element" [ int 1i32; t ]) ++# "=" ++# text (second t)
+:= pair_text (t : term) : string = text (tag_of t) ++# "=" ++# text (second t)
 
 := encoded_pair (kv : string * string) : term = kv |> \ (k, v) => erlang_term::tuple [ str (pct k); str (pct v) ]
 
@@ -259,7 +267,7 @@
 
 := client_basic (w : api_world) : string =
     := o = field "oauth2" w::raw
-    "Basic " ++# base64_of (str (text (field "client_id" o) ++# ":" ++# text (field "client_secret" o)))
+    "Basic " ++# erlang_text::base64_encoded (text (field "client_id" o) ++# ":" ++# text (field "client_secret" o))
 
 := is_client (w : api_world) (r : request) (auth : string) : bool =
     auth = client_basic w && r::path = "/2/oauth2/token"
@@ -377,7 +385,7 @@
     := size = query_first "max_results" "100" query
     ? in_range 1i32 1000i32 size ?> (200i32, following_body w u (page_asked query) (page_count w size)) |: bad_size size
 
-:= encoded (t : term) : string = call "erlang" "iolist_to_binary" [ call "json" "encode" [ t ] ] |> text
+:= encoded (t : term) : string = erlang_term::json_encoded t
 
 := client_reasons () : list (i32 * string) =
     [ (200i32, "OK"); (201i32, "Created"); (400i32, "Bad Request"); (401i32, "Unauthorized");
@@ -582,11 +590,18 @@
 
 := stamp (p : term) : string = cut 0i32 19i32 (text (field "created_at" p))
 
-:= not_before (a : string) (b : string) : bool = truth (call "erlang" ">=" [ str a; str b ])
+:= not_before (a : string) (b : string) : bool = erlang_term::text_at_least a b
+
+:= id_at_least (a : string) (b : string) : bool =
+    := longer = sm'::length a - sm'::length b
+    ? longer = 0i32 ?> not_before a b |: longer > 0i32
+
+:= newer_or_same (a : term) (b : term) : bool =
+    ? stamp a = stamp b ?> id_at_least (post_key a) (post_key b) |: not_before (stamp a) (stamp b)
 
 :~ ^ inserted (p : term) (sorted : list term) : list term =
     ?= sorted ?|
-    | x :: rest ?& not_before (stamp x) (stamp p) => x :: inserted p rest
+    | x :: rest ?& newer_or_same x p => x :: inserted p rest
     | _ => p :: sorted
 
 := newest_first (posts : list term) : list term = posts |> listm::fold (\ acc p => inserted p acc) []
@@ -607,7 +622,10 @@
     := started = posts |> keep (after_start (query_first "start_time" "" query))
     started |> keep (before_end (query_first "end_time" "" query))
 
-:= user_posts (w : api_world) (u : term) : list term = terms_of (items_at "posts" u) |> each post_key |> posts_of w
+:= is_lost (p : term) : bool = erlang_term::equal (field "lost" p) (erlang_term::atom "true")
+
+:= user_posts (w : api_world) (u : term) : list term =
+    terms_of (items_at "posts" u) |> each post_key |> posts_of w |> keep (\ p => not (is_lost p))
 
 :~ timeline_posts (w : api_world) (u : term) (query : string) : list term =
     := excluded = listed "exclude" query
@@ -653,15 +671,12 @@
     := size = query_first "max_results" "10" query
     ? in_range 5i32 100i32 size ?> timeline_reply w u query size |: bad_timeline_size size
 
-:= seconds_of (stamp : string) : term = call "calendar" "rfc3339_to_system_time" [ erlang_term::charlist stamp ]
+:= seconds_of (stamp : string) : i64 = erlang_term::rfc3339_seconds stamp
 
-:= zulu () : term = erlang_term::list_term [ pair "offset" (erlang_term::charlist "Z") ]
-
-:= rfc3339_of (seconds : term) : string =
-    call "unicode" "characters_to_binary" [ call "calendar" "system_time_to_rfc3339" [ seconds; zulu () ] ] |> text
+:= rfc3339_of (seconds : i64) : string = erlang_term::rfc3339_text seconds
 
 :~ window_start (w : api_world) (days : i32) : string =
-    cut 0i32 19i32 (rfc3339_of (call "erlang" "-" [ seconds_of w::now; int (days * 86400i32) ]))
+    cut 0i32 19i32 (rfc3339_of (seconds_of w::now - conv (days * 86400i32)))
 
 := oldest_of (w : api_world) (days : i32) (all : bool) (query : string) : string =
     := oldest = window_start w days
@@ -808,7 +823,7 @@
 
 := empty_map () : term = (erlang_map::map_new () : fields) |> erlang_map::map_term
 
-:= json_body (r : request) : term = ? body_of r = "" ?> empty_map () |: call "json" "decode" [ str (body_of r) ]
+:= json_body (r : request) : term = ? body_of r = "" ?> empty_map () |: erlang_term::json_decoded (body_of r)
 
 := trimmed_end (s : string) : string = erlang_text::trimmed_trailing s
 
@@ -819,7 +834,7 @@
     ? has_key "in_reply_to_tweet_id" reply ?> id_text (field "in_reply_to_tweet_id" reply) |: ""
 
 := stamp_after (w : api_world) (n : i32) : string =
-    cut 0i32 19i32 (rfc3339_of (call "erlang" "+" [ seconds_of w::now; int n ])) ++# ".000Z"
+    cut 0i32 19i32 (rfc3339_of (seconds_of w::now + conv n)) ++# ".000Z"
 
 := stored_map (pairs : list (string * term)) : term = erlang_map::map_of_pairs pairs |> erlang_map::map_term
 

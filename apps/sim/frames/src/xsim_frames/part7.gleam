@@ -1,3 +1,4 @@
+import gleam/int
 import gleam/list
 import gleam/string
 import xsim_frames/types.{type Uh3, type Uh13, type Us25, type Uh21, type Us26, type Uh23, type Uh22, type Uh24, type Uh25, type Uh26, type Us27, type Us28, Uh13Cons, Uh13Nil, Uh21Cons, Uh21Nil, Uh22Cons, Uh22Nil, Uh23Cons, Uh23Nil, Uh24Cons, Uh24Nil, Uh25Cons, Uh25Nil, Uh26Cons, Uh26Nil, Uh3Cons, Uh3Nil, Us25None, Us25Some, Us26None, Us26Some, Us27None, Us27Some, Us28None, Us28Some}
@@ -229,15 +230,15 @@ pub fn method162(v0: String, v1: Us25, v2: Uh3, v3: Int, v4: Uh3, v5: Int, v6: I
     case v4  {
         Uh3Cons(v14, v15) -> {
             let v16 = spiral_wrap_signed(v5 + 1, 32)
-            let v17 = string.inspect(v16)
+            let v17 = int.to_string(v16)
             let v18 = spiral_wrap_signed(v6 + 1, 32)
             let v19 = " "
             let v20 = v0 <> v19 
-            let v21 = string.inspect(v13)
+            let v21 = int.to_string(v13)
             let v22 = v20 <> v21 
             let v23 = "/"
             let v24 = v22 <> v23 
-            let v25 = string.inspect(v3)
+            let v25 = int.to_string(v3)
             let v26 = v24 <> v25 
             let v27 = "\n"
             let v28 = v26 <> v27 
@@ -499,15 +500,15 @@ pub fn method179(v0: String, v1: Us25, v2: Uh3, v3: Int, v4: Uh3, v5: Int, v6: I
     case v4  {
         Uh3Cons(v14, v15) -> {
             let v16 = spiral_wrap_signed(v5 + 1, 32)
-            let v17 = string.inspect(v16)
+            let v17 = int.to_string(v16)
             let v18 = spiral_wrap_signed(v6 + 1, 32)
             let v19 = " "
             let v20 = v0 <> v19 
-            let v21 = string.inspect(v13)
+            let v21 = int.to_string(v13)
             let v22 = v20 <> v21 
             let v23 = "/"
             let v24 = v22 <> v23 
-            let v25 = string.inspect(v3)
+            let v25 = int.to_string(v3)
             let v26 = v24 <> v25 
             let v27 = "\n"
             let v28 = v26 <> v27 

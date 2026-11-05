@@ -674,8 +674,10 @@ dependencies = [
  "xc_api",
  "xc_args",
  "xc_assemble",
+ "xc_census",
  "xc_chain",
  "xc_digest",
+ "xc_events",
  "xc_fetch",
  "xc_frames",
  "xc_jsonl",
@@ -721,6 +723,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "xc_census"
+version = "0.0.1"
+dependencies = [
+ "xc_preview",
+]
+
+[[package]]
 name = "xc_chain"
 version = "0.0.1"
 dependencies = [
@@ -761,6 +770,15 @@ name = "xc_entities"
 version = "0.0.1"
 dependencies = [
  "unicode-segmentation",
+]
+
+[[package]]
+name = "xc_events"
+version = "0.0.1"
+dependencies = [
+ "base64",
+ "serde_json",
+ "ureq",
 ]
 
 [[package]]
