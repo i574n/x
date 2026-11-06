@@ -53,14 +53,14 @@
 
 :# a_lookup_level_fetches_every_wanted_post =
     := ~n = 150i32
-    := wanted = listm::init n (\ i => post_id (sm'::obj_to_string i))
+    := wanted = listm::init n \ i => post_id (sm'::obj_to_string i)
     chunk_fetched (\ c => Ok (listm::length c : i32)) wanted |> fetched_sizes |> _assert_eq [ 100i32; 50i32 ]
 
 := failed_with (f : failure) (t : traced) : traced = { t ?| failure = describe_failure f }
 
 := next_ids (doc : json) : post_ids = referenced (doc |> field "data")
 
-:= next_of_all (docs : list fetched) : post_ids = docs |> spread (\ (doc, _) => next_ids doc)
+:= next_of_all (docs : list fetched) : post_ids = docs |> spread \ (doc, _) => next_ids doc
 
 := absorbed_all (docs : list fetched) (t : traced) : traced =
     docs |> listm::fold (\ t (doc, body) => absorbed doc body t) t

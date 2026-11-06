@@ -115,7 +115,7 @@
 := other_than (cell : cell_id) (k : i32) (f : frame_key) : bool = not (same_cell f::cell cell) || f::k <> k
 
 := dropped (cell : cell_id) (k : i32) (w : world) : world =
-    := frames = w::frames |> keep (\ (f : posted_frame) => not (same_cell f::cell cell) || f::k <> k)
+    := frames = w::frames |> keep \ (f : posted_frame) => not (same_cell f::cell cell) || f::k <> k
     { w ?| frames = frames; order = w::order |> keep (other_than cell k) }
 
 := cell_ks (w : world) (cell : cell_id) : list i32 =
@@ -169,7 +169,7 @@
             (0i32, [])
     listm::rev picked
 
-:= cell_ids (cells : live) : list cell_id = cells |> each (\ (c : live_cell) => c::cell)
+:= cell_ids (cells : live) : list cell_id = cells |> each \ (c : live_cell) => c::cell
 
 := split_cell_at (w : world) (id : cell_id) : bool =
     ?= frame_at w id 2i32 ?|
@@ -220,7 +220,7 @@
 :~ materialized (chunking : cell_chunker) (cells : live) (id_base : i32) (l : losses) : world =
     lose_cells (lose (laid_down chunking cells id_base) cells l::lost) cells l::lost_cells
 
-:= originals (w : world) : post_ids = w::frames |> each (\ (f : posted_frame) => f::original)
+:= originals (w : world) : post_ids = w::frames |> each \ (f : posted_frame) => f::original
 
 := gap_of (w : world) (f : posted_frame) : list cell_id =
     ?= f::reply_to ?|
@@ -251,9 +251,9 @@
 
 := rebuilt (w : world) (cell : cell_id) : string =
     w::frames
-    |> keep (\ (f : posted_frame) => same_cell f::cell cell)
+    |> keep \ (f : posted_frame) => same_cell f::cell cell
     |> sort_by_k
-    |> each (\ f => body_text (last_text f))
+    |> each \ f => body_text (last_text f)
     |> delimited ""
 
 := kept_in (w : world) (id : cell_id) : bool = not (has (same_cell id) w::lost) && not (has (same_cell id) w::gone)
@@ -304,8 +304,8 @@
 
 := tally_count (r : replay) (cell : cell_id) : i32 =
     r::tallies
-    |> keep (\ (t : tally) => t::post_id = cell_text cell)
-    |> spread (\ (t : tally) => t::users)
+    |> keep \ (t : tally) => t::post_id = cell_text cell
+    |> spread \ (t : tally) => t::users
     |> listm::length
 
 := likes_for_cell (r : replay) (f : posted_frame) : i32 = ? f::k <> 1i32 ?> 0i32 |: tally_count r f::cell

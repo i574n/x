@@ -6,7 +6,7 @@ enum UH0 {
     UH0_Nil,
     UH0_Cons(Rc<str>, Rc<UH0>),
 }
-struct Mut0 { l0: i32, l1: Rc<UH0> }
+pub struct Mut0 { pub l0: i32, pub l1: Rc<UH0> }
 #[derive(Clone)]
 enum UH1 {
     UH1_Nil,
@@ -419,11 +419,9 @@ fn cells_json_0(mut v0: Rc<str>) -> Rc<str> {
     let v8: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v7).as_ref().clone()));
     let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = Rc::<str>::from((*v8.borrow()).join(&*v9));
-    let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("["); } LIT.with(|lit| lit.clone()) };
-    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v10));
-    let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) };
-    let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v13));
-    v14
+    let v11: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("["); } LIT.with(|lit| lit.clone()) }, v10));
+    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) }));
+    v12
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
     thread_local!{ static CLOSURE: Rc<dyn Fn(Rc<str>) -> Rc<str>> = Rc::new(move |mut v0: Rc<str>| -> Rc<str> {
@@ -433,3 +431,4 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
 pub fn xc_file_cells(v0: &str) -> Rc<str> {
     closure0()(Rc::<str>::from(v0))
 }
+pub type SpiralShape_652accfc6a8d = Mut0;

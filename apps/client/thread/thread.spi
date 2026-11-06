@@ -57,7 +57,7 @@
 
 := framed_page (body : string) : list framed = parse_json body |> field "data" |> collect framed_of
 
-:= latest_ids (body : string) : list string = framed_page body |> keep latest |> each (\ f => post_text f::id)
+:= latest_ids (body : string) : list string = framed_page body |> keep latest |> each \ f => post_text f::id
 
 := ids_text (bodies : list string) : string = bodies |> spread latest_ids |> delimited "\n"
 

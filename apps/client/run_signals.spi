@@ -6,7 +6,6 @@
 :< sm'_operators
 :< prelude
 
-/// ## run signals: a closed union whose payload starts with its run and kind, so a follower counts by prefix
 :| run_signal =
     | Step : string
     | Finished : i32 * i32

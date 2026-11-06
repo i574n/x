@@ -54,7 +54,7 @@
     { b ?| results = dict::keys s::task_work::results; evicting = evicting_on s::faults }
 
 := runner_checks (s : scheduler) (baseline : list string -> task_result) : list finding =
-    checked (snapshot_of s) (\ id => sources s::in_box id |> baseline |> outcome_of)
+    checked (snapshot_of s) \ id => sources s::in_box id |> baseline |> outcome_of
 
 := runs_commute (a : scheduler) (b : scheduler) : verdict = commute (snapshot_of a) (snapshot_of b)
 

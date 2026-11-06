@@ -52,7 +52,7 @@
 := revision_replayed (r : replay) (v : revision) : replay =
     ?= v ?|
     | Edited s => with_cell r s::post_id (revised_cell s::source)
-    | Deleted post_id => with_cell r post_id (\ c => { c ?| deleted = !+ })
+    | Deleted post_id => with_cell r post_id \ c => { c ?| deleted = !+ }
     | FrameEdited _ => r
 
 := reaction_replayed (r : replay) (x : reaction) : replay =
@@ -110,7 +110,7 @@
     := sorted = l |> listm::fold (\ acc t => inserted t acc) []
     laid_out (sorted |> each (\ (t : tally) => pair t::post_id (number (listm::length t::users)))) (braces ()) level
 
-:= live_cells (r : replay) : list cell_state = r::cells |> keep (\ (c : cell_state) => not c::deleted)
+:= live_cells (r : replay) : list cell_state = r::cells |> keep \ (c : cell_state) => not c::deleted
 
 :~ final_json (r : replay) : string =
     := cells = laid_out (live_cells r |> each (cell_json 2i32)) (square ()) 1i32

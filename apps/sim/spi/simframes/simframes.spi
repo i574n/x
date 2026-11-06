@@ -214,7 +214,7 @@
 
 := run_command (argv : list string) : string =
     := threads, root = cli_input argv
-    sim_run::simulated_text (beam_for root) argv threads
+    sim_run::simulated_text (beam_for root) argv threads |> sim_progress::published_text
 
 := json_quoted (s : string) : string = erlang_term::json_encoded (erlang_term::of s)
 
@@ -399,7 +399,7 @@
 
 := diff_export () : () =
     export "cli_diff" ((\ x => cli_diff x) : string -> i32)
-    export "cli_serve" ((\ x => sim_serve::serve (command_args ())) : string -> i32)
+    export "cli_serve" ((\ x => timeline_serve::serve (command_args ())) : string -> i32)
 
 := tool_exports () : () =
     export "cli_frames" ((\ x => cli_frames x) : string -> i32)

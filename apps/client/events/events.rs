@@ -31,7 +31,7 @@ enum UH0 {
     UH0_Nil,
     UH0_Cons(Rc<str>, Rc<UH0>),
 }
-struct Mut0 { l0: i32, l1: Rc<UH0> }
+pub struct Mut0 { pub l0: i32, pub l1: Rc<UH0> }
 #[derive(Clone)]
 enum US0 {
     US0_Some(i32),
@@ -72,7 +72,7 @@ fn split_list_0(mut v0: Rc<str>, mut v1: Rc<str>) -> Rc<UH0> {
         while method2(v7, &v9) {
             let mut v11: i32 = v9.borrow().l0;
             let v12: Rc<UH0> = v9.borrow().l1.clone();
-            let mut v13: Rc<str> = v6.borrow()[v11 as usize].clone();
+            let v13: Rc<str> = v6.borrow()[v11 as usize].clone();
             let v14: i32 = v11.wrapping_add(1i32);
             let v15: Rc<UH0> = Rc::new(UH0::UH0_Cons(v13, v12));
             v9.borrow_mut().l0 = v14;
@@ -107,7 +107,7 @@ fn digits_4(mut v0: Rc<str>, mut v1: i32, mut v2: i32) -> US0 {
             let mut v9: Option<usize> = method5(v8);
             let mut v10: Rc<dyn Fn((usize)) -> i32> = closure1();
             let mut v11: Option<i32> = v9.map(|x| v10(x));
-            let mut v13: i32 = v11.unwrap_or(-1i32);
+            let v13: i32 = v11.unwrap_or(-1i32);
             let v14: bool = v13 < 0i32;
             let v16: bool = if v14 {
                 true
@@ -143,7 +143,7 @@ fn count_of_text_3(mut v0: Rc<str>) -> US0 {
         let mut v10: Rc<str> = Rc::<str>::from(v8.replace(&*v9, &*v3));
         let mut v11: Rc<str> = Rc::<str>::from((4i32).to_string());
         let v12: Rc<str> = Rc::<str>::from(v10.replace(&*v11, &*v3));
-        let mut v13: Rc<str> = Rc::<str>::from((5i32).to_string());
+        let v13: Rc<str> = Rc::<str>::from((5i32).to_string());
         let v14: Rc<str> = Rc::<str>::from(v12.replace(&*v13, &*v3));
         let v15: Rc<str> = Rc::<str>::from((6i32).to_string());
         let v16: Rc<str> = Rc::<str>::from(v14.replace(&*v15, &*v3));
@@ -284,36 +284,34 @@ fn method13(mut v0: Rc<UH0>, mut v1: i32) -> i32 {
 }
 fn payloads_from_10(mut v0: ureq::Agent, mut v1: Rc<str>, mut v2: Rc<str>, mut v3: i32, mut v4: Rc<UH0>) -> Rc<UH0> {
     loop {
-        let v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/streams/x/topics/run-progress/messages"); } LIT.with(|lit| lit.clone()) };
-        let v6: Rc<str> = Rc::<str>::from(format!("{}{}", v1, v5));
-        let v7: Rc<str> = Rc::<str>::from((v3).to_string());
-        let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("?consumer_id=1&partition_id=0&kind=offset&value="); } LIT.with(|lit| lit.clone()) };
-        let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v7));
-        let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&count=1000&auto_commit=false"); } LIT.with(|lit| lit.clone()) };
-        let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v6, Rc::<str>::from(format!("{}{}", v9, v10))));
-        let mut v13: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v0.get(&*v12).header("Authorization", &*v2).call();
-        let v14: Rc<str> = Rc::<str>::from(v13.ok().and_then(|mut r| r.body_mut().read_to_string().ok()).unwrap_or_default());
-        let v15: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v14).unwrap_or_default();
-        let v16: Rc<str> = Rc::<str>::from(v15["messages"].as_array().map(|m| m.iter().filter_map(|x| x["payload"].as_str()).collect::<Vec<_>>().join("
+        let v5: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/streams/x/topics/run-progress/messages"); } LIT.with(|lit| lit.clone()) }));
+        let v6: Rc<str> = Rc::<str>::from((v3).to_string());
+        let v7: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("?consumer_id=1&partition_id=0&kind=offset&value="); } LIT.with(|lit| lit.clone()) }, v6));
+        let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("&count=1000&auto_commit=false"); } LIT.with(|lit| lit.clone()) }));
+        let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v8));
+        let mut v10: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v0.get(&*v9).header("Authorization", &*v2).call();
+        let mut v11: Rc<str> = Rc::<str>::from(v10.ok().and_then(|mut r| r.body_mut().read_to_string().ok()).unwrap_or_default());
+        let v12: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v11).unwrap_or_default();
+        let v13: Rc<str> = Rc::<str>::from(v12["messages"].as_array().map(|m| m.iter().filter_map(|x| x["payload"].as_str()).collect::<Vec<_>>().join("
 ")).unwrap_or_default());
-        let v17: bool = &*v16 == "";
-        let v21: Rc<UH0> = if v17 {
+        let v14: bool = &*v13 == "";
+        let v18: Rc<UH0> = if v14 {
             { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) }
         } else {
-            let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-            split_list_0(v19, v16)
+            let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+            split_list_0(v16, v13)
         };
-        let v22: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-        let v23: Rc<UH0> = method11(v21, v22);
-        let v24: Rc<UH0> = method12(v4, v23.clone());
-        let v25: i32 = 0i32;
-        let v26: i32 = method13(v23, v25);
-        let v27: bool = v26 < 1000i32;
-        if v27 {
-            return v24;
+        let v19: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+        let v20: Rc<UH0> = method11(v18, v19);
+        let v21: Rc<UH0> = method12(v4, v20.clone());
+        let v22: i32 = 0i32;
+        let v23: i32 = method13(v20, v22);
+        let v24: bool = v23 < 1000i32;
+        if v24 {
+            return v21;
         } else {
-            let v28: i32 = v3.wrapping_add(1000i32);
-            (v3, v4) = (v28, v24);
+            let v25: i32 = v3.wrapping_add(1000i32);
+            (v3, v4) = (v25, v21);
             continue;
         }
     }
@@ -324,23 +322,20 @@ fn method14(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: bool) -> bool {
             UH0::UH0_Cons(v3, v4) => {
                 let v3: Rc<str> = v3;
                 let v4: Rc<UH0> = v4;
-                let v16: bool = if v2 {
+                let v13: bool = if v2 {
                     true
                 } else {
                     let v5: Rc<str> = spiral_json_quote(&*v0);
-                    let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"run\":"); } LIT.with(|lit| lit.clone()) };
-                    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v5));
-                    let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                    let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
-                    let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"kind\":"); } LIT.with(|lit| lit.clone()) };
-                    let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
-                    let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
-                    let mut v13: Rc<str> = spiral_json_quote(&*v12);
-                    let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v13));
-                    let v15: bool = v3.starts_with(&*v14);
-                    v15
+                    let v6: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"run\":"); } LIT.with(|lit| lit.clone()) }, v5));
+                    let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }));
+                    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"kind\":"); } LIT.with(|lit| lit.clone()) }));
+                    let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
+                    let mut v10: Rc<str> = spiral_json_quote(&*v9);
+                    let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v10));
+                    let v12: bool = v3.starts_with(&*v11);
+                    v12
                 };
-                (v1, v2) = (v4, v16);
+                (v1, v2) = (v4, v13);
                 continue;
             }
             UH0::UH0_Nil => {
@@ -356,23 +351,20 @@ fn method15(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: i32) -> i32 {
                 let v3: Rc<str> = v3;
                 let v4: Rc<UH0> = v4;
                 let v5: Rc<str> = spiral_json_quote(&*v0);
-                let v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"run\":"); } LIT.with(|lit| lit.clone()) };
-                let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, v5));
-                let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                let mut v9: Rc<str> = Rc::<str>::from(format!("{}{}", v7, v8));
-                let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"kind\":"); } LIT.with(|lit| lit.clone()) };
-                let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
-                let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("step"); } LIT.with(|lit| lit.clone()) };
-                let mut v13: Rc<str> = spiral_json_quote(&*v12);
-                let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v13));
-                let v15: bool = v3.starts_with(&*v14);
-                let v16: i32 = if v15 {
+                let v6: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"run\":"); } LIT.with(|lit| lit.clone()) }, v5));
+                let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v6, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }));
+                let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"kind\":"); } LIT.with(|lit| lit.clone()) }));
+                let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("step"); } LIT.with(|lit| lit.clone()) };
+                let mut v10: Rc<str> = spiral_json_quote(&*v9);
+                let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v10));
+                let v12: bool = v3.starts_with(&*v11);
+                let v13: i32 = if v12 {
                     1i32
                 } else {
                     0i32
                 };
-                let v17: i32 = v2.wrapping_add(v16);
-                (v1, v2) = (v4, v17);
+                let v14: i32 = v2.wrapping_add(v13);
+                (v1, v2) = (v4, v14);
                 continue;
             }
             UH0::UH0_Nil => {
@@ -403,152 +395,136 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
                                 let mut v10: Rc<str> = v10;
                                 let mut v11: Rc<UH0> = v11;
                                 match Rc::unwrap_or_clone(v11) {
-                                    UH0::UH0_Cons(v121, v122) => {
-                                        let v121: Rc<str> = v121;
-                                        let v122: Rc<UH0> = v122;
-                                        match Rc::unwrap_or_clone(v122) {
+                                    UH0::UH0_Cons(v104, v105) => {
+                                        let v104: Rc<str> = v104;
+                                        let v105: Rc<UH0> = v105;
+                                        match Rc::unwrap_or_clone(v105) {
                                             UH0::UH0_Nil => {
-                                                let v123: bool = &*v6 == "finish";
-                                                if v123 {
-                                                    let v124: US0 = count_of_text_3(v10);
-                                                    let v127: i32 = match v124 {
+                                                let v106: bool = &*v6 == "finish";
+                                                if v106 {
+                                                    let v107: US0 = count_of_text_3(v10);
+                                                    let v110: i32 = match v107 {
                                                         US0::US0_None => {
                                                             0i32
                                                         }
-                                                        US0::US0_Some(v125) => {
-                                                            let v125: i32 = v125;
-                                                            v125
+                                                        US0::US0_Some(v108) => {
+                                                            let v108: i32 = v108;
+                                                            v108
                                                         }
                                                     };
-                                                    let v128: US0 = count_of_text_3(v121);
-                                                    let v131: i32 = match v128 {
+                                                    let v111: US0 = count_of_text_3(v104);
+                                                    let v114: i32 = match v111 {
                                                         US0::US0_None => {
                                                             0i32
                                                         }
-                                                        US0::US0_Some(v129) => {
-                                                            let v129: i32 = v129;
-                                                            v129
+                                                        US0::US0_Some(v112) => {
+                                                            let v112: i32 = v112;
+                                                            v112
                                                         }
                                                     };
-                                                    let v132: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_CA_FILE"); } LIT.with(|lit| lit.clone()) };
-                                                    let v133: Rc<str> = get_environment_variable_6(v132);
-                                                    let v134: i32 = (v133.clone().len() as i32);
-                                                    let v135: i32 = 0i32;
-                                                    let v136: i32 = method7(v133.clone(), v134, v135);
-                                                    let v137: i32 = v134.wrapping_sub(1i32);
-                                                    let v138: Rc<str> = string_slice(&v133, v136 as i64, v137 as i64);
-                                                    let v139: i32 = (v138.clone().len() as i32);
-                                                    let v140: i32 = method8(v138.clone(), v139);
-                                                    let v141: Rc<str> = string_slice(&v138, 0i32 as i64, v140 as i64);
-                                                    let v143: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v141);
-                                                    let v145: Vec<u8> = v143.unwrap();
-                                                    let v146: Vec<u8> = method9(v145);
-                                                    let v148: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v146);
-                                                    let v150: std::string::String = v148.unwrap();
-                                                    let v152: Rc<str> = Rc::<str>::from(String::as_str(&v150));
-                                                    let v153: ureq::tls::TlsConfig = ureq::tls::TlsConfig::builder().root_certs(ureq::tls::Certificate::from_pem((&*v152).as_bytes()).ok().into()).build();
-                                                    let mut v154: ureq::Agent = ureq::Agent::config_builder().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(10))).tls_config(v153).build().into();
-                                                    let v155: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_URL"); } LIT.with(|lit| lit.clone()) };
-                                                    let v156: Rc<str> = get_environment_variable_6(v155);
+                                                    let v115: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_CA_FILE"); } LIT.with(|lit| lit.clone()) };
+                                                    let v116: Rc<str> = get_environment_variable_6(v115);
+                                                    let v117: i32 = (v116.clone().len() as i32);
+                                                    let v118: i32 = 0i32;
+                                                    let v119: i32 = method7(v116.clone(), v117, v118);
+                                                    let v120: i32 = v117.wrapping_sub(1i32);
+                                                    let v121: Rc<str> = string_slice(&v116, v119 as i64, v120 as i64);
+                                                    let v122: i32 = (v121.clone().len() as i32);
+                                                    let v123: i32 = method8(v121.clone(), v122);
+                                                    let v124: Rc<str> = string_slice(&v121, 0i32 as i64, v123 as i64);
+                                                    let v126: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v124);
+                                                    let v128: Vec<u8> = v126.unwrap();
+                                                    let v129: Vec<u8> = method9(v128);
+                                                    let v131: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v129);
+                                                    let v133: std::string::String = v131.unwrap();
+                                                    let v135: Rc<str> = Rc::<str>::from(String::as_str(&v133));
+                                                    let v136: ureq::tls::TlsConfig = ureq::tls::TlsConfig::builder().root_certs(ureq::tls::Certificate::from_pem((&*v135).as_bytes()).ok().into()).build();
+                                                    let mut v137: ureq::Agent = ureq::Agent::config_builder().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(10))).tls_config(v136).build().into();
+                                                    let v138: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_URL"); } LIT.with(|lit| lit.clone()) };
+                                                    let v139: Rc<str> = get_environment_variable_6(v138);
+                                                    let v140: i32 = (v139.clone().len() as i32);
+                                                    let v141: i32 = 0i32;
+                                                    let v142: i32 = method7(v139.clone(), v140, v141);
+                                                    let v143: i32 = v140.wrapping_sub(1i32);
+                                                    let v144: Rc<str> = string_slice(&v139, v142 as i64, v143 as i64);
+                                                    let v145: i32 = (v144.clone().len() as i32);
+                                                    let v146: i32 = method8(v144.clone(), v145);
+                                                    let v147: Rc<str> = string_slice(&v144, 0i32 as i64, v146 as i64);
+                                                    let v148: Rc<str> = Rc::<str>::from(format!("{}{}", v147.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/users/login"); } LIT.with(|lit| lit.clone()) }));
+                                                    let mut v149: ureq::RequestBuilder<ureq::typestate::WithBody> = v137.post(&*v148).header("Content-Type", "application/json");
+                                                    let v150: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_USERNAME"); } LIT.with(|lit| lit.clone()) };
+                                                    let v151: Rc<str> = get_environment_variable_6(v150);
+                                                    let v152: i32 = (v151.clone().len() as i32);
+                                                    let v153: i32 = 0i32;
+                                                    let v154: i32 = method7(v151.clone(), v152, v153);
+                                                    let v155: i32 = v152.wrapping_sub(1i32);
+                                                    let v156: Rc<str> = string_slice(&v151, v154 as i64, v155 as i64);
                                                     let v157: i32 = (v156.clone().len() as i32);
-                                                    let v158: i32 = 0i32;
-                                                    let v159: i32 = method7(v156.clone(), v157, v158);
-                                                    let v160: i32 = v157.wrapping_sub(1i32);
-                                                    let v161: Rc<str> = string_slice(&v156, v159 as i64, v160 as i64);
-                                                    let v162: i32 = (v161.clone().len() as i32);
-                                                    let v163: i32 = method8(v161.clone(), v162);
-                                                    let v164: Rc<str> = string_slice(&v161, 0i32 as i64, v163 as i64);
-                                                    let v165: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/users/login"); } LIT.with(|lit| lit.clone()) };
-                                                    let v166: Rc<str> = Rc::<str>::from(format!("{}{}", v164, v165));
-                                                    let mut v167: ureq::RequestBuilder<ureq::typestate::WithBody> = v154.post(&*v166).header("Content-Type", "application/json");
-                                                    let v168: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_USERNAME"); } LIT.with(|lit| lit.clone()) };
-                                                    let v169: Rc<str> = get_environment_variable_6(v168);
+                                                    let v158: i32 = method8(v156.clone(), v157);
+                                                    let v159: Rc<str> = string_slice(&v156, 0i32 as i64, v158 as i64);
+                                                    let v160: Rc<str> = spiral_json_quote(&*v159);
+                                                    let v161: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"username\":"); } LIT.with(|lit| lit.clone()) }, v160));
+                                                    let v162: Rc<str> = Rc::<str>::from(format!("{}{}", v161, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"password\":"); } LIT.with(|lit| lit.clone()) }));
+                                                    let v163: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_PASSWORD"); } LIT.with(|lit| lit.clone()) };
+                                                    let v164: Rc<str> = get_environment_variable_6(v163);
+                                                    let v165: i32 = (v164.clone().len() as i32);
+                                                    let v166: i32 = 0i32;
+                                                    let v167: i32 = method7(v164.clone(), v165, v166);
+                                                    let v168: i32 = v165.wrapping_sub(1i32);
+                                                    let v169: Rc<str> = string_slice(&v164, v167 as i64, v168 as i64);
                                                     let v170: i32 = (v169.clone().len() as i32);
-                                                    let v171: i32 = 0i32;
-                                                    let v172: i32 = method7(v169.clone(), v170, v171);
-                                                    let v173: i32 = v170.wrapping_sub(1i32);
-                                                    let v174: Rc<str> = string_slice(&v169, v172 as i64, v173 as i64);
-                                                    let v175: i32 = (v174.clone().len() as i32);
-                                                    let v176: i32 = method8(v174.clone(), v175);
-                                                    let v177: Rc<str> = string_slice(&v174, 0i32 as i64, v176 as i64);
-                                                    let v178: Rc<str> = spiral_json_quote(&*v177);
-                                                    let v179: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"username\":"); } LIT.with(|lit| lit.clone()) };
-                                                    let v180: Rc<str> = Rc::<str>::from(format!("{}{}", v179, v178));
-                                                    let v181: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"password\":"); } LIT.with(|lit| lit.clone()) };
-                                                    let v182: Rc<str> = Rc::<str>::from(format!("{}{}", v180, v181));
-                                                    let v183: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_PASSWORD"); } LIT.with(|lit| lit.clone()) };
-                                                    let v184: Rc<str> = get_environment_variable_6(v183);
-                                                    let v185: i32 = (v184.clone().len() as i32);
-                                                    let v186: i32 = 0i32;
-                                                    let v187: i32 = method7(v184.clone(), v185, v186);
-                                                    let v188: i32 = v185.wrapping_sub(1i32);
-                                                    let v189: Rc<str> = string_slice(&v184, v187 as i64, v188 as i64);
-                                                    let v190: i32 = (v189.clone().len() as i32);
-                                                    let v191: i32 = method8(v189.clone(), v190);
-                                                    let v192: Rc<str> = string_slice(&v189, 0i32 as i64, v191 as i64);
-                                                    let v193: Rc<str> = spiral_json_quote(&*v192);
-                                                    let v194: Rc<str> = Rc::<str>::from(format!("{}{}", v182, v193));
-                                                    let v195: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
-                                                    let v196: Rc<str> = Rc::<str>::from(format!("{}{}", v194, v195));
-                                                    let mut v197: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v167.send(&*v196);
-                                                    let v198: Rc<str> = Rc::<str>::from(v197.ok().and_then(|mut r| r.body_mut().read_to_string().ok()).unwrap_or_default());
-                                                    let v199: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v198).unwrap_or_default();
-                                                    let v200: Rc<str> = Rc::<str>::from(v199["access_token"]["token"].as_str().unwrap_or(""));
-                                                    let v201: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Bearer "); } LIT.with(|lit| lit.clone()) };
-                                                    let v202: Rc<str> = Rc::<str>::from(format!("{}{}", v201, v200));
-                                                    let v203: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/streams/x/topics/run-progress/messages"); } LIT.with(|lit| lit.clone()) };
-                                                    let v204: Rc<str> = Rc::<str>::from(format!("{}{}", v164, v203));
-                                                    let mut v205: ureq::RequestBuilder<ureq::typestate::WithBody> = v154.post(&*v204).header("Content-Type", "application/json");
-                                                    let mut v206: ureq::RequestBuilder<ureq::typestate::WithBody> = v205.header("Authorization", &*v202);
-                                                    let v207: Rc<str> = spiral_json_quote(&*v8);
-                                                    let v208: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"run\":"); } LIT.with(|lit| lit.clone()) };
-                                                    let v209: Rc<str> = Rc::<str>::from(format!("{}{}", v208, v207));
-                                                    let v210: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                                                    let v211: Rc<str> = Rc::<str>::from(format!("{}{}", v209, v210));
-                                                    let v212: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"kind\":"); } LIT.with(|lit| lit.clone()) };
-                                                    let v213: Rc<str> = Rc::<str>::from(format!("{}{}", v211, v212));
-                                                    let v214: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
-                                                    let v215: Rc<str> = spiral_json_quote(&*v214);
-                                                    let v216: Rc<str> = Rc::<str>::from(format!("{}{}", v213, v215));
-                                                    let v217: Rc<str> = Rc::<str>::from((v127).to_string());
-                                                    let v218: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"steps\":"); } LIT.with(|lit| lit.clone()) };
-                                                    let v219: Rc<str> = Rc::<str>::from(format!("{}{}", v218, v217));
-                                                    let v220: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"failures\":"); } LIT.with(|lit| lit.clone()) };
-                                                    let v221: Rc<str> = Rc::<str>::from(format!("{}{}", v219, v220));
-                                                    let v222: Rc<str> = Rc::<str>::from((v131).to_string());
-                                                    let v225: Rc<str> = Rc::<str>::from(format!("{}{}", v216, Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v221, v222)), v195))));
-                                                    let v226: Rc<str> = Rc::<str>::from(base64::Engine::encode(&base64::prelude::BASE64_STANDARD, (&*v225).as_bytes()));
-                                                    let v227: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"partitioning\":"); } LIT.with(|lit| lit.clone()) };
-                                                    let v228: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"kind\":\"partition_id\",\"value\":\"AAAAAA==\"}"); } LIT.with(|lit| lit.clone()) };
-                                                    let v229: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"partitioning\":{\"kind\":\"partition_id\",\"value\":\"AAAAAA==\"}"); } LIT.with(|lit| lit.clone()) };
-                                                    let v230: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"messages\":[{\"id\":0,\"payload\":"); } LIT.with(|lit| lit.clone()) };
-                                                    let v231: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"partitioning\":{\"kind\":\"partition_id\",\"value\":\"AAAAAA==\"},\"messages\":[{\"id\":0,\"payload\":"); } LIT.with(|lit| lit.clone()) };
-                                                    let v232: Rc<str> = spiral_json_quote(&*v226);
-                                                    let v233: Rc<str> = Rc::<str>::from(format!("{}{}", v231, v232));
-                                                    let v234: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}]}"); } LIT.with(|lit| lit.clone()) };
-                                                    let v235: Rc<str> = Rc::<str>::from(format!("{}{}", v233, v234));
-                                                    let v236: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v206.send(&*v235);
-                                                    let v237: u16 = v236.map(|r| r.status().as_u16()).unwrap_or(0);
-                                                    let v238: i32 = (v237 as i32);
-                                                    let v239: Rc<str> = Rc::<str>::from((v238).to_string());
-                                                    let v240: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("published "); } LIT.with(|lit| lit.clone()) };
-                                                    let v241: Rc<str> = Rc::<str>::from(format!("{}{}", v240, v239));
-                                                    v241
+                                                    let v171: i32 = method8(v169.clone(), v170);
+                                                    let v172: Rc<str> = string_slice(&v169, 0i32 as i64, v171 as i64);
+                                                    let v173: Rc<str> = spiral_json_quote(&*v172);
+                                                    let v174: Rc<str> = Rc::<str>::from(format!("{}{}", v162, v173));
+                                                    let v175: Rc<str> = Rc::<str>::from(format!("{}{}", v174, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) }));
+                                                    let mut v176: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v149.send(&*v175);
+                                                    let v177: Rc<str> = Rc::<str>::from(v176.ok().and_then(|mut r| r.body_mut().read_to_string().ok()).unwrap_or_default());
+                                                    let v178: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v177).unwrap_or_default();
+                                                    let v179: Rc<str> = Rc::<str>::from(v178["access_token"]["token"].as_str().unwrap_or(""));
+                                                    let v180: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Bearer "); } LIT.with(|lit| lit.clone()) }, v179));
+                                                    let v181: Rc<str> = Rc::<str>::from(format!("{}{}", v147, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/streams/x/topics/run-progress/messages"); } LIT.with(|lit| lit.clone()) }));
+                                                    let mut v182: ureq::RequestBuilder<ureq::typestate::WithBody> = v137.post(&*v181).header("Content-Type", "application/json");
+                                                    let mut v183: ureq::RequestBuilder<ureq::typestate::WithBody> = v182.header("Authorization", &*v180);
+                                                    let v184: Rc<str> = spiral_json_quote(&*v8);
+                                                    let v185: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"run\":"); } LIT.with(|lit| lit.clone()) }, v184));
+                                                    let v186: Rc<str> = Rc::<str>::from(format!("{}{}", v185, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }));
+                                                    let v187: Rc<str> = Rc::<str>::from(format!("{}{}", v186, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"kind\":"); } LIT.with(|lit| lit.clone()) }));
+                                                    let v188: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("finished"); } LIT.with(|lit| lit.clone()) };
+                                                    let v189: Rc<str> = spiral_json_quote(&*v188);
+                                                    let v190: Rc<str> = Rc::<str>::from(format!("{}{}", v187, v189));
+                                                    let v191: Rc<str> = Rc::<str>::from((v110).to_string());
+                                                    let v192: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"steps\":"); } LIT.with(|lit| lit.clone()) }, v191));
+                                                    let v193: Rc<str> = Rc::<str>::from(format!("{}{}", v192, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"failures\":"); } LIT.with(|lit| lit.clone()) }));
+                                                    let v194: Rc<str> = Rc::<str>::from((v114).to_string());
+                                                    let v195: Rc<str> = Rc::<str>::from(format!("{}{}", v193, v194));
+                                                    let v196: Rc<str> = Rc::<str>::from(format!("{}{}", v195, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) }));
+                                                    let v197: Rc<str> = Rc::<str>::from(format!("{}{}", v190, v196));
+                                                    let v198: Rc<str> = Rc::<str>::from(base64::Engine::encode(&base64::prelude::BASE64_STANDARD, (&*v197).as_bytes()));
+                                                    let v199: Rc<str> = spiral_json_quote(&*v198);
+                                                    let v200: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"partitioning\":{\"kind\":\"partition_id\",\"value\":\"AAAAAA==\"},\"messages\":[{\"id\":0,\"payload\":"); } LIT.with(|lit| lit.clone()) }, v199));
+                                                    let v201: Rc<str> = Rc::<str>::from(format!("{}{}", v200, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}]}"); } LIT.with(|lit| lit.clone()) }));
+                                                    let v202: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v183.send(&*v201);
+                                                    let v203: u16 = v202.map(|r| r.status().as_u16()).unwrap_or(0);
+                                                    let v204: i32 = (v203 as i32);
+                                                    let v205: Rc<str> = Rc::<str>::from((v204).to_string());
+                                                    let v206: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("published "); } LIT.with(|lit| lit.clone()) }, v205));
+                                                    v206
                                                 } else {
-                                                    let v242: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
-                                                    v242
+                                                    let v207: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
+                                                    v207
                                                 }
                                             }
                                             _ => {
-                                                let v244: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
-                                                v244
+                                                let v209: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
+                                                v209
                                             }
                                         }
                                     }
                                     UH0::UH0_Nil => {
                                         let v12: bool = &*v6 == "publish";
                                         if v12 {
-                                            let mut v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_CA_FILE"); } LIT.with(|lit| lit.clone()) };
+                                            let v13: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_CA_FILE"); } LIT.with(|lit| lit.clone()) };
                                             let v14: Rc<str> = get_environment_variable_6(v13);
                                             let v15: i32 = (v14.clone().len() as i32);
                                             let v16: i32 = 0i32;
@@ -576,89 +552,104 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
                                             let v43: i32 = (v42.clone().len() as i32);
                                             let v44: i32 = method8(v42.clone(), v43);
                                             let v45: Rc<str> = string_slice(&v42, 0i32 as i64, v44 as i64);
-                                            let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/users/login"); } LIT.with(|lit| lit.clone()) };
-                                            let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v46));
-                                            let mut v48: ureq::RequestBuilder<ureq::typestate::WithBody> = v35.post(&*v47).header("Content-Type", "application/json");
-                                            let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_USERNAME"); } LIT.with(|lit| lit.clone()) };
-                                            let v50: Rc<str> = get_environment_variable_6(v49);
-                                            let v51: i32 = (v50.clone().len() as i32);
-                                            let v52: i32 = 0i32;
-                                            let v53: i32 = method7(v50.clone(), v51, v52);
-                                            let v54: i32 = v51.wrapping_sub(1i32);
-                                            let v55: Rc<str> = string_slice(&v50, v53 as i64, v54 as i64);
-                                            let v56: i32 = (v55.clone().len() as i32);
-                                            let v57: i32 = method8(v55.clone(), v56);
-                                            let v58: Rc<str> = string_slice(&v55, 0i32 as i64, v57 as i64);
-                                            let v59: Rc<str> = spiral_json_quote(&*v58);
-                                            let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"username\":"); } LIT.with(|lit| lit.clone()) };
-                                            let v61: Rc<str> = Rc::<str>::from(format!("{}{}", v60, v59));
-                                            let v62: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"password\":"); } LIT.with(|lit| lit.clone()) };
-                                            let v63: Rc<str> = Rc::<str>::from(format!("{}{}", v61, v62));
-                                            let v64: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_PASSWORD"); } LIT.with(|lit| lit.clone()) };
-                                            let v65: Rc<str> = get_environment_variable_6(v64);
-                                            let v66: i32 = (v65.clone().len() as i32);
-                                            let v67: i32 = 0i32;
-                                            let v68: i32 = method7(v65.clone(), v66, v67);
-                                            let v69: i32 = v66.wrapping_sub(1i32);
-                                            let v70: Rc<str> = string_slice(&v65, v68 as i64, v69 as i64);
-                                            let v71: i32 = (v70.clone().len() as i32);
-                                            let v72: i32 = method8(v70.clone(), v71);
-                                            let v73: Rc<str> = string_slice(&v70, 0i32 as i64, v72 as i64);
-                                            let v74: Rc<str> = spiral_json_quote(&*v73);
-                                            let v75: Rc<str> = Rc::<str>::from(format!("{}{}", v63, v74));
-                                            let v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
-                                            let v77: Rc<str> = Rc::<str>::from(format!("{}{}", v75, v76));
-                                            let mut v78: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v48.send(&*v77);
-                                            let v79: Rc<str> = Rc::<str>::from(v78.ok().and_then(|mut r| r.body_mut().read_to_string().ok()).unwrap_or_default());
-                                            let v80: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v79).unwrap_or_default();
-                                            let v81: Rc<str> = Rc::<str>::from(v80["access_token"]["token"].as_str().unwrap_or(""));
-                                            let v82: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Bearer "); } LIT.with(|lit| lit.clone()) };
-                                            let v83: Rc<str> = Rc::<str>::from(format!("{}{}", v82, v81));
-                                            let v84: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/streams/x/topics/run-progress/messages"); } LIT.with(|lit| lit.clone()) };
-                                            let v85: Rc<str> = Rc::<str>::from(format!("{}{}", v45, v84));
-                                            let mut v86: ureq::RequestBuilder<ureq::typestate::WithBody> = v35.post(&*v85).header("Content-Type", "application/json");
-                                            let mut v87: ureq::RequestBuilder<ureq::typestate::WithBody> = v86.header("Authorization", &*v83);
-                                            let v88: Rc<str> = spiral_json_quote(&*v8);
-                                            let v89: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"run\":"); } LIT.with(|lit| lit.clone()) };
-                                            let v90: Rc<str> = Rc::<str>::from(format!("{}{}", v89, v88));
-                                            let v91: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
-                                            let v92: Rc<str> = Rc::<str>::from(format!("{}{}", v90, v91));
-                                            let v93: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"kind\":"); } LIT.with(|lit| lit.clone()) };
-                                            let v94: Rc<str> = Rc::<str>::from(format!("{}{}", v92, v93));
-                                            let v95: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("step"); } LIT.with(|lit| lit.clone()) };
-                                            let v96: Rc<str> = spiral_json_quote(&*v95);
-                                            let v97: Rc<str> = Rc::<str>::from(format!("{}{}", v94, v96));
-                                            let v98: Rc<str> = spiral_json_quote(&*v10);
-                                            let v99: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"line\":"); } LIT.with(|lit| lit.clone()) };
-                                            let v102: Rc<str> = Rc::<str>::from(format!("{}{}", v97, Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v99, v98)), v76))));
-                                            let v103: Rc<str> = Rc::<str>::from(base64::Engine::encode(&base64::prelude::BASE64_STANDARD, (&*v102).as_bytes()));
-                                            let v104: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"partitioning\":"); } LIT.with(|lit| lit.clone()) };
-                                            let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"kind\":\"partition_id\",\"value\":\"AAAAAA==\"}"); } LIT.with(|lit| lit.clone()) };
-                                            let v106: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"partitioning\":{\"kind\":\"partition_id\",\"value\":\"AAAAAA==\"}"); } LIT.with(|lit| lit.clone()) };
-                                            let v107: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"messages\":[{\"id\":0,\"payload\":"); } LIT.with(|lit| lit.clone()) };
-                                            let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"partitioning\":{\"kind\":\"partition_id\",\"value\":\"AAAAAA==\"},\"messages\":[{\"id\":0,\"payload\":"); } LIT.with(|lit| lit.clone()) };
-                                            let v109: Rc<str> = spiral_json_quote(&*v103);
-                                            let v110: Rc<str> = Rc::<str>::from(format!("{}{}", v108, v109));
-                                            let v111: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}]}"); } LIT.with(|lit| lit.clone()) };
-                                            let v112: Rc<str> = Rc::<str>::from(format!("{}{}", v110, v111));
-                                            let v113: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v87.send(&*v112);
-                                            let v114: u16 = v113.map(|r| r.status().as_u16()).unwrap_or(0);
-                                            let v115: i32 = (v114 as i32);
-                                            let v116: Rc<str> = Rc::<str>::from((v115).to_string());
-                                            let v117: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("published "); } LIT.with(|lit| lit.clone()) };
-                                            let v118: Rc<str> = Rc::<str>::from(format!("{}{}", v117, v116));
-                                            v118
+                                            let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/users/login"); } LIT.with(|lit| lit.clone()) }));
+                                            let mut v47: ureq::RequestBuilder<ureq::typestate::WithBody> = v35.post(&*v46).header("Content-Type", "application/json");
+                                            let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_USERNAME"); } LIT.with(|lit| lit.clone()) };
+                                            let v49: Rc<str> = get_environment_variable_6(v48);
+                                            let v50: i32 = (v49.clone().len() as i32);
+                                            let v51: i32 = 0i32;
+                                            let v52: i32 = method7(v49.clone(), v50, v51);
+                                            let v53: i32 = v50.wrapping_sub(1i32);
+                                            let v54: Rc<str> = string_slice(&v49, v52 as i64, v53 as i64);
+                                            let v55: i32 = (v54.clone().len() as i32);
+                                            let v56: i32 = method8(v54.clone(), v55);
+                                            let v57: Rc<str> = string_slice(&v54, 0i32 as i64, v56 as i64);
+                                            let v58: Rc<str> = spiral_json_quote(&*v57);
+                                            let v59: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"username\":"); } LIT.with(|lit| lit.clone()) }, v58));
+                                            let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v59, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"password\":"); } LIT.with(|lit| lit.clone()) }));
+                                            let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_PASSWORD"); } LIT.with(|lit| lit.clone()) };
+                                            let v62: Rc<str> = get_environment_variable_6(v61);
+                                            let v63: i32 = (v62.clone().len() as i32);
+                                            let v64: i32 = 0i32;
+                                            let v65: i32 = method7(v62.clone(), v63, v64);
+                                            let v66: i32 = v63.wrapping_sub(1i32);
+                                            let v67: Rc<str> = string_slice(&v62, v65 as i64, v66 as i64);
+                                            let v68: i32 = (v67.clone().len() as i32);
+                                            let v69: i32 = method8(v67.clone(), v68);
+                                            let v70: Rc<str> = string_slice(&v67, 0i32 as i64, v69 as i64);
+                                            let v71: Rc<str> = spiral_json_quote(&*v70);
+                                            let v72: Rc<str> = Rc::<str>::from(format!("{}{}", v60, v71));
+                                            let v73: Rc<str> = Rc::<str>::from(format!("{}{}", v72, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) }));
+                                            let mut v74: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v47.send(&*v73);
+                                            let v75: Rc<str> = Rc::<str>::from(v74.ok().and_then(|mut r| r.body_mut().read_to_string().ok()).unwrap_or_default());
+                                            let v76: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v75).unwrap_or_default();
+                                            let v77: Rc<str> = Rc::<str>::from(v76["access_token"]["token"].as_str().unwrap_or(""));
+                                            let v78: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Bearer "); } LIT.with(|lit| lit.clone()) }, v77));
+                                            let v79: Rc<str> = Rc::<str>::from(format!("{}{}", v45, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/streams/x/topics/run-progress/messages"); } LIT.with(|lit| lit.clone()) }));
+                                            let mut v80: ureq::RequestBuilder<ureq::typestate::WithBody> = v35.post(&*v79).header("Content-Type", "application/json");
+                                            let mut v81: ureq::RequestBuilder<ureq::typestate::WithBody> = v80.header("Authorization", &*v78);
+                                            let v82: Rc<str> = spiral_json_quote(&*v8);
+                                            let v83: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"run\":"); } LIT.with(|lit| lit.clone()) }, v82));
+                                            let v84: Rc<str> = Rc::<str>::from(format!("{}{}", v83, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) }));
+                                            let v85: Rc<str> = Rc::<str>::from(format!("{}{}", v84, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"kind\":"); } LIT.with(|lit| lit.clone()) }));
+                                            let v86: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("step"); } LIT.with(|lit| lit.clone()) };
+                                            let v87: Rc<str> = spiral_json_quote(&*v86);
+                                            let v88: Rc<str> = Rc::<str>::from(format!("{}{}", v85, v87));
+                                            let v89: Rc<str> = spiral_json_quote(&*v10);
+                                            let v90: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"line\":"); } LIT.with(|lit| lit.clone()) }, v89));
+                                            let v91: Rc<str> = Rc::<str>::from(format!("{}{}", v90, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) }));
+                                            let v92: Rc<str> = Rc::<str>::from(format!("{}{}", v88, v91));
+                                            let v93: Rc<str> = Rc::<str>::from(base64::Engine::encode(&base64::prelude::BASE64_STANDARD, (&*v92).as_bytes()));
+                                            let v94: Rc<str> = spiral_json_quote(&*v93);
+                                            let v95: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"partitioning\":{\"kind\":\"partition_id\",\"value\":\"AAAAAA==\"},\"messages\":[{\"id\":0,\"payload\":"); } LIT.with(|lit| lit.clone()) }, v94));
+                                            let v96: Rc<str> = Rc::<str>::from(format!("{}{}", v95, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}]}"); } LIT.with(|lit| lit.clone()) }));
+                                            let v97: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v81.send(&*v96);
+                                            let v98: u16 = v97.map(|r| r.status().as_u16()).unwrap_or(0);
+                                            let v99: i32 = (v98 as i32);
+                                            let v100: Rc<str> = Rc::<str>::from((v99).to_string());
+                                            let v101: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("published "); } LIT.with(|lit| lit.clone()) }, v100));
+                                            v101
                                         } else {
-                                            let v119: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
-                                            v119
+                                            let v102: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
+                                            v102
                                         }
                                     }
                                 }
                             }
                             UH0::UH0_Nil => {
-                                let v248: bool = &*v6 == "count";
-                                if v248 {
-                                    let v249: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_CA_FILE"); } LIT.with(|lit| lit.clone()) };
+                                let v213: bool = &*v6 == "count";
+                                if v213 {
+                                    let v214: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_CA_FILE"); } LIT.with(|lit| lit.clone()) };
+                                    let v215: Rc<str> = get_environment_variable_6(v214);
+                                    let v216: i32 = (v215.clone().len() as i32);
+                                    let v217: i32 = 0i32;
+                                    let v218: i32 = method7(v215.clone(), v216, v217);
+                                    let v219: i32 = v216.wrapping_sub(1i32);
+                                    let v220: Rc<str> = string_slice(&v215, v218 as i64, v219 as i64);
+                                    let v221: i32 = (v220.clone().len() as i32);
+                                    let v222: i32 = method8(v220.clone(), v221);
+                                    let v223: Rc<str> = string_slice(&v220, 0i32 as i64, v222 as i64);
+                                    let v225: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v223);
+                                    let v227: Vec<u8> = v225.unwrap();
+                                    let v228: Vec<u8> = method9(v227);
+                                    let v230: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v228);
+                                    let v232: std::string::String = v230.unwrap();
+                                    let v234: Rc<str> = Rc::<str>::from(String::as_str(&v232));
+                                    let v235: ureq::tls::TlsConfig = ureq::tls::TlsConfig::builder().root_certs(ureq::tls::Certificate::from_pem((&*v234).as_bytes()).ok().into()).build();
+                                    let mut v236: ureq::Agent = ureq::Agent::config_builder().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(10))).tls_config(v235).build().into();
+                                    let v237: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_URL"); } LIT.with(|lit| lit.clone()) };
+                                    let v238: Rc<str> = get_environment_variable_6(v237);
+                                    let v239: i32 = (v238.clone().len() as i32);
+                                    let v240: i32 = 0i32;
+                                    let v241: i32 = method7(v238.clone(), v239, v240);
+                                    let v242: i32 = v239.wrapping_sub(1i32);
+                                    let v243: Rc<str> = string_slice(&v238, v241 as i64, v242 as i64);
+                                    let v244: i32 = (v243.clone().len() as i32);
+                                    let v245: i32 = method8(v243.clone(), v244);
+                                    let v246: Rc<str> = string_slice(&v243, 0i32 as i64, v245 as i64);
+                                    let v247: Rc<str> = Rc::<str>::from(format!("{}{}", v246.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/users/login"); } LIT.with(|lit| lit.clone()) }));
+                                    let mut v248: ureq::RequestBuilder<ureq::typestate::WithBody> = v236.post(&*v247).header("Content-Type", "application/json");
+                                    let v249: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_USERNAME"); } LIT.with(|lit| lit.clone()) };
                                     let v250: Rc<str> = get_environment_variable_6(v249);
                                     let v251: i32 = (v250.clone().len() as i32);
                                     let v252: i32 = 0i32;
@@ -668,96 +659,61 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
                                     let v256: i32 = (v255.clone().len() as i32);
                                     let v257: i32 = method8(v255.clone(), v256);
                                     let v258: Rc<str> = string_slice(&v255, 0i32 as i64, v257 as i64);
-                                    let v260: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v258);
-                                    let v262: Vec<u8> = v260.unwrap();
-                                    let v263: Vec<u8> = method9(v262);
-                                    let v265: Result<std::string::String, std::string::FromUtf8Error> = std::string::String::from_utf8(v263);
-                                    let v267: std::string::String = v265.unwrap();
-                                    let v269: Rc<str> = Rc::<str>::from(String::as_str(&v267));
-                                    let v270: ureq::tls::TlsConfig = ureq::tls::TlsConfig::builder().root_certs(ureq::tls::Certificate::from_pem((&*v269).as_bytes()).ok().into()).build();
-                                    let mut v271: ureq::Agent = ureq::Agent::config_builder().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(10))).tls_config(v270).build().into();
-                                    let v272: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_URL"); } LIT.with(|lit| lit.clone()) };
-                                    let v273: Rc<str> = get_environment_variable_6(v272);
-                                    let v274: i32 = (v273.clone().len() as i32);
-                                    let v275: i32 = 0i32;
-                                    let v276: i32 = method7(v273.clone(), v274, v275);
-                                    let v277: i32 = v274.wrapping_sub(1i32);
-                                    let v278: Rc<str> = string_slice(&v273, v276 as i64, v277 as i64);
-                                    let v279: i32 = (v278.clone().len() as i32);
-                                    let v280: i32 = method8(v278.clone(), v279);
-                                    let v281: Rc<str> = string_slice(&v278, 0i32 as i64, v280 as i64);
-                                    let v282: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/users/login"); } LIT.with(|lit| lit.clone()) };
-                                    let v283: Rc<str> = Rc::<str>::from(format!("{}{}", v281, v282));
-                                    let mut v284: ureq::RequestBuilder<ureq::typestate::WithBody> = v271.post(&*v283).header("Content-Type", "application/json");
-                                    let v285: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_USERNAME"); } LIT.with(|lit| lit.clone()) };
-                                    let v286: Rc<str> = get_environment_variable_6(v285);
-                                    let v287: i32 = (v286.clone().len() as i32);
-                                    let v288: i32 = 0i32;
-                                    let v289: i32 = method7(v286.clone(), v287, v288);
-                                    let v290: i32 = v287.wrapping_sub(1i32);
-                                    let v291: Rc<str> = string_slice(&v286, v289 as i64, v290 as i64);
-                                    let v292: i32 = (v291.clone().len() as i32);
-                                    let v293: i32 = method8(v291.clone(), v292);
-                                    let v294: Rc<str> = string_slice(&v291, 0i32 as i64, v293 as i64);
-                                    let v295: Rc<str> = spiral_json_quote(&*v294);
-                                    let v296: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"username\":"); } LIT.with(|lit| lit.clone()) };
-                                    let v297: Rc<str> = Rc::<str>::from(format!("{}{}", v296, v295));
-                                    let v298: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"password\":"); } LIT.with(|lit| lit.clone()) };
-                                    let v299: Rc<str> = Rc::<str>::from(format!("{}{}", v297, v298));
-                                    let v300: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_PASSWORD"); } LIT.with(|lit| lit.clone()) };
-                                    let v301: Rc<str> = get_environment_variable_6(v300);
-                                    let v302: i32 = (v301.clone().len() as i32);
-                                    let v303: i32 = 0i32;
-                                    let v304: i32 = method7(v301.clone(), v302, v303);
-                                    let v305: i32 = v302.wrapping_sub(1i32);
-                                    let v306: Rc<str> = string_slice(&v301, v304 as i64, v305 as i64);
-                                    let v307: i32 = (v306.clone().len() as i32);
-                                    let v308: i32 = method8(v306.clone(), v307);
-                                    let v309: Rc<str> = string_slice(&v306, 0i32 as i64, v308 as i64);
-                                    let v310: Rc<str> = spiral_json_quote(&*v309);
-                                    let v311: Rc<str> = Rc::<str>::from(format!("{}{}", v299, v310));
-                                    let v312: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) };
-                                    let v313: Rc<str> = Rc::<str>::from(format!("{}{}", v311, v312));
-                                    let mut v314: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v284.send(&*v313);
-                                    let v315: Rc<str> = Rc::<str>::from(v314.ok().and_then(|mut r| r.body_mut().read_to_string().ok()).unwrap_or_default());
-                                    let v316: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v315).unwrap_or_default();
-                                    let v317: Rc<str> = Rc::<str>::from(v316["access_token"]["token"].as_str().unwrap_or(""));
-                                    let v318: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Bearer "); } LIT.with(|lit| lit.clone()) };
-                                    let v319: Rc<str> = Rc::<str>::from(format!("{}{}", v318, v317));
-                                    let v320: i32 = 0i32;
-                                    let v321: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                                    let v322: Rc<UH0> = payloads_from_10(v271, v281, v319, v320, v321);
-                                    let v323: bool = false;
-                                    let v324: bool = method14(v8.clone(), v322.clone(), v323);
-                                    let v327: Rc<str> = if v324 {
-                                        let v325: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", finished"); } LIT.with(|lit| lit.clone()) };
-                                        v325
+                                    let v259: Rc<str> = spiral_json_quote(&*v258);
+                                    let v260: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{\"username\":"); } LIT.with(|lit| lit.clone()) }, v259));
+                                    let v261: Rc<str> = Rc::<str>::from(format!("{}{}", v260, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(",\"password\":"); } LIT.with(|lit| lit.clone()) }));
+                                    let v262: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("IGGY_PASSWORD"); } LIT.with(|lit| lit.clone()) };
+                                    let v263: Rc<str> = get_environment_variable_6(v262);
+                                    let v264: i32 = (v263.clone().len() as i32);
+                                    let v265: i32 = 0i32;
+                                    let v266: i32 = method7(v263.clone(), v264, v265);
+                                    let v267: i32 = v264.wrapping_sub(1i32);
+                                    let v268: Rc<str> = string_slice(&v263, v266 as i64, v267 as i64);
+                                    let v269: i32 = (v268.clone().len() as i32);
+                                    let v270: i32 = method8(v268.clone(), v269);
+                                    let v271: Rc<str> = string_slice(&v268, 0i32 as i64, v270 as i64);
+                                    let v272: Rc<str> = spiral_json_quote(&*v271);
+                                    let v273: Rc<str> = Rc::<str>::from(format!("{}{}", v261, v272));
+                                    let v274: Rc<str> = Rc::<str>::from(format!("{}{}", v273, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) }));
+                                    let mut v275: Result<ureq::http::Response<ureq::Body>, ureq::Error> = v248.send(&*v274);
+                                    let v276: Rc<str> = Rc::<str>::from(v275.ok().and_then(|mut r| r.body_mut().read_to_string().ok()).unwrap_or_default());
+                                    let v277: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v276).unwrap_or_default();
+                                    let v278: Rc<str> = Rc::<str>::from(v277["access_token"]["token"].as_str().unwrap_or(""));
+                                    let v279: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("Bearer "); } LIT.with(|lit| lit.clone()) }, v278));
+                                    let v280: i32 = 0i32;
+                                    let v281: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+                                    let v282: Rc<UH0> = payloads_from_10(v236, v246, v279, v280, v281);
+                                    let v283: bool = false;
+                                    let v284: bool = method14(v8.clone(), v282.clone(), v283);
+                                    let v287: Rc<str> = if v284 {
+                                        let v285: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", finished"); } LIT.with(|lit| lit.clone()) };
+                                        v285
                                     } else {
-                                        let v326: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                                        v326
+                                        let v286: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                                        v286
                                     };
-                                    let v328: i32 = 0i32;
-                                    let v329: i32 = method15(v8, v322, v328);
-                                    let v330: Rc<str> = Rc::<str>::from((v329).to_string());
-                                    let v331: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("counted "); } LIT.with(|lit| lit.clone()) };
-                                    let v333: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v331, v330)), v327));
-                                    v333
+                                    let v288: i32 = 0i32;
+                                    let v289: i32 = method15(v8, v282, v288);
+                                    let v290: Rc<str> = Rc::<str>::from((v289).to_string());
+                                    let v291: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("counted "); } LIT.with(|lit| lit.clone()) }, v290));
+                                    let v292: Rc<str> = Rc::<str>::from(format!("{}{}", v291, v287));
+                                    v292
                                 } else {
-                                    let v334: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
-                                    v334
+                                    let v293: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
+                                    v293
                                 }
                             }
                         }
                     }
                     _ => {
-                        let v338: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
-                        v338
+                        let v297: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
+                        v297
                     }
                 }
             }
             _ => {
-                let v340: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
-                v340
+                let v299: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("events: bad arguments"); } LIT.with(|lit| lit.clone()) };
+                v299
             }
         }
     }); } CLOSURE.with(|closure| closure.clone())
@@ -765,3 +721,4 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {
 pub fn xc_events(v0: &str) -> Rc<str> {
     closure0()(Rc::<str>::from(v0))
 }
+pub type SpiralShape_652accfc6a8d = Mut0;

@@ -53,10 +53,10 @@
     | d :: rest ?& later_id c::first d::first => d :: placed c rest
     | _ => c :: l
 
-:= frame_at (c : cell_frames) (k : i32) : list frame = c::frames |> keep (\ (f : frame) => f::k = k && f::n = c::n)
+:= frame_at (c : cell_frames) (k : i32) : list frame = c::frames |> keep \ (f : frame) => f::k = k && f::n = c::n
 
 := missing_ks (c : cell_frames) : list i32 =
-    listm::init c::n (\ i => i + 1i32) |> keep (\ k => listm::length (frame_at c k) <> 1i32)
+    listm::init c::n (\ i => i + 1i32) |> keep \ k => listm::length (frame_at c k) <> 1i32
 
 := part_body (c : cell_frames) (k : i32) : string = frame_at c k |> each (\ (f : frame) => f::body) |> delimited ""
 
@@ -84,7 +84,7 @@
     | _ => []
 
 := gap_flaws (known : post_ids) (c : cell_frames) : list thread_flaw =
-    frame_at c 1i32 |> spread (unknown_parent known) |> each (\ parent => ReplyGap { cell = c::cell; parent })
+    frame_at c 1i32 |> spread (unknown_parent known) |> each \ parent => ReplyGap { cell = c::cell; parent }
 
 := gaps (known : post_ids) (cells : list cell_frames) : list thread_flaw =
     ?= cells ?|
@@ -112,7 +112,7 @@
     | t :: rest =>
         chained (k + 1i32) (Some (numbered_post k)) rest (listm::append (frames_in t (numbered_post k) parent) acc)
 
-:= ids_to (n : i32) : post_ids = listm::init n (\ i => numbered_post (i + 1i32))
+:= ids_to (n : i32) : post_ids = listm::init n \ i => numbered_post (i + 1i32)
 
 := read_thread (posts : list string) : program = assembled (chained 1i32 None posts []) (ids_to (listm::length posts))
 

@@ -27,6 +27,7 @@ modules:
     sim_serve
     timeline_serve
     sim_publish
+    sim_progress
     runner_guard
     runner_shell
     xsim_shell_entry

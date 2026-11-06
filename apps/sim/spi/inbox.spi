@@ -152,7 +152,7 @@
 := edit_key (id : string) (rev : i32) : string = "edit\n" ++# id ++# "\n" ++# sm'::obj_to_string rev
 
 := rebuilt_parts (frame_parts : dict::dict i32 frame_part) : string =
-    listm::init (dict::size frame_parts) (\ i => (dict::present (i + 1i32) frame_parts)::body)
+    listm::init (dict::size frame_parts) \ i => (dict::present (i + 1i32) frame_parts)::body
     |> delimited ""
     |> restored_text
 
@@ -243,7 +243,7 @@
     := i = w::intake
     { w ?| intake = { i ?| seen = dict::set_add at i::seen } }
 
-:= duplicate_counted (w : inbox) : inbox = w |> counted_as (\ t => { t ?| duplicates = t::duplicates + 1i32 })
+:= duplicate_counted (w : inbox) : inbox = w |> counted_as \ t => { t ?| duplicates = t::duplicates + 1i32 }
 
 := first_seen (d : delivery) (w : inbox) : inbox =
     := w = marked_seen d::at w

@@ -53,7 +53,7 @@ Write-Output "gate / $($crates.Count) crates, $($over.Count) over $Limit generat
 if ($Enforce -and !$crates) { throw "gate / no crate with [package.metadata.spiral] entry/output found under $Root/apps, so nothing was measured" }
 if ($Enforce -and $over.Count) { throw "gate / $($over.Count) crate(s) over $Limit lines: $(($over | ForEach-Object Crate) -join ', ')" }
 
-$dataFiles = @('postability/tlds.txt', 'Cargo.lock', 'apps/sim/frames/manifest.toml')
+$dataFiles = @('Cargo.lock', 'apps/sim/frames/manifest.toml')
 $repoFiles = @(git -C $Root -c core.quotepath=off ls-files --cached --others --exclude-standard) |
     Where-Object { $_ -notmatch '^lab/' -and $_ -notmatch '\.(spi|spir)$' -and $dataFiles -notcontains $_ -and (Test-Path -LiteralPath (Join-Path $Root $_) -PathType Leaf) } |
     Sort-Object -Unique

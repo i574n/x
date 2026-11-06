@@ -15,26 +15,9 @@
 := user_side (base : string) (token : string) (o : oauth1) (nonce : string) (stamp : string) : api user_context =
     ? token <> "" ?> user_api base token |: signed_api base o nonce stamp
 
-:= era_parts (days : i32) : i32 * i32 =
-    := z = days + 719468i32
-    := era = (? z >= 0i32 ?> z |: z - 146096i32) / 146097i32
-    era, z - era * 146097i32
-
-:= year_of_era (doe : i32) : i32 = (doe - doe / 1460i32 + doe / 36524i32 - doe / 146096i32) / 365i32
-
-:= month_of (mp : i32) : i32 = ? mp < 10i32 ?> mp + 3i32 |: mp - 9i32
-
-:= day_parts (doe : i32) (yoe : i32) : i32 * i32 =
-    := doy = doe - (365i32 * yoe + yoe / 4i32 - yoe / 100i32)
-    := mp = (5i32 * doy + 2i32) / 153i32
-    month_of mp, doy - (153i32 * mp + 2i32) / 5i32 + 1i32
-
 := civil_of (days : i32) : i32 * i32 * i32 =
-    := era, doe = era_parts days
-    := yoe = year_of_era doe
-    := m, d = day_parts doe yoe
-    yoe + era * 400i32 + (? m <= 2i32 ?> 1i32 |: 0i32), m, d
-
+    := y, m, d = date_time::civil_of_days (conv days)
+    conv y, conv m, conv d
 := two (n : i32) : string = ? n < 10i32 ?> "0" ++# sm'::obj_to_string n |: sm'::obj_to_string n
 
 := clock_of (s : i32) : string = two (s / 3600i32) ++# ":" ++# two (s % 3600i32 / 60i32) ++# ":" ++# two (s % 60i32)

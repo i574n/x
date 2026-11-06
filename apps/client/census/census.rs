@@ -15,7 +15,7 @@ enum UH0 {
     UH0_Nil,
     UH0_Cons(Rc<str>, Rc<UH0>),
 }
-struct Mut0 { l0: i32, l1: Rc<UH0> }
+pub struct Mut0 { pub l0: i32, pub l1: Rc<UH0> }
 #[derive(Clone)]
 enum US1 {
     US1_NotTwoWords,
@@ -351,7 +351,7 @@ fn method3(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> Rc<UH0> {
                 let v3: Rc<str> = v3;
                 let mut v4: Rc<UH0> = v4;
                 let mut v5: bool = file_exists_4(v3.clone());
-                let v79: Rc<UH0> = if v5 {
+                let v67: Rc<UH0> = if v5 {
                     let v7: Result<Vec<u8>, std::io::Error> = std::fs::read(&*v3);
                     let mut v9: Vec<u8> = v7.unwrap();
                     let mut v10: Vec<u8> = method5(v9);
@@ -370,74 +370,67 @@ fn method3(mut v0: Rc<str>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> Rc<UH0> {
                     let v24: i32 = 0i32;
                     let v25: i32 = 0i32;
                     let (mut v26, mut v27, mut v28, mut v29): (Rc<str>, i32, i32, i32) = method6(v22, v3, v23, v24, v25);
-                    let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-                    let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells"); } LIT.with(|lit| lit.clone()) };
-                    let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cells"); } LIT.with(|lit| lit.clone()) };
-                    let v33: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("="); } LIT.with(|lit| lit.clone()) };
-                    let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cells="); } LIT.with(|lit| lit.clone()) };
-                    let v35: Rc<str> = Rc::<str>::from((v27).to_string());
-                    let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v35));
-                    let v37: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("spilled"); } LIT.with(|lit| lit.clone()) };
-                    let v39: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v30, v37)), v33));
-                    let v40: Rc<str> = Rc::<str>::from((v28).to_string());
-                    let v42: Rc<str> = Rc::<str>::from(format!("{}{}", v36, Rc::<str>::from(format!("{}{}", v39, v40))));
-                    let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts"); } LIT.with(|lit| lit.clone()) };
-                    let v45: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v30, v43)), v33));
-                    let v46: Rc<str> = Rc::<str>::from((v29).to_string());
-                    let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v42, Rc::<str>::from(format!("{}{}", v45, v46))));
-                    let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class="); } LIT.with(|lit| lit.clone()) };
-                    let mut v50: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v49));
-                    let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
-                    let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
-                    let v53: Rc<str> = Rc::<str>::from(v26.replace(&*v51, &*v52));
-                    let v54: Rc<str> = Rc::<str>::from(format!("{}{}", v52, v53));
-                    let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/generated/"); } LIT.with(|lit| lit.clone()) };
-                    let v56: bool = v54.contains(&*v55);
-                    let v69: US3 = if v56 {
+                    let v30: Rc<str> = Rc::<str>::from((v27).to_string());
+                    let v31: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" cells="); } LIT.with(|lit| lit.clone()) }, v30));
+                    let v32: Rc<str> = Rc::<str>::from((v28).to_string());
+                    let v33: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" spilled="); } LIT.with(|lit| lit.clone()) }, v32));
+                    let v34: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v33));
+                    let v35: Rc<str> = Rc::<str>::from((v29).to_string());
+                    let v36: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" posts="); } LIT.with(|lit| lit.clone()) }, v35));
+                    let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v34, v36));
+                    let mut v38: Rc<str> = Rc::<str>::from(format!("{}{}", v26.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class="); } LIT.with(|lit| lit.clone()) }));
+                    let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\\"); } LIT.with(|lit| lit.clone()) };
+                    let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) };
+                    let v41: Rc<str> = Rc::<str>::from(v26.replace(&*v39, &*v40));
+                    let v42: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }, v41));
+                    let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/generated/"); } LIT.with(|lit| lit.clone()) };
+                    let v44: bool = v42.contains(&*v43);
+                    let v57: US3 = if v44 {
                         US3::US3_Generated
                     } else {
-                        let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/"); } LIT.with(|lit| lit.clone()) };
-                        let v59: bool = v54.contains(&*v58);
-                        let v62: bool = if v59 {
+                        let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/state/"); } LIT.with(|lit| lit.clone()) };
+                        let v47: bool = v42.contains(&*v46);
+                        let v50: bool = if v47 {
                             true
                         } else {
-                            let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/tmp/"); } LIT.with(|lit| lit.clone()) };
-                            let v61: bool = v54.contains(&*v60);
-                            v61
+                            let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/tmp/"); } LIT.with(|lit| lit.clone()) };
+                            let v49: bool = v42.contains(&*v48);
+                            v49
                         };
-                        let v65: bool = if v62 {
+                        let v53: bool = if v50 {
                             true
                         } else {
-                            let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/results/"); } LIT.with(|lit| lit.clone()) };
-                            let v64: bool = v54.contains(&*v63);
-                            v64
+                            let v51: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/results/"); } LIT.with(|lit| lit.clone()) };
+                            let v52: bool = v42.contains(&*v51);
+                            v52
                         };
-                        if v65 {
+                        if v53 {
                             US3::US3_Data
                         } else {
                             US3::US3_Hand
                         }
                     };
-                    let v75: Rc<str> = match v69 {
+                    let v63: Rc<str> = match v57 {
                         US3::US3_Data => {
-                            let v72: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("data"); } LIT.with(|lit| lit.clone()) };
-                            v72
+                            let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("data"); } LIT.with(|lit| lit.clone()) };
+                            v60
                         }
                         US3::US3_Generated => {
-                            let v71: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("generated"); } LIT.with(|lit| lit.clone()) };
-                            v71
+                            let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("generated"); } LIT.with(|lit| lit.clone()) };
+                            v59
                         }
                         US3::US3_Hand => {
-                            let v70: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("hand"); } LIT.with(|lit| lit.clone()) };
-                            v70
+                            let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("hand"); } LIT.with(|lit| lit.clone()) };
+                            v58
                         }
                     };
-                    let v77: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v50, v75)), v48));
-                    Rc::new(UH0::UH0_Cons(v77, v2))
+                    let v64: Rc<str> = Rc::<str>::from(format!("{}{}", v38, v63));
+                    let v65: Rc<str> = Rc::<str>::from(format!("{}{}", v64, v37));
+                    Rc::new(UH0::UH0_Cons(v65, v2))
                 } else {
                     v2
                 };
-                (v1, v2) = (v4, v79);
+                (v1, v2) = (v4, v67);
                 continue;
             }
             UH0::UH0_Nil => {
@@ -452,13 +445,9 @@ fn method12(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
             let v2: Rc<str> = v2;
             let v3: Rc<UH0> = v3;
             let mut v4: Rc<UH0> = method12(v3, v1);
-            let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class="); } LIT.with(|lit| lit.clone()) };
-            let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("data"); } LIT.with(|lit| lit.clone()) };
-            let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class=data"); } LIT.with(|lit| lit.clone()) };
-            let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-            let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class=data "); } LIT.with(|lit| lit.clone()) };
-            let mut v10: bool = v2.contains(&*v9);
-            if v10 {
+            let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class=data "); } LIT.with(|lit| lit.clone()) };
+            let mut v6: bool = v2.contains(&*v5);
+            if v6 {
                 Rc::new(UH0::UH0_Cons(v2, v4))
             } else {
                 v4
@@ -662,13 +651,9 @@ fn method15(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
             let v2: Rc<str> = v2;
             let v3: Rc<UH0> = v3;
             let mut v4: Rc<UH0> = method15(v3, v1);
-            let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class="); } LIT.with(|lit| lit.clone()) };
-            let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("generated"); } LIT.with(|lit| lit.clone()) };
-            let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class=generated"); } LIT.with(|lit| lit.clone()) };
-            let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-            let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class=generated "); } LIT.with(|lit| lit.clone()) };
-            let mut v10: bool = v2.contains(&*v9);
-            if v10 {
+            let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class=generated "); } LIT.with(|lit| lit.clone()) };
+            let mut v6: bool = v2.contains(&*v5);
+            if v6 {
                 Rc::new(UH0::UH0_Cons(v2, v4))
             } else {
                 v4
@@ -685,13 +670,9 @@ fn method16(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
             let v2: Rc<str> = v2;
             let v3: Rc<UH0> = v3;
             let mut v4: Rc<UH0> = method16(v3, v1);
-            let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class="); } LIT.with(|lit| lit.clone()) };
-            let mut v6: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("hand"); } LIT.with(|lit| lit.clone()) };
-            let v7: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class=hand"); } LIT.with(|lit| lit.clone()) };
-            let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-            let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class=hand "); } LIT.with(|lit| lit.clone()) };
-            let mut v10: bool = v2.contains(&*v9);
-            if v10 {
+            let mut v5: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" class=hand "); } LIT.with(|lit| lit.clone()) };
+            let mut v6: bool = v2.contains(&*v5);
+            if v6 {
                 Rc::new(UH0::UH0_Cons(v2, v4))
             } else {
                 v4
@@ -756,177 +737,151 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>) -> Rc<str>> {
         let v19: i32 = 0i32;
         let v20: i32 = 0i32;
         let (mut v21, mut v22, mut v23, mut v24, mut v25, mut v26): (Rc<str>, i32, i32, i32, i32, i32) = method14(v14, v15, v16, v17, v18, v19, v20);
-        let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-        let v28: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v27));
-        let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files"); } LIT.with(|lit| lit.clone()) };
-        let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) };
-        let v31: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files "); } LIT.with(|lit| lit.clone()) };
-        let v32: Rc<str> = Rc::<str>::from((v22).to_string());
-        let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v32));
-        let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files with every cell in one post"); } LIT.with(|lit| lit.clone()) };
-        let v35: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files with every cell in one post "); } LIT.with(|lit| lit.clone()) };
-        let v36: Rc<str> = Rc::<str>::from((v23).to_string());
-        let v37: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v36));
-        let v38: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells"); } LIT.with(|lit| lit.clone()) };
-        let v39: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells "); } LIT.with(|lit| lit.clone()) };
-        let v40: Rc<str> = Rc::<str>::from((v24).to_string());
-        let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v39, v40));
-        let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells over one post"); } LIT.with(|lit| lit.clone()) };
-        let v43: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells over one post "); } LIT.with(|lit| lit.clone()) };
-        let v44: Rc<str> = Rc::<str>::from((v25).to_string());
-        let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v43, v44));
-        let v46: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts"); } LIT.with(|lit| lit.clone()) };
-        let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts "); } LIT.with(|lit| lit.clone()) };
-        let v48: Rc<str> = Rc::<str>::from((v26).to_string());
-        let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v48));
-        let mut v50: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
-        v50.borrow_mut().push(v33);
-        v50.borrow_mut().push(v37);
-        v50.borrow_mut().push(v41);
-        v50.borrow_mut().push(v45);
-        v50.borrow_mut().push(v49);
-        let v51: Rc<Vec<Rc<str>>> = Rc::new(v50.borrow().clone());
-        let v52: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v51).as_ref().clone()));
-        let v53: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
-        let v54: Rc<str> = Rc::<str>::from((*v52.borrow()).join(&*v53));
-        let v55: Rc<str> = Rc::<str>::from(format!("{}{}", v28, v54));
-        let v56: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-        let v57: Rc<UH0> = method15(v10.clone(), v56);
-        let v58: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-        let v59: Rc<UH1> = method13(v57, v58);
-        let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("generated"); } LIT.with(|lit| lit.clone()) };
-        let v61: i32 = 0i32;
-        let v62: i32 = 0i32;
-        let v63: i32 = 0i32;
-        let v64: i32 = 0i32;
-        let v65: i32 = 0i32;
-        let (mut v66, mut v67, mut v68, mut v69, mut v70, mut v71): (Rc<str>, i32, i32, i32, i32, i32) = method14(v59, v60, v61, v62, v63, v64, v65);
-        let v72: Rc<str> = Rc::<str>::from(format!("{}{}", v66, v27));
-        let v73: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files "); } LIT.with(|lit| lit.clone()) };
-        let v74: Rc<str> = Rc::<str>::from((v67).to_string());
-        let v75: Rc<str> = Rc::<str>::from(format!("{}{}", v73, v74));
-        let v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files with every cell in one post "); } LIT.with(|lit| lit.clone()) };
-        let v77: Rc<str> = Rc::<str>::from((v68).to_string());
-        let v78: Rc<str> = Rc::<str>::from(format!("{}{}", v76, v77));
-        let v79: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells "); } LIT.with(|lit| lit.clone()) };
-        let v80: Rc<str> = Rc::<str>::from((v69).to_string());
-        let v81: Rc<str> = Rc::<str>::from(format!("{}{}", v79, v80));
-        let v82: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells over one post "); } LIT.with(|lit| lit.clone()) };
-        let v83: Rc<str> = Rc::<str>::from((v70).to_string());
-        let v84: Rc<str> = Rc::<str>::from(format!("{}{}", v82, v83));
-        let v85: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts "); } LIT.with(|lit| lit.clone()) };
-        let v86: Rc<str> = Rc::<str>::from((v71).to_string());
-        let v87: Rc<str> = Rc::<str>::from(format!("{}{}", v85, v86));
-        let mut v88: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
-        v88.borrow_mut().push(v75);
-        v88.borrow_mut().push(v78);
-        v88.borrow_mut().push(v81);
-        v88.borrow_mut().push(v84);
-        v88.borrow_mut().push(v87);
-        let v89: Rc<Vec<Rc<str>>> = Rc::new(v88.borrow().clone());
-        let v90: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v89).as_ref().clone()));
-        let v91: Rc<str> = Rc::<str>::from((*v90.borrow()).join(&*v53));
-        let v92: Rc<str> = Rc::<str>::from(format!("{}{}", v72, v91));
-        let v93: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-        let v94: Rc<UH0> = method16(v10.clone(), v93);
-        let v95: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-        let v96: Rc<UH1> = method13(v94, v95);
-        let v97: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("hand"); } LIT.with(|lit| lit.clone()) };
-        let v98: i32 = 0i32;
-        let v99: i32 = 0i32;
-        let v100: i32 = 0i32;
-        let v101: i32 = 0i32;
-        let v102: i32 = 0i32;
-        let (mut v103, mut v104, mut v105, mut v106, mut v107, mut v108): (Rc<str>, i32, i32, i32, i32, i32) = method14(v96, v97, v98, v99, v100, v101, v102);
-        let v109: Rc<str> = Rc::<str>::from(format!("{}{}", v103, v27));
-        let v110: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files "); } LIT.with(|lit| lit.clone()) };
-        let v111: Rc<str> = Rc::<str>::from((v104).to_string());
-        let v112: Rc<str> = Rc::<str>::from(format!("{}{}", v110, v111));
-        let v113: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files with every cell in one post "); } LIT.with(|lit| lit.clone()) };
-        let v114: Rc<str> = Rc::<str>::from((v105).to_string());
-        let v115: Rc<str> = Rc::<str>::from(format!("{}{}", v113, v114));
-        let v116: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells "); } LIT.with(|lit| lit.clone()) };
-        let v117: Rc<str> = Rc::<str>::from((v106).to_string());
-        let v118: Rc<str> = Rc::<str>::from(format!("{}{}", v116, v117));
-        let v119: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells over one post "); } LIT.with(|lit| lit.clone()) };
-        let v120: Rc<str> = Rc::<str>::from((v107).to_string());
-        let v121: Rc<str> = Rc::<str>::from(format!("{}{}", v119, v120));
-        let v122: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts "); } LIT.with(|lit| lit.clone()) };
-        let v123: Rc<str> = Rc::<str>::from((v108).to_string());
-        let v124: Rc<str> = Rc::<str>::from(format!("{}{}", v122, v123));
-        let mut v125: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
-        v125.borrow_mut().push(v112);
-        v125.borrow_mut().push(v115);
-        v125.borrow_mut().push(v118);
-        v125.borrow_mut().push(v121);
-        v125.borrow_mut().push(v124);
-        let v126: Rc<Vec<Rc<str>>> = Rc::new(v125.borrow().clone());
-        let v127: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v126).as_ref().clone()));
-        let v128: Rc<str> = Rc::<str>::from((*v127.borrow()).join(&*v53));
-        let v129: Rc<str> = Rc::<str>::from(format!("{}{}", v109, v128));
-        let v130: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
-        let v131: i32 = 0i32;
-        let v132: i32 = method17(v130.clone(), v10.clone(), v131);
-        let v133: Rc<Vec<Rc<str>>> = Rc::new(v130.borrow().clone());
-        let v134: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v133).as_ref().clone()));
-        let v135: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-        let v136: Rc<str> = Rc::<str>::from((*v134.borrow()).join(&*v135));
-        let v137: bool = &*v136 == "";
-        let v140: Rc<UH0> = if v137 {
+        let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v21, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) }));
+        let v28: Rc<str> = Rc::<str>::from((v22).to_string());
+        let v29: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files "); } LIT.with(|lit| lit.clone()) }, v28));
+        let v30: Rc<str> = Rc::<str>::from((v23).to_string());
+        let v31: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files with every cell in one post "); } LIT.with(|lit| lit.clone()) }, v30));
+        let v32: Rc<str> = Rc::<str>::from((v24).to_string());
+        let v33: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells "); } LIT.with(|lit| lit.clone()) }, v32));
+        let v34: Rc<str> = Rc::<str>::from((v25).to_string());
+        let v35: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells over one post "); } LIT.with(|lit| lit.clone()) }, v34));
+        let v36: Rc<str> = Rc::<str>::from((v26).to_string());
+        let v37: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts "); } LIT.with(|lit| lit.clone()) }, v36));
+        let mut v38: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
+        v38.borrow_mut().push(v29);
+        v38.borrow_mut().push(v31);
+        v38.borrow_mut().push(v33);
+        v38.borrow_mut().push(v35);
+        v38.borrow_mut().push(v37);
+        let v39: Rc<Vec<Rc<str>>> = Rc::new(v38.borrow().clone());
+        let v40: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v39).as_ref().clone()));
+        let v41: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
+        let v42: Rc<str> = Rc::<str>::from((*v40.borrow()).join(&*v41));
+        let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v42));
+        let v44: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+        let v45: Rc<UH0> = method15(v10.clone(), v44);
+        let v46: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
+        let v47: Rc<UH1> = method13(v45, v46);
+        let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("generated"); } LIT.with(|lit| lit.clone()) };
+        let v49: i32 = 0i32;
+        let v50: i32 = 0i32;
+        let v51: i32 = 0i32;
+        let v52: i32 = 0i32;
+        let v53: i32 = 0i32;
+        let (mut v54, mut v55, mut v56, mut v57, mut v58, mut v59): (Rc<str>, i32, i32, i32, i32, i32) = method14(v47, v48, v49, v50, v51, v52, v53);
+        let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v54, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) }));
+        let v61: Rc<str> = Rc::<str>::from((v55).to_string());
+        let v62: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files "); } LIT.with(|lit| lit.clone()) }, v61));
+        let v63: Rc<str> = Rc::<str>::from((v56).to_string());
+        let v64: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files with every cell in one post "); } LIT.with(|lit| lit.clone()) }, v63));
+        let v65: Rc<str> = Rc::<str>::from((v57).to_string());
+        let v66: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells "); } LIT.with(|lit| lit.clone()) }, v65));
+        let v67: Rc<str> = Rc::<str>::from((v58).to_string());
+        let v68: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells over one post "); } LIT.with(|lit| lit.clone()) }, v67));
+        let v69: Rc<str> = Rc::<str>::from((v59).to_string());
+        let v70: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts "); } LIT.with(|lit| lit.clone()) }, v69));
+        let mut v71: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
+        v71.borrow_mut().push(v62);
+        v71.borrow_mut().push(v64);
+        v71.borrow_mut().push(v66);
+        v71.borrow_mut().push(v68);
+        v71.borrow_mut().push(v70);
+        let v72: Rc<Vec<Rc<str>>> = Rc::new(v71.borrow().clone());
+        let v73: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v72).as_ref().clone()));
+        let v74: Rc<str> = Rc::<str>::from((*v73.borrow()).join(&*v41));
+        let v75: Rc<str> = Rc::<str>::from(format!("{}{}", v60, v74));
+        let v76: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+        let v77: Rc<UH0> = method16(v10.clone(), v76);
+        let v78: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
+        let v79: Rc<UH1> = method13(v77, v78);
+        let v80: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("hand"); } LIT.with(|lit| lit.clone()) };
+        let v81: i32 = 0i32;
+        let v82: i32 = 0i32;
+        let v83: i32 = 0i32;
+        let v84: i32 = 0i32;
+        let v85: i32 = 0i32;
+        let (mut v86, mut v87, mut v88, mut v89, mut v90, mut v91): (Rc<str>, i32, i32, i32, i32, i32) = method14(v79, v80, v81, v82, v83, v84, v85);
+        let v92: Rc<str> = Rc::<str>::from(format!("{}{}", v86, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) }));
+        let v93: Rc<str> = Rc::<str>::from((v87).to_string());
+        let v94: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files "); } LIT.with(|lit| lit.clone()) }, v93));
+        let v95: Rc<str> = Rc::<str>::from((v88).to_string());
+        let v96: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files with every cell in one post "); } LIT.with(|lit| lit.clone()) }, v95));
+        let v97: Rc<str> = Rc::<str>::from((v89).to_string());
+        let v98: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells "); } LIT.with(|lit| lit.clone()) }, v97));
+        let v99: Rc<str> = Rc::<str>::from((v90).to_string());
+        let v100: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells over one post "); } LIT.with(|lit| lit.clone()) }, v99));
+        let v101: Rc<str> = Rc::<str>::from((v91).to_string());
+        let v102: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts "); } LIT.with(|lit| lit.clone()) }, v101));
+        let mut v103: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
+        v103.borrow_mut().push(v94);
+        v103.borrow_mut().push(v96);
+        v103.borrow_mut().push(v98);
+        v103.borrow_mut().push(v100);
+        v103.borrow_mut().push(v102);
+        let v104: Rc<Vec<Rc<str>>> = Rc::new(v103.borrow().clone());
+        let v105: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v104).as_ref().clone()));
+        let v106: Rc<str> = Rc::<str>::from((*v105.borrow()).join(&*v41));
+        let v107: Rc<str> = Rc::<str>::from(format!("{}{}", v92, v106));
+        let v108: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
+        let v109: i32 = 0i32;
+        let v110: i32 = method17(v108.clone(), v10.clone(), v109);
+        let v111: Rc<Vec<Rc<str>>> = Rc::new(v108.borrow().clone());
+        let v112: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v111).as_ref().clone()));
+        let v113: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+        let v114: Rc<str> = Rc::<str>::from((*v112.borrow()).join(&*v113));
+        let v115: bool = &*v114 == "";
+        let v118: Rc<UH0> = if v115 {
             { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) }
         } else {
-            split_list_0(v135.clone(), v136)
+            split_list_0(v113.clone(), v114)
         };
-        let v141: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-        let v142: Rc<UH1> = method13(v140, v141);
-        let v143: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("total"); } LIT.with(|lit| lit.clone()) };
-        let v144: i32 = 0i32;
-        let v145: i32 = 0i32;
-        let v146: i32 = 0i32;
-        let v147: i32 = 0i32;
-        let v148: i32 = 0i32;
-        let (mut v149, mut v150, mut v151, mut v152, mut v153, mut v154): (Rc<str>, i32, i32, i32, i32, i32) = method14(v142, v143, v144, v145, v146, v147, v148);
-        let v155: Rc<str> = Rc::<str>::from(format!("{}{}", v149, v27));
-        let v156: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files "); } LIT.with(|lit| lit.clone()) };
-        let v157: Rc<str> = Rc::<str>::from((v150).to_string());
-        let v158: Rc<str> = Rc::<str>::from(format!("{}{}", v156, v157));
-        let v159: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files with every cell in one post "); } LIT.with(|lit| lit.clone()) };
-        let v160: Rc<str> = Rc::<str>::from((v151).to_string());
-        let v161: Rc<str> = Rc::<str>::from(format!("{}{}", v159, v160));
-        let v162: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells "); } LIT.with(|lit| lit.clone()) };
-        let v163: Rc<str> = Rc::<str>::from((v152).to_string());
-        let v164: Rc<str> = Rc::<str>::from(format!("{}{}", v162, v163));
-        let v165: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells over one post "); } LIT.with(|lit| lit.clone()) };
-        let v166: Rc<str> = Rc::<str>::from((v153).to_string());
-        let v167: Rc<str> = Rc::<str>::from(format!("{}{}", v165, v166));
-        let v168: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts "); } LIT.with(|lit| lit.clone()) };
-        let v169: Rc<str> = Rc::<str>::from((v154).to_string());
-        let v170: Rc<str> = Rc::<str>::from(format!("{}{}", v168, v169));
-        let mut v171: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
-        v171.borrow_mut().push(v158);
-        v171.borrow_mut().push(v161);
-        v171.borrow_mut().push(v164);
-        v171.borrow_mut().push(v167);
-        v171.borrow_mut().push(v170);
-        let v172: Rc<Vec<Rc<str>>> = Rc::new(v171.borrow().clone());
-        let v173: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v172).as_ref().clone()));
-        let v174: Rc<str> = Rc::<str>::from((*v173.borrow()).join(&*v53));
-        let v175: Rc<str> = Rc::<str>::from(format!("{}{}", v155, v174));
-        let v176: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-        let v177: Rc<UH0> = Rc::new(UH0::UH0_Cons(v175, v176));
-        let v178: Rc<UH0> = Rc::new(UH0::UH0_Cons(v55, v177));
-        let v179: Rc<UH0> = Rc::new(UH0::UH0_Cons(v92, v178));
-        let v180: Rc<UH0> = Rc::new(UH0::UH0_Cons(v129, v179));
-        let v181: Rc<UH0> = method18(v10, v180);
-        let v182: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
-        let v183: i32 = 0i32;
-        let v184: i32 = method17(v182.clone(), v181, v183);
-        let v185: Rc<Vec<Rc<str>>> = Rc::new(v182.borrow().clone());
-        let v186: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v185).as_ref().clone()));
-        let v187: Rc<str> = Rc::<str>::from((*v186.borrow()).join(&*v135));
-        v187
+        let v119: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
+        let v120: Rc<UH1> = method13(v118, v119);
+        let v121: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("total"); } LIT.with(|lit| lit.clone()) };
+        let v122: i32 = 0i32;
+        let v123: i32 = 0i32;
+        let v124: i32 = 0i32;
+        let v125: i32 = 0i32;
+        let v126: i32 = 0i32;
+        let (mut v127, mut v128, mut v129, mut v130, mut v131, mut v132): (Rc<str>, i32, i32, i32, i32, i32) = method14(v120, v121, v122, v123, v124, v125, v126);
+        let v133: Rc<str> = Rc::<str>::from(format!("{}{}", v127, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) }));
+        let v134: Rc<str> = Rc::<str>::from((v128).to_string());
+        let v135: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files "); } LIT.with(|lit| lit.clone()) }, v134));
+        let v136: Rc<str> = Rc::<str>::from((v129).to_string());
+        let v137: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("files with every cell in one post "); } LIT.with(|lit| lit.clone()) }, v136));
+        let v138: Rc<str> = Rc::<str>::from((v130).to_string());
+        let v139: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells "); } LIT.with(|lit| lit.clone()) }, v138));
+        let v140: Rc<str> = Rc::<str>::from((v131).to_string());
+        let v141: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cells over one post "); } LIT.with(|lit| lit.clone()) }, v140));
+        let v142: Rc<str> = Rc::<str>::from((v132).to_string());
+        let v143: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("posts "); } LIT.with(|lit| lit.clone()) }, v142));
+        let mut v144: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
+        v144.borrow_mut().push(v135);
+        v144.borrow_mut().push(v137);
+        v144.borrow_mut().push(v139);
+        v144.borrow_mut().push(v141);
+        v144.borrow_mut().push(v143);
+        let v145: Rc<Vec<Rc<str>>> = Rc::new(v144.borrow().clone());
+        let v146: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v145).as_ref().clone()));
+        let v147: Rc<str> = Rc::<str>::from((*v146.borrow()).join(&*v41));
+        let v148: Rc<str> = Rc::<str>::from(format!("{}{}", v133, v147));
+        let v149: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+        let v150: Rc<UH0> = Rc::new(UH0::UH0_Cons(v148, v149));
+        let v151: Rc<UH0> = Rc::new(UH0::UH0_Cons(v43, v150));
+        let v152: Rc<UH0> = Rc::new(UH0::UH0_Cons(v75, v151));
+        let v153: Rc<UH0> = Rc::new(UH0::UH0_Cons(v107, v152));
+        let v154: Rc<UH0> = method18(v10, v153);
+        let v155: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
+        let v156: i32 = 0i32;
+        let v157: i32 = method17(v155.clone(), v154, v156);
+        let v158: Rc<Vec<Rc<str>>> = Rc::new(v155.borrow().clone());
+        let v159: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v158).as_ref().clone()));
+        let v160: Rc<str> = Rc::<str>::from((*v159.borrow()).join(&*v113));
+        v160
     }); } CLOSURE.with(|closure| closure.clone())
 }
 pub fn xc_census_files(v0: &str, v1: &str) -> Rc<str> {
     closure0()(Rc::<str>::from(v0), Rc::<str>::from(v1))
 }
+pub type SpiralShape_652accfc6a8d = Mut0;

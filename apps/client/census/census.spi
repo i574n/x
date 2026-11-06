@@ -26,7 +26,6 @@
 
 := count_field (name : string) (n : i32) : string = " " ++# name ++# "=" ++# sm'::obj_to_string n
 
-/// ## file classes: the burn-down to 0 counts hand-written files; generated output and data are reported apart
 :| file_class =
     | Hand
     | Generated
@@ -44,7 +43,6 @@
     := counts = count_field "cells" c::cells ++# count_field "spilled" c::spilled ++# count_field "posts" c::posts
     c::path ++# " class=" ++# class_text (class_named c::path) ++# counts
 
-/// ## repo total, in postable-report.ps1's exact line format, so the DoD equality is a string compare
 :== repo_census = { repo : string; files : i32; clean : i32; cells : i32; spilled : i32; posts : i32 }
 
 := added_counts (r : repo_census) (c : file_census) : repo_census =
@@ -70,7 +68,6 @@
 
 := sample_line () : string = "x: files 2, files with every cell in one post 1, cells 3, cells over one post 1, posts 4"
 
-/// ## rows back: the last three words
 := value_of (word : string) : i32 =
     ?= split_on "=" word ?|
     | _ :: digits_text :: [] =>
@@ -111,7 +108,6 @@
     total_of rows
     |> _assert_eq "total: files 2, files with every cell in one post 1, cells 3, cells over one post 1, posts 4"
 
-/// ## files: read and preview each existing file the way post-thread --dry-run does, then rows and the total
 := preview_of (site : string) (text : string) : string = $'xc_preview::xc_preview(&*!site, &*!text)'
 
 := row_of_file (site : string) (path : string) : string =

@@ -4,6 +4,9 @@ $ErrorActionPreference = 'Stop'
 Assert-SpiralBeside
 $scoopErlang = Join-Path $HOME 'scoop/apps/erlang/current/bin'
 if (Test-Path $scoopErlang) { $env:PATH = "$scoopErlang$([IO.Path]::PathSeparator)$env:PATH" }
+$crashDumps = Join-Path ($env:LOCALAPPDATA ?? $HOME) 'spiral-bin/crash-dumps'
+New-Item -ItemType Directory -Force $crashDumps | Out-Null
+$env:ERL_CRASH_DUMP = Join-Path $crashDumps "xsim-$(Get-Date -Format yyyyMMdd-HHmmss)-$PID.dump"
 
 $frames = Join-Path $XRoot 'apps/sim/frames/build/dev/erlang'
 if (!(Test-Path (Join-Path $frames 'xsim_frames/ebin/xsim_frames.beam'))) { throw "xsim / no frames build at $frames; run apps/sim/build.ps1 first" }

@@ -35,7 +35,6 @@
     |? role = "lookup" ?> lookup_entry doc r
     |: users_entry doc r
 
-
 := rebuilt_of (bundle : string) : rebuilt =
     parse_json bundle |> collect id |> listm::fold absorb_entry { primary = []; pool = empty_pool () }
 
@@ -75,7 +74,6 @@
         (listm::length (rebuilt_of (two_post_bundle 0i32))::primary : i32)
     )
     |> _assert_eq (1i32, 2i32)
-
 
 :# primary_posts_become_entry_lines =
     := ~bundle = primary_bundle ()

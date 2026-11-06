@@ -128,9 +128,9 @@
     := reversed, st = posts |> listm::fold (likes_for c::users) ([], scenario_seed c::seed)
     listm::rev reversed, st
 
-:= editable_posts (posts : list rooted) : list rooted = posts |> keep (\ (r : rooted) => not (test_cell r::source))
+:= editable_posts (posts : list rooted) : list rooted = posts |> keep \ (r : rooted) => not (test_cell r::source)
 
-:= breakable_posts (posts : list rooted) : list rooted = posts |> keep (\ (r : rooted) => breakable r::source)
+:= breakable_posts (posts : list rooted) : list rooted = posts |> keep \ (r : rooted) => breakable r::source
 
 := edited (c : casting) (posts : thread) (st : exsss) : flow * flow * exsss =
     := edits, st = edits_among (editable_posts posts) c::edits appended_line st
@@ -206,7 +206,7 @@
     | Revision (Deleted id) => id
     | _ => "?"
 
-:= deletions (l : list string) : list event = l |> each (\ id => Revision (Deleted id))
+:= deletions (l : list string) : list event = l |> each \ id => Revision (Deleted id)
 
 :# churn_lands_between_every_step =
     := ~churn = deletions [ "x"; "y" ]

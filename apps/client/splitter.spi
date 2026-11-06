@@ -124,12 +124,12 @@
 
 := link_weight () : i32 = 23i32
 
-:~ ^ prefix_text (n : i32) (l : units) (acc : string) : string =
-    ?= l ?|
-    | u :: rest ?& n > 0i32 => prefix_text (n - 1i32) rest (acc ++# u::glyph)
-    | _ => acc
+:~ ^ led_by (word : string) (i : i32) (l : units) : bool =
+    ? i >= sm'::length word
+    ?> !+
+    |: ?= l ?| u :: rest ?& u::glyph = sm'::substring i 1i32 word => led_by word (i + 1i32) rest | _ => !-
 
-:= starts_link (l : units) : bool = prefix_text 7i32 l "" = "http://" || prefix_text 8i32 l "" = "https://"
+:= starts_link (l : units) : bool = led_by "http://" 0i32 l || led_by "https://" 0i32 l
 
 :~ ^ link_length (l : units) (n : i32) : i32 =
     ?= l ?|
@@ -292,11 +292,14 @@
     := ~short = "http://a.co"
     (weight_on OnMastodon short, weight_on OnMastodon ("see " ++# short ++# " now")) |> _assert_eq (23i32, 31i32)
 
+:= tenfold (s : string) : string = s ++# s ++# s ++# s ++# s ++# s ++# s ++# s ++# s ++# s
+
+:= ninefold (s : string) : string = s ++# s ++# s ++# s ++# s ++# s ++# s ++# s ++# s
+
 := long_form () : string =
-    "RT @x: "
-    ++# sm'::replicate 9i32 (sm'::replicate 200i32 "a" ++# "\n")
-    ++# sm'::replicate 5i32 "漢"
-    ++# sm'::replicate 188i32 "b"
+    := line = tenfold (tenfold "aa") ++# "\n"
+    := tail = tenfold (tenfold "b") ++# tenfold "bbbbbbbb" ++# "bbbbbbbb"
+    "RT @x: " ++# ninefold line ++# "漢漢漢漢漢" ++# tail
 
 :# a_real_long_form_shape_weighs_its_chars_plus_its_wide_ones =
     weight_on OnX (long_form ()) |> _assert_eq 2014i32

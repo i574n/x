@@ -441,8 +441,11 @@
     joined_docs a "" |> _assert_eq "x"
     joined_docs a "y" |> _assert_eq "x,y"
 
+:= allocator () : () = global "#[global_allocator] static XC_ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;"
+
 ///> _
 := main () : i32 =
+    allocator ()
     := p = parsed_args ()
     := kind, payload, _, _, _, _, _, _, _, _, _, _, _, _, _ = p
     ? kind = 0i32 ?> run_timeline p

@@ -99,7 +99,7 @@
 := ids_where (ok : shown -> bool) (s : snapshot) : verdict =
     s::visible
     |> keep ok
-    |> each (\ (v : shown) => v::id)
+    |> each \ (v : shown) => v::id
     |> verdict_of
 
 := sequential_equivalence (s : snapshot) (baseline : string -> outcome) : verdict =
@@ -147,18 +147,7 @@
     | Held => Broken []
     | broken => broken
 
-:= demand_rule_name (r : rule) : string =
-    ?= r ?|
-    | NoStaleResults => "no_stale_results"
-    | OneCompilePerPrefix => "one_compile_per_prefix"
-    | _ => "withdrawn_demand_hidden"
-
-:= rule_name (r : rule) : string =
-    ?= r ?|
-    | SequentialEquivalence => "sequential_equivalence"
-    | UnwantedResultsFreed => "unwanted_results_freed"
-    | BreakingEditsFail => "breaking_edits_fail"
-    | _ => demand_rule_name r
+:= rule_name (r : rule) : string = reflection::typed_case_name r |> reflection::typed_name_snake
 
 := verdict_text (v : verdict) : string =
     ?= v ?|
@@ -327,6 +316,16 @@
 := all_held () : string =
     "sequential_equivalence=ok no_stale_results=ok one_compile_per_prefix=ok withdrawn_demand_hidden=ok "
     ^^ "unwanted_results_freed=ok"
+
+:= every_rule () : list rule =
+    [ SequentialEquivalence; NoStaleResults; OneCompilePerPrefix; WithdrawnDemandHidden; UnwantedResultsFreed; BreakingEditsFail ]
+
+:= rule_names () : string =
+    "sequential_equivalence no_stale_results one_compile_per_prefix withdrawn_demand_hidden "
+    ^^ "unwanted_results_freed breaking_edits_fail"
+
+:# rule_names_are_the_snake_case_of_their_cases =
+    every_rule () |> each rule_name |> delimited " " |> _assert_eq (rule_names ())
 
 :# a_settled_snapshot_holds_every_rule =
     := ~s = settled ()

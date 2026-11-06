@@ -1,0 +1,124 @@
+///- --package .
+///> rust
+:# timeline_page static =
+    :< testing
+
+:< sm'_operators
+:< markup
+:< doc_blocks
+:< doc_render
+:< protocol
+
+:= byline (e : posts::entry) : block =
+    Paragraph [ Strong [ Text ("@" ++# e::username) ]; Text (" · " ++# e::created_at) ]
+
+:= entry_blocks (e : posts::entry) : list block = [ byline e; Paragraph [ Text e::text ]; Rule ]
+
+:= page_blocks (title : string) (entries : list posts::entry) : list block =
+    Heading (H1, [ Text title ]) :: listm::fold (\ acc e => listm::append acc (entry_blocks e)) [] entries
+
+:= timeline_html (title : string) (entries : list posts::entry) : string =
+    blocks_html (page_blocks title entries) |> markup_text
+
+:= merged (budget : i32) (feeds : list (list posts::entry)) : list posts::entry * feed_merge::feed_cursor posts::entry =
+    feed_merge::merged_page posts::newer budget (feed_merge::cursor_of feeds)
+
+:= joined_page (title : string) (budget : i32) (feeds : list (list posts::entry)) : string =
+    merged budget feeds |> fst |> timeline_html title
+
+:= plain_entry id username created_at text : posts::entry =
+    := reply_count, repost_count, like_count, hints, refs = "0", "0", "0", [], []
+    heap { id username created_at text reply_count repost_count like_count hints refs }
+
+:= sample_entry username created_at text : posts::entry = plain_entry (post_id created_at) username created_at text
+
+:| post_kind =
+    | Original
+    | ReplyTo : string
+    | RepostOf : string
+    | QuoteOf : string * string
+
+:== labeled = { entry : posts::entry; kind : post_kind }
+
+:= original () : post_kind = Original
+
+:= reply_to (handle : string) : post_kind = ReplyTo handle
+
+:= repost_of (handle : string) : post_kind = RepostOf handle
+
+:= quote_of (author : string) (text : string) : post_kind = QuoteOf (author, text)
+
+:= labeled_of (entry : posts::entry) (kind : post_kind) : labeled = { entry; kind }
+
+:= kind_class (k : post_kind) : string =
+    ?= k ?| Original => "post" | ReplyTo _ => "post reply" | RepostOf _ => "post repost" | QuoteOf _ => "post quote"
+
+:= naming (lead : string) (handle : string) : string = ? handle = "" ?> lead |: lead ++# " @" ++# handle
+
+:= label_of (k : post_kind) : string =
+    ?= k ?|
+    | Original => ""
+    | ReplyTo h => naming "Reply to" h
+    | RepostOf h => naming "Repost of" h ++# ", not this account's words"
+    | QuoteOf (a, _) => naming "Quoting" a
+
+:= label_blocks (k : post_kind) : list block =
+    := label = label_of k
+    ? label = "" ?> [] |: [ Paragraph [ Strong [ Text label ] ] ]
+
+:= quoted_markup (k : post_kind) : markup =
+    ?= k ?|
+    | QuoteOf (a, quoted) =>
+        := line = Paragraph [ Text ("@" ++# a ++# ": " ++# quoted) ]
+        element "blockquote" [ ("class", "quoted") ] (blocks_html [ line ])
+    | _ => trusted ""
+
+:= entry_parts (l : labeled) : list markup =
+    := head = blocks_html (byline l::entry :: label_blocks l::kind)
+    [ head; blocks_html [ Paragraph [ Text l::entry::text ] ]; quoted_markup l::kind; blocks_html [ Rule ] ]
+
+:= labeled_markup (l : labeled) : markup = element "article" [ ("class", kind_class l::kind) ] (concat (entry_parts l))
+
+:= muted_css () : string = ".repost{opacity:.6;border-left:3px solid #999;padding-left:.6em}"
+
+:= quote_css () : string = ".quoted{border-left:3px solid #48c;margin:.3em 0 .3em .6em;padding-left:.6em}"
+
+:= page_style () : markup = element "style" [] (trusted (muted_css () ++# quote_css ()))
+
+:= labeled_html (title : string) (items : list labeled) : string =
+    := heading = blocks_html [ Heading (H1, [ Text title ]) ]
+    concat (page_style () :: heading :: listm::map labeled_markup items) |> markup_text
+
+:= stamp (second : string) : string = "2026-11-03T10:00:0" ++# second ++# "Z"
+
+:= shown (html : string) (texts : list string) : list bool = listm::map (\ s => sm'::contains s html) texts
+
+:# a_page_shows_each_entry_by_line_and_rule =
+    shown (timeline_html "joined" [ sample_entry "alice" (stamp "0") "hi" ]) [ "<strong>@alice</strong>"; "<hr" ]
+    |> _assert_eq [ !+; !+ ]
+
+:# entry_text_is_escaped =
+    shown (timeline_html "j" [ sample_entry "a" (stamp "0") "a <b> & c" ]) [ "a &lt;b&gt; &amp; c" ]
+    |> _assert_eq [ !+ ]
+
+:# a_joined_page_takes_the_newest =
+    := a = [ sample_entry "a" (stamp "3") "a3"; sample_entry "a" (stamp "1") "a1" ]
+    shown (joined_page "t" 2i32 [ a; [ sample_entry "b" (stamp "2") "b2" ] ]) [ "a3"; "b2"; "a1" ]
+    |> _assert_eq [ !+; !+; !- ]
+
+:= one_of (k : post_kind) : string = labeled_html "t" [ labeled_of (sample_entry "fc1943s" (stamp "0") "hello") k ]
+
+:# a_repost_is_marked_as_not_the_accounts_words =
+    shown (one_of (repost_of "gfixler")) [ "class=\"post repost\""; "Repost of @gfixler, not this account" ]
+    |> _assert_eq [ !+; !+ ]
+
+:# a_quote_shows_the_comment_and_the_quoted_post =
+    := wanted = [ "Quoting @matthen2"; "hello"; "<blockquote class=\"quoted\">"; "chaos" ]
+    shown (one_of (quote_of "matthen2" "chaos")) wanted
+    |> _assert_eq [ !+; !+; !+; !+ ]
+
+:# a_reply_names_the_account_it_answers =
+    shown (one_of (reply_to "dsymetweets")) [ "class=\"post reply\""; "Reply to @dsymetweets" ] |> _assert_eq [ !+; !+ ]
+
+:# an_original_post_has_no_label =
+    shown (one_of (original ())) [ "class=\"post\""; "Repost of"; "Reply to" ] |> _assert_eq [ !+; !-; !- ]

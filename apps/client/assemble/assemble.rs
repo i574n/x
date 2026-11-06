@@ -6,7 +6,7 @@ enum US0 {
     US0_Some(Rc<str>),
     US0_None,
 }
-struct Heap0 { l0: Rc<str>, l1: i32, l2: i32, l3: Rc<str>, l4: Rc<str>, l5: US0 }
+pub struct Heap0 { pub l0: Rc<str>, pub l1: i32, pub l2: i32, pub l3: Rc<str>, pub l4: Rc<str>, pub l5: US0 }
 #[derive(Clone)]
 enum UH0 {
     UH0_Nil,
@@ -657,39 +657,34 @@ fn method27(mut v0: Rc<UH3>, mut v1: Rc<UH1>) -> Rc<UH1> {
             let v2: US1 = v2;
             let mut v3: Rc<UH3> = v3;
             let v4: Rc<UH1> = method27(v3, v1);
-            let v31: Rc<str> = match v2 {
+            let v25: Rc<str> = match v2 {
                 US1::US1_MissingFrames(v5, v6, v7) => {
                     let v5: Rc<str> = v5;
                     let v6: Rc<UH4> = v6;
                     let v7: i32 = v7;
-                    let v8: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cell "); } LIT.with(|lit| lit.clone()) };
-                    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v5));
-                    let mut v10: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" is missing frame "); } LIT.with(|lit| lit.clone()) };
-                    let mut v11: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v10));
-                    let v12: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                    let v13: Rc<UH1> = method28(v6, v12);
-                    let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
-                    let mut v15: Rc<str> = delimited_16(v14, v13);
-                    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", v11, v15));
-                    let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of "); } LIT.with(|lit| lit.clone()) };
-                    let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v17));
-                    let v19: Rc<str> = Rc::<str>::from((v7).to_string());
-                    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v19));
-                    v20
+                    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cell "); } LIT.with(|lit| lit.clone()) }, v5));
+                    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" is missing frame "); } LIT.with(|lit| lit.clone()) }));
+                    let mut v10: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
+                    let mut v11: Rc<UH1> = method28(v6, v10);
+                    let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
+                    let v13: Rc<str> = delimited_16(v12, v11);
+                    let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v13));
+                    let mut v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of "); } LIT.with(|lit| lit.clone()) }));
+                    let v16: Rc<str> = Rc::<str>::from((v7).to_string());
+                    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v16));
+                    v17
                 }
-                US1::US1_ReplyGap(v21, v22) => {
-                    let v21: Rc<str> = v21;
-                    let v22: Rc<str> = v22;
-                    let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cell "); } LIT.with(|lit| lit.clone()) };
-                    let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v21));
-                    let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" replies to "); } LIT.with(|lit| lit.clone()) };
-                    let v27: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v24, v25)), v22));
-                    let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", which is not in the thread: posts before it are missing"); } LIT.with(|lit| lit.clone()) };
-                    let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
-                    v29
+                US1::US1_ReplyGap(v18, v19) => {
+                    let v18: Rc<str> = v18;
+                    let v19: Rc<str> = v19;
+                    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cell "); } LIT.with(|lit| lit.clone()) }, v18));
+                    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" replies to "); } LIT.with(|lit| lit.clone()) }));
+                    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v19));
+                    let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", which is not in the thread: posts before it are missing"); } LIT.with(|lit| lit.clone()) }));
+                    v23
                 }
             };
-            Rc::new(UH1::UH1_Cons(v31, v4))
+            Rc::new(UH1::UH1_Cons(v25, v4))
         }
         UH3::UH3_Nil => {
             v1
@@ -739,3 +734,4 @@ fn closure0() -> Rc<dyn Fn(Rc<str>) -> (i32, Rc<str>, Rc<str>)> {
 pub fn xc_assemble(v0: &str) -> (i32, Rc<str>, Rc<str>) {
     closure0()(Rc::<str>::from(v0))
 }
+pub type SpiralShape_0ae424625ed2 = Heap0;

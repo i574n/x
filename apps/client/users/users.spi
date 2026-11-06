@@ -77,7 +77,7 @@
 
 :# user_ids_chunk_to_the_lookup_limit =
     := ~n = 250i32
-    listm::init n (\ i => sm'::obj_to_string i)
+    listm::init n \ i => sm'::obj_to_string i
     |> delimited ","
     |> ids_chunks
     |> each (\ c => listm::length c : i32)

@@ -41,7 +41,7 @@
 
 := framed_edit (chunking : cell_chunker) (limit : i32) (rev : i32) (s : sourced) : flow =
     parts_of chunking limit s::post_id s::source
-    |> each (\ part => Revision (FrameEdited { post_id = s::post_id; rev; part }))
+    |> each \ part => Revision (FrameEdited { post_id = s::post_id; rev; part })
 
 :== exploding = { out : flow; revs : revisions }
 
@@ -84,7 +84,7 @@
 :== scheduling = { keyed : list keyed; rng : exsss; i : i32 }
 
 := copies_of (i : i32) (jitter : i32) (copies : i32) (e : event) : list keyed =
-    listm::init copies (\ c => { time = i + jitter + c + 1i32; index = i; event = e })
+    listm::init copies \ c => { time = i + jitter + c + 1i32; index = i; event = e }
 
 :== pacing = { permille : i32; window : i32 }
 
@@ -101,7 +101,7 @@
 
 :~ deliveries (l : flow) (seed : i32) (p : pacing) : list delivery =
     := s = l |> listm::fold (scheduled p) { keyed = []; rng = schedule_seed seed; i = 0i32 }
-    sorted_keyed s::keyed |> each (\ (k : keyed) => { at = k::index; event = k::event })
+    sorted_keyed s::keyed |> each \ (k : keyed) => { at = k::index; event = k::event }
 
 :== staging =
     { seed : i32; users : i32; edits : i32; personas : string; permille : i32; framed : bool; chunking : cell_chunker }
@@ -165,7 +165,7 @@
 :# deliveries_sort_by_time_then_index =
     := ~late = keyed_at 5i32 1i32
     sorted_keyed [ late; keyed_at 2i32 3i32; keyed_at 2i32 0i32 ]
-    |> each (\ (k : keyed) => k::index)
+    |> each \ (k : keyed) => k::index
     |> each sm'::obj_to_string
     |> delimited ","
     |> _assert_eq "0,3,1"

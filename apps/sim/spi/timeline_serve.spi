@@ -6,7 +6,6 @@
 :< sm'_operators
 :< prelude
 
-/// ## the joined timeline's page cursor in a URL: feed ids and raw offsets, lost posts included
 :== page_cursor = { feeds : list string; offsets : list i32 }
 
 := dotted (items : list string) : string = listm::fold (\ acc s => ? acc = "" ?> s |: acc ++# "." ++# s) "" items
@@ -39,3 +38,236 @@
 :# an_empty_query_is_the_first_page =
     := c = cursor_of_query ""
     (c::feeds, c::offsets) |> _assert_eq ([], [])
+
+:== feed_item = string * erlang_term::term
+
+:= newer_post (a : erlang_term::term) (b : erlang_term::term) : bool = not (sim_serve::newer_or_same b a)
+
+:= newer_item ((_, a) : feed_item) ((_, b) : feed_item) : bool = newer_post a b
+
+:= field_text (key : string) (p : erlang_term::term) : string = sim_serve::text (sim_serve::field key p)
+
+:! shown_kind = ()
+
+:! lost_kind = ()
+
+:| ^ feed_post kind =
+    | ShownPost :: erlang_term::term -> feed_post shown_kind
+    | LostPost :: erlang_term::term -> feed_post lost_kind
+
+:== shown_item = string * feed_post shown_kind
+
+:= surviving ((username, p) : feed_item) : option (shown_item) =
+    ? sim_serve::is_lost p ?> None |: Some (username, ShownPost p)
+
+:== kind = timeline_page::post_kind
+
+:== labeled = timeline_page::labeled
+
+:== page = list labeled * list i32
+
+:= quote_kind (q : erlang_term::term) : kind =
+    ? erlang_term::is_map q ?> timeline_page::quote_of (field_text "author" q) (field_text "text" q)
+    |: timeline_page::quote_of "" ""
+
+:= repost_kind (p : erlang_term::term) : kind = timeline_page::repost_of (field_text "retweet_author" p)
+
+:= reply_kind (p : erlang_term::term) : kind = timeline_page::reply_to (field_text "reply_to_user" p)
+
+:= kind_of (p : erlang_term::term) : kind =
+    := k = field_text "kind" p
+    ? k = "retweet" ?> repost_kind p |? k = "reply" ?> reply_kind p
+    |? k = "quote" ?> quote_kind (sim_serve::field "quote" p) |: timeline_page::original ()
+
+:= plain_of (username : string) (p : erlang_term::term) : posts::entry =
+    := id = protocol::post_id (sim_serve::post_key p)
+    timeline_page::plain_entry id username (field_text "created_at" p) (field_text "text" p)
+
+:= entry_of ((username, s) : shown_item) : labeled =
+    ?= s ?| ShownPost p => timeline_page::labeled_of (plain_of username p) (kind_of p)
+
+:= kept (acc : list (shown_item)) (i : feed_item) : list (shown_item) =
+    ?= surviving i ?| Some s => s :: acc | None => acc
+
+:= visible (items : list feed_item) : list labeled =
+    items |> listm::fold kept [] |> listm::rev |> each entry_of
+
+:= handle (u : erlang_term::term) : string = sm'::to_lower (field_text "username" u)
+
+:= holders (users : list erlang_term::term) (u : erlang_term::term) : i32 =
+    users |> listm::fold (\ n v => ? handle v = handle u ?> n + 1i32 |: n) 0i32
+
+:= label_of (users : list erlang_term::term) (u : erlang_term::term) : string =
+    := name = field_text "username" u
+    ? holders users u > 1i32 ?> name ++# " · " ++# sim_serve::id_text (sim_serve::field "id" u) |: name
+
+:= authored (u : erlang_term::term) : list erlang_term::term =
+    sim_serve::terms_of (sim_serve::items_at "posts" u) |> each (sim_serve::with_author u)
+
+:== posts_run = list erlang_term::term
+
+:= closed_run (cur : posts_run) (acc : list posts_run) : list posts_run =
+    ?= cur ?| [] => acc | _ => listm::rev cur :: acc
+
+:= breaks (p : erlang_term::term) (cur : posts_run) : bool = ?= cur ?| last :: _ => newer_post p last | [] => !-
+
+:~ ^ runs_of (ps : posts_run) (cur : posts_run) (acc : list posts_run) : list posts_run =
+    ?= ps ?|
+    | [] => closed_run cur acc
+    | p :: rest ?& breaks p cur => runs_of rest [ p ] (closed_run cur acc)
+    | p :: rest => runs_of rest (p :: cur) acc
+
+:~ ^ merged_pairs (rs : list posts_run) : list posts_run =
+    ?= rs ?|
+    | a :: b :: rest => list_sort::merged newer_post a b [] :: merged_pairs rest
+    | _ => rs
+
+:~ ^ merged_runs (rs : list posts_run) : posts_run =
+    ?= rs ?|
+    | [] => []
+    | [ r ] => r
+    | _ => merged_runs (merged_pairs rs)
+
+:~ newest_posts (ps : posts_run) : posts_run = runs_of (listm::rev ps) [] [] |> listm::rev |> merged_runs
+
+:= feed_of (users : list erlang_term::term) (u : erlang_term::term) : list feed_item =
+    := name = label_of users u
+    authored u |> newest_posts |> each \ p => (name, p)
+
+:= page_of (feeds : list (list feed_item)) (c : page_cursor) (budget : i32) : page =
+    := items, next = feed_merge::merged_page newer_item budget (feed_merge::resumed feeds c::offsets)
+    visible items, feed_merge::offsets_of feeds next
+
+:= post_json (id : string) (lost : string) : erlang_term::term =
+    := head = "{\"id\":\"" ++# id ++# "\",\"created_at\":\"2026-10-18T10:00:0" ++# id ++# "Z\""
+    erlang_term::json_decoded (head ++# ",\"text\":\"t" ++# id ++# "\",\"lost\":" ++# lost ++# "}")
+
+:= two_feeds () : list (list feed_item) =
+    [
+        [ ("a", post_json "4" "false"); ("a", post_json "1" "false") ]
+        [ ("b", post_json "3" "true"); ("b", post_json "2" "false") ]
+    ]
+
+:= account (id : string) (name : string) : erlang_term::term =
+    erlang_term::json_decoded ("{\"id\":\"" ++# id ++# "\",\"username\":\"" ++# name ++# "\",\"posts\":[]}")
+
+:# a_reclaimed_handle_labels_each_account_by_id =
+    := users = [ account "1" "fc1943s"; account "2" "FC1943s"; account "3" "b" ]
+    users |> each (label_of users) |> _assert_eq [ "fc1943s · 1"; "FC1943s · 2"; "b" ]
+
+:# a_page_hides_lost_posts_but_counts_them =
+    := shown, offsets = page_of (two_feeds ()) { feeds = [ "a"; "b" ]; offsets = [] } 3i32
+    (shown |> each (\ e => e::entry::text), offsets) |> _assert_eq ([ "t4"; "t2" ], [ 1i32; 2i32 ])
+
+:= following (w : sim_serve::api_world) : list erlang_term::term = sim_serve::users_in w::raw
+
+:= cursor_ids (us : list erlang_term::term) : list string =
+    us |> each (\ u => sim_serve::id_text (sim_serve::field "id" u))
+
+:= resumed_cursor (ids : list string) (query : string) : page_cursor =
+    := c = cursor_of_query query
+    ? c::feeds = ids ?> c |: { feeds = ids; offsets = [] }
+
+:= next_link (ids : list string) (next : list i32) (entries : list labeled) : string =
+    := c = cursor_query { feeds = ids; offsets = next }
+    ?= entries ?| [] => "" | _ => "\n<a href=\"/timeline?" ++# c ++# "\">next</a>"
+
+:= with_feeds (w : sim_serve::api_world) : sim_serve::api_world =
+    ?= w::feeds ?|
+    | [] => { w ?| feeds = following w |> (\ us => us |> each (feed_of us)) }
+    | _ => w
+
+:= scroll_find () : string =
+    "<script>(function(){var busy=!1;function last(){var a=document.querySelectorAll('a[href^=\"/timeline?\"]');"
+    ++# "return a.length?a[a.length-1]:null}"
+
+:= scroll_fetch () : string =
+    "function more(){var a=last();if(!a||busy)return;busy=!0;fetch(a.getAttribute('href'))"
+    ++# ".then(function(r){return r.text()}).then(function(h){var d=new DOMParser().parseFromString(h,'text/html');"
+
+:= scroll_append () : string =
+    "d.querySelectorAll('article.post').forEach(function(x){a.parentNode.insertBefore(document.importNode(x,!0),a)});"
+    ++# "var n=d.querySelector('a[href^=\"/timeline?\"]');"
+
+:= scroll_advance () : string =
+    "if(n){a.setAttribute('href',n.getAttribute('href'));busy=!1;check()}else a.remove()})"
+    ++# ".catch(function(){busy=!1})}"
+
+:= scroll_watch () : string =
+    "function check(){var a=last();if(a&&a.getBoundingClientRect().top<innerHeight*2)more()}"
+    ++# "addEventListener('scroll',check,{passive:!0});check()})()</script>"
+
+:= scroll_script () : string =
+    "\n" ++# scroll_find () ++# scroll_fetch () ++# scroll_append () ++# scroll_advance () ++# scroll_watch ()
+
+:= page_html (ids : list string) ((entries, next) : page) : string =
+    timeline_page::labeled_html "Following" entries ++# next_link ids next entries ++# scroll_script ()
+
+:= feed_page (w : sim_serve::api_world) (query : string) : string =
+    := ids = cursor_ids (following w)
+    page_of w::feeds (resumed_cursor ids query) 50i32 |> page_html ids
+
+:= feed_reply (w : sim_serve::api_world) (r : sim_serve::request) : string =
+    erlang_http_server::response_text 200i32 "text/html; charset=utf-8" (feed_page w r::query)
+
+:~ feed_or_api (w : sim_serve::api_world) (log : string) (raw : string) : string * sim_serve::api_world =
+    := r = erlang_http_server::request_of raw
+    ? r::path = "/timeline" ?> (\ fed => (feed_reply fed r, fed)) (with_feeds w) |: sim_serve::replied w log raw
+
+:= serve (args : list string) : i32 = sim_serve::serve_with feed_or_api args
+
+:# cursor_ids_lists_account_ids_in_order =
+    cursor_ids [ account "72784485" "fc1943s"; account "1637273636049498112" "fc1943s" ]
+    |> _assert_eq [ "72784485"; "1637273636049498112" ]
+
+:# a_cursor_resumes_only_for_the_same_accounts =
+    := same, other = resumed_cursor [ "1"; "2" ] "f=1.2&c=4.5", resumed_cursor [ "1"; "2" ] "f=1.3&c=4.5"
+    (same::offsets, other::feeds, other::offsets) |> _assert_eq ([ 4i32; 5i32 ], [ "1"; "2" ], [])
+
+:= sample_world () : sim_serve::api_world = with_feeds (sim_serve::two_reposters ())
+
+:# the_timeline_path_serves_an_html_page =
+    := r = erlang_http_server::request_of "GET /timeline HTTP/1.1\r\n\r\n"
+    feed_reply (sample_world ()) r |> sm'::starts_with "HTTP/1.1 200 OK\r\nContent-Type: text/html" |> _assert_eq !+
+
+:# the_feeds_are_built_once_per_world =
+    := w = sample_world ()
+    := n, again = (listm::length (following w) : i32), with_feeds w
+    ((listm::length w::feeds : i32), (listm::length again::feeds : i32)) |> _assert_eq (n, n)
+
+:= ids_of (ps : posts_run) : list string = ps |> each (field_text "id")
+
+:= descending () : list string = [ "6"; "6"; "5"; "4"; "3"; "2"; "1" ]
+
+:# runs_sort_like_the_merge_sort =
+    := ps = [ "1"; "3"; "2"; "5"; "4"; "6"; "6" ] |> each (\ id => post_json id "false")
+    (ids_of (newest_posts ps), ids_of (list_sort::sorted_by newer_post ps)) |> _assert_eq (descending (), descending ())
+
+:# oldest_first_input_is_one_run =
+    := ps = [ "1"; "2"; "3" ] |> each (\ id => post_json id "false")
+    := rs = runs_of (listm::rev ps) [] []
+    (listm::length rs : i32) |> _assert_eq 1i32
+
+:= kinded (kind : string) (extra : string) : erlang_term::term =
+    := head = "{\"id\":\"5\",\"created_at\":\"2026-10-18T10:00:05Z\",\"kind\":\""
+    erlang_term::json_decoded (head ++# kind ++# "\"" ++# extra ++# "}")
+
+:= label_for (kind : string) (extra : string) : string = kind_of (kinded kind extra) |> timeline_page::label_of
+
+:# a_repost_names_the_original_author =
+    label_for "retweet" ",\"retweet_author\":\"gfixler\"" |> _assert_eq "Repost of @gfixler, not this account's words"
+
+:# a_reply_names_the_account_it_answers =
+    label_for "reply" ",\"reply_to_user\":\"dsy\"" |> _assert_eq "Reply to @dsy"
+
+:# a_quote_names_its_author_even_when_the_quote_is_missing =
+    := quoted = label_for "quote" ",\"quote\":{\"author\":\"m2\",\"id\":\"1\",\"text\":\"q\"}"
+    (quoted, label_for "quote" ",\"quote\":null")
+    |> _assert_eq ("Quoting @m2", "Quoting")
+
+:# an_original_post_has_no_label =
+    label_for "tweet" "" |> _assert_eq ""
+
+:# the_page_ends_with_the_scroll_script =
+    := page = feed_page (sample_world ()) ""
+    (sm'::contains "article.post" page, sm'::ends_with "</script>" page) |> _assert_eq (!+, !+)

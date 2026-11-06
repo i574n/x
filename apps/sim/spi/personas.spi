@@ -27,7 +27,7 @@
     ? name = "lurker" ?> Some Lurker |? name = "fickle" ?> Some Fickle
     |? name = "editor" ?> Some Editor |? name = "breaker" ?> Some Breaker |: None
 
-:= repeated_persona (p : persona) (count : i32) : list persona = listm::init count (\ _ => p)
+:= repeated_persona (p : persona) (count : i32) : list persona = listm::init count \ _ => p
 
 := named_count (name : string) (count : string) : list persona =
     ?= persona_of name, count_of_text count ?|
@@ -163,7 +163,7 @@
     | _ :: rest => rest
     | [] => []
 
-:= live_streams (streams : list (list event)) : list (list event) = streams |> keep (\ l => listm::length l > 0i32)
+:= live_streams (streams : list (list event)) : list (list event) = streams |> keep \ l => listm::length l > 0i32
 
 :~ ^ round_robin (streams : list (list event)) (acc : list event) : list event =
     ?= live_streams streams ?|

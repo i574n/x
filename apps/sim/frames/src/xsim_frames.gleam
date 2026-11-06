@@ -1,15 +1,15 @@
-import xsim_frames/part20.{closure29}
-import xsim_frames/part21.{closure108}
-import xsim_frames/part22.{closure110}
-import xsim_frames/part23.{closure116}
-import xsim_frames/part24.{closure122}
-import xsim_frames/part25.{closure130}
-import xsim_frames/part27.{closure136}
+import xsim_frames/part18.{closure29}
+import xsim_frames/part19.{closure108}
+import xsim_frames/part20.{closure110}
+import xsim_frames/part21.{closure116}
+import xsim_frames/part22.{closure122}
+import xsim_frames/part23.{closure130}
+import xsim_frames/part24.{closure136}
 import xsim_frames/part3.{closure0, closure5, closure7, closure9}
 import xsim_frames/part38.{closure142}
-import xsim_frames/part5.{closure10, closure12}
-import xsim_frames/part6.{closure13, closure14, closure15}
-import xsim_frames/part9.{closure19, closure27, closure28}
+import xsim_frames/part5.{closure10, closure12, closure13, closure14}
+import xsim_frames/part6.{closure15}
+import xsim_frames/part8.{closure19, closure27, closure28}
 
 pub fn checked_text(v0: String) -> String {
   closure0(Nil)(v0)

@@ -18,7 +18,7 @@ function Get-XCargoTargetDir {
 }
 
 function Get-XCiZigPin {
-    $ci = [IO.File]::ReadAllText((Join-Path $XRoot '.github/workflows/ci.yml'))
+    $ci = [IO.File]::ReadAllText((Join-Path $XRoot '.github/workflows/gh-pages.yml'))
     if ($ci -match 'setup-zig@\S+\s+with:(?:\s+(?!version:)[\w-]+:[^\r\n]*)*\s+version:\s*"?([^"\s]+)"?') { $Matches[1] }
 }
 
@@ -68,7 +68,7 @@ function Invoke-SpiralTests([Parameter(Mandatory)] [string] $AppDir, [Parameter(
     $zigVersion = $zig ? (& $zig version) : 'none'
     $zigPin = Get-XCiZigPin
     Write-Host "x/scripts/common.ps1 / Cells zig $zigVersion"
-    if ($zigPin -and $zigVersion -ne $zigPin) { Write-Host "x/scripts/common.ps1 / Cells zig $zigVersion is not ci.yml's ${zigPin}: set SPIRAL_ZIG to a $zigPin zig to test what CI runs" }
+    if ($zigPin -and $zigVersion -ne $zigPin) { Write-Host "x/scripts/common.ps1 / Cells zig $zigVersion is not gh-pages.yml's ${zigPin}: set SPIRAL_ZIG to a $zigPin zig to test what CI runs" }
     $failed = [Collections.Generic.List[string]]::new()
     try {
         foreach ($module in $Modules) {

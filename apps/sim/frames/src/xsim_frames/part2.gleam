@@ -3,49 +3,11 @@ import gleam/option
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Uh5, type Us11, Uh0Cons, Uh0Nil, Uh1Cons, Uh1Nil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Uh5Nil, Us0Whole, Us10PlainRow, Us10TallyRow, Us11None, Us11Some, Us1None, Us1Some, Us2None, Us2Some, Us5BrokenId, Us5Evicting, Us5Result, Us5Visible, Us5Wanted, Us6None, Us6Some, Us7Cancelled, Us7Evicted, Us7Started, Us8None, Us8Some, Us9None, Us9Some}
-import xsim_frames/part1.{closure1, digits_end_9, fields_from_6, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, text_at_13, value_of_14}
-
-pub fn count_at_16(v0: String, v1: Uh5) -> Int {
-    let v2 = value_of_14(v0, v1)
-    case v2  {
-        Us0Whole(v3) -> v3
-        _ -> -1
-    }
-}
-
-pub fn method17(v0: Uh0, v1: Uh0) -> Uh0 {
-    case v0  {
-        Uh0Cons(v2, v3, v4, v5, v6) -> {
-            let v7 = method17(v6, v1)
-            Uh0Cons(v2, v3, v4, v5, v7)
-        }
-        Uh0Nil -> v1
-    }
-}
-
-pub fn method18(v0: Uh3, v1: Uh3) -> Uh3 {
-    case v0  {
-        Uh3Cons(v2, v3) -> {
-            let v4 = method18(v3, v1)
-            Uh3Cons(v2, v4)
-        }
-        Uh3Nil -> v1
-    }
-}
-
-pub fn method19(v0: Uh2, v1: Uh2) -> Uh2 {
-    case v0  {
-        Uh2Cons(v2, v3, v4) -> {
-            let v5 = method19(v4, v1)
-            Uh2Cons(v2, v3, v5)
-        }
-        Uh2Nil -> v1
-    }
-}
+import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Us11, type Uh6, type Uh7, Uh0Cons, Uh0Nil, Uh1Cons, Uh1Nil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Uh5Nil, Uh6Cons, Uh6Nil, Uh7Cons, Uh7Nil, Us10PlainRow, Us10TallyRow, Us11None, Us11Some, Us12Broken, Us12Held, Us13BreakingEditsFail, Us13NoStaleResults, Us13OneCompilePerPrefix, Us13SequentialEquivalence, Us13UnwantedResultsFreed, Us13WithdrawnDemandHidden, Us1None, Us1Some, Us2None, Us2Some, Us5BrokenId, Us5Evicting, Us5Result, Us5Visible, Us5Wanted, Us6None, Us6Some, Us7Cancelled, Us7Evicted, Us7Started, Us8None, Us8Some, Us9None, Us9Some}
+import xsim_frames/part1.{closure1, count_at_16, digits_end_9, fields_from_6, method17, method18, method19, method4, spiral_array_from_list, spiral_array_get, spiral_string_index, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, text_at_13}
 
 pub fn method5(v0: Uh3, v1: Uh0, v2: Uh1, v3: Uh2, v4: Uh2, v5: Uh2, v6: Uh3, v7: Bool, v8: Uh4, v9: Uh3, v10: Uh3) -> #(Uh0, Uh1, Uh2, Uh2, Uh2, Uh3, Bool, Uh4, Uh3, Uh3) {
-    let #(v294, v295, v296, v297, v298, v299, v300, v301, v302, v303) =
+    let #(v290, v291, v292, v293, v294, v295, v296, v297, v298, v299) =
         case v0  {
             Uh3Cons(v11, v12) -> {
                 let v13 = spiral_string_length(v11)
@@ -56,59 +18,50 @@ pub fn method5(v0: Uh3, v1: Uh0, v2: Uh1, v3: Uh2, v4: Uh2, v5: Uh2, v6: Uh3, v7
                         False -> {
                             let v15 = spiral_wrap_signed(v13 - 1, 32)
                             let v16 = spiral_string_slice(v11, 0, v15)
-                            let v17 = "{"
-                            let v18 = v16 |> string.starts_with(v17)
+                            let v18 = v16 |> string.starts_with("{")
                             v18
                         }
                     }
                 let v24 =
                     case v19 {
                         True -> {
-                            let v20 = 1
-                            let v21 = Uh5Nil
-                            fields_from_6(v11, v20, v21)
+                            fields_from_6(v11, 1, Uh5Nil)
                         }
                         False -> Us1None
                     }
-                let #(v264, v265, v266, v267, v268, v269, v270, v271, v272, v273) =
+                let #(v260, v261, v262, v263, v264, v265, v266, v267, v268, v269) =
                     case v24  {
                         Us1Some(v25) -> {
-                            let v26 = "row"
-                            let v27 = text_at_13(v26, v25)
+                            let v27 = text_at_13("row", v25)
                             let v28 = "visible" == v27
                             let v48 =
                                 case v28 {
                                     True -> {
-                                        let v29 = Us5Visible
-                                        Us6Some(v29)
+                                        Us6Some(Us5Visible)
                                     }
                                     False -> {
                                         let v31 = "broken" == v27
                                         case v31 {
                                             True -> {
-                                                let v32 = Us5BrokenId
-                                                Us6Some(v32)
+                                                Us6Some(Us5BrokenId)
                                             }
                                             False -> {
                                                 let v34 = "evicting" == v27
                                                 case v34 {
                                                     True -> {
-                                                        let v35 = Us5Evicting
-                                                        Us6Some(v35)
+                                                        Us6Some(Us5Evicting)
                                                     }
                                                     False -> {
                                                         let v37 = "wanted" == v27
                                                         case v37 {
                                                             True -> {
-                                                                let v38 = Us5Wanted
-                                                                Us6Some(v38)
+                                                                Us6Some(Us5Wanted)
                                                             }
                                                             False -> {
                                                                 let v40 = "result" == v27
                                                                 case v40 {
                                                                     True -> {
-                                                                        let v41 = Us5Result
-                                                                        Us6Some(v41)
+                                                                        Us6Some(Us5Result)
                                                                     }
                                                                     False -> Us6None
                                                                 }
@@ -124,22 +77,19 @@ pub fn method5(v0: Uh3, v1: Uh0, v2: Uh1, v3: Uh2, v4: Uh2, v5: Uh2, v6: Uh3, v7
                             let v61 =
                                 case v49 {
                                     True -> {
-                                        let v50 = Us7Started
-                                        Us8Some(v50)
+                                        Us8Some(Us7Started)
                                     }
                                     False -> {
                                         let v52 = "cancelled" == v27
                                         case v52 {
                                             True -> {
-                                                let v53 = Us7Cancelled
-                                                Us8Some(v53)
+                                                Us8Some(Us7Cancelled)
                                             }
                                             False -> {
                                                 let v55 = "evicted" == v27
                                                 case v55 {
                                                     True -> {
-                                                        let v56 = Us7Evicted
-                                                        Us8Some(v56)
+                                                        Us8Some(Us7Evicted)
                                                     }
                                                     False -> Us8None
                                                 }
@@ -169,166 +119,146 @@ pub fn method5(v0: Uh3, v1: Uh0, v2: Uh1, v3: Uh2, v4: Uh2, v5: Uh2, v6: Uh3, v7
                                         Us10PlainRow(v74) -> {
                                             case v74  {
                                                 Us5Visible -> {
-                                                    let v75 = "id"
-                                                    let v76 = text_at_13(v75, v25)
-                                                    let v77 = "key"
-                                                    let v78 = text_at_13(v77, v25)
-                                                    let v79 = ""
-                                                    let v80 = "ok"
-                                                    let v81 = v79 <> v80 
-                                                    let v82 = count_at_16(v81, v25)
-                                                    let v83 = v82 == 1
-                                                    let v84 = "out"
-                                                    let v85 = v79 <> v84 
-                                                    let v86 = text_at_13(v85, v25)
-                                                    let v87 = Uh0Nil
-                                                    let v88 = Uh0Cons(v76, v78, v83, v86, v87)
-                                                    let v89 = method17(v1, v88)
-                                                    let v90 = "based"
-                                                    let v91 = count_at_16(v90, v25)
-                                                    let v92 = v91 == 1
-                                                    case v92 {
+                                                    let v76 = text_at_13("id", v25)
+                                                    let v78 = text_at_13("key", v25)
+                                                    let v80 = count_at_16("ok", v25)
+                                                    let v81 = v80 == 1
+                                                    let v83 = text_at_13("out", v25)
+                                                    let v85 = Uh0Cons(v76, v78, v81, v83, Uh0Nil)
+                                                    let v86 = method17(v1, v85)
+                                                    let v88 = count_at_16("based", v25)
+                                                    let v89 = v88 == 1
+                                                    case v89 {
                                                         True -> {
-                                                            let v93 = "base_"
-                                                            let v94 = v93 <> v80 
-                                                            let v95 = count_at_16(v94, v25)
-                                                            let v96 = v95 == 1
-                                                            let v97 = v93 <> v84 
-                                                            let v98 = text_at_13(v97, v25)
-                                                            let v99 = Uh4Cons(v76, v96, v98, v8)
-                                                            #(v89, v2, v3, v4, v5, v6, v7, v99, v9, v10)
+                                                            let v91 = count_at_16("base_ok", v25)
+                                                            let v92 = v91 == 1
+                                                            let v94 = text_at_13("base_out", v25)
+                                                            let v95 = Uh4Cons(v76, v92, v94, v8)
+                                                            #(v86, v2, v3, v4, v5, v6, v7, v95, v9, v10)
                                                         }
-                                                        False -> #(v89, v2, v3, v4, v5, v6, v7, v8, v9, v10)
+                                                        False -> #(v86, v2, v3, v4, v5, v6, v7, v8, v9, v10)
                                                     }
                                                 }
                                                 _ -> {
-                                                    let #(v153, v154, v155, v156, v157, v158, v159, v160, v161, v162) =
+                                                    let #(v149, v150, v151, v152, v153, v154, v155, v156, v157, v158) =
                                                         case v74  {
                                                             Us5BrokenId -> {
-                                                                let v110 = "id"
-                                                                let v111 = text_at_13(v110, v25)
-                                                                let v112 = Uh3Cons(v111, v9)
-                                                                #(v1, v2, v3, v4, v5, v6, v7, v8, v112, v10)
+                                                                let v107 = text_at_13("id", v25)
+                                                                let v108 = Uh3Cons(v107, v9)
+                                                                #(v1, v2, v3, v4, v5, v6, v7, v8, v108, v10)
                                                             }
                                                             _ -> {
-                                                                let #(v143, v144, v145, v146, v147, v148, v149, v150, v151, v152) =
+                                                                let #(v139, v140, v141, v142, v143, v144, v145, v146, v147, v148) =
                                                                     case v74  {
                                                                         Us5Evicting -> #(v1, v2, v3, v4, v5, v6, True, v8, v9, v10)
                                                                         _ -> {
-                                                                            let #(v133, v134, v135, v136, v137, v138, v139, v140, v141, v142) =
+                                                                            let #(v129, v130, v131, v132, v133, v134, v135, v136, v137, v138) =
                                                                                 case v74  {
                                                                                     Us5Wanted -> {
-                                                                                        let v113 = "id"
-                                                                                        let v114 = text_at_13(v113, v25)
-                                                                                        let v115 = "key"
-                                                                                        let v116 = text_at_13(v115, v25)
-                                                                                        let v117 = Uh1Cons(v114, v116, v2)
-                                                                                        #(v1, v117, v3, v4, v5, v6, v7, v8, v9, v10)
+                                                                                        let v110 = text_at_13("id", v25)
+                                                                                        let v112 = text_at_13("key", v25)
+                                                                                        let v113 = Uh1Cons(v110, v112, v2)
+                                                                                        #(v1, v113, v3, v4, v5, v6, v7, v8, v9, v10)
                                                                                     }
                                                                                     _ -> {
-                                                                                        let #(v123, v124, v125, v126, v127, v128, v129, v130, v131, v132) =
+                                                                                        let #(v119, v120, v121, v122, v123, v124, v125, v126, v127, v128) =
                                                                                             case v74  {
                                                                                                 Us5Result -> {
-                                                                                                    let v118 = "key"
-                                                                                                    let v119 = text_at_13(v118, v25)
-                                                                                                    let v120 = Uh3Nil
-                                                                                                    let v121 = Uh3Cons(v119, v120)
-                                                                                                    let v122 = method18(v6, v121)
-                                                                                                    #(v1, v2, v3, v4, v5, v122, v7, v8, v9, v10)
+                                                                                                    let v115 = text_at_13("key", v25)
+                                                                                                    let v117 = Uh3Cons(v115, Uh3Nil)
+                                                                                                    let v118 = method18(v6, v117)
+                                                                                                    #(v1, v2, v3, v4, v5, v118, v7, v8, v9, v10)
                                                                                                 }
                                                                                                 _ -> panic as "spiral: union case ruled out by partial evaluation"
                                                                                             }
-                                                                                        #(v123, v124, v125, v126, v127, v128, v129, v130, v131, v132)
+                                                                                        #(v119, v120, v121, v122, v123, v124, v125, v126, v127, v128)
                                                                                     }
                                                                                 }
-                                                                            #(v133, v134, v135, v136, v137, v138, v139, v140, v141, v142)
+                                                                            #(v129, v130, v131, v132, v133, v134, v135, v136, v137, v138)
                                                                         }
                                                                     }
-                                                                #(v143, v144, v145, v146, v147, v148, v149, v150, v151, v152)
+                                                                #(v139, v140, v141, v142, v143, v144, v145, v146, v147, v148)
                                                             }
                                                         }
-                                                    #(v153, v154, v155, v156, v157, v158, v159, v160, v161, v162)
+                                                    #(v149, v150, v151, v152, v153, v154, v155, v156, v157, v158)
                                                 }
                                             }
                                         }
                                         _ -> {
-                                            let #(v213, v214, v215, v216, v217, v218, v219, v220, v221, v222) =
+                                            let #(v209, v210, v211, v212, v213, v214, v215, v216, v217, v218) =
                                                 case v73  {
-                                                    Us10TallyRow(v173) -> {
-                                                        let v174 = "key"
-                                                        let v175 = text_at_13(v174, v25)
-                                                        let v176 = "count"
-                                                        let v177 = count_at_16(v176, v25)
-                                                        case v173  {
+                                                    Us10TallyRow(v169) -> {
+                                                        let v171 = text_at_13("key", v25)
+                                                        let v173 = count_at_16("count", v25)
+                                                        case v169  {
                                                             Us7Started -> {
-                                                                let v178 = Uh2Nil
-                                                                let v179 = Uh2Cons(v175, v177, v178)
-                                                                let v180 = method19(v3, v179)
-                                                                #(v1, v2, v180, v4, v5, v6, v7, v8, v9, v10)
+                                                                let v175 = Uh2Cons(v171, v173, Uh2Nil)
+                                                                let v176 = method19(v3, v175)
+                                                                #(v1, v2, v176, v4, v5, v6, v7, v8, v9, v10)
                                                             }
                                                             _ -> {
-                                                                let #(v193, v194, v195, v196, v197, v198, v199, v200, v201, v202) =
-                                                                    case v173  {
+                                                                let #(v189, v190, v191, v192, v193, v194, v195, v196, v197, v198) =
+                                                                    case v169  {
                                                                         Us7Cancelled -> {
-                                                                            let v181 = Uh2Cons(v175, v177, v4)
-                                                                            #(v1, v2, v3, v181, v5, v6, v7, v8, v9, v10)
+                                                                            let v177 = Uh2Cons(v171, v173, v4)
+                                                                            #(v1, v2, v3, v177, v5, v6, v7, v8, v9, v10)
                                                                         }
                                                                         _ -> {
-                                                                            let #(v183, v184, v185, v186, v187, v188, v189, v190, v191, v192) =
-                                                                                case v173  {
+                                                                            let #(v179, v180, v181, v182, v183, v184, v185, v186, v187, v188) =
+                                                                                case v169  {
                                                                                     Us7Evicted -> {
-                                                                                        let v182 = Uh2Cons(v175, v177, v5)
-                                                                                        #(v1, v2, v3, v4, v182, v6, v7, v8, v9, v10)
+                                                                                        let v178 = Uh2Cons(v171, v173, v5)
+                                                                                        #(v1, v2, v3, v4, v178, v6, v7, v8, v9, v10)
                                                                                     }
                                                                                     _ -> panic as "spiral: union case ruled out by partial evaluation"
                                                                                 }
-                                                                            #(v183, v184, v185, v186, v187, v188, v189, v190, v191, v192)
+                                                                            #(v179, v180, v181, v182, v183, v184, v185, v186, v187, v188)
                                                                         }
                                                                     }
-                                                                #(v193, v194, v195, v196, v197, v198, v199, v200, v201, v202)
+                                                                #(v189, v190, v191, v192, v193, v194, v195, v196, v197, v198)
                                                             }
                                                         }
                                                     }
                                                     _ -> panic as "spiral: union case ruled out by partial evaluation"
                                                 }
-                                            #(v213, v214, v215, v216, v217, v218, v219, v220, v221, v222)
+                                            #(v209, v210, v211, v212, v213, v214, v215, v216, v217, v218)
                                         }
                                     }
                                 }
                                 _ -> {
-                                    let #(v234, v235, v236, v237, v238, v239, v240, v241, v242, v243) =
+                                    let #(v230, v231, v232, v233, v234, v235, v236, v237, v238, v239) =
                                         case v72  {
                                             Us9None -> {
-                                                let v233 = Uh3Cons(v27, v10)
-                                                #(v1, v2, v3, v4, v5, v6, v7, v8, v9, v233)
+                                                let v229 = Uh3Cons(v27, v10)
+                                                #(v1, v2, v3, v4, v5, v6, v7, v8, v9, v229)
                                             }
                                             _ -> panic as "spiral: union case ruled out by partial evaluation"
                                         }
-                                    #(v234, v235, v236, v237, v238, v239, v240, v241, v242, v243)
+                                    #(v230, v231, v232, v233, v234, v235, v236, v237, v238, v239)
                                 }
                             }
                         }
                         _ -> {
-                            let #(v254, v255, v256, v257, v258, v259, v260, v261, v262, v263) =
+                            let #(v250, v251, v252, v253, v254, v255, v256, v257, v258, v259) =
                                 case v24  {
                                     Us1None -> #(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10)
                                     _ -> panic as "spiral: union case ruled out by partial evaluation"
                                 }
-                            #(v254, v255, v256, v257, v258, v259, v260, v261, v262, v263)
+                            #(v250, v251, v252, v253, v254, v255, v256, v257, v258, v259)
                         }
                     }
-                method5(v12, v264, v265, v266, v267, v268, v269, v270, v271, v272, v273)
+                method5(v12, v260, v261, v262, v263, v264, v265, v266, v267, v268, v269)
             }
             _ -> {
-                let #(v284, v285, v286, v287, v288, v289, v290, v291, v292, v293) =
+                let #(v280, v281, v282, v283, v284, v285, v286, v287, v288, v289) =
                     case v0  {
                         Uh3Nil -> #(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10)
                         _ -> panic as "spiral: union case ruled out by partial evaluation"
                     }
-                #(v284, v285, v286, v287, v288, v289, v290, v291, v292, v293)
+                #(v280, v281, v282, v283, v284, v285, v286, v287, v288, v289)
             }
         }
-    #(v294, v295, v296, v297, v298, v299, v300, v301, v302, v303)
+    #(v290, v291, v292, v293, v294, v295, v296, v297, v298, v299)
 }
 
 pub fn snapshot_read_1(v0: String) -> #(Uh0, Uh1, Uh2, Uh2, Uh2, Uh3, Bool, Uh4, Uh3, Uh3) {
@@ -337,21 +267,10 @@ pub fn snapshot_read_1(v0: String) -> #(Uh0, Uh1, Uh2, Uh2, Uh2, Uh3, Bool, Uh4,
         case v1 {
             True -> Uh3Nil
             False -> {
-                let v3 = "\n"
-                split_list_2(v3, v0)
+                split_list_2("\n", v0)
             }
         }
-    let v6 = Uh0Nil
-    let v7 = Uh1Nil
-    let v8 = Uh2Nil
-    let v9 = Uh2Nil
-    let v10 = Uh2Nil
-    let v11 = Uh3Nil
-    let v12 = False
-    let v13 = Uh4Nil
-    let v14 = Uh3Nil
-    let v15 = Uh3Nil
-    let #(v16, v17, v18, v19, v20, v21, v22, v23, v24, v25) = method5(v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15)
+    let #(v16, v17, v18, v19, v20, v21, v22, v23, v24, v25) = method5(v5, Uh0Nil, Uh1Nil, Uh2Nil, Uh2Nil, Uh2Nil, Uh3Nil, False, Uh4Nil, Uh3Nil, Uh3Nil)
     #(v16, v17, v18, v19, v20, v21, v22, v23, v24, v25)
 }
 
@@ -370,21 +289,19 @@ pub fn concat_pass_23(v0: String, v1: Uh3, v2: Uh3) -> Uh3 {
         Uh3Cons(v3, v4) -> {
             case v4  {
                 Uh3Cons(v5, v6) -> {
-                    let v7 = v3 <> v0 
-                    let v8 = v7 <> v5 
+                    let v7 = { v3 } <> { v0 }
+                    let v8 = { v7 } <> { v5 }
                     let v9 = Uh3Cons(v8, v2)
                     concat_pass_23(v0, v6, v9)
                 }
                 Uh3Nil -> {
-                    let v11 = Uh3Nil
-                    let v12 = Uh3Cons(v3, v11)
+                    let v12 = Uh3Cons(v3, Uh3Nil)
                     method4(v2, v12)
                 }
             }
         }
         Uh3Nil -> {
-            let v16 = Uh3Nil
-            method4(v2, v16)
+            method4(v2, Uh3Nil)
         }
     }
 }
@@ -395,15 +312,13 @@ pub fn concat_balanced_22(v0: String, v1: Uh3) -> String {
             case v4  {
                 Uh3Nil -> v3
                 _ -> {
-                    let v5 = Uh3Nil
-                    let v6 = concat_pass_23(v0, v1, v5)
+                    let v6 = concat_pass_23(v0, v1, Uh3Nil)
                     concat_balanced_22(v0, v6)
                 }
             }
         }
         Uh3Nil -> {
-            let v2 = ""
-            v2
+            ""
         }
     }
 }
@@ -419,8 +334,7 @@ pub fn closure2(capt: #(String, String, Bool, String)) -> fn(#(String, String)) 
         let v6 = v4 == v0
         case v6 {
             True -> {
-                let v7 = v5 == v1
-                v7
+                v5 == v1
             }
             False -> False
         }
@@ -466,18 +380,15 @@ pub fn masked_cells_28(v0: String, v1: Int, v2: String) -> String {
     let v5 = spiral_wrap_signed(v1 + v4, 32)
     let v6 = spiral_wrap_signed(v5 - 1, 32)
     let v7 = spiral_string_slice(v0, v1, v6)
-    let v8 = "spiral_cells"
-    let v9 = option.from_result(result.map(string.split_once(v7, v8), pair.first))
+    let v9 = option.from_result(result.map(string.split_once(v7, "spiral_cells"), pair.first))
     let v10 = closure1(Nil)
     let v11 = v9 |> option.map(v10)
-    let v12 = Us2None
-    let v13 = v11 |> option.unwrap(v12)
+    let v13 = v11 |> option.unwrap(Us2None)
     let v17 =
         case v13  {
             Us2None -> -1
             Us2Some(v14) -> {
-                let v15 = bit_array.byte_size(bit_array.from_string(v14))
-                v15
+                bit_array.byte_size(bit_array.from_string(v14))
             }
         }
     let v18 = v17 < 0
@@ -486,14 +397,13 @@ pub fn masked_cells_28(v0: String, v1: Int, v2: String) -> String {
             True -> -1
             False -> {
                 let v19 = spiral_wrap_signed(v1 + v17, 32)
-                let v20 = spiral_wrap_signed(v19 + 12, 32)
-                v20
+                spiral_wrap_signed(v19 + 12, 32)
             }
         }
     let v22 = v21 < 0
     case v22 {
         True -> {
-            let v23 = v2 <> v7 
+            let v23 = { v2 } <> { v7 }
             v23
         }
         False -> {
@@ -502,8 +412,7 @@ pub fn masked_cells_28(v0: String, v1: Int, v2: String) -> String {
             let v26 = spiral_wrap_signed(v21 + v25, 32)
             let v27 = spiral_wrap_signed(v26 - 1, 32)
             let v28 = spiral_string_slice(v0, v21, v27)
-            let v29 = "\\"
-            let v30 = v28 |> string.starts_with(v29)
+            let v30 = v28 |> string.starts_with("\\")
             let v32 =
                 case v30 {
                     True -> digits_end_9(v0, v24)
@@ -520,8 +429,7 @@ pub fn masked_cells_28(v0: String, v1: Int, v2: String) -> String {
                 case v35 {
                     True -> v34
                     False -> {
-                        let v36 = "/"
-                        let v37 = v28 |> string.starts_with(v36)
+                        let v37 = v28 |> string.starts_with("/")
                         let v39 =
                             case v37 {
                                 True -> digits_end_9(v0, v24)
@@ -544,8 +452,7 @@ pub fn masked_cells_28(v0: String, v1: Int, v2: String) -> String {
                         let v46 = spiral_wrap_signed(v42 + v45, 32)
                         let v47 = spiral_wrap_signed(v46 - 1, 32)
                         let v48 = spiral_string_slice(v0, v42, v47)
-                        let v49 = "-"
-                        let v50 = v48 |> string.starts_with(v49)
+                        let v50 = v48 |> string.starts_with("-")
                         let v52 =
                             case v50 {
                                 True -> digits_end_9(v0, v44)
@@ -562,18 +469,17 @@ pub fn masked_cells_28(v0: String, v1: Int, v2: String) -> String {
             let v57 = spiral_wrap_signed(v1 + v56, 32)
             let v58 = spiral_wrap_signed(v57 - 1, 32)
             let v59 = spiral_string_slice(v0, v1, v58)
-            let v60 = v2 <> v59 
+            let v60 = { v2 } <> { v59 }
             let v61 = v55 < 0
-            let #(v64, v65) =
+            let #(v63, v64) =
                 case v61 {
                     True -> #(v60, v21)
                     False -> {
-                        let v62 = "/_"
-                        let v63 = v60 <> v62 
-                        #(v63, v55)
+                        let v62 = { v60 } <> { "/_" }
+                        #(v62, v55)
                     }
                 }
-            masked_cells_28(v0, v65, v64)
+            masked_cells_28(v0, v64, v63)
         }
     }
 }
@@ -584,18 +490,15 @@ pub fn masked_threads_29(v0: String, v1: Int, v2: String) -> String {
     let v5 = spiral_wrap_signed(v1 + v4, 32)
     let v6 = spiral_wrap_signed(v5 - 1, 32)
     let v7 = spiral_string_slice(v0, v1, v6)
-    let v8 = "thread '"
-    let v9 = option.from_result(result.map(string.split_once(v7, v8), pair.first))
+    let v9 = option.from_result(result.map(string.split_once(v7, "thread '"), pair.first))
     let v10 = closure1(Nil)
     let v11 = v9 |> option.map(v10)
-    let v12 = Us2None
-    let v13 = v11 |> option.unwrap(v12)
+    let v13 = v11 |> option.unwrap(Us2None)
     let v17 =
         case v13  {
             Us2None -> -1
             Us2Some(v14) -> {
-                let v15 = bit_array.byte_size(bit_array.from_string(v14))
-                v15
+                bit_array.byte_size(bit_array.from_string(v14))
             }
         }
     let v18 = v17 < 0
@@ -604,8 +507,7 @@ pub fn masked_threads_29(v0: String, v1: Int, v2: String) -> String {
             True -> -1
             False -> {
                 let v19 = spiral_wrap_signed(v1 + v17, 32)
-                let v20 = spiral_wrap_signed(v19 + 8, 32)
-                v20
+                spiral_wrap_signed(v19 + 8, 32)
             }
         }
     let v22 = v21 < 0
@@ -617,17 +519,14 @@ pub fn masked_threads_29(v0: String, v1: Int, v2: String) -> String {
                 let v24 = spiral_wrap_signed(v21 + v23, 32)
                 let v25 = spiral_wrap_signed(v24 - 1, 32)
                 let v26 = spiral_string_slice(v0, v21, v25)
-                let v27 = "'"
-                let v28 = option.from_result(result.map(string.split_once(v26, v27), pair.first))
+                let v28 = option.from_result(result.map(string.split_once(v26, "'"), pair.first))
                 let v29 = v28 |> option.map(v10)
-                let v30 = Us2None
-                let v31 = v29 |> option.unwrap(v30)
+                let v31 = v29 |> option.unwrap(Us2None)
                 let v35 =
                     case v31  {
                         Us2None -> -1
                         Us2Some(v32) -> {
-                            let v33 = bit_array.byte_size(bit_array.from_string(v32))
-                            v33
+                            bit_array.byte_size(bit_array.from_string(v32))
                         }
                     }
                 let v36 = v35 < 0
@@ -635,8 +534,7 @@ pub fn masked_threads_29(v0: String, v1: Int, v2: String) -> String {
                     True -> -1
                     False -> {
                         let v37 = spiral_wrap_signed(v21 + v35, 32)
-                        let v38 = spiral_wrap_signed(v37 + 1, 32)
-                        v38
+                        spiral_wrap_signed(v37 + 1, 32)
                     }
                 }
             }
@@ -644,7 +542,7 @@ pub fn masked_threads_29(v0: String, v1: Int, v2: String) -> String {
     let v41 = v40 < 0
     case v41 {
         True -> {
-            let v42 = v2 <> v7 
+            let v42 = { v2 } <> { v7 }
             v42
         }
         False -> {
@@ -653,8 +551,7 @@ pub fn masked_threads_29(v0: String, v1: Int, v2: String) -> String {
             let v45 = spiral_wrap_signed(v40 + v44, 32)
             let v46 = spiral_wrap_signed(v45 - 1, 32)
             let v47 = spiral_string_slice(v0, v40, v46)
-            let v48 = " ("
-            let v49 = v47 |> string.starts_with(v48)
+            let v49 = v47 |> string.starts_with(" (")
             let v51 =
                 case v49 {
                     True -> digits_end_9(v0, v43)
@@ -674,29 +571,26 @@ pub fn masked_threads_29(v0: String, v1: Int, v2: String) -> String {
                         let v56 = spiral_wrap_signed(v53 + v55, 32)
                         let v57 = spiral_wrap_signed(v56 - 1, 32)
                         let v58 = spiral_string_slice(v0, v53, v57)
-                        let v59 = ") panicked"
-                        let v60 = v58 |> string.starts_with(v59)
-                        v60
+                        v58 |> string.starts_with(") panicked")
                     }
                     False -> False
                 }
             let v63 =
                 case v61 {
                     True -> {
-                        let v62 = spiral_wrap_signed(v53 + 10, 32)
-                        v62
+                        spiral_wrap_signed(v53 + 10, 32)
                     }
                     False -> -1
                 }
             let v64 = v63 < 0
-            let #(v77, v78) =
+            let #(v76, v77) =
                 case v64 {
                     True -> {
                         let v65 = spiral_wrap_signed(v21 - v1, 32)
                         let v66 = spiral_wrap_signed(v1 + v65, 32)
                         let v67 = spiral_wrap_signed(v66 - 1, 32)
                         let v68 = spiral_string_slice(v0, v1, v67)
-                        let v69 = v2 <> v68 
+                        let v69 = { v2 } <> { v68 }
                         #(v69, v21)
                     }
                     False -> {
@@ -704,13 +598,12 @@ pub fn masked_threads_29(v0: String, v1: Int, v2: String) -> String {
                         let v71 = spiral_wrap_signed(v1 + v70, 32)
                         let v72 = spiral_wrap_signed(v71 - 1, 32)
                         let v73 = spiral_string_slice(v0, v1, v72)
-                        let v74 = v2 <> v73 
-                        let v75 = " (_) panicked"
-                        let v76 = v74 <> v75 
-                        #(v76, v63)
+                        let v74 = { v2 } <> { v73 }
+                        let v75 = { v74 } <> { " (_) panicked" }
+                        #(v75, v63)
                     }
                 }
-            masked_threads_29(v0, v78, v77)
+            masked_threads_29(v0, v77, v76)
         }
     }
 }
@@ -732,34 +625,27 @@ pub fn method24(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool, 
                                     let #(v32, v33) =
                                         case v27  {
                                             Us11None -> {
-                                                let v31 = ""
-                                                #(False, v31)
+                                                #(False, "")
                                             }
                                             _ -> panic as "spiral: union case ruled out by partial evaluation"
                                         }
                                     #(v32, v33)
                                 }
                             }
-                        let v36 = 0
                         let v37 = ""
-                        let v38 = masked_cells_28(v35, v36, v37)
-                        let v39 = 0
-                        let v40 = masked_threads_29(v38, v39, v37)
-                        let v41 = 0
-                        let v42 = masked_cells_28(v22, v41, v37)
-                        let v43 = 0
-                        let v44 = masked_threads_29(v42, v43, v37)
+                        let v38 = masked_cells_28(v35, 0, v37)
+                        let v40 = masked_threads_29(v38, 0, v37)
+                        let v42 = masked_cells_28(v22, 0, v37)
+                        let v44 = masked_threads_29(v42, 0, v37)
                         let v45 = v34 == v21
                         let v47 =
                             case v45 {
                                 True -> {
-                                    let v46 = v40 == v44
-                                    v46
+                                    v40 == v44
                                 }
                                 False -> False
                             }
-                        let v48 = v47 == False
-                        v48
+                        v47 == False
                     }
                     False -> False
                 }
@@ -843,15 +729,11 @@ pub fn method33(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool, 
     case v7  {
         Uh2Cons(v9, v10, v11) -> {
             let v12 = method33(v0, v1, v2, v3, v4, v5, v6, v11, v8)
-            let v13 = Uh2Nil
-            let v14 = method34(v9, v3, v13)
-            let v15 = 0
-            let v16 = method35(v14, v15)
+            let v14 = method34(v9, v3, Uh2Nil)
+            let v16 = method35(v14, 0)
             let v17 = spiral_wrap_signed(v10 - v16, 32)
-            let v18 = Uh2Nil
-            let v19 = method34(v9, v4, v18)
-            let v20 = 0
-            let v21 = method35(v19, v20)
+            let v19 = method34(v9, v4, Uh2Nil)
+            let v21 = method35(v19, 0)
             let v22 = spiral_wrap_signed(v17 - v21, 32)
             let v23 = v22 > 1
             case v23 {
@@ -877,8 +759,7 @@ pub fn closure3(capt: #(String, String, Bool, String)) -> fn(#(String, String)) 
     fn (dom) {
         let #(v4, _v5) = dom
         let #(v0, _v1, _v2, _v3) = capt
-        let v6 = v4 == v0
-        v6
+        v4 == v0
     }
 }
 
@@ -922,8 +803,7 @@ pub fn closure4(capt: #(String)) -> fn(#(String, String)) -> Bool {
     fn (dom) {
         let #(_v1, v2) = dom
         let #(v0) = capt
-        let v3 = v2 == v0
-        v3
+        v2 == v0
     }
 }
 
@@ -944,5 +824,94 @@ pub fn method42(v0: String, v1: fn(#(String, String)) -> Bool, v2: Uh1) -> Bool 
             }
         }
         Uh1Nil -> False
+    }
+}
+
+pub fn method40(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool, v7: Uh3, v8: Uh3) -> Uh3 {
+    case v7  {
+        Uh3Cons(v9, v10) -> {
+            let v11 = method40(v0, v1, v2, v3, v4, v5, v6, v10, v8)
+            let v12 = method41(v9)
+            let v13 = method42(v9, v12, v1)
+            let v14 = v13 == False
+            case v14 {
+                True -> Uh3Cons(v9, v11)
+                False -> v11
+            }
+        }
+        Uh3Nil -> v8
+    }
+}
+
+pub fn method44(v0: Int, v1: String, v2: Int) -> Uh7 {
+    let v3 = v2 < v0
+    case v3 {
+        True -> {
+            let v4 = spiral_string_index(v1, v2)
+            let v5 = spiral_wrap_signed(v2 + 1, 64)
+            let v6 = method44(v0, v1, v5)
+            Uh7Cons(v4, v6)
+        }
+        False -> Uh7Nil
+    }
+}
+
+pub fn method45(v0: Uh7, v1: Uh3) -> Uh3 {
+    case v0  {
+        Uh7Cons(v2, v3) -> {
+            let v4 = v2
+            let v5 = v4 |> string.lowercase
+            let v6 = v5 != v4
+            let v10 =
+                case v6 {
+                    True -> {
+                        let v8 = method20(v1, 0)
+                        v8 > 0
+                    }
+                    False -> False
+                }
+            let v15 =
+                case v10 {
+                    True -> {
+                        let v12 = Uh3Cons("_", v1)
+                        Uh3Cons(v5, v12)
+                    }
+                    False -> Uh3Cons(v5, v1)
+                }
+            method45(v3, v15)
+        }
+        Uh7Nil -> v1
+    }
+}
+
+pub fn method43(v0: Uh6, v1: Uh3) -> Uh3 {
+    case v0  {
+        Uh6Cons(v2, v3, v4) -> {
+            let v5 = method43(v4, v1)
+            let v12 = spiral_array_from_list([ "SequentialEquivalence", "NoStaleResults", "OneCompilePerPrefix", "WithdrawnDemandHidden", "UnwantedResultsFreed", "BreakingEditsFail" ])
+            let v13 = case v2 { Us13SequentialEquivalence -> 0 Us13NoStaleResults -> 1 Us13OneCompilePerPrefix -> 2 Us13WithdrawnDemandHidden -> 3 Us13UnwantedResultsFreed -> 4 Us13BreakingEditsFail -> 5 }
+            let v14 = spiral_array_get(v12, v13)
+            let v15 = spiral_string_length(v14)
+            let v17 = method44(v15, v14, 0)
+            let v19 = method45(v17, Uh3Nil)
+            let v21 = method4(v19, Uh3Nil)
+            let v23 = concat_balanced_22("", v21)
+            let v24 = { v23 } <> { "=" }
+            let v32 =
+                case v3  {
+                    Us12Broken(v26) -> {
+                        let v28 = delimited_21(",", v26)
+                        let v29 = { "FAIL[" } <> { v28 }
+                        let v30 = { v29 } <> { "]" }
+                        v30
+                    }
+                    Us12Held -> {
+                        "ok"
+                    }
+                }
+            let v33 = { v24 } <> { v32 }
+            Uh3Cons(v33, v5)
+        }
+        Uh6Nil -> v1
     }
 }

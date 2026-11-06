@@ -31,7 +31,7 @@
   },
   "links": {
     "domain_pattern": "(?<![\\p{L}\\p{N}@\\-_./])(?:[A-Za-z0-9](?:[A-Za-z0-9\\-_]*[A-Za-z0-9])?\\.)+([A-Za-z]{2,63})(?![\\p{L}\\p{N}_\\-])",
-    "top_level_domains_file": "tlds.txt",
+    "top_level_domains_file": "../../spiral/apps/cells/data/tlds.txt",
     "short_domains_always_linked": [
       "t.co"
     ],

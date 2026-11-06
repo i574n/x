@@ -82,7 +82,7 @@
 
 := result_evicted (key : string) (s : scheduler) : scheduler =
     s
-    |> with_work (\ w => { w ?| results = dict::remove key w::results })
+    |> with_work \ w => { w ?| results = dict::remove key w::results }
     |> counted_with \ c => { c ?| evicted = bumped key c::evicted }
 
 := evicted_key (key : string) (s : scheduler) : scheduler =
@@ -92,10 +92,10 @@
     ?= s::faults::eviction ?|
     | NoEviction => s
     | EvictNow => evicted_key key s
-    | EvictAfter n => s |> with_life (\ l => { l ?| doomed = dict::insert key (l::clock + n) l::doomed })
+    | EvictAfter n => s |> with_life \ l => { l ?| doomed = dict::insert key (l::clock + n) l::doomed }
 
 := due_keys (all : bool) (l : life_cycle) : list string =
-    dict::keys l::doomed |> keep (\ k => all || dict::present k l::doomed <= l::clock)
+    dict::keys l::doomed |> keep \ k => all || dict::present k l::doomed <= l::clock
 
 := undoomed (due : list string) (l : life_cycle) : life_cycle =
     { l ?| doomed = due |> listm::fold (\ d k => dict::remove k d) l::doomed }
@@ -116,11 +116,11 @@
 
 := cancelled_task (key : string) (s : scheduler) : scheduler =
     s |> with_work (\ w => { w ?| running = dict::remove key w::running }) |> emitted (CancelTask key)
-    |> counted_with (\ c => { c ?| cancels = c::cancels + 1i32; cancelled = bumped key c::cancelled })
+    |> counted_with \ c => { c ?| cancels = c::cancels + 1i32; cancelled = bumped key c::cancelled }
 
 := dropped_ref (key : string) (s : scheduler) : scheduler =
     s
-    |> with_owners (\ o => { o ?| refs = dict::remove key o::refs })
+    |> with_owners \ o => { o ?| refs = dict::remove key o::refs }
     |> with_work \ w => { w ?| queue = w::queue |> keep \ q => q <> key }
 
 := unreferenced (key : string) (s : scheduler) : scheduler =
@@ -137,7 +137,7 @@
     not (dict::has key s::task_work::results || dict::has key s::task_work::running || queued_has key s)
 
 := enqueued (key : string) (s : scheduler) : scheduler =
-    := s = s |> with_work (\ w => { w ?| queue = listm::append w::queue [ key ] })
+    := s = s |> with_work \ w => { w ?| queue = listm::append w::queue [ key ] }
     ? dict::has key s::run_counts::evicted ?> s |> counted_with \ c => { c ?| recomputes = c::recomputes + 1i32 }
     |: s
 
@@ -180,10 +180,10 @@
 
 := requeued_completed (s : scheduler) : scheduler =
     := again = dict::keys s::owner_map::refs |> keep (rerun_due s)
-    s |> with_work (\ w => { w ?| queue = listm::append w::queue again })
+    s |> with_work \ w => { w ?| queue = listm::append w::queue again }
 
 := running_one (key : string) (id : string) (s : scheduler) : scheduler =
-    s |> with_work (\ w => { w ?| running = dict::insert key [ id ] w::running })
+    s |> with_work \ w => { w ?| running = dict::insert key [ id ] w::running }
 
 := start_command (key : string) (id : string) (s : scheduler) : task_command =
     StartTask { key; sources = sources s::in_box id }
@@ -234,7 +234,7 @@
 
 := delivered_to (d : delivery) (s : scheduler) : scheduler =
     { s ?| in_box = delivered s::in_box d }
-    |> with_life (\ l => { l ?| clock = l::clock + 1i32 })
+    |> with_life \ l => { l ?| clock = l::clock + 1i32 }
     |> expired !-
     |> reconciled
 

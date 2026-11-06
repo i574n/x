@@ -1,6 +1,5 @@
 import xsim_split/types.{type ListString}
-import xsim_split/part3.{closure0, closure11, closure12}
-import xsim_split/part4.{closure13}
+import xsim_split/part3.{closure0, closure11, closure12, closure13}
 
 pub fn split_cell(v0: String, v1: Int, v2: String) -> ListString {
   closure0(Nil)(#(v0, v1, v2))

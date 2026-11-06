@@ -66,7 +66,6 @@
 
 := empty_pool () : pool = { posts = []; media = []; users = [] }
 
-/// ## archive records: provenance and removal sit beside a post, keyed by its id
 :| provenance =
     | Live
     | WaybackApiJson
@@ -80,7 +79,6 @@
     | Protected
     | OtherRemoval : string
 
-/// ## survival: where each copy was seen, and what became of the post (refines archival)
 :| seen_at =
     | SeenLive
     | SeenWayback : string
@@ -129,7 +127,6 @@
     := texts = [ ""; "account that no longer exists."; "owner limits who can view their Posts."; "?" ]
     listm::map removal_of texts |> _assert_eq [ NotRemoved; AccountGone; Protected; OtherRemoval "?" ]
 
-/// ## raw archival fields -> the typed survival model (the ndjson -> spi mapping)
 := seen_of (sources : list string) (capture : string) : seen =
     sources |> spread (\ s => ? s = "live" ?> [ SeenLive ] |? s = "wayback" ?> [ SeenWayback capture ] |: [])
 
@@ -195,6 +192,7 @@
 :# a_removed_but_archived_post_shows =
     := a = archived_removal ()
     (surviving a, a::fate) |> _assert_eq (!+, Removed DeletedByAuthor)
+
 := media_in (p : pool) : list medium =
     := { media } = p
     media

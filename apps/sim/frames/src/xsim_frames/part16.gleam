@@ -1,949 +1,781 @@
-import gleam/bit_array
+import gleam/dict
+import gleam/dynamic.{type Dynamic}
+import gleam/int
 import gleam/list
-import gleam/option
-import gleam/pair
-import gleam/result
+import gleam/order
 import gleam/string
-import xsim_frames/types.{type Uh3, type Uh30, Uh30Cons, Uh30Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some}
-import xsim_frames/part1.{closure1, method4, spiral_string_length, spiral_wrap_signed, unicode_erlang_characters_to_binary}
-import xsim_frames/part2.{concat_balanced_22, method18}
+import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Us2, type Uh6, type Uh16, type Us30, type Us45, type Uh29, type Us79, type Uh32, type Uh33, type Us80, type Us81, type Uh34, type Us83, Uh0Cons, Uh0Nil, Uh14Cons, Uh14Nil, Uh16Cons, Uh16Nil, Uh1Cons, Uh2Cons, Uh32Cons, Uh32Nil, Uh33Cons, Uh33Nil, Uh34Cons, Uh34Nil, Uh3Cons, Uh3Nil, Uh6Cons, Uh6Nil, Us12Broken, Us12Held, Us13SequentialEquivalence, Us2None, Us2Some, Us3None, Us3Some, Us45Crashed, Us45Done, Us45Erred, Us54Error, Us54Ok, Us55None, Us55Some, Us56Error, Us56Ok, Us61Error, Us61Ok, Us79OnBluesky, Us79OnMastodon, Us79OnX, Us80Error, Us80Ok, Us81Error, Us81Ok, Us82None, Us82Some, Us83None, Us83Some}
+import xsim_frames/part1.{dictm_term_sorted, method18, method4, spiral_string_length, spiral_wrap_signed, unicode_erlang_nfc}
+import xsim_frames/part10.{method275, method276}
+import xsim_frames/part11.{chain_sources_285}
+import xsim_frames/part14.{closure94}
+import xsim_frames/part15.{defused_dots_by_313, defused_entities_334, led_by_358, link_length_359, method360, units_on_353}
+import xsim_frames/part2.{concat_balanced_22, masked_cells_28, masked_threads_29, method20, method25, method26}
+import xsim_frames/part6.{method166, method167}
+import xsim_frames/part9.{method258, method259, method260, method261, method262, method263}
 
-pub fn is_tld_310(v0: String) -> Bool {
-    let v1 = v0 |> string.lowercase
-    let v2 = "|"
-    let v3 = v2 <> v1 
-    let v4 = v3 <> v2 
-    let v5 = "|aaa|aarp|abb|abbott|abbvie|abc|able|abogado|abudhabi|ac|academy|accenture|accountant|accountants|"
-    let v6 = "aco|actor|ad|ads|adult|ae|aeg|aero|aetna|af|afl|africa|ag|agakhan|agency|ai|aig|airbus|airforce|"
-    let v7 = v5 <> v6 
-    let v8 = "|airtel|akdn|al|alibaba|alipay|allfinanz|allstate|ally|alsace|alstom|am|amazon|americanexpress|"
-    let v9 = "americanfamily|amex|amfam|amica|amsterdam|analytics|android|anquan|anz|ao|aol|apartments|app|apple|"
-    let v10 = v8 <> v9 
-    let v11 = "|aq|aquarelle|ar|arab|aramco|archi|army|arpa|art|arte|as|asda|asia|associates|at|athleta|attorney|"
-    let v12 = "au|auction|audi|audible|audio|auspost|author|auto|autos|aw|aws|ax|axa|az|azure|ba|baby|baidu|"
-    let v13 = v11 <> v12 
-    let v14 = "|banamex|band|bank|bar|barcelona|barclaycard|barclays|barefoot|bargains|baseball|basketball|bauhaus|"
-    let v15 = "bayern|bb|bbc|bbt|bbva|bcg|bcn|bd|be|beats|beauty|beer|berlin|best|bestbuy|bet|bf|bg|bh|bharti|bi|"
-    let v16 = v14 <> v15 
-    let v17 = "|bible|bid|bike|bing|bingo|bio|biz|bj|black|blackfriday|blockbuster|blog|bloomberg|blue|bm|bms|bmw|"
-    let v18 = "bn|bnpparibas|bo|boats|boehringer|bofa|bom|bond|boo|book|booking|bosch|bostik|boston|bot|boutique|"
-    let v19 = v17 <> v18 
-    let v20 = "|box|br|bradesco|bridgestone|broadway|broker|brother|brussels|bs|bt|build|builders|business|buy|"
-    let v21 = "buzz|bv|bw|by|bz|bzh|ca|cab|cafe|cal|call|calvinklein|cam|camera|camp|canon|capetown|capital|"
-    let v22 = v20 <> v21 
-    let v23 = "|capitalone|car|caravan|cards|care|career|careers|cars|casa|case|cash|casino|cat|catering|catholic|"
-    let v24 = "cba|cbn|cbre|cc|cd|center|ceo|cern|cf|cfa|cfd|cg|ch|chanel|channel|charity|chase|chat|cheap|"
-    let v25 = v23 <> v24 
-    let v26 = "|chintai|christmas|chrome|church|ci|cipriani|circle|cisco|citadel|citi|citic|city|ck|cl|claims|"
-    let v27 = "cleaning|click|clinic|clinique|clothing|cloud|club|clubmed|cm|cn|co|coach|codes|coffee|college|"
-    let v28 = v26 <> v27 
-    let v29 = "|cologne|com|commbank|community|company|compare|computer|comsec|condos|construction|consulting|"
-    let v30 = "contact|contractors|cooking|cool|coop|corsica|country|coupon|coupons|courses|cpa|cr|credit|"
-    let v31 = v29 <> v30 
-    let v32 = "|creditcard|creditunion|cricket|crown|crs|cruise|cruises|cu|cuisinella|cv|cw|cx|cy|cymru|cyou|cz|"
-    let v33 = "dad|dance|data|date|dating|datsun|day|dclk|dds|de|deal|dealer|deals|degree|delivery|dell|deloitte|"
-    let v34 = v32 <> v33 
-    let v35 = "|delta|democrat|dental|dentist|desi|design|dev|dhl|diamonds|diet|digital|direct|directory|discount|"
-    let v36 = "discover|dish|diy|dj|dk|dm|dnp|do|docs|doctor|dog|domains|dot|download|drive|dtv|dubai|dupont|"
-    let v37 = v35 <> v36 
-    let v38 = "|durban|dvag|dvr|dz|earth|eat|ec|eco|edeka|edu|education|ee|eg|email|emerck|energy|engineer|"
-    let v39 = "engineering|enterprises|epson|equipment|er|ericsson|erni|es|esq|estate|et|eu|eurovision|eus|events|"
-    let v40 = v38 <> v39 
-    let v41 = "|exchange|expert|exposed|express|extraspace|fage|fail|fairwinds|faith|family|fan|fans|farm|farmers|"
-    let v42 = "fashion|fast|fedex|feedback|ferrari|ferrero|fi|fidelity|fido|film|final|finance|financial|fire|"
-    let v43 = v41 <> v42 
-    let v44 = "|firestone|firmdale|fish|fishing|fit|fitness|fj|fk|flickr|flights|flir|florist|flowers|fly|fm|fo|"
-    let v45 = "foo|food|football|ford|forex|forsale|forum|foundation|fox|fr|free|fresenius|frl|frogans|frontier|"
-    let v46 = v44 <> v45 
-    let v47 = "|ftr|fujitsu|fun|fund|furniture|futbol|fyi|ga|gal|gallery|gallo|gallup|game|games|gap|garden|gay|gb|"
-    let v48 = "gbiz|gd|gdn|ge|gea|gent|genting|george|gf|gg|ggee|gh|gi|gift|gifts|gives|giving|gl|glass|gle|"
-    let v49 = v47 <> v48 
-    let v50 = "|global|globo|gm|gmail|gmbh|gmo|gmx|gn|godaddy|gold|goldpoint|golf|goodyear|goog|google|gop|got|gov|"
-    let v51 = "gp|gq|gr|grainger|graphics|gratis|green|gripe|grocery|group|gs|gt|gu|gucci|guge|guide|guitars|guru|"
-    let v52 = v50 <> v51 
-    let v53 = "|gw|gy|hair|hamburg|hangout|haus|hbo|hdfc|hdfcbank|health|healthcare|help|helsinki|here|hermes|"
-    let v54 = "hiphop|hisamitsu|hitachi|hiv|hk|hkt|hm|hn|hockey|holdings|holiday|homedepot|homegoods|homes|"
-    let v55 = v53 <> v54 
-    let v56 = "|homesense|honda|horse|hospital|host|hosting|hot|hotels|hotmail|house|how|hr|hsbc|ht|hu|hughes|"
-    let v57 = "hyatt|hyundai|ibm|icbc|ice|icu|id|ie|ieee|ifm|ikano|il|im|imamat|imdb|immo|immobilien|in|inc|"
-    let v58 = v56 <> v57 
-    let v59 = "|industries|infiniti|info|ing|ink|institute|insurance|insure|int|international|intuit|investments|"
-    let v60 = "io|ipiranga|iq|ir|irish|is|ismaili|ist|istanbul|it|itau|itv|jaguar|java|jcb|je|jeep|jetzt|jewelry|"
-    let v61 = v59 <> v60 
-    let v62 = "|jio|jll|jm|jmp|jnj|jo|jobs|joburg|jot|joy|jp|jpmorgan|jprs|juegos|kaufen|kddi|ke|kerryhotels|"
-    let v63 = "kerryproperties|kfh|kg|kh|ki|kia|kids|kim|kindle|kitchen|kiwi|km|kn|koeln|komatsu|kosher|kp|kpmg|"
-    let v64 = v62 <> v63 
-    let v65 = "|kpn|kr|krd|kred|kuokgroup|kw|ky|kyoto|kz|la|lacaixa|lamborghini|lamer|land|landrover|lanxess|"
-    let v66 = "lasalle|lat|latino|latrobe|law|lawyer|lb|lc|lds|lease|leclerc|lefrak|legal|lego|lexus|lgbt|li|lidl|"
-    let v67 = v65 <> v66 
-    let v68 = "|life|lifeinsurance|lifestyle|lighting|like|lilly|limited|limo|lincoln|link|live|living|lk|llc|llp|"
-    let v69 = "loan|loans|locker|locus|lol|london|lotte|lotto|love|lpl|lplfinancial|lr|ls|lt|ltd|ltda|lu|lundbeck|"
-    let v70 = v68 <> v69 
-    let v71 = "|luxe|luxury|lv|ly|ma|madrid|maif|maison|makeup|man|management|mango|map|market|marketing|markets|"
-    let v72 = "marriott|marshalls|mattel|mba|mc|mckinsey|md|me|med|media|meet|melbourne|meme|memorial|men|menu|"
-    let v73 = v71 <> v72 
-    let v74 = "|merck|merckmsd|mg|mh|miami|microsoft|mil|mini|mint|mit|mitsubishi|mk|ml|mlb|mls|mm|mma|mn|mo|mobi|"
-    let v75 = "mobile|moda|moe|moi|mom|monash|money|monster|mormon|mortgage|moscow|moto|motorcycles|mov|movie|mp|"
-    let v76 = v74 <> v75 
-    let v77 = "|mq|mr|ms|msd|mt|mtn|mtr|mu|museum|music|mv|mw|mx|my|mz|na|nab|nagoya|name|navy|nba|nc|ne|nec|net|"
-    let v78 = "netbank|netflix|network|neustar|new|news|next|nextdirect|nexus|nf|nfl|ng|ngo|nhk|ni|nico|nike|"
-    let v79 = v77 <> v78 
-    let v80 = "|nikon|ninja|nissan|nissay|nl|no|nokia|norton|now|nowruz|nowtv|np|nr|nra|nrw|ntt|nu|nyc|nz|obi|"
-    let v81 = "observer|office|okinawa|olayan|olayangroup|ollo|om|omega|one|ong|onl|online|ooo|open|oracle|orange|"
-    let v82 = v80 <> v81 
-    let v83 = "|org|organic|origins|osaka|otsuka|ott|ovh|pa|page|panasonic|paris|pars|partners|parts|party|pay|"
-    let v84 = "pccw|pe|pet|pf|pfizer|pg|ph|pharmacy|phd|philips|phone|photo|photography|photos|physio|pics|pictet|"
-    let v85 = v83 <> v84 
-    let v86 = "|pictures|pid|pin|ping|pink|pioneer|pizza|pk|pl|place|play|playstation|plumbing|plus|pm|pn|pnc|pohl|"
-    let v87 = "poker|politie|porn|post|pr|praxi|press|prime|pro|prod|productions|prof|progressive|promo|"
-    let v88 = v86 <> v87 
-    let v89 = "|properties|property|protection|pru|prudential|ps|pt|pub|pw|pwc|py|qa|qpon|quebec|quest|racing|"
-    let v90 = "radio|re|read|realestate|realtor|realty|recipes|red|redumbrella|rehab|reise|reisen|reit|reliance|"
-    let v91 = v89 <> v90 
-    let v92 = "|ren|rent|rentals|repair|report|republican|rest|restaurant|review|reviews|rexroth|rich|richardli|"
-    let v93 = "ricoh|ril|rio|rip|ro|rocks|rodeo|rogers|room|rs|rsvp|ru|rugby|ruhr|run|rw|rwe|ryukyu|sa|saarland|"
-    let v94 = v92 <> v93 
-    let v95 = "|safe|safety|sakura|sale|salon|samsclub|samsung|sandvik|sandvikcoromant|sanofi|sap|sarl|sas|save|"
-    let v96 = "saxo|sb|sbi|sbs|sc|scb|schaeffler|schmidt|scholarships|school|schule|schwarz|science|scot|sd|se|"
-    let v97 = v95 <> v96 
-    let v98 = "|search|seat|secure|security|seek|select|sener|services|seven|sew|sex|sexy|sfr|sg|sh|shangrila|"
-    let v99 = "sharp|shell|shia|shiksha|shoes|shop|shopping|shouji|show|si|silk|sina|singles|site|sj|sk|ski|skin|"
-    let v100 = v98 <> v99 
-    let v101 = "|sky|skype|sl|sling|sm|smart|smile|sn|sncf|so|soccer|social|softbank|software|sohu|solar|solutions|"
-    let v102 = "song|sony|soy|spa|space|sport|spot|sr|srl|ss|st|stada|staples|star|statebank|statefarm|stc|"
-    let v103 = v101 <> v102 
-    let v104 = "|stcgroup|stockholm|storage|store|stream|studio|study|style|su|sucks|supplies|supply|support|surf|"
-    let v105 = "surgery|suzuki|sv|swatch|swiss|sx|sy|sydney|systems|sz|tab|taipei|talk|taobao|target|tatamotors|"
-    let v106 = v104 <> v105 
-    let v107 = "|tatar|tattoo|tax|taxi|tc|tci|td|tdk|team|tech|technology|tel|temasek|tennis|teva|tf|tg|th|thd|"
-    let v108 = "theater|theatre|tiaa|tickets|tienda|tips|tires|tirol|tj|tjmaxx|tjx|tk|tkmaxx|tl|tm|tmall|tn|to|"
-    let v109 = v107 <> v108 
-    let v110 = "|today|tokyo|tools|top|toray|toshiba|total|tours|town|toyota|toys|tr|trade|trading|training|travel|"
-    let v111 = "travelers|travelersinsurance|trust|trv|tt|tube|tui|tunes|tushu|tv|tvs|tw|tz|ua|ubank|ubs|ug|uk|"
-    let v112 = v110 <> v111 
-    let v113 = "|unicom|university|uno|uol|ups|us|uy|uz|va|vacations|vana|vanguard|vc|ve|vegas|ventures|verisign|"
-    let v114 = "versicherung|vet|vg|vi|viajes|video|vig|viking|villas|vin|vip|virgin|visa|vision|viva|vivo|"
-    let v115 = v113 <> v114 
-    let v116 = "|vlaanderen|vn|vodka|volvo|vote|voting|voto|voyage|vu|wales|walmart|walter|wang|wanggou|watch|"
-    let v117 = "watches|weather|weatherchannel|web|webcam|weber|website|wed|wedding|weibo|weir|wf|whoswho|wien|"
-    let v118 = v116 <> v117 
-    let v119 = "|wiki|williamhill|win|windows|wine|winners|wme|woodside|work|works|world|wow|ws|wtc|wtf|xbox|xerox|"
-    let v120 = "xihuan|xin|xxx|xyz|yachts|yahoo|yamaxun|yandex|ye|yodobashi|yoga|yokohama|you|youtube|yt|yun|za|"
-    let v121 = v119 <> v120 
-    let v122 = v7 |> string.contains(v4)
-    case v122 {
-        True -> True
-        False -> {
-            let v123 = v10 |> string.contains(v4)
-            case v123 {
-                True -> True
-                False -> {
-                    let v124 = v13 |> string.contains(v4)
-                    case v124 {
-                        True -> True
-                        False -> {
-                            let v125 = v16 |> string.contains(v4)
-                            case v125 {
+pub fn linked_357(v0: Uh32, v1: Int, v2: Uh32) -> Uh32 {
+    case v0  {
+        Uh32Cons(v5, v6, v7) -> {
+            let v8 = v1 > 0
+            let v21 =
+                case v8 {
+                    True -> {
+                        spiral_wrap_signed(v1 - 1, 32)
+                    }
+                    False -> {
+                        let v12 = led_by_358("http://", 0, v0)
+                        let v16 =
+                            case v12 {
                                 True -> True
                                 False -> {
-                                    let v126 = v19 |> string.contains(v4)
-                                    case v126 {
-                                        True -> True
-                                        False -> {
-                                            let v127 = v22 |> string.contains(v4)
-                                            case v127 {
-                                                True -> True
-                                                False -> {
-                                                    let v128 = v25 |> string.contains(v4)
-                                                    case v128 {
-                                                        True -> True
-                                                        False -> {
-                                                            let v129 = v28 |> string.contains(v4)
-                                                            case v129 {
-                                                                True -> True
-                                                                False -> {
-                                                                    let v130 = v31 |> string.contains(v4)
-                                                                    case v130 {
-                                                                        True -> True
-                                                                        False -> {
-                                                                            let v131 = v34 |> string.contains(v4)
-                                                                            case v131 {
-                                                                                True -> True
-                                                                                False -> {
-                                                                                    let v132 = v37 |> string.contains(v4)
-                                                                                    case v132 {
-                                                                                        True -> True
-                                                                                        False -> {
-                                                                                            let v133 = v40 |> string.contains(v4)
-                                                                                            case v133 {
-                                                                                                True -> True
-                                                                                                False -> {
-                                                                                                    let v134 = v43 |> string.contains(v4)
-                                                                                                    case v134 {
-                                                                                                        True -> True
-                                                                                                        False -> {
-                                                                                                            let v135 = v46 |> string.contains(v4)
-                                                                                                            case v135 {
-                                                                                                                True -> True
-                                                                                                                False -> {
-                                                                                                                    let v136 = v49 |> string.contains(v4)
-                                                                                                                    case v136 {
-                                                                                                                        True -> True
-                                                                                                                        False -> {
-                                                                                                                            let v137 = v52 |> string.contains(v4)
-                                                                                                                            case v137 {
-                                                                                                                                True -> True
-                                                                                                                                False -> {
-                                                                                                                                    let v138 = v55 |> string.contains(v4)
-                                                                                                                                    case v138 {
-                                                                                                                                        True -> True
-                                                                                                                                        False -> {
-                                                                                                                                            let v139 = v58 |> string.contains(v4)
-                                                                                                                                            case v139 {
-                                                                                                                                                True -> True
-                                                                                                                                                False -> {
-                                                                                                                                                    let v140 = v61 |> string.contains(v4)
-                                                                                                                                                    case v140 {
-                                                                                                                                                        True -> True
-                                                                                                                                                        False -> {
-                                                                                                                                                            let v141 = v64 |> string.contains(v4)
-                                                                                                                                                            case v141 {
-                                                                                                                                                                True -> True
-                                                                                                                                                                False -> {
-                                                                                                                                                                    let v142 = v67 |> string.contains(v4)
-                                                                                                                                                                    case v142 {
-                                                                                                                                                                        True -> True
-                                                                                                                                                                        False -> {
-                                                                                                                                                                            let v143 = v70 |> string.contains(v4)
-                                                                                                                                                                            case v143 {
-                                                                                                                                                                                True -> True
-                                                                                                                                                                                False -> {
-                                                                                                                                                                                    let v144 = v73 |> string.contains(v4)
-                                                                                                                                                                                    case v144 {
-                                                                                                                                                                                        True -> True
-                                                                                                                                                                                        False -> {
-                                                                                                                                                                                            let v145 = v76 |> string.contains(v4)
-                                                                                                                                                                                            case v145 {
-                                                                                                                                                                                                True -> True
-                                                                                                                                                                                                False -> {
-                                                                                                                                                                                                    let v146 = v79 |> string.contains(v4)
-                                                                                                                                                                                                    case v146 {
-                                                                                                                                                                                                        True -> True
-                                                                                                                                                                                                        False -> {
-                                                                                                                                                                                                            let v147 = v82 |> string.contains(v4)
-                                                                                                                                                                                                            case v147 {
-                                                                                                                                                                                                                True -> True
-                                                                                                                                                                                                                False -> {
-                                                                                                                                                                                                                    let v148 = v85 |> string.contains(v4)
-                                                                                                                                                                                                                    case v148 {
-                                                                                                                                                                                                                        True -> True
-                                                                                                                                                                                                                        False -> {
-                                                                                                                                                                                                                            let v149 = v88 |> string.contains(v4)
-                                                                                                                                                                                                                            case v149 {
-                                                                                                                                                                                                                                True -> True
-                                                                                                                                                                                                                                False -> {
-                                                                                                                                                                                                                                    let v150 = v91 |> string.contains(v4)
-                                                                                                                                                                                                                                    case v150 {
-                                                                                                                                                                                                                                        True -> True
-                                                                                                                                                                                                                                        False -> {
-                                                                                                                                                                                                                                            let v151 = v94 |> string.contains(v4)
-                                                                                                                                                                                                                                            case v151 {
-                                                                                                                                                                                                                                                True -> True
-                                                                                                                                                                                                                                                False -> {
-                                                                                                                                                                                                                                                    let v152 = v97 |> string.contains(v4)
-                                                                                                                                                                                                                                                    case v152 {
-                                                                                                                                                                                                                                                        True -> True
-                                                                                                                                                                                                                                                        False -> {
-                                                                                                                                                                                                                                                            let v153 = v100 |> string.contains(v4)
-                                                                                                                                                                                                                                                            case v153 {
-                                                                                                                                                                                                                                                                True -> True
-                                                                                                                                                                                                                                                                False -> {
-                                                                                                                                                                                                                                                                    let v154 = v103 |> string.contains(v4)
-                                                                                                                                                                                                                                                                    case v154 {
-                                                                                                                                                                                                                                                                        True -> True
-                                                                                                                                                                                                                                                                        False -> {
-                                                                                                                                                                                                                                                                            let v155 = v106 |> string.contains(v4)
-                                                                                                                                                                                                                                                                            case v155 {
-                                                                                                                                                                                                                                                                                True -> True
-                                                                                                                                                                                                                                                                                False -> {
-                                                                                                                                                                                                                                                                                    let v156 = v109 |> string.contains(v4)
-                                                                                                                                                                                                                                                                                    case v156 {
-                                                                                                                                                                                                                                                                                        True -> True
-                                                                                                                                                                                                                                                                                        False -> {
-                                                                                                                                                                                                                                                                                            let v157 = v112 |> string.contains(v4)
-                                                                                                                                                                                                                                                                                            case v157 {
-                                                                                                                                                                                                                                                                                                True -> True
-                                                                                                                                                                                                                                                                                                False -> {
-                                                                                                                                                                                                                                                                                                    let v158 = v115 |> string.contains(v4)
-                                                                                                                                                                                                                                                                                                    case v158 {
-                                                                                                                                                                                                                                                                                                        True -> True
-                                                                                                                                                                                                                                                                                                        False -> {
-                                                                                                                                                                                                                                                                                                            let v159 = v118 |> string.contains(v4)
-                                                                                                                                                                                                                                                                                                            case v159 {
-                                                                                                                                                                                                                                                                                                                True -> True
-                                                                                                                                                                                                                                                                                                                False -> {
-                                                                                                                                                                                                                                                                                                                    let v160 = v121 |> string.contains(v4)
-                                                                                                                                                                                                                                                                                                                    case v160 {
-                                                                                                                                                                                                                                                                                                                        True -> True
-                                                                                                                                                                                                                                                                                                                        False -> {
-                                                                                                                                                                                                                                                                                                                            let v161 = "|zappos|zara|zero|zip|zm|zone|zuerich|zw|"
-                                                                                                                                                                                                                                                                                                                            let v162 = v161 |> string.contains(v4)
-                                                                                                                                                                                                                                                                                                                            v162
-                                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                }
-                                                                                                                                                                                                            }
-                                                                                                                                                                                                        }
-                                                                                                                                                                                                    }
-                                                                                                                                                                                                }
-                                                                                                                                                                                            }
-                                                                                                                                                                                        }
-                                                                                                                                                                                    }
-                                                                                                                                                                                }
-                                                                                                                                                                            }
-                                                                                                                                                                        }
-                                                                                                                                                                    }
-                                                                                                                                                                }
-                                                                                                                                                            }
-                                                                                                                                                        }
-                                                                                                                                                    }
-                                                                                                                                                }
-                                                                                                                                            }
-                                                                                                                                        }
-                                                                                                                                    }
-                                                                                                                                }
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                    }
-                                                                                                                }
-                                                                                                            }
-                                                                                                        }
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                                    led_by_358("https://", 0, v0)
                                 }
                             }
+                        case v16 {
+                            True -> {
+                                let v18 = link_length_359(v0, 0)
+                                spiral_wrap_signed(v18 - 1, 32)
+                            }
+                            False -> 0
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-pub fn closure94(capt: Nil) -> fn(String) -> Bool {
-    fn (v0) {
-        is_tld_310(v0)
-    }
-}
-
-pub fn closure95(capt: Nil) -> fn(Int) -> Int {
-    fn (v0) {
-        let v1 = spiral_wrap_signed(v0, 32)
-        v1
-    }
-}
-
-pub fn ascii_of_316(v0: String) -> Int {
-    let v1 = v0 == ""
-    case v1 {
-        True -> 0
-        False -> {
-            let v2 = spiral_string_length(v0)
-            let v3 = v2 == 1
-            case v3 {
-                True -> {
-                    let v4 = option.from_result(result.map(list.first(string.to_utf_codepoints(v0)), string.utf_codepoint_to_int))
-                    let v5 = closure95(Nil)
-                    let v6 = v4 |> option.map(v5)
-                    let v7 = v6 |> option.unwrap(0)
-                    v7
-                }
-                False -> 256
-            }
-        }
-    }
-}
-
-pub fn ascii_letter_315(v0: String) -> Bool {
-    let v1 = ascii_of_316(v0)
-    let v2 = v1 >= 65
-    let v4 =
-        case v2 {
-            True -> {
-                let v3 = v1 <= 90
-                v3
-            }
-            False -> False
-        }
-    case v4 {
-        True -> True
-        False -> {
-            let v5 = v1 >= 97
-            case v5 {
-                True -> {
-                    let v6 = v1 <= 122
-                    v6
-                }
-                False -> False
-            }
-        }
-    }
-}
-
-pub fn label_glyph_314(v0: String) -> Bool {
-    let v1 = ascii_letter_315(v0)
-    let v6 =
-        case v1 {
-            True -> True
-            False -> {
-                let v2 = ascii_of_316(v0)
-                let v3 = v2 >= 48
-                case v3 {
-                    True -> {
-                        let v4 = v2 <= 57
-                        v4
+            let #(v31, v32) =
+                case v8 {
+                    True -> #(v5, 0)
+                    False -> {
+                        let v24 = led_by_358("http://", 0, v0)
+                        let v28 =
+                            case v24 {
+                                True -> True
+                                False -> {
+                                    led_by_358("https://", 0, v0)
+                                }
+                            }
+                        let #(v29, v30) =
+                            case v28 {
+                                True -> #(v5, 23)
+                                False -> #(v5, v6)
+                            }
+                        #(v29, v30)
                     }
-                    False -> False
+                }
+            let v33 = Uh32Cons(v31, v32, v2)
+            linked_357(v7, v21, v33)
+        }
+        Uh32Nil -> {
+            method360(v2, Uh32Nil)
+        }
+    }
+}
+
+pub fn method361(v0: Uh32, v1: Int) -> Int {
+    case v0  {
+        Uh32Cons(v2, v3, v4) -> {
+            let v5 = spiral_wrap_signed(v1 + v3, 32)
+            method361(v4, v5)
+        }
+        Uh32Nil -> v1
+    }
+}
+
+pub fn closure99(capt: #(Us79)) -> fn(String) -> Int {
+    fn (v1) {
+        let #(v0) = capt
+        let v2 = units_on_353(v0, v1)
+        let v13 =
+            case v0  {
+                Us79OnBluesky(v9, v10) -> v2
+                Us79OnMastodon -> {
+                    linked_357(v2, 0, Uh32Nil)
+                }
+                Us79OnX -> {
+                    linked_357(v2, 0, Uh32Nil)
                 }
             }
-        }
-    let v8 =
-        case v6 {
-            True -> True
-            False -> {
-                let v7 = v0 == "_"
-                v7
-            }
-        }
-    case v8 {
-        True -> True
-        False -> {
-            let v9 = v0 == "-"
-            v9
-        }
+        method361(v13, 0)
     }
 }
 
-pub fn run_glyph_313(v0: String) -> Bool {
-    let v1 = label_glyph_314(v0)
-    case v1 {
-        True -> True
-        False -> {
-            let v2 = v0 == "."
-            v2
-        }
+pub fn closure100(capt: Nil) -> fn(#(String, Int)) -> Bool {
+    fn (dom) {
+        let #(v0, _v1) = dom
+        let v2 = string.to_utf_codepoints(v0)
+        let v3 = v2 |> list.reverse
+        let listm_fold = v3 |> list.fold (Uh14Nil, fn (acc, x) {
+        let v5 = x
+        let v6 = string.utf_codepoint_to_int(v5)
+        let v7 = acc
+        Uh14Cons(v6, v7)
+        })
+        let v9 = listm_fold
+        let v10 = method166()
+        let v11 = method167(v10, v9)
+        let v12 = v11 == False
+        v12 == False
     }
 }
 
-pub fn run_of_318(v0: Uh3, v1: Uh3) -> #(Uh3, Uh3) {
-    case v0  {
-        Uh3Cons(v2, v3) -> {
-            let v4 = run_glyph_313(v2)
-            case v4 {
+pub fn taken_while_366(v0: fn(#(String, Int)) -> Bool, v1: Uh32, v2: Uh32) -> #(Uh32, Uh32) {
+    case v1  {
+        Uh32Cons(v3, v4, v5) -> {
+            let v6 = v0(#(v3, v4))
+            case v6 {
                 True -> {
-                    let v5 = Uh3Cons(v2, v1)
-                    run_of_318(v3, v5)
+                    let v7 = Uh32Cons(v3, v4, v2)
+                    taken_while_366(v0, v5, v7)
                 }
                 False -> {
-                    let v8 = Uh3Nil
-                    let v9 = method4(v1, v8)
-                    #(v9, v0)
+                    let v11 = method360(v2, Uh32Nil)
+                    #(v11, v1)
                 }
             }
         }
         _ -> {
-            let v12 = Uh3Nil
-            let v13 = method4(v1, v12)
-            #(v13, v0)
+            let v15 = method360(v2, Uh32Nil)
+            #(v15, v1)
         }
     }
 }
 
-pub fn method320(v0: Uh3, v1: String) -> String {
+pub fn closure101(capt: Nil) -> fn(#(String, Int)) -> Bool {
+    fn (dom) {
+        let #(v0, _v1) = dom
+        let v2 = string.to_utf_codepoints(v0)
+        let v3 = v2 |> list.reverse
+        let listm_fold = v3 |> list.fold (Uh14Nil, fn (acc, x) {
+        let v5 = x
+        let v6 = string.utf_codepoint_to_int(v5)
+        let v7 = acc
+        Uh14Cons(v6, v7)
+        })
+        let v9 = listm_fold
+        let v10 = method166()
+        let v11 = method167(v10, v9)
+        v11 == False
+    }
+}
+
+pub fn method367(v0: Uh32, v1: Int) -> Int {
     case v0  {
-        Uh3Cons(v2, v3) -> method320(v3, v2)
+        Uh32Cons(v2, v3, v4) -> {
+            let v5 = spiral_wrap_signed(v1 + 1, 32)
+            method367(v4, v5)
+        }
+        Uh32Nil -> v1
+    }
+}
+
+pub fn method368(v0: Uh32, v1: Uh32) -> Uh32 {
+    case v0  {
+        Uh32Cons(v2, v3, v4) -> {
+            let v5 = method368(v4, v1)
+            Uh32Cons(v2, v3, v5)
+        }
+        Uh32Nil -> v1
+    }
+}
+
+pub fn split_point_365(v0: Uh32) -> #(Uh32, Uh32) {
+    let v1 = closure100(Nil)
+    let #(v3, v4) = taken_while_366(v1, v0, Uh32Nil)
+    let v5 = closure101(Nil)
+    let #(v7, v8) = taken_while_366(v5, v4, Uh32Nil)
+    let v9 =
+        case v8  {
+            Uh32Nil -> False
+            _ -> True
+        }
+    let v16 =
+        case v9 {
+            True -> {
+                let v11 = method367(v3, 0)
+                let v13 = method367(v7, 0)
+                let v14 = spiral_wrap_signed(v11 + v13, 32)
+                v14 <= 60
+            }
+            False -> False
+        }
+    case v16 {
+        True -> {
+            let v17 = method368(v3, v7)
+            #(v17, v8)
+        }
+        False -> {
+            let #(v19, v20) = taken_while_366(v5, v0, Uh32Nil)
+            let v21 =
+                case v20  {
+                    Uh32Nil -> False
+                    _ -> True
+                }
+            case v21 {
+                True -> #(v19, v20)
+                False -> {
+                    #(Uh32Nil, v0)
+                }
+            }
+        }
+    }
+}
+
+pub fn method369(v0: Uh32, v1: Uh3) -> Uh3 {
+    case v0  {
+        Uh32Cons(v2, v3, v4) -> {
+            let v5 = method369(v4, v1)
+            Uh3Cons(v2, v5)
+        }
+        Uh32Nil -> v1
+    }
+}
+
+pub fn chunk_364(v0: Int, v1: Uh32, v2: Uh32, v3: Int, v4: Uh3) -> Uh3 {
+    case v1  {
+        Uh32Cons(v15, v16, v17) -> {
+            let v18 = spiral_wrap_signed(v3 + v16, 32)
+            let v19 = v18 <= v0
+            let v22 =
+                case v19 {
+                    True -> True
+                    False -> {
+                        let v20 =
+                            case v2  {
+                                Uh32Nil -> False
+                                _ -> True
+                            }
+                        v20 == False
+                    }
+                }
+            case v22 {
+                True -> {
+                    let v23 = Uh32Cons(v15, v16, v2)
+                    chunk_364(v0, v17, v23, v18, v4)
+                }
+                False -> {
+                    let #(v25, v26) = split_point_365(v2)
+                    let v28 = method360(v25, Uh32Nil)
+                    let v29 = method368(v28, v1)
+                    let v37 =
+                        case v26  {
+                            Uh32Nil -> v4
+                            _ -> {
+                                let v31 = method360(v26, Uh32Nil)
+                                let v33 = method369(v31, Uh3Nil)
+                                let v35 = concat_balanced_22("", v33)
+                                Uh3Cons(v35, v4)
+                            }
+                        }
+                    chunk_364(v0, v29, Uh32Nil, 0, v37)
+                }
+            }
+        }
+        Uh32Nil -> {
+            let v12 =
+                case v2  {
+                    Uh32Nil -> v4
+                    _ -> {
+                        let v6 = method360(v2, Uh32Nil)
+                        let v8 = method369(v6, Uh3Nil)
+                        let v10 = concat_balanced_22("", v8)
+                        Uh3Cons(v10, v4)
+                    }
+                }
+            method4(v12, Uh3Nil)
+        }
+    }
+}
+
+pub fn chunks_of_363(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh32, v4: Int) -> Uh3 {
+    let v5 = { v1 } <> { " " }
+    let v6 = int.to_string(v4)
+    let v7 = { v5 } <> { v6 }
+    let v8 = { v7 } <> { "/" }
+    let v9 = { v8 } <> { v6 }
+    let v10 = { v9 } <> { "\n" }
+    let v11 = v2(v10)
+    let v12 = spiral_wrap_signed(v0 - v11, 32)
+    let v16 = chunk_364(v12, v3, Uh32Nil, 0, Uh3Nil)
+    let v18 = method20(v16, 0)
+    let v19 = int.to_string(v18)
+    let v20 = spiral_string_length(v19)
+    let v21 = spiral_string_length(v6)
+    let v22 = v20 > v21
+    case v22 {
+        True -> chunks_of_363(v0, v1, v2, v3, v18)
+        False -> v16
+    }
+}
+
+pub fn split_units_362(v0: Int, v1: String, v2: fn(String) -> Int, v3: Uh32) -> Uh3 {
+    chunks_of_363(v0, v1, v2, v3, 9)
+}
+
+pub fn split_cell_on_352(v0: Us79, v1: String, v2: Int, v3: String) -> Uh3 {
+    let v4 = closure99(#(v0))
+    let v5 = unicode_erlang_nfc(v3)
+    let v6 = units_on_353(v0, v5)
+    let v17 =
+        case v0  {
+            Us79OnBluesky(v13, v14) -> v6
+            Us79OnMastodon -> {
+                linked_357(v6, 0, Uh32Nil)
+            }
+            Us79OnX -> {
+                linked_357(v6, 0, Uh32Nil)
+            }
+        }
+    split_units_362(v2, v1, v4, v17)
+}
+
+pub fn split_cell_311(v0: String, v1: Int, v2: String) -> Uh3 {
+    let v4 = closure94(Nil)
+    let v5 = defused_dots_by_313(v4, v2)
+    let v6 = defused_entities_334(v5)
+    split_cell_on_352(Us79OnX, v0, v1, v6)
+}
+
+pub fn closure93(capt: #(String, Int)) -> fn(String) -> Uh3 {
+    fn (v2) {
+        let #(v0, v1) = capt
+        split_cell_311(v0, v1, v2)
+    }
+}
+
+pub fn closure92(capt: #(String)) -> fn(Int) -> fn(String) -> Uh3 {
+    fn (v1) {
+        let #(v0) = capt
+        closure93(#(v0, v1))
+    }
+}
+
+pub fn closure91(capt: Nil) -> fn(String) -> fn(Int) -> fn(String) -> Uh3 {
+    fn (v0) {
+        closure92(#(v0))
+    }
+}
+
+pub fn method371(v0: Uh33, v1: Uh33) -> Uh33 {
+    case v0  {
+        Uh33Cons(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40) -> {
+            let v41 = Uh33Cons(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v1)
+            method371(v40, v41)
+        }
+        Uh33Nil -> v1
+    }
+}
+
+pub fn ok_c102(capt: Nil) -> fn(BitArray) -> Us80 {
+    fn (v0) {
+        Us80Ok(v0)
+    }
+}
+
+pub fn method372() -> fn(BitArray) -> Us80 {
+    ok_c102(Nil)
+}
+
+pub fn error_c103(capt: Nil) -> fn(Dynamic) -> Us80 {
+    fn (v0) {
+        Us80Error(v0)
+    }
+}
+
+pub fn method373() -> fn(Dynamic) -> Us80 {
+    error_c103(Nil)
+}
+
+pub fn method374(v0: Uh16, v1: Int) -> Int {
+    case v0  {
+        Uh16Cons(v2, v3, v4) -> {
+            let v5 = spiral_wrap_signed(v1 + 1, 32)
+            method374(v4, v5)
+        }
+        Uh16Nil -> v1
+    }
+}
+
+pub fn ok_c104(capt: Nil) -> fn(#(String, Us45, String)) -> Us81 {
+    fn (dom) {
+        let #(v0, v1, v2) = dom
+        Us81Ok(v0, v1, v2)
+    }
+}
+
+pub fn method376() -> fn(#(String, Us45, String)) -> Us81 {
+    ok_c104(Nil)
+}
+
+pub fn error_c105(capt: Nil) -> fn(Nil) -> Us81 {
+    fn (dom) {
+        Us81Error
+    }
+}
+
+pub fn method377() -> fn(Nil) -> Us81 {
+    error_c105(Nil)
+}
+
+pub fn shown_inserted_378(v0: String, v1: String, v2: Bool, v3: String, v4: Uh0) -> Uh0 {
+    case v4  {
+        Uh0Cons(v5, v6, v7, v8, v9) -> {
+            let v10 = string.compare(v5, v0) == order.Lt
+            let v13 =
+                case v10 {
+                    True -> -1
+                    False -> {
+                        let v11 = string.compare(v5, v0) == order.Gt
+                        case v11 {
+                            True -> 1
+                            False -> 0
+                        }
+                    }
+                }
+            let v14 = v13 == -1
+            case v14 {
+                True -> {
+                    let v15 = shown_inserted_378(v0, v1, v2, v3, v9)
+                    Uh0Cons(v5, v6, v7, v8, v15)
+                }
+                False -> Uh0Cons(v0, v1, v2, v3, v4)
+            }
+        }
+        _ -> Uh0Cons(v0, v1, v2, v3, v4)
+    }
+}
+
+pub fn method375(v0: dict.Dict(String, #(String, Us45, String)), v1: Uh3, v2: Uh0) -> Uh0 {
+    case v1  {
+        Uh3Cons(v3, v4) -> {
+            let v5 = dict.get(v0, v3)
+            let v6 = method376()
+            let v7 = method377()
+            let v8 = case v5 { Ok(x) -> v6(x) Error(x) -> v7(x) }
+            let v15 =
+                case v8  {
+                    Us81Error -> Us82None
+                    Us81Ok(v9, v10, v11) -> Us82Some(v9, v10, v11)
+                }
+            let #(v25, v26, v27) =
+                case v15  {
+                    Us82Some(v16, v17, v18) -> #(v16, v17, v18)
+                    _ -> {
+                        let #(v22, v23, v24) =
+                            case v15  {
+                                Us82None -> panic as "dict.present: the key is not in the dict"
+                                _ -> panic as "spiral: union case ruled out by partial evaluation"
+                            }
+                        #(v22, v23, v24)
+                    }
+                }
+            let v28 =
+                case v26  {
+                    Us45Done -> True
+                    _ -> False
+                }
+            let v34 =
+                case v26  {
+                    Us45Crashed -> {
+                        "crash"
+                    }
+                    Us45Done -> {
+                        "ok"
+                    }
+                    Us45Erred -> {
+                        "error"
+                    }
+                }
+            let v35 = { v34 } <> { "|" }
+            let v36 = { v35 } <> { v27 }
+            let v37 = shown_inserted_378(v3, v25, v28, v36, v2)
+            method375(v0, v4, v37)
+        }
+        Uh3Nil -> v2
+    }
+}
+
+pub fn method379(v0: dict.Dict(String, String), v1: Uh3, v2: Uh1) -> Uh1 {
+    case v1  {
+        Uh3Cons(v3, v4) -> {
+            let v5 = dict.get(v0, v3)
+            let v6 = method260()
+            let v7 = method261()
+            let v8 = case v5 { Ok(x) -> v6(x) Error(x) -> v7(x) }
+            let v13 =
+                case v8  {
+                    Us56Error -> Us2None
+                    Us56Ok(v9) -> Us2Some(v9)
+                }
+            let v17 =
+                case v13  {
+                    Us2None -> panic as "dict.present: the key is not in the dict"
+                    Us2Some(v14) -> v14
+                }
+            let v18 = Uh1Cons(v3, v17, v2)
+            method379(v0, v4, v18)
+        }
+        Uh3Nil -> v2
+    }
+}
+
+pub fn method380(v0: dict.Dict(String, Int), v1: Uh3, v2: Uh2) -> Uh2 {
+    case v1  {
+        Uh3Cons(v3, v4) -> {
+            let v5 = dict.get(v0, v3)
+            let v6 = method275()
+            let v7 = method276()
+            let v8 = case v5 { Ok(x) -> v6(x) Error(x) -> v7(x) }
+            let v13 =
+                case v8  {
+                    Us61Error -> Us3None
+                    Us61Ok(v9) -> Us3Some(v9)
+                }
+            let v17 =
+                case v13  {
+                    Us3None -> panic as "dict.present: the key is not in the dict"
+                    Us3Some(v14) -> v14
+                }
+            let v18 = Uh2Cons(v3, v17, v2)
+            method380(v0, v4, v18)
+        }
+        Uh3Nil -> v2
+    }
+}
+
+pub fn method381(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool, v7: Uh0, v8: Uh0) -> Uh0 {
+    case v7  {
+        Uh0Cons(v9, v10, v11, v12, v13) -> {
+            let v14 = method381(v0, v1, v2, v3, v4, v5, v6, v13, v8)
+            let v15 = method25(v9, v10, v11, v12)
+            let v16 = method26(v9, v10, v11, v12, v15, v1)
+            case v16 {
+                True -> Uh0Cons(v9, v10, v11, v12, v14)
+                False -> v14
+            }
+        }
+        Uh0Nil -> v8
+    }
+}
+
+pub fn method382(v0: dict.Dict(Int, Nil), v1: Uh16, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int, v13: dict.Dict(String, Uh3), v14: Uh3, v15: dict.Dict(String, #(Us45, String)), v16: dict.Dict(String, Int), v17: dict.Dict(String, String), v18: dict.Dict(String, String), v19: dict.Dict(String, Int), v20: Int, v21: dict.Dict(String, Int), v22: dict.Dict(String, Int), v23: dict.Dict(String, Int), v24: Int, v25: Int, v26: Int, v27: Int, v28: Int, v29: dict.Dict(String, #(String, Us45, String)), v30: Bool, v31: Bool, v32: Us30, v33: Bool, v34: Int, v35: Uh29, v36: fn(Uh3) -> #(Us45, String), v37: Uh0, v38: Uh34) -> Uh34 {
+    case v37  {
+        Uh0Cons(v39, v40, v41, v42, v43) -> {
+            let v44 = Us2Some(v39)
+            let v46 = chain_sources_285(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v44, Uh3Nil)
+            let v48 = concat_balanced_22("\n", v46)
+            let #(v49, v50) = v36(v46)
+            let v51 = Uh34Cons(v48, v49, v50, v38)
+            method382(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v43, v51)
+        }
+        Uh0Nil -> v38
+    }
+}
+
+pub fn method384(v0: Uh3, v1: Uh34) -> Us83 {
+    case v1  {
+        Uh34Cons(v3, v4, v5, v6) -> {
+            let v8 = concat_balanced_22("\n", v0)
+            let v9 = v3 == v8
+            case v9 {
+                True -> Us83Some(v3, v4, v5)
+                False -> method384(v0, v6)
+            }
+        }
+        Uh34Nil -> Us83None
+    }
+}
+
+pub fn method383(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool, v7: dict.Dict(Int, Nil), v8: Uh16, v9: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v10: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v11: dict.Dict(String, String), v12: dict.Dict(String, Uh3), v13: dict.Dict(String, dict.Dict(String, Nil)), v14: dict.Dict(String, #(Int, Bool)), v15: dict.Dict(String, Nil), v16: Int, v17: Int, v18: Int, v19: Int, v20: dict.Dict(String, Uh3), v21: Uh3, v22: dict.Dict(String, #(Us45, String)), v23: dict.Dict(String, Int), v24: dict.Dict(String, String), v25: dict.Dict(String, String), v26: dict.Dict(String, Int), v27: Int, v28: dict.Dict(String, Int), v29: dict.Dict(String, Int), v30: dict.Dict(String, Int), v31: Int, v32: Int, v33: Int, v34: Int, v35: Int, v36: dict.Dict(String, #(String, Us45, String)), v37: Bool, v38: Bool, v39: Us30, v40: Bool, v41: Int, v42: Uh29, v43: Uh34, v44: fn(Uh3) -> #(Us45, String), v45: Uh0, v46: Uh0) -> Uh0 {
+    case v45  {
+        Uh0Cons(v47, v48, v49, v50, v51) -> {
+            let v52 = method383(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v51, v46)
+            let v53 = method25(v47, v48, v49, v50)
+            let v54 = method26(v47, v48, v49, v50, v53, v1)
+            let v90 =
+                case v54 {
+                    True -> {
+                        let v55 = Us2Some(v47)
+                        let v57 = chain_sources_285(v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v55, Uh3Nil)
+                        let v58 = method384(v57, v43)
+                        let #(v66, v67) =
+                            case v58  {
+                                Us83Some(v59, v60, v61) -> #(v60, v61)
+                                _ -> {
+                                    let #(v64, v65) =
+                                        case v58  {
+                                            Us83None -> v44(v57)
+                                            _ -> panic as "spiral: union case ruled out by partial evaluation"
+                                        }
+                                    #(v64, v65)
+                                }
+                            }
+                        let v68 =
+                            case v66  {
+                                Us45Done -> True
+                                _ -> False
+                            }
+                        let v74 =
+                            case v66  {
+                                Us45Crashed -> {
+                                    "crash"
+                                }
+                                Us45Done -> {
+                                    "ok"
+                                }
+                                Us45Erred -> {
+                                    "error"
+                                }
+                            }
+                        let v75 = { v74 } <> { "|" }
+                        let v76 = { v75 } <> { v67 }
+                        let v78 = ""
+                        let v79 = masked_cells_28(v76, 0, v78)
+                        let v81 = masked_threads_29(v79, 0, v78)
+                        let v83 = masked_cells_28(v50, 0, v78)
+                        let v85 = masked_threads_29(v83, 0, v78)
+                        let v86 = v68 == v49
+                        let v88 =
+                            case v86 {
+                                True -> {
+                                    v81 == v85
+                                }
+                                False -> False
+                            }
+                        v88 == False
+                    }
+                    False -> False
+                }
+            case v90 {
+                True -> Uh0Cons(v47, v48, v49, v50, v52)
+                False -> v52
+            }
+        }
+        Uh0Nil -> v46
+    }
+}
+
+pub fn method385(v0: Uh3, v1: dict.Dict(String, Nil)) -> dict.Dict(String, Nil) {
+    case v0  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = dict.insert(v1, v2, Nil)
+            method385(v3, v4)
+        }
         Uh3Nil -> v1
     }
 }
 
-pub fn last_or_319(v0: String, v1: Uh3) -> String {
-    method320(v1, v0)
-}
-
-pub fn run_piece_317(v0: String, v1: Uh3) -> #(String, Uh3, String, Uh3) {
-    let v2 = Uh3Nil
-    let #(v3, v4) = run_of_318(v1, v2)
-    let v5 = last_or_319(v0, v3)
-    #(v5, v4, v0, v3)
-}
-
-pub fn method321(v0: Uh30, v1: Uh30) -> Uh30 {
-    case v0  {
-        Uh30Cons(v2, v3, v4) -> {
-            let v5 = Uh30Cons(v2, v3, v1)
-            method321(v4, v5)
+pub fn method386(v0: dict.Dict(Int, Nil), v1: Uh16, v2: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v3: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v4: dict.Dict(String, String), v5: dict.Dict(String, Uh3), v6: dict.Dict(String, dict.Dict(String, Nil)), v7: dict.Dict(String, #(Int, Bool)), v8: dict.Dict(String, Nil), v9: Int, v10: Int, v11: Int, v12: Int, v13: dict.Dict(String, Uh3), v14: Uh3, v15: dict.Dict(String, #(Us45, String)), v16: dict.Dict(String, Int), v17: dict.Dict(String, String), v18: dict.Dict(String, String), v19: dict.Dict(String, Int), v20: Int, v21: dict.Dict(String, Int), v22: dict.Dict(String, Int), v23: dict.Dict(String, Int), v24: Int, v25: Int, v26: Int, v27: Int, v28: Int, v29: dict.Dict(String, #(String, Us45, String)), v30: Bool, v31: Bool, v32: Us30, v33: Bool, v34: Int, v35: Uh29, v36: dict.Dict(String, Nil), v37: Uh0, v38: Uh0) -> Uh0 {
+    case v37  {
+        Uh0Cons(v39, v40, v41, v42, v43) -> {
+            let v44 = method386(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, v32, v33, v34, v35, v36, v43, v38)
+            let v86 =
+                case v41 {
+                    True -> {
+                        let v45 = dict.get(v3, v39)
+                        let v46 = method258()
+                        let v47 = method259()
+                        let v48 = case v45 { Ok(x) -> v46(x) Error(x) -> v47(x) }
+                        let v55 =
+                            case v48  {
+                                Us54Error -> Us55None
+                                Us54Ok(v49, v50, v51) -> Us55Some(v49, v50, v51)
+                            }
+                        case v55  {
+                            Us55None -> False
+                            Us55Some(v56, v57, v58) -> {
+                                let v59 = dict.keys(v57)
+                                let v60 = dictm_term_sorted(v59)
+                                let listm_fold = v60 |> list.fold (Uh14Nil, fn (acc, x) {
+                                let v62 = x
+                                let v63 = acc
+                                Uh14Cons(v62, v63)
+                                })
+                                let v65 = listm_fold
+                                let v67 = method262(v65, Uh14Nil)
+                                let v69 = method263(v57, v67, -1)
+                                let v70 = dict.get(v57, v69)
+                                let v71 = method260()
+                                let v72 = method261()
+                                let v73 = case v70 { Ok(x) -> v71(x) Error(x) -> v72(x) }
+                                let v78 =
+                                    case v73  {
+                                        Us56Error -> Us2None
+                                        Us56Ok(v74) -> Us2Some(v74)
+                                    }
+                                let v82 =
+                                    case v78  {
+                                        Us2None -> panic as "dict.present: the key is not in the dict"
+                                        Us2Some(v79) -> v79
+                                    }
+                                dict.has_key(v36, v82)
+                            }
+                        }
+                    }
+                    False -> False
+                }
+            case v86 {
+                True -> Uh0Cons(v39, v40, v41, v42, v44)
+                False -> v44
+            }
         }
-        Uh30Nil -> v1
+        Uh0Nil -> v38
     }
 }
 
-pub fn pieces_from_312(v0: String, v1: Uh3, v2: Uh30) -> Uh30 {
+pub fn method387(v0: Uh6, v1: Uh6) -> Uh6 {
+    case v0  {
+        Uh6Cons(v2, v3, v4) -> {
+            let v5 = method387(v4, v1)
+            Uh6Cons(v2, v3, v5)
+        }
+        Uh6Nil -> v1
+    }
+}
+
+pub fn method388(v0: dict.Dict(String, Int), v1: Uh3, v2: Int) -> Int {
     case v1  {
         Uh3Cons(v3, v4) -> {
-            let v5 = run_glyph_313(v3)
-            case v5 {
-                True -> {
-                    let #(v6, v7, v8, v9) = run_piece_317(v0, v1)
-                    let v10 = Uh30Cons(v8, v9, v2)
-                    pieces_from_312(v6, v7, v10)
+            let v5 = dict.get(v0, v3)
+            let v6 = method275()
+            let v7 = method276()
+            let v8 = case v5 { Ok(x) -> v6(x) Error(x) -> v7(x) }
+            let v13 =
+                case v8  {
+                    Us61Error -> Us3None
+                    Us61Ok(v9) -> Us3Some(v9)
                 }
-                False -> {
-                    let v12 = Uh3Nil
-                    let v13 = Uh3Cons(v3, v12)
-                    let v14 = Uh30Cons(v0, v13, v2)
-                    pieces_from_312(v3, v4, v14)
+            let v17 =
+                case v13  {
+                    Us3None -> panic as "dict.present: the key is not in the dict"
+                    Us3Some(v14) -> v14
                 }
-            }
+            let v18 = spiral_wrap_signed(v2 + v17, 32)
+            method388(v0, v4, v18)
         }
-        Uh3Nil -> {
-            let v17 = Uh30Nil
-            method321(v2, v17)
-        }
+        Uh3Nil -> v2
     }
 }
 
-pub fn blocks_domain_324(v0: String) -> Bool {
-    let v1 = v0 == "@"
-    let v3 =
-        case v1 {
-            True -> True
-            False -> {
-                let v2 = v0 == "/"
-                v2
-            }
-        }
-    case v3 {
-        True -> True
-        False -> {
-            let v4 = ascii_of_316(v0)
-            let v5 = v4 > 127
-            v5
-        }
-    }
-}
-
-pub fn after_label_327(v0: Uh3) -> Bool {
+pub fn method389(v0: Uh6, v1: Uh3) -> Uh3 {
     case v0  {
-        Uh3Cons(v1, v2) -> label_glyph_314(v1)
-        Uh3Nil -> False
-    }
-}
-
-pub fn letters_after_329(v0: Uh3, v1: Uh3) -> #(String, Bool) {
-    case v0  {
-        Uh3Cons(v2, v3) -> {
-            let v4 = ascii_letter_315(v2)
-            case v4 {
-                True -> {
-                    let v5 = Uh3Cons(v2, v1)
-                    letters_after_329(v3, v5)
-                }
-                False -> {
-                    let v8 = Uh3Nil
-                    let v9 = method4(v1, v8)
-                    let v10 = ""
-                    let v11 = concat_balanced_22(v10, v9)
-                    let v12 = v2 == "."
-                    #(v11, v12)
-                }
-            }
-        }
-        Uh3Nil -> {
-            let v15 = Uh3Nil
-            let v16 = method4(v1, v15)
-            let v17 = ""
-            let v18 = concat_balanced_22(v17, v16)
-            #(v18, True)
-        }
-    }
-}
-
-pub fn label_before_330(v0: Uh3, v1: Uh3) -> String {
-    case v0  {
-        Uh3Cons(v2, v3) -> {
-            let v4 = label_glyph_314(v2)
-            case v4 {
-                True -> {
-                    let v5 = Uh3Cons(v2, v1)
-                    label_before_330(v3, v5)
-                }
-                False -> {
-                    let v7 = ""
-                    concat_balanced_22(v7, v1)
-                }
-            }
-        }
-        _ -> {
-            let v10 = ""
-            concat_balanced_22(v10, v1)
-        }
-    }
-}
-
-pub fn tld_ok_331(v0: fn(String) -> Bool, v1: String, v2: String) -> Bool {
-    let v3 = spiral_string_length(v2)
-    let v4 = v3 >= 2
-    let v6 =
-        case v4 {
-            True -> {
-                let v5 = v3 <= 63
-                v5
-            }
-            False -> False
-        }
-    let v8 =
-        case v6 {
-            True -> v0(v2)
-            False -> False
-        }
-    case v8 {
-        True -> {
-            let v9 = v3 != 2
-            case v9 {
-                True -> True
-                False -> {
-                    let v10 = spiral_string_length(v1)
-                    let v11 = v10 > 2
-                    v11
-                }
-            }
-        }
-        False -> False
-    }
-}
-
-pub fn linked_dot_328(v0: fn(String) -> Bool, v1: Uh3, v2: Uh3) -> Bool {
-    let v3 = Uh3Nil
-    let #(v4, v5) = letters_after_329(v2, v3)
-    let v6 = Uh3Nil
-    let v7 = label_before_330(v1, v6)
-    case v5 {
-        True -> {
-            let v8 = tld_ok_331(v0, v7, v4)
-            case v8 {
-                True -> True
-                False -> {
-                    let v9 = v7 == "t"
-                    case v9 {
-                        True -> {
-                            let v10 = v4 == "co"
-                            v10
-                        }
-                        False -> False
-                    }
-                }
-            }
-        }
-        False -> False
-    }
-}
-
-pub fn defusable_326(v0: fn(String) -> Bool, v1: Uh3, v2: String, v3: Uh3) -> Bool {
-    let v4 = v2 == "."
-    let v6 =
-        case v4 {
-            True -> after_label_327(v1)
-            False -> False
-        }
-    case v6 {
-        True -> linked_dot_328(v0, v1, v3)
-        False -> False
-    }
-}
-
-pub fn defused_run_325(v0: fn(String) -> Bool, v1: Uh3, v2: Uh3, v3: Uh3) -> Uh3 {
-    case v2  {
-        Uh3Cons(v4, v5) -> {
-            let v6 = Uh3Cons(v4, v1)
-            let v7 = defusable_326(v0, v1, v4, v5)
-            let v10 =
-                case v7 {
-                    True -> {
-                        let v8 = unicode_erlang_characters_to_binary([8203])
-                        Uh3Cons(v8, v3)
-                    }
-                    False -> v3
-                }
-            let v11 = Uh3Cons(v4, v10)
-            defused_run_325(v0, v6, v5, v11)
-        }
-        Uh3Nil -> {
-            let v13 = Uh3Nil
-            method4(v3, v13)
-        }
-    }
-}
-
-pub fn run_text_323(v0: fn(String) -> Bool, v1: String, v2: Uh3) -> Uh3 {
-    let v3 = blocks_domain_324(v1)
-    case v3 {
-        True -> v2
-        False -> {
-            let v4 = Uh3Nil
-            let v5 = Uh3Nil
-            defused_run_325(v0, v4, v2, v5)
-        }
-    }
-}
-
-pub fn method322(v0: fn(String) -> Bool, v1: Uh30, v2: Uh3) -> Uh3 {
-    case v1  {
-        Uh30Cons(v3, v4, v5) -> {
-            let v6 = method322(v0, v5, v2)
-            let v7 = run_text_323(v0, v3, v4)
-            method18(v7, v6)
-        }
-        Uh30Nil -> v2
-    }
-}
-
-pub fn defused_dots_by_311(v0: fn(String) -> Bool, v1: String) -> String {
-    let v2 = ""
-    let v3 = string.to_graphemes(v1)
-    let v4 = v3 |> list.reverse
-    let v5 = Uh3Nil
-    let listm_fold = v4 |> list.fold (v5, fn (acc, x) {
-    let v6 = x
-    let v7 = acc
-    let v8 = Uh3Cons(v6, v7)
-    v8
-    })
-    let v9 = listm_fold
-    let v10 = Uh30Nil
-    let v11 = pieces_from_312(v2, v9, v10)
-    let v12 = Uh3Nil
-    let v13 = method322(v0, v11, v12)
-    concat_balanced_22(v2, v13)
-}
-
-pub fn word_glyph_337(v0: String) -> Bool {
-    let v1 = label_glyph_314(v0)
-    case v1 {
-        True -> {
-            let v2 = v0 != "-"
-            v2
-        }
-        False -> False
-    }
-}
-
-pub fn word_length_336(v0: Uh3, v1: Int) -> #(Int, Uh3) {
-    case v0  {
-        Uh3Cons(v2, v3) -> {
-            let v4 = word_glyph_337(v2)
-            case v4 {
-                True -> {
-                    let v5 = spiral_wrap_signed(v1 + 1, 32)
-                    word_length_336(v3, v5)
-                }
-                False -> #(v1, v0)
-            }
-        }
-        _ -> #(v1, v0)
-    }
-}
-
-pub fn mention_quiet_338(v0: String) -> Bool {
-    let v1 = word_glyph_337(v0)
-    let v18 =
-        case v1 {
-            True -> True
-            False -> {
-                let v2 = spiral_string_length(v0)
-                let v3 = v2 == 1
-                case v3 {
-                    True -> {
-                        let v4 = v0 == ""
-                        let v15 =
-                            case v4 {
-                                True -> 0
-                                False -> {
-                                    let v5 = "!#$%&*@"
-                                    let v6 = option.from_result(result.map(string.split_once(v5, v0), pair.first))
-                                    let v7 = closure1(Nil)
-                                    let v8 = v6 |> option.map(v7)
-                                    let v9 = Us2None
-                                    let v10 = v8 |> option.unwrap(v9)
-                                    case v10  {
-                                        Us2None -> -1
-                                        Us2Some(v11) -> {
-                                            let v12 = bit_array.byte_size(bit_array.from_string(v11))
-                                            v12
-                                        }
-                                    }
-                                }
+        Uh6Cons(v2, v3, v4) -> {
+            let v5 = method389(v4, v1)
+            let v12 =
+                case v3  {
+                    Us12Broken(v6) -> {
+                        let v7 =
+                            case v2  {
+                                Us13SequentialEquivalence -> True
+                                _ -> False
                             }
-                        let v16 = v15 >= 0
-                        v16
-                    }
-                    False -> False
-                }
-            }
-        }
-    let v20 =
-        case v18 {
-            True -> True
-            False -> {
-                let v19 = v0 == "＠"
-                v19
-            }
-        }
-    let v21 = v20 == False
-    v21
-}
-
-pub fn rt_letters_340(v0: String, v1: String) -> Bool {
-    let v2 = spiral_string_length(v0)
-    let v3 = v2 == 1
-    let v17 =
-        case v3 {
-            True -> {
-                let v4 = v0 == ""
-                let v15 =
-                    case v4 {
-                        True -> 0
-                        False -> {
-                            let v5 = "tT"
-                            let v6 = option.from_result(result.map(string.split_once(v5, v0), pair.first))
-                            let v7 = closure1(Nil)
-                            let v8 = v6 |> option.map(v7)
-                            let v9 = Us2None
-                            let v10 = v8 |> option.unwrap(v9)
-                            case v10  {
-                                Us2None -> -1
-                                Us2Some(v11) -> {
-                                    let v12 = bit_array.byte_size(bit_array.from_string(v11))
-                                    v12
-                                }
-                            }
+                        case v7 {
+                            True -> v6
+                            False -> Uh3Nil
                         }
                     }
-                let v16 = v15 >= 0
-                v16
-            }
-            False -> False
-        }
-    case v17 {
-        True -> {
-            let v18 = spiral_string_length(v1)
-            let v19 = v18 == 1
-            case v19 {
-                True -> {
-                    let v20 = v1 == ""
-                    let v31 =
-                        case v20 {
-                            True -> 0
-                            False -> {
-                                let v21 = "rR"
-                                let v22 = option.from_result(result.map(string.split_once(v21, v1), pair.first))
-                                let v23 = closure1(Nil)
-                                let v24 = v22 |> option.map(v23)
-                                let v25 = Us2None
-                                let v26 = v24 |> option.unwrap(v25)
-                                case v26  {
-                                    Us2None -> -1
-                                    Us2Some(v27) -> {
-                                        let v28 = bit_array.byte_size(bit_array.from_string(v27))
-                                        v28
-                                    }
-                                }
-                            }
-                        }
-                    let v32 = v31 >= 0
-                    v32
+                    Us12Held -> Uh3Nil
                 }
-                False -> False
-            }
+            method18(v12, v5)
         }
-        False -> False
-    }
-}
-
-pub fn closure96(capt: Nil) -> fn(String) -> Bool {
-    fn (v0) {
-        let v1 = label_glyph_314(v0)
-        case v1 {
-            True -> True
-            False -> {
-                let v2 = spiral_string_length(v0)
-                let v3 = v2 == 1
-                case v3 {
-                    True -> {
-                        let v4 = v0 == ""
-                        let v15 =
-                            case v4 {
-                                True -> 0
-                                False -> {
-                                    let v5 = "+~."
-                                    let v6 = option.from_result(result.map(string.split_once(v5, v0), pair.first))
-                                    let v7 = closure1(Nil)
-                                    let v8 = v6 |> option.map(v7)
-                                    let v9 = Us2None
-                                    let v10 = v8 |> option.unwrap(v9)
-                                    case v10  {
-                                        Us2None -> -1
-                                        Us2Some(v11) -> {
-                                            let v12 = bit_array.byte_size(bit_array.from_string(v11))
-                                            v12
-                                        }
-                                    }
-                                }
-                            }
-                        let v16 = v15 >= 0
-                        v16
-                    }
-                    False -> False
-                }
-            }
-        }
+        Uh6Nil -> v1
     }
 }

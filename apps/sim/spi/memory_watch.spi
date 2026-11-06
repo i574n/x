@@ -68,7 +68,7 @@
     | Some line => line
     | None => ""
 
-:= tree_sampler (script : string) (root : i32) : sample_source = FreshLine (\ () => sample_line script root)
+:= tree_sampler (script : string) (root : i32) : sample_source = FreshLine \ () => sample_line script root
 
 := two_ticks_peak (w : erlang_process::subject watch_message) : string =
     otp_actor::send w Tick

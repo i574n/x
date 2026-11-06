@@ -189,49 +189,42 @@ fn resume_plan_of_0(mut v0: Rc<str>) -> (i32, i32, Rc<str>) {
                 let v27: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v26).as_ref().clone()));
                 let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                 let v29: Rc<str> = Rc::<str>::from((*v27.borrow()).join(&*v28));
-                let v30: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("["); } LIT.with(|lit| lit.clone()) };
-                let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30, v29));
-                let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) };
-                let v33: Rc<str> = Rc::<str>::from(format!("{}{}", v31, v32));
-                (0i32, v18, v33)
+                let v30: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("["); } LIT.with(|lit| lit.clone()) }, v29));
+                let v31: Rc<str> = Rc::<str>::from(format!("{}{}", v30, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) }));
+                (0i32, v18, v31)
             } else {
-                let v34: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no posted thread found before the resume point; nothing posted"); } LIT.with(|lit| lit.clone()) };
-                (4i32, 0i32, v34)
+                let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("no posted thread found before the resume point; nothing posted"); } LIT.with(|lit| lit.clone()) };
+                (4i32, 0i32, v32)
             }
         }
         _ => {
-            let v64: Rc<str> = match v17 {
-                US0::US0_MorePostedThanPlanned(v57) => {
-                    let v57: i32 = v57;
-                    let v58: Rc<str> = Rc::<str>::from((v57).to_string());
-                    let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the thread already has "); } LIT.with(|lit| lit.clone()) };
-                    let v60: Rc<str> = Rc::<str>::from(format!("{}{}", v59, v58));
-                    let v61: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" posts, more than the file plans; nothing posted"); } LIT.with(|lit| lit.clone()) };
-                    let v62: Rc<str> = Rc::<str>::from(format!("{}{}", v60, v61));
-                    v62
+            let v54: Rc<str> = match v17 {
+                US0::US0_MorePostedThanPlanned(v49) => {
+                    let v49: i32 = v49;
+                    let v50: Rc<str> = Rc::<str>::from((v49).to_string());
+                    let v51: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the thread already has "); } LIT.with(|lit| lit.clone()) }, v50));
+                    let v52: Rc<str> = Rc::<str>::from(format!("{}{}", v51, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" posts, more than the file plans; nothing posted"); } LIT.with(|lit| lit.clone()) }));
+                    v52
                 }
-                US0::US0_PostDiffers(v38, v39, v40) => {
-                    let v38: i32 = v38;
-                    let v39: Rc<str> = v39;
-                    let v40: Rc<str> = v40;
-                    let v41: Rc<str> = Rc::<str>::from((v38).to_string());
-                    let v42: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post "); } LIT.with(|lit| lit.clone()) };
-                    let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, v41));
-                    let v44: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of the thread differs from post "); } LIT.with(|lit| lit.clone()) };
-                    let v46: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v43, v44)), v41));
-                    let v47: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of the file"); } LIT.with(|lit| lit.clone()) };
-                    let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v47));
-                    let v49: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (found '"); } LIT.with(|lit| lit.clone()) };
-                    let v51: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v48, v49)), v40));
-                    let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("', planned '"); } LIT.with(|lit| lit.clone()) };
-                    let v54: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v51, v52)), v39));
-                    let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'); nothing posted"); } LIT.with(|lit| lit.clone()) };
-                    let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v54, v55));
-                    v56
+                US0::US0_PostDiffers(v36, v37, v38) => {
+                    let v36: i32 = v36;
+                    let v37: Rc<str> = v37;
+                    let v38: Rc<str> = v38;
+                    let v39: Rc<str> = Rc::<str>::from((v36).to_string());
+                    let v40: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post "); } LIT.with(|lit| lit.clone()) }, v39.clone()));
+                    let v41: Rc<str> = Rc::<str>::from(format!("{}{}", v40, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of the thread differs from post "); } LIT.with(|lit| lit.clone()) }));
+                    let v42: Rc<str> = Rc::<str>::from(format!("{}{}", v41, v39));
+                    let v43: Rc<str> = Rc::<str>::from(format!("{}{}", v42, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of the file"); } LIT.with(|lit| lit.clone()) }));
+                    let v44: Rc<str> = Rc::<str>::from(format!("{}{}", v43, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" (found '"); } LIT.with(|lit| lit.clone()) }));
+                    let v45: Rc<str> = Rc::<str>::from(format!("{}{}", v44, v38));
+                    let v46: Rc<str> = Rc::<str>::from(format!("{}{}", v45, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("', planned '"); } LIT.with(|lit| lit.clone()) }));
+                    let v47: Rc<str> = Rc::<str>::from(format!("{}{}", v46, v37));
+                    let v48: Rc<str> = Rc::<str>::from(format!("{}{}", v47, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'); nothing posted"); } LIT.with(|lit| lit.clone()) }));
+                    v48
                 }
                 _ => unreachable!(),
             };
-            (4i32, 0i32, v64)
+            (4i32, 0i32, v54)
         }
     }
 }

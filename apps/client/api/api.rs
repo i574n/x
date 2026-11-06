@@ -146,87 +146,82 @@ fn classified_5(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> US0 {
         if v7 {
             let v8: i32 = (v2.clone().len() as i32);
             let v9: bool = v8 <= 300i32;
-            let mut v13: Rc<str> = if v9 {
+            let v12: Rc<str> = if v9 {
                 v2
             } else {
                 let v10: Rc<str> = string_slice(&v2, 0i32 as i64, 299i32 as i64);
-                let v11: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
-                let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v10, v11));
-                v12
+                let v11: Rc<str> = Rc::<str>::from(format!("{}{}", v10, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) }));
+                v11
             };
-            let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) };
-            let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v0));
-            let v16: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-            let v18: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v15, v16)), v13));
-            US0::US0_Error(v18)
+            let mut v13: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unexpected X API reply for "); } LIT.with(|lit| lit.clone()) }, v0));
+            let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v13, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) }));
+            let v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, v12));
+            US0::US0_Error(v15)
         } else {
             US0::US0_Ok(v2)
         }
     } else {
-        let v22: bool = v1 == 0i32;
-        let v63: Rc<str> = if v22 {
-            let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not reach the X API for "); } LIT.with(|lit| lit.clone()) };
-            let mut v24: Rc<str> = Rc::<str>::from(format!("{}{}", v23, v0));
-            let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-            let v27: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v24, v25)), v2));
-            v27
+        let v19: bool = v1 == 0i32;
+        let v53: Rc<str> = if v19 {
+            let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("could not reach the X API for "); } LIT.with(|lit| lit.clone()) }, v0));
+            let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) }));
+            let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v2));
+            v22
         } else {
-            let v28: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v2).unwrap_or_default();
-            let v29: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("title"); } LIT.with(|lit| lit.clone()) };
-            let v30: serde_json::Value = v28.get(&*v29).cloned().unwrap_or_default();
-            let v31: Rc<str> = Rc::<str>::from(v30.as_str().unwrap_or(""));
-            let v32: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("detail"); } LIT.with(|lit| lit.clone()) };
-            let v33: serde_json::Value = v28.get(&*v32).cloned().unwrap_or_default();
-            let v34: Rc<str> = Rc::<str>::from(v33.as_str().unwrap_or(""));
-            let v35: bool = &*v31 != "";
-            let v37: bool = if v35 {
-                let v36: bool = &*v34 != "";
+            let v23: serde_json::Value = serde_json::from_str::<serde_json::Value>(&*v2).unwrap_or_default();
+            let mut v24: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("title"); } LIT.with(|lit| lit.clone()) };
+            let v25: serde_json::Value = v23.get(&*v24).cloned().unwrap_or_default();
+            let v26: Rc<str> = Rc::<str>::from(v25.as_str().unwrap_or(""));
+            let v27: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("detail"); } LIT.with(|lit| lit.clone()) };
+            let v28: serde_json::Value = v23.get(&*v27).cloned().unwrap_or_default();
+            let v29: Rc<str> = Rc::<str>::from(v28.as_str().unwrap_or(""));
+            let v30: bool = &*v26 != "";
+            let v32: bool = if v30 {
+                let v31: bool = &*v29 != "";
+                v31
+            } else {
+                false
+            };
+            let v34: bool = if v32 {
+                let v33: bool = &*v26 != &*v29;
+                v33
+            } else {
+                false
+            };
+            let v46: Rc<str> = if v34 {
+                let v35: Rc<str> = Rc::<str>::from(format!("{}{}", v26, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) }));
+                let v36: Rc<str> = Rc::<str>::from(format!("{}{}", v35, v29));
                 v36
             } else {
-                false
-            };
-            let v39: bool = if v37 {
-                let v38: bool = &*v31 != &*v34;
-                v38
-            } else {
-                false
-            };
-            let v53: Rc<str> = if v39 {
-                let v40: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-                let v42: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v31, v40)), v34));
-                v42
-            } else {
-                let v43: bool = &*v34 != "";
-                if v43 {
-                    v34
+                let v37: bool = &*v29 != "";
+                if v37 {
+                    v29
                 } else {
-                    if v35 {
-                        v31
+                    if v30 {
+                        v26
                     } else {
-                        let v44: Rc<str> = single_line_6(v2);
-                        let v45: i32 = (v44.clone().len() as i32);
-                        let v46: bool = v45 <= 300i32;
-                        if v46 {
-                            v44
+                        let v38: Rc<str> = single_line_6(v2);
+                        let v39: i32 = (v38.clone().len() as i32);
+                        let v40: bool = v39 <= 300i32;
+                        if v40 {
+                            v38
                         } else {
-                            let v47: Rc<str> = string_slice(&v44, 0i32 as i64, 299i32 as i64);
-                            let v48: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) };
-                            let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v47, v48));
-                            v49
+                            let v41: Rc<str> = string_slice(&v38, 0i32 as i64, 299i32 as i64);
+                            let v42: Rc<str> = Rc::<str>::from(format!("{}{}", v41, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("..."); } LIT.with(|lit| lit.clone()) }));
+                            v42
                         }
                     }
                 }
             };
-            let v54: Rc<str> = Rc::<str>::from((v1).to_string());
-            let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) };
-            let v56: Rc<str> = Rc::<str>::from(format!("{}{}", v55, v54));
-            let v57: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) };
-            let v59: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v56, v57)), v0));
-            let v60: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) };
-            let v62: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v59, v60)), v53));
-            v62
+            let v47: Rc<str> = Rc::<str>::from((v1).to_string());
+            let v48: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("X API answered "); } LIT.with(|lit| lit.clone()) }, v47));
+            let v49: Rc<str> = Rc::<str>::from(format!("{}{}", v48, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" for "); } LIT.with(|lit| lit.clone()) }));
+            let v50: Rc<str> = Rc::<str>::from(format!("{}{}", v49, v0));
+            let v51: Rc<str> = Rc::<str>::from(format!("{}{}", v50, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(": "); } LIT.with(|lit| lit.clone()) }));
+            let v52: Rc<str> = Rc::<str>::from(format!("{}{}", v51, v46));
+            v52
         };
-        US0::US0_Error(v63)
+        US0::US0_Error(v53)
     }
 }
 fn classified_reply_4(mut v0: Rc<str>, mut v1: i32, mut v2: Rc<str>) -> (i32, Rc<str>) {

@@ -7,7 +7,6 @@
 :< prelude
 :< run_signals
 
-/// ## a sim run's progress on iggy: the client's run_signals codec posted over lib's typed httpc
 :== iggy = { base : string; auth : string; ca : string }
 
 := env_text (name : string) : string = env::get_environment_variable name |> sm'::trim

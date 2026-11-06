@@ -59,7 +59,7 @@
     "[{\"text\":\"c1 1/1\\na\",\"weight\":8}]"
     |> parse_json
     |> collect framed_post_of
-    |> each (\ p => p::text, p::weight)
+    |> each \ p => p::text, p::weight
     |> _assert_eq [ text, 8i32 ]
 
 ///> _

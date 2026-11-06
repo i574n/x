@@ -23,7 +23,7 @@
 
 := guard_choices (own : handle) (watch : erlang_process::monitor) : erlang_process::selector guard_signal =
     erlang_process::new_selector ()
-    |> erlang_process::select_map own (\ () => CancelWork)
+    |> erlang_process::select_map own \ () => CancelWork
     |> erlang_process::select_specific_monitor watch WorkDown
 
 := down_reported (report : reporter) (t : guarded_task) (d : erlang_process::down) : () =

@@ -1,741 +1,322 @@
-import gleam/dynamic.{type Dynamic}
 import gleam/erlang/atom
 import gleam/erlang/process
 import gleam/int
+import gleam/list
+import gleam/option
 import gleam/otp/actor
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh3, type Us45, type Uh29, type Us68, type Us70, type Us71, Uh29Cons, Uh29Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us45Crashed, Us45Done, Us45Erred, Us68Swap, Us71FreshLine, Us72Error, Us72Ok, Us73Closed, Us73Failed, Us73Refused, Us73TimedOut, Us74Error, Us74Ok, Us75Error, Us75Ok, Us76Error, Us76Ok}
-import xsim_frames/part1.{count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, unicode_erlang_characters_to_binary}
-import xsim_frames/part10.{hash_text_239}
-import xsim_frames/part13.{method299, method300}
-import xsim_frames/part2.{delimited_21, method20}
-import xsim_frames/part3.{method56, method57}
+import xsim_frames/types.{type Uh3, type Us70, type Uh31, Uh31Cons, Uh31Nil, Uh3Cons, Uh3Nil, Us3None, Us3Some, Us72Error, Us72Ok, Us73Closed, Us73Failed, Us73Refused, Us73TimedOut, Us74Error, Us74Ok, Us75Error, Us75Ok, Us76Error, Us76Ok}
+import xsim_frames/part1.{count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, method18, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
+import xsim_frames/part13.{closure86}
+import xsim_frames/part2.{concat_balanced_22}
+import xsim_frames/part3.{method58, method59}
 
-pub fn closure70(capt: #(String)) -> fn(Uh3) -> #(Us45, String) {
+pub fn closure85(capt: #(process.Subject(Us70))) -> fn(Int) -> Uh3 {
     fn (v1) {
         let #(v0) = capt
-        let v2 = Uh29Nil
-        let v3 = method299(v1, v2)
-        let v4 = []
-        let v5 = method300(v3, v4)
-        let v6 = erlang_term_coerce(v5)
-        let v7 = "cells"
-        let v8 = atom.create(v7)
-        let v9 = erlang_term_coerce(v8)
-        let v10 = erlang_term_coerce(v9)
-        let v11 = erlang_term_coerce(v6)
-        let v12 = []
-        let v13 = [v11, ..v12]
-        let v14 = [v10, ..v13]
-        let v15 = erlang_term_tuple(v14)
-        let v16 = []
-        let v17 = [v15, ..v16]
-        let v18 = erlang_term_coerce(v17)
-        let v19 = "maps"
-        let v20 = atom.create(v19)
-        let v21 = "from_list"
-        let v22 = atom.create(v21)
-        let v23 = []
-        let v24 = [v18, ..v23]
-        let v25 = erlang_term_apply(v20, v22, v24)
-        let v26 = erlang_term_coerce(v0)
-        let v27 = erlang_term_coerce(False)
-        let v28 = "memo"
-        let v29 = atom.create(v28)
-        let v30 = erlang_term_coerce(v29)
-        let v31 = []
-        let v32 = [v27, ..v31]
-        let v33 = [v30, ..v32]
-        let v34 = erlang_term_tuple(v33)
-        let v35 = "root"
-        let v36 = atom.create(v35)
-        let v37 = erlang_term_coerce(v36)
-        let v38 = []
-        let v39 = [v26, ..v38]
-        let v40 = [v37, ..v39]
-        let v41 = erlang_term_tuple(v40)
-        let v42 = "spiral_lib"
-        let v43 = atom.create(v42)
-        let v44 = erlang_term_coerce(v43)
-        let v45 = []
-        let v46 = [v26, ..v45]
-        let v47 = [v44, ..v46]
-        let v48 = erlang_term_tuple(v47)
-        let v49 = []
-        let v50 = [v34, ..v49]
-        let v51 = [v48, ..v50]
-        let v52 = [v41, ..v51]
-        let v53 = erlang_term_coerce(v52)
-        let v54 = "Elixir.Spiral.Cells.Notebook"
-        let v55 = atom.create(v54)
-        let v56 = "evaluate"
-        let v57 = atom.create(v56)
-        let v58 = []
-        let v59 = [v53, ..v58]
-        let v60 = [v25, ..v59]
-        let v61 = erlang_term_apply(v55, v57, v60)
-        let v62 = "erlang"
-        let v63 = atom.create(v62)
-        let v64 = "is_map"
-        let v65 = atom.create(v64)
-        let v66 = []
-        let v67 = [v61, ..v66]
-        let v68 = erlang_term_apply(v63, v65, v67)
-        let v69 = erlang_term_coerce(v68)
-        let #(v180, v181) =
-            case v69 {
-                True -> {
-                    let v70 = 0
-                    let v71 = method20(v1, v70)
-                    let v72 = spiral_wrap_signed(v71 - 1, 32)
-                    let v73 = "nil"
-                    let v74 = atom.create(v73)
-                    let v75 = erlang_term_coerce(v74)
-                    let v76 = "status"
-                    let v77 = atom.create(v76)
-                    let v78 = erlang_term_coerce(v77)
-                    let v79 = erlang_term_coerce(v78)
-                    let v80 = erlang_term_coerce(v75)
-                    let v81 = atom.create(v19)
-                    let v82 = "get"
-                    let v83 = atom.create(v82)
-                    let v84 = []
-                    let v85 = [v80, ..v84]
-                    let v86 = [v61, ..v85]
-                    let v87 = [v79, ..v86]
-                    let v88 = erlang_term_apply(v81, v83, v87)
-                    let v89 = erlang_term_coerce(v88)
-                    let v90 = "ok"
-                    let v91 = atom.create(v90)
-                    let v92 = erlang_term_coerce(v91)
-                    let v93 = v89 == v92
-                    let v96 =
-                        case v93 {
-                            True -> Us45Done
-                            False -> Us45Erred
-                        }
-                    let v97 = atom.create(v73)
-                    let v98 = erlang_term_coerce(v97)
-                    let v99 = atom.create(v76)
-                    let v100 = erlang_term_coerce(v99)
-                    let v101 = erlang_term_coerce(v100)
-                    let v102 = erlang_term_coerce(v98)
-                    let v103 = atom.create(v19)
-                    let v104 = atom.create(v82)
-                    let v105 = []
-                    let v106 = [v102, ..v105]
-                    let v107 = [v61, ..v106]
-                    let v108 = [v101, ..v107]
-                    let v109 = erlang_term_apply(v103, v104, v108)
-                    let v110 = erlang_term_coerce(v109)
-                    let v111 = atom.create(v19)
-                    let v112 = "new"
-                    let v113 = atom.create(v112)
-                    let v114 = []
-                    let v115 = erlang_term_apply(v111, v113, v114)
-                    let v116 = "verdicts"
-                    let v117 = atom.create(v116)
-                    let v118 = erlang_term_coerce(v117)
-                    let v119 = erlang_term_coerce(v118)
-                    let v120 = erlang_term_coerce(v115)
-                    let v121 = atom.create(v19)
-                    let v122 = atom.create(v82)
-                    let v123 = []
-                    let v124 = [v120, ..v123]
-                    let v125 = [v61, ..v124]
-                    let v126 = [v119, ..v125]
-                    let v127 = erlang_term_apply(v121, v122, v126)
-                    let v128 = erlang_term_coerce(v127)
-                    let v129 = atom.create(v73)
-                    let v130 = erlang_term_coerce(v129)
-                    let v131 = erlang_term_coerce(v72)
-                    let v132 = erlang_term_coerce(v130)
-                    let v133 = atom.create(v19)
-                    let v134 = atom.create(v82)
-                    let v135 = []
-                    let v136 = [v132, ..v135]
-                    let v137 = [v128, ..v136]
-                    let v138 = [v131, ..v137]
-                    let v139 = erlang_term_apply(v133, v134, v138)
-                    let v140 = erlang_term_coerce(v139)
-                    let v141 = atom.create(v19)
-                    let v142 = atom.create(v112)
-                    let v143 = []
-                    let v144 = erlang_term_apply(v141, v142, v143)
-                    let v145 = "outputs"
-                    let v146 = atom.create(v145)
-                    let v147 = erlang_term_coerce(v146)
-                    let v148 = erlang_term_coerce(v147)
-                    let v149 = erlang_term_coerce(v144)
-                    let v150 = atom.create(v19)
-                    let v151 = atom.create(v82)
-                    let v152 = []
-                    let v153 = [v149, ..v152]
-                    let v154 = [v61, ..v153]
-                    let v155 = [v148, ..v154]
-                    let v156 = erlang_term_apply(v150, v151, v155)
-                    let v157 = erlang_term_coerce(v156)
-                    let v158 = atom.create(v73)
-                    let v159 = erlang_term_coerce(v158)
-                    let v160 = erlang_term_coerce(v72)
-                    let v161 = erlang_term_coerce(v159)
-                    let v162 = atom.create(v19)
-                    let v163 = atom.create(v82)
-                    let v164 = []
-                    let v165 = [v161, ..v164]
-                    let v166 = [v157, ..v165]
-                    let v167 = [v160, ..v166]
-                    let v168 = erlang_term_apply(v162, v163, v167)
-                    let v169 = erlang_term_coerce(v168)
-                    let v170 = []
-                    let v171 = [v169, ..v170]
-                    let v172 = [v140, ..v171]
-                    let v173 = [v110, ..v172]
-                    let v174 = erlang_term_tuple(v173)
-                    let v175 = string.inspect(v174)
-                    #(v96, v175)
-                }
-                False -> {
-                    let v176 = string.inspect(v61)
-                    let v177 = "unexpected "
-                    let v178 = v177 <> v176 
-                    let v179 = Us45Erred
-                    #(v179, v178)
-                }
-            }
-        #(v180, v181)
-    }
-}
-
-pub fn closure72(capt: #(String)) -> fn(Us68) -> actor.Next(String, Us68) {
-    fn (v1) {
-        let #(v0) = capt
-        case v1  {
-            Us68Swap(v2, v3) -> {
-                process.send(v3, v0)
-                let v4 = actor.continue(v2)
-                v4
-            }
-        }
-    }
-}
-
-pub fn closure71(capt: Nil) -> fn(String) -> fn(Us68) -> actor.Next(String, Us68) {
-    fn (v0) {
-        closure72(#(v0))
-    }
-}
-
-pub fn closure73(capt: Nil) -> fn(Uh3) -> #(Us45, String) {
-    fn (v0) {
-        let v1 = "leak cell did not start for "
-        let v2 = "xsim_leak_run"
-        let v3 = v1 <> v2 
-        let v4 = Us45Crashed
-        #(v4, v3)
-    }
-}
-
-pub fn closure75(capt: #(String)) -> fn(process.Subject(String)) -> Us68 {
-    fn (v1) {
-        let #(v0) = capt
-        Us68Swap(v0, v1)
-    }
-}
-
-pub fn closure74(capt: #(process.Subject(Us68))) -> fn(Uh3) -> #(Us45, String) {
-    fn (v1) {
-        let #(v0) = capt
-        let v2 = unicode_erlang_characters_to_binary([0])
-        let v3 = delimited_21(v2, v1)
-        let v4 = hash_text_239(v3)
-        let v5 = spiral_string_slice(v4, 0, 11)
-        let v6 = closure75(#(v5))
-        let v7 = actor.call(v0, 10000, v6)
-        let v8 = v5 <> v7 
-        let v9 = Us45Done
-        #(v9, v8)
-    }
-}
-
-pub fn closure76(capt: Nil) -> fn(Uh3) -> #(Us45, String) {
-    fn (v0) {
-        let v1 = "leak cell did not start for "
-        let v2 = "xsim_leak_baseline"
-        let v3 = v1 <> v2 
-        let v4 = Us45Crashed
-        #(v4, v3)
-    }
-}
-
-pub fn closure77(capt: #(String, Dynamic, String, Dynamic)) -> fn(Int) -> Uh3 {
-    fn (v4) {
-        let #(_v0, _v1, _v2, v3) = capt
-        let v5 = erlang_term_coerce(1)
-        let v6 = "counters"
-        let v7 = atom.create(v6)
-        let v8 = "get"
-        let v9 = atom.create(v8)
-        let v10 = []
-        let v11 = [v5, ..v10]
-        let v12 = [v3, ..v11]
-        let v13 = erlang_term_apply(v7, v9, v12)
-        let v14 = erlang_term_coerce(v13)
-        let v15 = erlang_term_coerce(2)
-        let v16 = atom.create(v6)
-        let v17 = atom.create(v8)
-        let v18 = []
-        let v19 = [v15, ..v18]
-        let v20 = [v3, ..v19]
-        let v21 = erlang_term_apply(v16, v17, v20)
-        let v22 = erlang_term_coerce(v21)
-        let v23 = int.to_string(v14)
-        let v24 = "hits="
-        let v25 = v24 <> v23 
-        let v26 = " misses="
-        let v27 = v25 <> v26 
-        let v28 = int.to_string(v22)
-        let v29 = v27 <> v28 
-        let v30 = "  memo "
-        let v31 = v30 <> v29 
-        let v32 = " cumulative_after_schedule="
-        let v33 = v31 <> v32 
-        let v34 = int.to_string(v4)
-        let v35 = v33 <> v34 
-        let v36 = Uh3Nil
-        Uh3Cons(v35, v36)
-    }
-}
-
-pub fn closure78(capt: Nil) -> fn(Int) -> Uh3 {
-    fn (v0) {
-        Uh3Nil
-    }
-}
-
-pub fn method305(v0: Uh3, v1: Uh29) -> Uh29 {
-    case v0  {
-        Uh3Cons(v2, v3) -> {
-            let v4 = method305(v3, v1)
-            let v5 = erlang_term_coerce(v2)
-            let v6 = "unicode"
-            let v7 = atom.create(v6)
-            let v8 = "characters_to_list"
-            let v9 = atom.create(v8)
-            let v10 = []
-            let v11 = [v5, ..v10]
-            let v12 = erlang_term_apply(v7, v9, v11)
-            Uh29Cons(v12, v4)
-        }
-        Uh3Nil -> v1
-    }
-}
-
-pub fn keep_c81(capt: Nil) -> fn(Dynamic) -> Dynamic {
-    fn (v0) {
-        v0
-    }
-}
-
-pub fn gleam_collected_306(v0: process.Selector(Dynamic), v1: String) -> #(Int, String) {
-    let v2 = process.selector_receive(v0, 86400000)
-    let v3 = "none"
-    let v4 = atom.create(v3)
-    let v5 = erlang_term_coerce(v4)
-    let v6 = result.unwrap(v2, v5)
-    let v7 = erlang_term_coerce(2)
-    let v8 = "erlang"
-    let v9 = atom.create(v8)
-    let v10 = "element"
-    let v11 = atom.create(v10)
-    let v12 = []
-    let v13 = [v6, ..v12]
-    let v14 = [v7, ..v13]
-    let v15 = erlang_term_apply(v9, v11, v14)
-    let v16 = erlang_term_coerce(1)
-    let v17 = atom.create(v8)
-    let v18 = atom.create(v10)
-    let v19 = []
-    let v20 = [v15, ..v19]
-    let v21 = [v16, ..v20]
-    let v22 = erlang_term_apply(v17, v18, v21)
-    let v23 = atom.create(v8)
-    let v24 = "atom_to_binary"
-    let v25 = atom.create(v24)
-    let v26 = []
-    let v27 = [v22, ..v26]
-    let v28 = erlang_term_apply(v23, v25, v27)
-    let v29 = erlang_term_coerce(v28)
-    let v30 = v29 == "data"
-    case v30 {
-        True -> {
-            let v31 = erlang_term_coerce(2)
-            let v32 = atom.create(v8)
-            let v33 = atom.create(v10)
-            let v34 = []
-            let v35 = [v15, ..v34]
-            let v36 = [v31, ..v35]
-            let v37 = erlang_term_apply(v32, v33, v36)
-            let v38 = erlang_term_coerce(v37)
-            let v39 = v1 <> v38 
-            gleam_collected_306(v0, v39)
-        }
-        False -> {
-            let v42 = v29 == "exit_status"
-            case v42 {
-                True -> {
-                    let v43 = erlang_term_coerce(2)
-                    let v44 = atom.create(v8)
-                    let v45 = atom.create(v10)
-                    let v46 = []
-                    let v47 = [v15, ..v46]
-                    let v48 = [v43, ..v47]
-                    let v49 = erlang_term_apply(v44, v45, v48)
-                    let v50 = erlang_term_coerce(v49)
-                    #(v50, v1)
-                }
-                False -> gleam_collected_306(v0, v1)
-            }
-        }
-    }
-}
-
-pub fn closure80(capt: #(String)) -> fn(Nil) -> String {
-    fn (dom) {
-        let #(v0) = capt
-        let v1 = "Elixir.Spiral.Cells.CompilerDaemon"
-        let v2 = atom.create(v1)
-        let v3 = "port"
-        let v4 = atom.create(v3)
-        let v5 = []
-        let v6 = erlang_term_apply(v2, v4, v5)
-        let v7 = erlang_term_coerce(v6)
-        let v8 = erlang_term_coerce(1)
-        let v9 = erlang_term_coerce(0)
+        let v3 = atom.create("Elixir.Spiral.Cells.CompilerDaemon")
+        let v5 = atom.create("port")
+        let v6 = []
+        let v7 = erlang_term_apply(v3, v5, v6)
+        let v8 = erlang_term_coerce(v7)
+        let v9 = erlang_term_coerce(1)
         let v10 = erlang_term_coerce(0)
-        let v11 = erlang_term_coerce(127)
-        let v12 = []
-        let v13 = [v8, ..v12]
+        let v11 = erlang_term_coerce(0)
+        let v12 = erlang_term_coerce(127)
+        let v13 = []
         let v14 = [v9, ..v13]
         let v15 = [v10, ..v14]
         let v16 = [v11, ..v15]
-        let v17 = erlang_term_tuple(v16)
-        let v18 = erlang_term_coerce(v7)
-        let v19 = "line"
-        let v20 = atom.create(v19)
-        let v21 = erlang_term_coerce(v20)
-        let v22 = "packet"
-        let v23 = atom.create(v22)
-        let v24 = erlang_term_coerce(v23)
-        let v25 = []
-        let v26 = [v21, ..v25]
-        let v27 = [v24, ..v26]
-        let v28 = erlang_term_tuple(v27)
-        let v29 = "false"
-        let v30 = atom.create(v29)
-        let v31 = erlang_term_coerce(v30)
-        let v32 = "active"
-        let v33 = atom.create(v32)
-        let v34 = erlang_term_coerce(v33)
-        let v35 = []
-        let v36 = [v31, ..v35]
-        let v37 = [v34, ..v36]
-        let v38 = erlang_term_tuple(v37)
-        let v39 = "binary"
-        let v40 = atom.create(v39)
-        let v41 = erlang_term_coerce(v40)
-        let v42 = erlang_term_coerce(8000000)
-        let v43 = "packet_size"
-        let v44 = atom.create(v43)
-        let v45 = erlang_term_coerce(v44)
-        let v46 = []
-        let v47 = [v42, ..v46]
-        let v48 = [v45, ..v47]
-        let v49 = erlang_term_tuple(v48)
-        let v50 = []
-        let v51 = [v49, ..v50]
-        let v52 = [v38, ..v51]
-        let v53 = [v28, ..v52]
-        let v54 = [v41, ..v53]
-        let v55 = erlang_term_coerce(v54)
-        let v56 = erlang_term_coerce(1000)
-        let v57 = "gen_tcp"
-        let v58 = atom.create(v57)
-        let v59 = "connect"
-        let v60 = atom.create(v59)
-        let v61 = []
-        let v62 = [v56, ..v61]
-        let v63 = [v55, ..v62]
-        let v64 = [v18, ..v63]
-        let v65 = [v17, ..v64]
-        let v66 = erlang_term_apply(v58, v60, v65)
-        let v67 = erlang_term_coerce(1)
-        let v68 = "erlang"
-        let v69 = atom.create(v68)
-        let v70 = "element"
-        let v71 = atom.create(v70)
-        let v72 = []
-        let v73 = [v66, ..v72]
+        let v17 = [v12, ..v16]
+        let v18 = erlang_term_tuple(v17)
+        let v19 = erlang_term_coerce(v8)
+        let v21 = atom.create("binary")
+        let v22 = erlang_term_coerce(v21)
+        let v24 = atom.create("line")
+        let v25 = erlang_term_coerce(v24)
+        let v27 = atom.create("packet")
+        let v28 = erlang_term_coerce(v27)
+        let v29 = []
+        let v30 = [v25, ..v29]
+        let v31 = [v28, ..v30]
+        let v32 = erlang_term_tuple(v31)
+        let v34 = atom.create("false")
+        let v35 = erlang_term_coerce(v34)
+        let v37 = atom.create("active")
+        let v38 = erlang_term_coerce(v37)
+        let v39 = []
+        let v40 = [v35, ..v39]
+        let v41 = [v38, ..v40]
+        let v42 = erlang_term_tuple(v41)
+        let v43 = erlang_term_coerce(8000000)
+        let v45 = atom.create("packet_size")
+        let v46 = erlang_term_coerce(v45)
+        let v47 = []
+        let v48 = [v43, ..v47]
+        let v49 = [v46, ..v48]
+        let v50 = erlang_term_tuple(v49)
+        let v51 = []
+        let v52 = [v50, ..v51]
+        let v53 = [v42, ..v52]
+        let v54 = [v32, ..v53]
+        let v55 = [v22, ..v54]
+        let v56 = erlang_term_coerce(v55)
+        let v57 = erlang_term_coerce(1000)
+        let v58 = "gen_tcp"
+        let v59 = atom.create(v58)
+        let v61 = atom.create("connect")
+        let v62 = []
+        let v63 = [v57, ..v62]
+        let v64 = [v56, ..v63]
+        let v65 = [v19, ..v64]
+        let v66 = [v18, ..v65]
+        let v67 = erlang_term_apply(v59, v61, v66)
+        let v68 = erlang_term_coerce(1)
+        let v69 = "erlang"
+        let v70 = atom.create(v69)
+        let v71 = "element"
+        let v72 = atom.create(v71)
+        let v73 = []
         let v74 = [v67, ..v73]
-        let v75 = erlang_term_apply(v69, v71, v74)
-        let v76 = "ok"
-        let v77 = atom.create(v76)
-        let v78 = erlang_term_coerce(v77)
-        let v79 = v75 == v78
-        let v116 =
-            case v79 {
+        let v75 = [v68, ..v74]
+        let v76 = erlang_term_apply(v70, v72, v75)
+        let v77 = "ok"
+        let v78 = atom.create(v77)
+        let v79 = erlang_term_coerce(v78)
+        let v80 = v76 == v79
+        let v117 =
+            case v80 {
                 True -> {
-                    let v80 = erlang_term_coerce(2)
-                    let v81 = atom.create(v68)
-                    let v82 = atom.create(v70)
-                    let v83 = []
-                    let v84 = [v66, ..v83]
-                    let v85 = [v80, ..v84]
-                    let v86 = erlang_term_apply(v81, v82, v85)
-                    Us72Ok(v86)
+                    let v81 = erlang_term_coerce(2)
+                    let v82 = atom.create(v69)
+                    let v83 = atom.create(v71)
+                    let v84 = []
+                    let v85 = [v67, ..v84]
+                    let v86 = [v81, ..v85]
+                    let v87 = erlang_term_apply(v82, v83, v86)
+                    Us72Ok(v87)
                 }
                 False -> {
-                    let v88 = erlang_term_coerce(2)
-                    let v89 = atom.create(v68)
-                    let v90 = atom.create(v70)
-                    let v91 = []
-                    let v92 = [v66, ..v91]
-                    let v93 = [v88, ..v92]
-                    let v94 = erlang_term_apply(v89, v90, v93)
-                    let v95 = "econnrefused"
-                    let v96 = atom.create(v95)
-                    let v97 = erlang_term_coerce(v96)
-                    let v98 = v94 == v97
-                    let v114 =
-                        case v98 {
+                    let v89 = erlang_term_coerce(2)
+                    let v90 = atom.create(v69)
+                    let v91 = atom.create(v71)
+                    let v92 = []
+                    let v93 = [v67, ..v92]
+                    let v94 = [v89, ..v93]
+                    let v95 = erlang_term_apply(v90, v91, v94)
+                    let v97 = atom.create("econnrefused")
+                    let v98 = erlang_term_coerce(v97)
+                    let v99 = v95 == v98
+                    let v115 =
+                        case v99 {
                             True -> Us73Refused
                             False -> {
-                                let v100 = "timeout"
-                                let v101 = atom.create(v100)
-                                let v102 = erlang_term_coerce(v101)
-                                let v103 = v94 == v102
-                                case v103 {
+                                let v102 = atom.create("timeout")
+                                let v103 = erlang_term_coerce(v102)
+                                let v104 = v95 == v103
+                                case v104 {
                                     True -> Us73TimedOut
                                     False -> {
-                                        let v105 = "closed"
-                                        let v106 = atom.create(v105)
-                                        let v107 = erlang_term_coerce(v106)
-                                        let v108 = v94 == v107
-                                        case v108 {
+                                        let v107 = atom.create("closed")
+                                        let v108 = erlang_term_coerce(v107)
+                                        let v109 = v95 == v108
+                                        case v109 {
                                             True -> Us73Closed
                                             False -> {
-                                                let v110 = string.inspect(v94)
-                                                Us73Failed(v110)
+                                                let v111 = string.inspect(v95)
+                                                Us73Failed(v111)
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                    Us72Error(v114)
+                    Us72Error(v115)
                 }
             }
-        let v122 =
-            case v116  {
-                Us72Error(v119) -> Us74Error(v119)
-                Us72Ok(v117) -> Us74Ok(v117)
+        let v123 =
+            case v117  {
+                Us72Error(v120) -> Us74Error(v120)
+                Us72Ok(v118) -> Us74Ok(v118)
             }
-        let v253 =
-            case v122  {
-                Us74Error(v250) -> {
-                    let v251 = ""
-                    v251
+        let v252 =
+            case v123  {
+                Us74Error(v249) -> {
+                    ""
                 }
-                Us74Ok(v123) -> {
-                    let v124 = "hello"
-                    let v125 = "\n"
-                    let v126 = v124 <> v125 
-                    let v127 = erlang_term_coerce(v126)
-                    let v128 = atom.create(v57)
-                    let v129 = "send"
-                    let v130 = atom.create(v129)
-                    let v131 = []
-                    let v132 = [v127, ..v131]
-                    let v133 = [v123, ..v132]
-                    let v134 = erlang_term_apply(v128, v130, v133)
-                    let v135 = atom.create(v76)
-                    let v136 = erlang_term_coerce(v135)
-                    let v137 = v134 == v136
-                    let _v167 =
-                        case v137 {
+                Us74Ok(v124) -> {
+                    let v126 = erlang_term_coerce("hello\n")
+                    let v127 = atom.create(v58)
+                    let v129 = atom.create("send")
+                    let v130 = []
+                    let v131 = [v126, ..v130]
+                    let v132 = [v124, ..v131]
+                    let v133 = erlang_term_apply(v127, v129, v132)
+                    let v134 = atom.create(v77)
+                    let v135 = erlang_term_coerce(v134)
+                    let v136 = v133 == v135
+                    let _v166 =
+                        case v136 {
                             True -> Us75Ok
                             False -> {
-                                let v139 = erlang_term_coerce(2)
-                                let v140 = atom.create(v68)
-                                let v141 = atom.create(v70)
-                                let v142 = []
-                                let v143 = [v134, ..v142]
-                                let v144 = [v139, ..v143]
-                                let v145 = erlang_term_apply(v140, v141, v144)
-                                let v146 = "econnrefused"
-                                let v147 = atom.create(v146)
-                                let v148 = erlang_term_coerce(v147)
-                                let v149 = v145 == v148
-                                let v165 =
-                                    case v149 {
+                                let v138 = erlang_term_coerce(2)
+                                let v139 = atom.create(v69)
+                                let v140 = atom.create(v71)
+                                let v141 = []
+                                let v142 = [v133, ..v141]
+                                let v143 = [v138, ..v142]
+                                let v144 = erlang_term_apply(v139, v140, v143)
+                                let v146 = atom.create("econnrefused")
+                                let v147 = erlang_term_coerce(v146)
+                                let v148 = v144 == v147
+                                let v164 =
+                                    case v148 {
                                         True -> Us73Refused
                                         False -> {
-                                            let v151 = "timeout"
-                                            let v152 = atom.create(v151)
-                                            let v153 = erlang_term_coerce(v152)
-                                            let v154 = v145 == v153
-                                            case v154 {
+                                            let v151 = atom.create("timeout")
+                                            let v152 = erlang_term_coerce(v151)
+                                            let v153 = v144 == v152
+                                            case v153 {
                                                 True -> Us73TimedOut
                                                 False -> {
-                                                    let v156 = "closed"
-                                                    let v157 = atom.create(v156)
-                                                    let v158 = erlang_term_coerce(v157)
-                                                    let v159 = v145 == v158
-                                                    case v159 {
+                                                    let v156 = atom.create("closed")
+                                                    let v157 = erlang_term_coerce(v156)
+                                                    let v158 = v144 == v157
+                                                    case v158 {
                                                         True -> Us73Closed
                                                         False -> {
-                                                            let v161 = string.inspect(v145)
-                                                            Us73Failed(v161)
+                                                            let v160 = string.inspect(v144)
+                                                            Us73Failed(v160)
                                                         }
                                                     }
                                                 }
                                             }
                                         }
                                     }
-                                Us75Error(v165)
+                                Us75Error(v164)
                             }
                         }
-                    let v168 = erlang_term_coerce(0)
-                    let v169 = erlang_term_coerce(2000)
-                    let v170 = atom.create(v57)
-                    let v171 = "recv"
-                    let v172 = atom.create(v171)
-                    let v173 = []
-                    let v174 = [v169, ..v173]
-                    let v175 = [v168, ..v174]
-                    let v176 = [v123, ..v175]
-                    let v177 = erlang_term_apply(v170, v172, v176)
-                    let v178 = erlang_term_coerce(1)
-                    let v179 = atom.create(v68)
-                    let v180 = atom.create(v70)
-                    let v181 = []
+                    let v167 = erlang_term_coerce(0)
+                    let v168 = erlang_term_coerce(2000)
+                    let v169 = atom.create(v58)
+                    let v171 = atom.create("recv")
+                    let v172 = []
+                    let v173 = [v168, ..v172]
+                    let v174 = [v167, ..v173]
+                    let v175 = [v124, ..v174]
+                    let v176 = erlang_term_apply(v169, v171, v175)
+                    let v177 = erlang_term_coerce(1)
+                    let v178 = atom.create(v69)
+                    let v179 = atom.create(v71)
+                    let v180 = []
+                    let v181 = [v176, ..v180]
                     let v182 = [v177, ..v181]
-                    let v183 = [v178, ..v182]
-                    let v184 = erlang_term_apply(v179, v180, v183)
-                    let v185 = atom.create(v76)
-                    let v186 = erlang_term_coerce(v185)
-                    let v187 = v184 == v186
-                    let v224 =
-                        case v187 {
+                    let v183 = erlang_term_apply(v178, v179, v182)
+                    let v184 = atom.create(v77)
+                    let v185 = erlang_term_coerce(v184)
+                    let v186 = v183 == v185
+                    let v223 =
+                        case v186 {
                             True -> {
-                                let v188 = erlang_term_coerce(2)
-                                let v189 = atom.create(v68)
-                                let v190 = atom.create(v70)
-                                let v191 = []
-                                let v192 = [v177, ..v191]
-                                let v193 = [v188, ..v192]
-                                let v194 = erlang_term_apply(v189, v190, v193)
-                                Us72Ok(v194)
+                                let v187 = erlang_term_coerce(2)
+                                let v188 = atom.create(v69)
+                                let v189 = atom.create(v71)
+                                let v190 = []
+                                let v191 = [v176, ..v190]
+                                let v192 = [v187, ..v191]
+                                let v193 = erlang_term_apply(v188, v189, v192)
+                                Us72Ok(v193)
                             }
                             False -> {
-                                let v196 = erlang_term_coerce(2)
-                                let v197 = atom.create(v68)
-                                let v198 = atom.create(v70)
-                                let v199 = []
-                                let v200 = [v177, ..v199]
-                                let v201 = [v196, ..v200]
-                                let v202 = erlang_term_apply(v197, v198, v201)
-                                let v203 = "econnrefused"
-                                let v204 = atom.create(v203)
-                                let v205 = erlang_term_coerce(v204)
-                                let v206 = v202 == v205
-                                let v222 =
-                                    case v206 {
+                                let v195 = erlang_term_coerce(2)
+                                let v196 = atom.create(v69)
+                                let v197 = atom.create(v71)
+                                let v198 = []
+                                let v199 = [v176, ..v198]
+                                let v200 = [v195, ..v199]
+                                let v201 = erlang_term_apply(v196, v197, v200)
+                                let v203 = atom.create("econnrefused")
+                                let v204 = erlang_term_coerce(v203)
+                                let v205 = v201 == v204
+                                let v221 =
+                                    case v205 {
                                         True -> Us73Refused
                                         False -> {
-                                            let v208 = "timeout"
-                                            let v209 = atom.create(v208)
-                                            let v210 = erlang_term_coerce(v209)
-                                            let v211 = v202 == v210
-                                            case v211 {
+                                            let v208 = atom.create("timeout")
+                                            let v209 = erlang_term_coerce(v208)
+                                            let v210 = v201 == v209
+                                            case v210 {
                                                 True -> Us73TimedOut
                                                 False -> {
-                                                    let v213 = "closed"
-                                                    let v214 = atom.create(v213)
-                                                    let v215 = erlang_term_coerce(v214)
-                                                    let v216 = v202 == v215
-                                                    case v216 {
+                                                    let v213 = atom.create("closed")
+                                                    let v214 = erlang_term_coerce(v213)
+                                                    let v215 = v201 == v214
+                                                    case v215 {
                                                         True -> Us73Closed
                                                         False -> {
-                                                            let v218 = string.inspect(v202)
-                                                            Us73Failed(v218)
+                                                            let v217 = string.inspect(v201)
+                                                            Us73Failed(v217)
                                                         }
                                                     }
                                                 }
                                             }
                                         }
                                     }
-                                Us72Error(v222)
+                                Us72Error(v221)
                             }
                         }
-                    let v238 =
-                        case v224  {
-                            Us72Error(v235) -> Us76Error(v235)
-                            Us72Ok(v225) -> {
-                                let v226 = "string"
-                                let v227 = atom.create(v226)
-                                let v228 = "trim"
-                                let v229 = atom.create(v228)
-                                let v230 = []
-                                let v231 = [v225, ..v230]
-                                let v232 = erlang_term_apply(v227, v229, v231)
-                                let v233 = erlang_term_coerce(v232)
-                                Us76Ok(v233)
+                    let v237 =
+                        case v223  {
+                            Us72Error(v234) -> Us76Error(v234)
+                            Us72Ok(v224) -> {
+                                let v226 = atom.create("string")
+                                let v228 = atom.create("trim")
+                                let v229 = []
+                                let v230 = [v224, ..v229]
+                                let v231 = erlang_term_apply(v226, v228, v230)
+                                let v232 = erlang_term_coerce(v231)
+                                Us76Ok(v232)
                             }
                         }
-                    let v239 = atom.create(v57)
-                    let v240 = "close"
-                    let v241 = atom.create(v240)
-                    let v242 = []
-                    let v243 = [v123, ..v242]
-                    let _v244 = erlang_term_apply(v239, v241, v243)
-                    case v238  {
-                        Us76Error(v246) -> {
-                            let v247 = ""
-                            v247
+                    let v238 = atom.create(v58)
+                    let v240 = atom.create("close")
+                    let v241 = []
+                    let v242 = [v124, ..v241]
+                    let _v243 = erlang_term_apply(v238, v240, v242)
+                    case v237  {
+                        Us76Error(v245) -> {
+                            ""
                         }
-                        Us76Ok(v245) -> v245
+                        Us76Ok(v244) -> v244
                     }
                 }
             }
-        let v254 = spiral_string_length(v253)
-        let v255 = 0
-        let v256 = method56(v253, v254, v255)
-        let v257 = spiral_wrap_signed(v254 - 1, 32)
-        let v258 = spiral_string_slice(v253, v256, v257)
-        let v259 = spiral_string_length(v258)
-        let v260 = method57(v258, v259)
-        let v261 = spiral_string_slice(v258, 0, v260)
-        let v262 = v261 == ""
-        let v266 =
-            case v262 {
+        let v253 = spiral_string_length(v252)
+        let v255 = method58(v252, v253, 0)
+        let v256 = spiral_wrap_signed(v253 - 1, 32)
+        let v257 = spiral_string_slice(v252, v255, v256)
+        let v258 = spiral_string_length(v257)
+        let v259 = method59(v257, v258)
+        let v260 = spiral_string_slice(v257, 0, v259)
+        let v261 = v260 == ""
+        let v265 =
+            case v261 {
                 True -> Uh3Nil
                 False -> {
-                    let v264 = "\t"
-                    split_list_2(v264, v261)
+                    split_list_2("\t", v260)
                 }
             }
-        let v282 =
-            case v266  {
-                Uh3Cons(v267, v268) -> {
-                    case v268  {
-                        Uh3Cons(v269, v270) -> {
-                            case v270  {
-                                Uh3Cons(v271, v272) -> {
-                                    let v273 = v267 == "spiral-cells"
-                                    case v273 {
-                                        True -> count_of_text_10(v271)
+        let v281 =
+            case v265  {
+                Uh3Cons(v266, v267) -> {
+                    case v267  {
+                        Uh3Cons(v268, v269) -> {
+                            case v269  {
+                                Uh3Cons(v270, v271) -> {
+                                    let v272 = v266 == "spiral-cells"
+                                    case v272 {
+                                        True -> count_of_text_10(v270)
                                         False -> Us3None
                                     }
                                 }
@@ -747,155 +328,630 @@ pub fn closure80(capt: #(String)) -> fn(Nil) -> String {
                 }
                 _ -> Us3None
             }
-        case v282  {
-            Us3None -> {
-                let v389 = ""
-                v389
+        let v286 =
+            case v281  {
+                Us3None -> {
+                    ""
+                }
+                Us3Some(v282) -> {
+                    int.to_string(v282)
+                }
             }
-            Us3Some(v283) -> {
-                let v284 = int.to_string(v283)
-                let v285 = "pwsh"
-                let v286 = erlang_term_coerce(v285)
-                let v287 = "unicode"
-                let v288 = atom.create(v287)
-                let v289 = "characters_to_list"
-                let v290 = atom.create(v289)
-                let v291 = []
-                let v292 = [v286, ..v291]
-                let v293 = erlang_term_apply(v288, v290, v292)
-                let v294 = "os"
-                let v295 = atom.create(v294)
-                let v296 = "find_executable"
-                let v297 = atom.create(v296)
-                let v298 = []
-                let v299 = [v293, ..v298]
-                let v300 = erlang_term_apply(v295, v297, v299)
-                let v301 = atom.create(v29)
-                let v302 = erlang_term_coerce(v301)
-                let v303 = v300 == v302
-                let #(v377, v378, v379) =
-                    case v303 {
-                        True -> {
-                            let v304 = ""
-                            #(False, -1, v304)
-                        }
+        let v287 = closure86(Nil)
+        let #(v288, v289, v290, v291) = actor.call(v0, 10000, v287)
+        let v292 = { "  daemon pid=" } <> { v286 }
+        let v293 = { v292 } <> { " " }
+        let v294 = int.to_string(v291)
+        let v295 = { "peak_mb=" } <> { v294 }
+        let v296 = { v295 } <> { " last_mb=" }
+        let v297 = int.to_string(v289)
+        let v298 = { v296 } <> { v297 }
+        let v299 = int.to_string(v290)
+        let v300 = { " procs=" } <> { v299 }
+        let v301 = { v300 } <> { " samples=" }
+        let v302 = int.to_string(v288)
+        let v303 = { v301 } <> { v302 }
+        let v304 = { v298 } <> { v303 }
+        let v305 = { v293 } <> { v304 }
+        let v306 = { v305 } <> { " cumulative_after_schedule=" }
+        let v307 = int.to_string(v1)
+        let v308 = { v306 } <> { v307 }
+        Uh3Cons(v308, Uh3Nil)
+    }
+}
+
+pub fn closure87(capt: Nil) -> fn(Int) -> Uh3 {
+    fn (v0) {
+        Uh3Nil
+    }
+}
+
+pub fn closure88(capt: #(fn(Int) -> Uh3, fn(Int) -> Uh3)) -> fn(Int) -> Uh3 {
+    fn (v2) {
+        let #(v0, v1) = capt
+        let v3 = v0(v2)
+        let v4 = v1(v2)
+        method18(v3, v4)
+    }
+}
+
+pub fn closure89(capt: Nil) -> fn(Nil) -> Int {
+    fn (dom) {
+        let v1 = atom.create("total")
+        let v2 = erlang_term_coerce(v1)
+        let v3 = "erlang"
+        let v4 = atom.create(v3)
+        let v6 = atom.create("memory")
+        let v7 = []
+        let v8 = [v2, ..v7]
+        let v9 = erlang_term_apply(v4, v6, v8)
+        let v10 = erlang_term_coerce(1048576)
+        let v11 = atom.create(v3)
+        let v13 = atom.create("div")
+        let v14 = []
+        let v15 = [v10, ..v14]
+        let v16 = [v9, ..v15]
+        let v17 = erlang_term_apply(v11, v13, v16)
+        erlang_term_coerce(v17)
+    }
+}
+
+pub fn closure90(capt: Nil) -> fn(Nil) -> Int {
+    fn (dom) {
+        let v1 = atom.create("millisecond")
+        let v2 = erlang_term_coerce(v1)
+        let v4 = atom.create("erlang")
+        let v6 = atom.create("monotonic_time")
+        let v7 = []
+        let v8 = [v2, ..v7]
+        let v9 = erlang_term_apply(v4, v6, v8)
+        let v10 = erlang_term_coerce(v9)
+        spiral_wrap_signed(v10, 32)
+    }
+}
+
+pub fn is_tld_312(v0: String) -> Bool {
+    let v1 = v0 |> string.lowercase
+    let v2 = { "|" } <> { v1 }
+    let v3 = { v2 } <> { "|" }
+    let v5 = "|aaa|aarp|abb|abbott|abbvie|abc|able|abogado|abudhabi|ac|academy|accenture|accountant|accountants|aco|actor|ad|ads|adult|ae|aeg|aero|aetna|af|afl|africa|ag|agakhan|agency|ai|aig|airbus|airforce|" |> string.contains(v3)
+    case v5 {
+        True -> True
+        False -> {
+            let v7 = "|airtel|akdn|al|alibaba|alipay|allfinanz|allstate|ally|alsace|alstom|am|amazon|americanexpress|americanfamily|amex|amfam|amica|amsterdam|analytics|android|anquan|anz|ao|aol|apartments|app|apple|" |> string.contains(v3)
+            case v7 {
+                True -> True
+                False -> {
+                    let v9 = "|aq|aquarelle|ar|arab|aramco|archi|army|arpa|art|arte|as|asda|asia|associates|at|athleta|attorney|au|auction|audi|audible|audio|auspost|author|auto|autos|aw|aws|ax|axa|az|azure|ba|baby|baidu|" |> string.contains(v3)
+                    case v9 {
+                        True -> True
                         False -> {
-                            let v305 = "args"
-                            let v306 = atom.create(v305)
-                            let v307 = erlang_term_coerce(v306)
-                            let v308 = v0 == ""
-                            let v320 =
-                                case v308 {
-                                    True -> {
-                                        let v309 = "-File"
-                                        let v310 = "-NoProfile"
-                                        let v311 = Uh3Nil
-                                        let v312 = Uh3Cons(v310, v311)
-                                        Uh3Cons(v309, v312)
-                                    }
-                                    False -> {
-                                        let v314 = "-File"
-                                        let v315 = "-NoProfile"
-                                        let v316 = Uh3Nil
-                                        let v317 = Uh3Cons(v315, v316)
-                                        let v318 = Uh3Cons(v314, v317)
-                                        Uh3Cons(v0, v318)
+                            let v11 = "|banamex|band|bank|bar|barcelona|barclaycard|barclays|barefoot|bargains|baseball|basketball|bauhaus|bayern|bb|bbc|bbt|bbva|bcg|bcn|bd|be|beats|beauty|beer|berlin|best|bestbuy|bet|bf|bg|bh|bharti|bi|" |> string.contains(v3)
+                            case v11 {
+                                True -> True
+                                False -> {
+                                    let v13 = "|bible|bid|bike|bing|bingo|bio|biz|bj|black|blackfriday|blockbuster|blog|bloomberg|blue|bm|bms|bmw|bn|bnpparibas|bo|boats|boehringer|bofa|bom|bond|boo|book|booking|bosch|bostik|boston|bot|boutique|" |> string.contains(v3)
+                                    case v13 {
+                                        True -> True
+                                        False -> {
+                                            let v15 = "|box|br|bradesco|bridgestone|broadway|broker|brother|brussels|bs|bt|build|builders|business|buy|buzz|bv|bw|by|bz|bzh|ca|cab|cafe|cal|call|calvinklein|cam|camera|camp|canon|capetown|capital|" |> string.contains(v3)
+                                            case v15 {
+                                                True -> True
+                                                False -> {
+                                                    let v17 = "|capitalone|car|caravan|cards|care|career|careers|cars|casa|case|cash|casino|cat|catering|catholic|cba|cbn|cbre|cc|cd|center|ceo|cern|cf|cfa|cfd|cg|ch|chanel|channel|charity|chase|chat|cheap|" |> string.contains(v3)
+                                                    case v17 {
+                                                        True -> True
+                                                        False -> {
+                                                            let v19 = "|chintai|christmas|chrome|church|ci|cipriani|circle|cisco|citadel|citi|citic|city|ck|cl|claims|cleaning|click|clinic|clinique|clothing|cloud|club|clubmed|cm|cn|co|coach|codes|coffee|college|" |> string.contains(v3)
+                                                            case v19 {
+                                                                True -> True
+                                                                False -> {
+                                                                    let v21 = "|cologne|com|commbank|community|company|compare|computer|comsec|condos|construction|consulting|contact|contractors|cooking|cool|coop|corsica|country|coupon|coupons|courses|cpa|cr|credit|" |> string.contains(v3)
+                                                                    case v21 {
+                                                                        True -> True
+                                                                        False -> {
+                                                                            let v23 = "|creditcard|creditunion|cricket|crown|crs|cruise|cruises|cu|cuisinella|cv|cw|cx|cy|cymru|cyou|cz|dad|dance|data|date|dating|datsun|day|dclk|dds|de|deal|dealer|deals|degree|delivery|dell|deloitte|" |> string.contains(v3)
+                                                                            case v23 {
+                                                                                True -> True
+                                                                                False -> {
+                                                                                    let v25 = "|delta|democrat|dental|dentist|desi|design|dev|dhl|diamonds|diet|digital|direct|directory|discount|discover|dish|diy|dj|dk|dm|dnp|do|docs|doctor|dog|domains|dot|download|drive|dtv|dubai|dupont|" |> string.contains(v3)
+                                                                                    case v25 {
+                                                                                        True -> True
+                                                                                        False -> {
+                                                                                            let v27 = "|durban|dvag|dvr|dz|earth|eat|ec|eco|edeka|edu|education|ee|eg|email|emerck|energy|engineer|engineering|enterprises|epson|equipment|er|ericsson|erni|es|esq|estate|et|eu|eurovision|eus|events|" |> string.contains(v3)
+                                                                                            case v27 {
+                                                                                                True -> True
+                                                                                                False -> {
+                                                                                                    let v29 = "|exchange|expert|exposed|express|extraspace|fage|fail|fairwinds|faith|family|fan|fans|farm|farmers|fashion|fast|fedex|feedback|ferrari|ferrero|fi|fidelity|fido|film|final|finance|financial|fire|" |> string.contains(v3)
+                                                                                                    case v29 {
+                                                                                                        True -> True
+                                                                                                        False -> {
+                                                                                                            let v31 = "|firestone|firmdale|fish|fishing|fit|fitness|fj|fk|flickr|flights|flir|florist|flowers|fly|fm|fo|foo|food|football|ford|forex|forsale|forum|foundation|fox|fr|free|fresenius|frl|frogans|frontier|" |> string.contains(v3)
+                                                                                                            case v31 {
+                                                                                                                True -> True
+                                                                                                                False -> {
+                                                                                                                    let v33 = "|ftr|fujitsu|fun|fund|furniture|futbol|fyi|ga|gal|gallery|gallo|gallup|game|games|gap|garden|gay|gb|gbiz|gd|gdn|ge|gea|gent|genting|george|gf|gg|ggee|gh|gi|gift|gifts|gives|giving|gl|glass|gle|" |> string.contains(v3)
+                                                                                                                    case v33 {
+                                                                                                                        True -> True
+                                                                                                                        False -> {
+                                                                                                                            let v35 = "|global|globo|gm|gmail|gmbh|gmo|gmx|gn|godaddy|gold|goldpoint|golf|goodyear|goog|google|gop|got|gov|gp|gq|gr|grainger|graphics|gratis|green|gripe|grocery|group|gs|gt|gu|gucci|guge|guide|guitars|guru|" |> string.contains(v3)
+                                                                                                                            case v35 {
+                                                                                                                                True -> True
+                                                                                                                                False -> {
+                                                                                                                                    let v37 = "|gw|gy|hair|hamburg|hangout|haus|hbo|hdfc|hdfcbank|health|healthcare|help|helsinki|here|hermes|hiphop|hisamitsu|hitachi|hiv|hk|hkt|hm|hn|hockey|holdings|holiday|homedepot|homegoods|homes|" |> string.contains(v3)
+                                                                                                                                    case v37 {
+                                                                                                                                        True -> True
+                                                                                                                                        False -> {
+                                                                                                                                            let v39 = "|homesense|honda|horse|hospital|host|hosting|hot|hotels|hotmail|house|how|hr|hsbc|ht|hu|hughes|hyatt|hyundai|ibm|icbc|ice|icu|id|ie|ieee|ifm|ikano|il|im|imamat|imdb|immo|immobilien|in|inc|" |> string.contains(v3)
+                                                                                                                                            case v39 {
+                                                                                                                                                True -> True
+                                                                                                                                                False -> {
+                                                                                                                                                    let v41 = "|industries|infiniti|info|ing|ink|institute|insurance|insure|int|international|intuit|investments|io|ipiranga|iq|ir|irish|is|ismaili|ist|istanbul|it|itau|itv|jaguar|java|jcb|je|jeep|jetzt|jewelry|" |> string.contains(v3)
+                                                                                                                                                    case v41 {
+                                                                                                                                                        True -> True
+                                                                                                                                                        False -> {
+                                                                                                                                                            let v43 = "|jio|jll|jm|jmp|jnj|jo|jobs|joburg|jot|joy|jp|jpmorgan|jprs|juegos|kaufen|kddi|ke|kerryhotels|kerryproperties|kfh|kg|kh|ki|kia|kids|kim|kindle|kitchen|kiwi|km|kn|koeln|komatsu|kosher|kp|kpmg|" |> string.contains(v3)
+                                                                                                                                                            case v43 {
+                                                                                                                                                                True -> True
+                                                                                                                                                                False -> {
+                                                                                                                                                                    let v45 = "|kpn|kr|krd|kred|kuokgroup|kw|ky|kyoto|kz|la|lacaixa|lamborghini|lamer|land|landrover|lanxess|lasalle|lat|latino|latrobe|law|lawyer|lb|lc|lds|lease|leclerc|lefrak|legal|lego|lexus|lgbt|li|lidl|" |> string.contains(v3)
+                                                                                                                                                                    case v45 {
+                                                                                                                                                                        True -> True
+                                                                                                                                                                        False -> {
+                                                                                                                                                                            let v47 = "|life|lifeinsurance|lifestyle|lighting|like|lilly|limited|limo|lincoln|link|live|living|lk|llc|llp|loan|loans|locker|locus|lol|london|lotte|lotto|love|lpl|lplfinancial|lr|ls|lt|ltd|ltda|lu|lundbeck|" |> string.contains(v3)
+                                                                                                                                                                            case v47 {
+                                                                                                                                                                                True -> True
+                                                                                                                                                                                False -> {
+                                                                                                                                                                                    let v49 = "|luxe|luxury|lv|ly|ma|madrid|maif|maison|makeup|man|management|mango|map|market|marketing|markets|marriott|marshalls|mattel|mba|mc|mckinsey|md|me|med|media|meet|melbourne|meme|memorial|men|menu|" |> string.contains(v3)
+                                                                                                                                                                                    case v49 {
+                                                                                                                                                                                        True -> True
+                                                                                                                                                                                        False -> {
+                                                                                                                                                                                            let v51 = "|merck|merckmsd|mg|mh|miami|microsoft|mil|mini|mint|mit|mitsubishi|mk|ml|mlb|mls|mm|mma|mn|mo|mobi|mobile|moda|moe|moi|mom|monash|money|monster|mormon|mortgage|moscow|moto|motorcycles|mov|movie|mp|" |> string.contains(v3)
+                                                                                                                                                                                            case v51 {
+                                                                                                                                                                                                True -> True
+                                                                                                                                                                                                False -> {
+                                                                                                                                                                                                    let v53 = "|mq|mr|ms|msd|mt|mtn|mtr|mu|museum|music|mv|mw|mx|my|mz|na|nab|nagoya|name|navy|nba|nc|ne|nec|net|netbank|netflix|network|neustar|new|news|next|nextdirect|nexus|nf|nfl|ng|ngo|nhk|ni|nico|nike|" |> string.contains(v3)
+                                                                                                                                                                                                    case v53 {
+                                                                                                                                                                                                        True -> True
+                                                                                                                                                                                                        False -> {
+                                                                                                                                                                                                            let v55 = "|nikon|ninja|nissan|nissay|nl|no|nokia|norton|now|nowruz|nowtv|np|nr|nra|nrw|ntt|nu|nyc|nz|obi|observer|office|okinawa|olayan|olayangroup|ollo|om|omega|one|ong|onl|online|ooo|open|oracle|orange|" |> string.contains(v3)
+                                                                                                                                                                                                            case v55 {
+                                                                                                                                                                                                                True -> True
+                                                                                                                                                                                                                False -> {
+                                                                                                                                                                                                                    let v57 = "|org|organic|origins|osaka|otsuka|ott|ovh|pa|page|panasonic|paris|pars|partners|parts|party|pay|pccw|pe|pet|pf|pfizer|pg|ph|pharmacy|phd|philips|phone|photo|photography|photos|physio|pics|pictet|" |> string.contains(v3)
+                                                                                                                                                                                                                    case v57 {
+                                                                                                                                                                                                                        True -> True
+                                                                                                                                                                                                                        False -> {
+                                                                                                                                                                                                                            let v59 = "|pictures|pid|pin|ping|pink|pioneer|pizza|pk|pl|place|play|playstation|plumbing|plus|pm|pn|pnc|pohl|poker|politie|porn|post|pr|praxi|press|prime|pro|prod|productions|prof|progressive|promo|" |> string.contains(v3)
+                                                                                                                                                                                                                            case v59 {
+                                                                                                                                                                                                                                True -> True
+                                                                                                                                                                                                                                False -> {
+                                                                                                                                                                                                                                    let v61 = "|properties|property|protection|pru|prudential|ps|pt|pub|pw|pwc|py|qa|qpon|quebec|quest|racing|radio|re|read|realestate|realtor|realty|recipes|red|redumbrella|rehab|reise|reisen|reit|reliance|" |> string.contains(v3)
+                                                                                                                                                                                                                                    case v61 {
+                                                                                                                                                                                                                                        True -> True
+                                                                                                                                                                                                                                        False -> {
+                                                                                                                                                                                                                                            let v63 = "|ren|rent|rentals|repair|report|republican|rest|restaurant|review|reviews|rexroth|rich|richardli|ricoh|ril|rio|rip|ro|rocks|rodeo|rogers|room|rs|rsvp|ru|rugby|ruhr|run|rw|rwe|ryukyu|sa|saarland|" |> string.contains(v3)
+                                                                                                                                                                                                                                            case v63 {
+                                                                                                                                                                                                                                                True -> True
+                                                                                                                                                                                                                                                False -> {
+                                                                                                                                                                                                                                                    let v65 = "|safe|safety|sakura|sale|salon|samsclub|samsung|sandvik|sandvikcoromant|sanofi|sap|sarl|sas|save|saxo|sb|sbi|sbs|sc|scb|schaeffler|schmidt|scholarships|school|schule|schwarz|science|scot|sd|se|" |> string.contains(v3)
+                                                                                                                                                                                                                                                    case v65 {
+                                                                                                                                                                                                                                                        True -> True
+                                                                                                                                                                                                                                                        False -> {
+                                                                                                                                                                                                                                                            let v67 = "|search|seat|secure|security|seek|select|sener|services|seven|sew|sex|sexy|sfr|sg|sh|shangrila|sharp|shell|shia|shiksha|shoes|shop|shopping|shouji|show|si|silk|sina|singles|site|sj|sk|ski|skin|" |> string.contains(v3)
+                                                                                                                                                                                                                                                            case v67 {
+                                                                                                                                                                                                                                                                True -> True
+                                                                                                                                                                                                                                                                False -> {
+                                                                                                                                                                                                                                                                    let v69 = "|sky|skype|sl|sling|sm|smart|smile|sn|sncf|so|soccer|social|softbank|software|sohu|solar|solutions|song|sony|soy|spa|space|sport|spot|sr|srl|ss|st|stada|staples|star|statebank|statefarm|stc|" |> string.contains(v3)
+                                                                                                                                                                                                                                                                    case v69 {
+                                                                                                                                                                                                                                                                        True -> True
+                                                                                                                                                                                                                                                                        False -> {
+                                                                                                                                                                                                                                                                            let v71 = "|stcgroup|stockholm|storage|store|stream|studio|study|style|su|sucks|supplies|supply|support|surf|surgery|suzuki|sv|swatch|swiss|sx|sy|sydney|systems|sz|tab|taipei|talk|taobao|target|tatamotors|" |> string.contains(v3)
+                                                                                                                                                                                                                                                                            case v71 {
+                                                                                                                                                                                                                                                                                True -> True
+                                                                                                                                                                                                                                                                                False -> {
+                                                                                                                                                                                                                                                                                    let v73 = "|tatar|tattoo|tax|taxi|tc|tci|td|tdk|team|tech|technology|tel|temasek|tennis|teva|tf|tg|th|thd|theater|theatre|tiaa|tickets|tienda|tips|tires|tirol|tj|tjmaxx|tjx|tk|tkmaxx|tl|tm|tmall|tn|to|" |> string.contains(v3)
+                                                                                                                                                                                                                                                                                    case v73 {
+                                                                                                                                                                                                                                                                                        True -> True
+                                                                                                                                                                                                                                                                                        False -> {
+                                                                                                                                                                                                                                                                                            let v75 = "|today|tokyo|tools|top|toray|toshiba|total|tours|town|toyota|toys|tr|trade|trading|training|travel|travelers|travelersinsurance|trust|trv|tt|tube|tui|tunes|tushu|tv|tvs|tw|tz|ua|ubank|ubs|ug|uk|" |> string.contains(v3)
+                                                                                                                                                                                                                                                                                            case v75 {
+                                                                                                                                                                                                                                                                                                True -> True
+                                                                                                                                                                                                                                                                                                False -> {
+                                                                                                                                                                                                                                                                                                    let v77 = "|unicom|university|uno|uol|ups|us|uy|uz|va|vacations|vana|vanguard|vc|ve|vegas|ventures|verisign|versicherung|vet|vg|vi|viajes|video|vig|viking|villas|vin|vip|virgin|visa|vision|viva|vivo|" |> string.contains(v3)
+                                                                                                                                                                                                                                                                                                    case v77 {
+                                                                                                                                                                                                                                                                                                        True -> True
+                                                                                                                                                                                                                                                                                                        False -> {
+                                                                                                                                                                                                                                                                                                            let v79 = "|vlaanderen|vn|vodka|volvo|vote|voting|voto|voyage|vu|wales|walmart|walter|wang|wanggou|watch|watches|weather|weatherchannel|web|webcam|weber|website|wed|wedding|weibo|weir|wf|whoswho|wien|" |> string.contains(v3)
+                                                                                                                                                                                                                                                                                                            case v79 {
+                                                                                                                                                                                                                                                                                                                True -> True
+                                                                                                                                                                                                                                                                                                                False -> {
+                                                                                                                                                                                                                                                                                                                    let v81 = "|wiki|williamhill|win|windows|wine|winners|wme|woodside|work|works|world|wow|ws|wtc|wtf|xbox|xerox|xihuan|xin|xxx|xyz|yachts|yahoo|yamaxun|yandex|ye|yodobashi|yoga|yokohama|you|youtube|yt|yun|za|" |> string.contains(v3)
+                                                                                                                                                                                                                                                                                                                    case v81 {
+                                                                                                                                                                                                                                                                                                                        True -> True
+                                                                                                                                                                                                                                                                                                                        False -> {
+                                                                                                                                                                                                                                                                                                                            "|zappos|zara|zero|zip|zm|zone|zuerich|zw|" |> string.contains(v3)
+                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                }
+                                                                                                                                                                                                            }
+                                                                                                                                                                                                        }
+                                                                                                                                                                                                    }
+                                                                                                                                                                                                }
+                                                                                                                                                                                            }
+                                                                                                                                                                                        }
+                                                                                                                                                                                    }
+                                                                                                                                                                                }
+                                                                                                                                                                            }
+                                                                                                                                                                        }
+                                                                                                                                                                    }
+                                                                                                                                                                }
+                                                                                                                                                            }
+                                                                                                                                                        }
+                                                                                                                                                    }
+                                                                                                                                                }
+                                                                                                                                            }
+                                                                                                                                        }
+                                                                                                                                    }
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
-                            let v321 = v284 == ""
-                            let v327 =
-                                case v321 {
-                                    True -> {
-                                        let v322 = "-Root"
-                                        Uh3Cons(v322, v320)
-                                    }
-                                    False -> {
-                                        let v324 = "-Root"
-                                        let v325 = Uh3Cons(v324, v320)
-                                        Uh3Cons(v284, v325)
-                                    }
-                                }
-                            let v328 = Uh3Nil
-                            let v329 = method4(v327, v328)
-                            let v330 = Uh29Nil
-                            let v331 = method305(v329, v330)
-                            let v332 = []
-                            let v333 = method300(v331, v332)
-                            let v334 = erlang_term_coerce(v333)
-                            let v335 = []
-                            let v336 = [v334, ..v335]
-                            let v337 = [v307, ..v336]
-                            let v338 = erlang_term_tuple(v337)
-                            let v339 = atom.create(v39)
-                            let v340 = erlang_term_coerce(v339)
-                            let v341 = "exit_status"
-                            let v342 = atom.create(v341)
-                            let v343 = erlang_term_coerce(v342)
-                            let v344 = "stderr_to_stdout"
-                            let v345 = atom.create(v344)
-                            let v346 = erlang_term_coerce(v345)
-                            let v347 = "hide"
-                            let v348 = atom.create(v347)
-                            let v349 = erlang_term_coerce(v348)
-                            let v350 = "spawn_executable"
-                            let v351 = atom.create(v350)
-                            let v352 = erlang_term_coerce(v351)
-                            let v353 = []
-                            let v354 = [v300, ..v353]
-                            let v355 = [v352, ..v354]
-                            let v356 = erlang_term_tuple(v355)
-                            let v357 = []
-                            let v358 = [v338, ..v357]
-                            let v359 = [v343, ..v358]
-                            let v360 = [v340, ..v359]
-                            let v361 = [v346, ..v360]
-                            let v362 = [v349, ..v361]
-                            let v363 = erlang_term_coerce(v362)
-                            let v364 = atom.create(v68)
-                            let v365 = "open_port"
-                            let v366 = atom.create(v365)
-                            let v367 = []
-                            let v368 = [v363, ..v367]
-                            let v369 = [v356, ..v368]
-                            let v370 = erlang_term_apply(v364, v366, v369)
-                            let v371 = erlang_term_coerce(v370)
-                            let v372 = keep_c81(Nil)
-                            let v373 = process.select_record(process.new_selector(), v371, 1, v372)
-                            let v374 = ""
-                            let #(v375, v376) = gleam_collected_306(v373, v374)
-                            #(True, v375, v376)
+                            }
                         }
                     }
-                let v381 =
-                    case v377 {
-                        True -> {
-                            let v380 = v378 == 0
-                            v380
-                        }
-                        False -> False
-                    }
-                let v384 =
-                    case v381 {
-                        True -> Us2Some(v379)
-                        False -> Us2None
-                    }
-                case v384  {
-                    Us2None -> {
-                        let v386 = ""
-                        v386
-                    }
-                    Us2Some(v385) -> v385
                 }
             }
         }
     }
 }
 
-pub fn closure79(capt: #(String)) -> fn(process.Subject(Us70)) -> #(Int, Int, Int, Int, Int, Us71, Int, process.Subject(Us70)) {
-    fn (v1) {
-        let #(v0) = capt
-        let v2 = closure80(#(v0))
-        let v3 = Us71FreshLine(v2)
-        #(0, 0, 0, 0, 0, v3, 1000, v1)
+pub fn closure94(capt: Nil) -> fn(String) -> Bool {
+    fn (v0) {
+        is_tld_312(v0)
+    }
+}
+
+pub fn closure95(capt: Nil) -> fn(Int) -> Int {
+    fn (v0) {
+        spiral_wrap_signed(v0, 32)
+    }
+}
+
+pub fn ascii_of_318(v0: String) -> Int {
+    let v1 = v0 == ""
+    case v1 {
+        True -> 0
+        False -> {
+            let v2 = spiral_string_length(v0)
+            let v3 = v2 == 1
+            case v3 {
+                True -> {
+                    let v4 = option.from_result(result.map(list.first(string.to_utf_codepoints(v0)), string.utf_codepoint_to_int))
+                    let v5 = closure95(Nil)
+                    let v6 = v4 |> option.map(v5)
+                    v6 |> option.unwrap(0)
+                }
+                False -> 256
+            }
+        }
+    }
+}
+
+pub fn ascii_letter_317(v0: String) -> Bool {
+    let v1 = ascii_of_318(v0)
+    let v2 = v1 >= 65
+    let v4 =
+        case v2 {
+            True -> {
+                v1 <= 90
+            }
+            False -> False
+        }
+    case v4 {
+        True -> True
+        False -> {
+            let v5 = v1 >= 97
+            case v5 {
+                True -> {
+                    v1 <= 122
+                }
+                False -> False
+            }
+        }
+    }
+}
+
+pub fn label_glyph_316(v0: String) -> Bool {
+    let v1 = ascii_letter_317(v0)
+    let v6 =
+        case v1 {
+            True -> True
+            False -> {
+                let v2 = ascii_of_318(v0)
+                let v3 = v2 >= 48
+                case v3 {
+                    True -> {
+                        v2 <= 57
+                    }
+                    False -> False
+                }
+            }
+        }
+    let v8 =
+        case v6 {
+            True -> True
+            False -> {
+                v0 == "_"
+            }
+        }
+    case v8 {
+        True -> True
+        False -> {
+            v0 == "-"
+        }
+    }
+}
+
+pub fn run_glyph_315(v0: String) -> Bool {
+    let v1 = label_glyph_316(v0)
+    case v1 {
+        True -> True
+        False -> {
+            v0 == "."
+        }
+    }
+}
+
+pub fn run_of_320(v0: Uh3, v1: Uh3) -> #(Uh3, Uh3) {
+    case v0  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = run_glyph_315(v2)
+            case v4 {
+                True -> {
+                    let v5 = Uh3Cons(v2, v1)
+                    run_of_320(v3, v5)
+                }
+                False -> {
+                    let v9 = method4(v1, Uh3Nil)
+                    #(v9, v0)
+                }
+            }
+        }
+        _ -> {
+            let v13 = method4(v1, Uh3Nil)
+            #(v13, v0)
+        }
+    }
+}
+
+pub fn method322(v0: Uh3, v1: String) -> String {
+    case v0  {
+        Uh3Cons(v2, v3) -> method322(v3, v2)
+        Uh3Nil -> v1
+    }
+}
+
+pub fn last_or_321(v0: String, v1: Uh3) -> String {
+    method322(v1, v0)
+}
+
+pub fn run_piece_319(v0: String, v1: Uh3) -> #(String, Uh3, String, Uh3) {
+    let #(v3, v4) = run_of_320(v1, Uh3Nil)
+    let v5 = last_or_321(v0, v3)
+    #(v5, v4, v0, v3)
+}
+
+pub fn method323(v0: Uh31, v1: Uh31) -> Uh31 {
+    case v0  {
+        Uh31Cons(v2, v3, v4) -> {
+            let v5 = Uh31Cons(v2, v3, v1)
+            method323(v4, v5)
+        }
+        Uh31Nil -> v1
+    }
+}
+
+pub fn pieces_from_314(v0: String, v1: Uh3, v2: Uh31) -> Uh31 {
+    case v1  {
+        Uh3Cons(v3, v4) -> {
+            let v5 = run_glyph_315(v3)
+            case v5 {
+                True -> {
+                    let #(v6, v7, v8, v9) = run_piece_319(v0, v1)
+                    let v10 = Uh31Cons(v8, v9, v2)
+                    pieces_from_314(v6, v7, v10)
+                }
+                False -> {
+                    let v13 = Uh3Cons(v3, Uh3Nil)
+                    let v14 = Uh31Cons(v0, v13, v2)
+                    pieces_from_314(v3, v4, v14)
+                }
+            }
+        }
+        Uh3Nil -> {
+            method323(v2, Uh31Nil)
+        }
+    }
+}
+
+pub fn blocks_domain_326(v0: String) -> Bool {
+    let v1 = v0 == "@"
+    let v3 =
+        case v1 {
+            True -> True
+            False -> {
+                v0 == "/"
+            }
+        }
+    case v3 {
+        True -> True
+        False -> {
+            let v4 = ascii_of_318(v0)
+            v4 > 127
+        }
+    }
+}
+
+pub fn after_label_329(v0: Uh3) -> Bool {
+    case v0  {
+        Uh3Cons(v1, v2) -> label_glyph_316(v1)
+        Uh3Nil -> False
+    }
+}
+
+pub fn letters_after_331(v0: Uh3, v1: Uh3) -> #(String, Bool) {
+    case v0  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = ascii_letter_317(v2)
+            case v4 {
+                True -> {
+                    let v5 = Uh3Cons(v2, v1)
+                    letters_after_331(v3, v5)
+                }
+                False -> {
+                    let v9 = method4(v1, Uh3Nil)
+                    let v11 = concat_balanced_22("", v9)
+                    let v12 = v2 == "."
+                    #(v11, v12)
+                }
+            }
+        }
+        Uh3Nil -> {
+            let v16 = method4(v1, Uh3Nil)
+            let v18 = concat_balanced_22("", v16)
+            #(v18, True)
+        }
+    }
+}
+
+pub fn label_before_332(v0: Uh3, v1: Uh3) -> String {
+    case v0  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = label_glyph_316(v2)
+            case v4 {
+                True -> {
+                    let v5 = Uh3Cons(v2, v1)
+                    label_before_332(v3, v5)
+                }
+                False -> {
+                    concat_balanced_22("", v1)
+                }
+            }
+        }
+        _ -> {
+            concat_balanced_22("", v1)
+        }
+    }
+}
+
+pub fn tld_ok_333(v0: fn(String) -> Bool, v1: String, v2: String) -> Bool {
+    let v3 = spiral_string_length(v2)
+    let v4 = v3 >= 2
+    let v6 =
+        case v4 {
+            True -> {
+                v3 <= 63
+            }
+            False -> False
+        }
+    let v8 =
+        case v6 {
+            True -> v0(v2)
+            False -> False
+        }
+    case v8 {
+        True -> {
+            let v9 = v3 != 2
+            case v9 {
+                True -> True
+                False -> {
+                    let v10 = spiral_string_length(v1)
+                    v10 > 2
+                }
+            }
+        }
+        False -> False
+    }
+}
+
+pub fn linked_dot_330(v0: fn(String) -> Bool, v1: Uh3, v2: Uh3) -> Bool {
+    let #(v4, v5) = letters_after_331(v2, Uh3Nil)
+    let v7 = label_before_332(v1, Uh3Nil)
+    case v5 {
+        True -> {
+            let v8 = tld_ok_333(v0, v7, v4)
+            case v8 {
+                True -> True
+                False -> {
+                    let v9 = v7 == "t"
+                    case v9 {
+                        True -> {
+                            v4 == "co"
+                        }
+                        False -> False
+                    }
+                }
+            }
+        }
+        False -> False
+    }
+}
+
+pub fn defusable_328(v0: fn(String) -> Bool, v1: Uh3, v2: String, v3: Uh3) -> Bool {
+    let v4 = v2 == "."
+    let v6 =
+        case v4 {
+            True -> after_label_329(v1)
+            False -> False
+        }
+    case v6 {
+        True -> linked_dot_330(v0, v1, v3)
+        False -> False
     }
 }

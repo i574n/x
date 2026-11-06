@@ -32,3 +32,4 @@ xc_frames = { path = "../frames" }
 xc_preview = { path = "../preview" }
 xc_census = { path = "../census" }
 xc_events = { path = "../events" }
+mimalloc = "0.1.52"

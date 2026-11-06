@@ -509,9 +509,9 @@
 
 := accepted (status : i32) : bool = status >= 200i32 && status < 300i32
 
-:= ids_of (l : list post) : post_ids = l |> each (\ (p : post) => p::id)
+:= ids_of (l : list post) : post_ids = l |> each \ (p : post) => p::id
 
-:= refs_of (l : list post) : post_ids = l |> spread (\ (p : post) => p::refs |> each (\ (r : reference) => r::id))
+:= refs_of (l : list post) : post_ids = l |> spread \ (p : post) => p::refs |> each (\ (r : reference) => r::id)
 
 := distinct (l : list string) : list string =
     listm::fold (\ acc x => ? has ((=) x) acc ?> acc |: listm::append acc [ x ]) [] l
@@ -520,7 +520,7 @@
     listm::fold (\ acc x => ? has (same_post x) acc ?> acc |: listm::append acc [ x ]) [] l
 
 := without_ids (ids : post_ids) (l : list post) : list post =
-    l |> keep (\ (p : post) => not (has (same_post p::id) ids))
+    l |> keep \ (p : post) => not (has (same_post p::id) ids)
 
 := absorb (old : pool) (fresh : pool) : pool =
     merge_pools fresh { old ?| posts = without_ids (ids_of fresh::posts) old::posts }

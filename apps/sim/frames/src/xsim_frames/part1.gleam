@@ -7,7 +7,7 @@ import gleam/option
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type SpiralHashKind, type SpiralArrayStore, type SpiralArray, type SpiralRefCell, type SpiralRef, type Uh3, type Mut0, type Us0, type Uh5, type Us1, type Us2, type Us3, type Us4, Mut0, SpiralArray, SpiralRef, Uh3Cons, Uh3Nil, Uh5Cons, Uh5Nil, Us0Null, Us0Text, Us0Whole, Us1None, Us1Some, Us2None, Us2Some, Us3None, Us3Some, Us4None, Us4Some}
+import xsim_frames/types.{type SpiralHashKind, type SpiralArrayStore, type SpiralArray, type SpiralRefCell, type SpiralRef, type Uh0, type Uh2, type Uh3, type Mut0, type Us0, type Uh5, type Us1, type Us2, type Us3, type Us4, Mut0, SpiralArray, SpiralRef, Uh0Cons, Uh0Nil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Uh5Cons, Uh5Nil, Us0Null, Us0Text, Us0Whole, Us1None, Us1Some, Us2None, Us2Some, Us3None, Us3Some, Us4None, Us4Some}
 
 @external(erlang, "string", "find")
 pub fn spiral_sm_find_trailing(text: String, search: String, direction: atom.Atom) -> Dynamic
@@ -56,6 +56,9 @@ pub fn spiral_crypto_hash_by(kind: atom.Atom, data: String) -> BitArray
 @external(erlang, "crypto", "mac")
 pub fn spiral_crypto_mac(kind: atom.Atom, sub: atom.Atom, key: String, data: String) -> BitArray
 
+
+@external(erlang, "simframes_ffi", "try_call")
+pub fn spiral_try_call(f: fn(Nil) -> a) -> Result(a, String)
 
 pub fn spiral_string_length(text: String) -> Int {
   bit_array.byte_size(bit_array.from_string(text))
@@ -206,8 +209,7 @@ pub fn spiral_string_slice(text: String, from: Int, to: Int) -> String {
 
 pub fn method3(v0: Int, v1: SpiralRef(Mut0)) -> Bool {
     let v2 = spiral_ref_get(v1).l0
-    let v3 = v2 < v0
-    v3
+    v2 < v0
 }
 pub fn loop0 (v7: SpiralArray(String), v8: Int, v10: SpiralRef(Mut0)) {
     case method3(v8, v10) {
@@ -239,19 +241,16 @@ pub fn split_list_2(v0: String, v1: String) -> Uh3 {
     let v3 = v2 == 0
     case v3 {
         True -> {
-            let v4 = Uh3Nil
-            Uh3Cons(v1, v4)
+            Uh3Cons(v1, Uh3Nil)
         }
         False -> {
             let v6 = v1 |> string.split(v0)
             let v7 = v6 |> spiral_array_from_list
             let v8 = v7.size
-            let v9 = Uh3Nil
-            let v10 = spiral_ref_new(Mut0(l0: 0, l1: v9))
+            let v10 = spiral_ref_new(Mut0(l0: 0, l1: Uh3Nil))
             let v10 = loop0(v7, v8, v10)
             let v17 = spiral_ref_get(v10).l1
-            let v18 = Uh3Nil
-            method4(v17, v18)
+            method4(v17, Uh3Nil)
         }
     }
 }
@@ -271,17 +270,14 @@ pub fn hex_at_8(v0: String, v1: Int) -> Int {
         case v5 {
             True -> 0
             False -> {
-                let v6 = "0123456789abcdefABCDEF"
-                let v7 = option.from_result(result.map(string.split_once(v6, v4), pair.first))
+                let v7 = option.from_result(result.map(string.split_once("0123456789abcdefABCDEF", v4), pair.first))
                 let v8 = closure1(Nil)
                 let v9 = v7 |> option.map(v8)
-                let v10 = Us2None
-                let v11 = v9 |> option.unwrap(v10)
+                let v11 = v9 |> option.unwrap(Us2None)
                 case v11  {
                     Us2None -> -1
                     Us2Some(v12) -> {
-                        let v13 = bit_array.byte_size(bit_array.from_string(v12))
-                        v13
+                        bit_array.byte_size(bit_array.from_string(v12))
                     }
                 }
             }
@@ -290,8 +286,7 @@ pub fn hex_at_8(v0: String, v1: Int) -> Int {
     case v17 {
         True -> v16
         False -> {
-            let v18 = spiral_wrap_signed(v16 - 6, 32)
-            v18
+            spiral_wrap_signed(v16 - 6, 32)
         }
     }
 }
@@ -302,31 +297,25 @@ pub fn string_from_7(v0: String, v1: Int, v2: String) -> #(String, Int) {
     let v5 = spiral_wrap_signed(v1 + v4, 32)
     let v6 = spiral_wrap_signed(v5 - 1, 32)
     let v7 = spiral_string_slice(v0, v1, v6)
-    let v8 = "\""
-    let v9 = option.from_result(result.map(string.split_once(v7, v8), pair.first))
+    let v9 = option.from_result(result.map(string.split_once(v7, "\""), pair.first))
     let v10 = closure1(Nil)
     let v11 = v9 |> option.map(v10)
-    let v12 = Us2None
-    let v13 = v11 |> option.unwrap(v12)
+    let v13 = v11 |> option.unwrap(Us2None)
     let v17 =
         case v13  {
             Us2None -> -1
             Us2Some(v14) -> {
-                let v15 = bit_array.byte_size(bit_array.from_string(v14))
-                v15
+                bit_array.byte_size(bit_array.from_string(v14))
             }
         }
-    let v18 = "\\"
-    let v19 = option.from_result(result.map(string.split_once(v7, v18), pair.first))
+    let v19 = option.from_result(result.map(string.split_once(v7, "\\"), pair.first))
     let v20 = v19 |> option.map(v10)
-    let v21 = Us2None
-    let v22 = v20 |> option.unwrap(v21)
+    let v22 = v20 |> option.unwrap(Us2None)
     let v26 =
         case v22  {
             Us2None -> -1
             Us2Some(v23) -> {
-                let v24 = bit_array.byte_size(bit_array.from_string(v23))
-                v24
+                bit_array.byte_size(bit_array.from_string(v23))
             }
         }
     let v27 = v26 >= 0
@@ -337,8 +326,7 @@ pub fn string_from_7(v0: String, v1: Int, v2: String) -> #(String, Int) {
                 case v28 {
                     True -> True
                     False -> {
-                        let v29 = v26 < v17
-                        v29
+                        v26 < v17
                     }
                 }
             }
@@ -356,7 +344,7 @@ pub fn string_from_7(v0: String, v1: Int, v2: String) -> #(String, Int) {
                             let v34 = spiral_wrap_signed(v1 + v17, 32)
                             let v35 = spiral_wrap_signed(v34 - 1, 32)
                             let v36 = spiral_string_slice(v0, v1, v35)
-                            let v37 = v2 <> v36 
+                            let v37 = { v2 } <> { v36 }
                             let v38 = spiral_wrap_signed(v34 + 1, 32)
                             #(v37, v38)
                         }
@@ -390,8 +378,7 @@ pub fn string_from_7(v0: String, v1: Int, v2: String) -> #(String, Int) {
                             let v62 =
                                 case v60 {
                                     True -> {
-                                        let v61 = v59 <= 1114111
-                                        v61
+                                        v59 <= 1114111
                                     }
                                     False -> False
                                 }
@@ -402,8 +389,7 @@ pub fn string_from_7(v0: String, v1: Int, v2: String) -> #(String, Int) {
                                         case v63 {
                                             True -> True
                                             False -> {
-                                                let v64 = v59 > 57343
-                                                v64
+                                                v59 > 57343
                                             }
                                         }
                                     }
@@ -412,12 +398,10 @@ pub fn string_from_7(v0: String, v1: Int, v2: String) -> #(String, Int) {
                             let v69 =
                                 case v66 {
                                     True -> {
-                                        let v67 = unicode_erlang_characters_to_binary([v59])
-                                        v67
+                                        unicode_erlang_characters_to_binary([v59])
                                     }
                                     False -> {
-                                        let v68 = ""
-                                        v68
+                                        ""
                                     }
                                 }
                             let v70 = spiral_wrap_signed(v42 + 5, 32)
@@ -428,36 +412,31 @@ pub fn string_from_7(v0: String, v1: Int, v2: String) -> #(String, Int) {
                             let v85 =
                                 case v71 {
                                     True -> {
-                                        let v72 = "\n"
-                                        v72
+                                        "\n"
                                     }
                                     False -> {
                                         let v73 = v45 == "t"
                                         case v73 {
                                             True -> {
-                                                let v74 = "\t"
-                                                v74
+                                                "\t"
                                             }
                                             False -> {
                                                 let v75 = v45 == "r"
                                                 case v75 {
                                                     True -> {
-                                                        let v76 = "\r"
-                                                        v76
+                                                        "\r"
                                                     }
                                                     False -> {
                                                         let v77 = v45 == "b"
                                                         case v77 {
                                                             True -> {
-                                                                let v78 = unicode_erlang_characters_to_binary([8])
-                                                                v78
+                                                                unicode_erlang_characters_to_binary([8])
                                                             }
                                                             False -> {
                                                                 let v79 = v45 == "f"
                                                                 case v79 {
                                                                     True -> {
-                                                                        let v80 = unicode_erlang_characters_to_binary([12])
-                                                                        v80
+                                                                        unicode_erlang_characters_to_binary([12])
                                                                     }
                                                                     False -> v45
                                                                 }
@@ -474,8 +453,8 @@ pub fn string_from_7(v0: String, v1: Int, v2: String) -> #(String, Int) {
                     }
                 let v88 = spiral_wrap_signed(v41 - 1, 32)
                 let v89 = spiral_string_slice(v0, v1, v88)
-                let v90 = v2 <> v89 
-                let v91 = v90 <> v86 
+                let v90 = { v2 } <> { v89 }
+                let v91 = { v90 } <> { v86 }
                 let #(v92, v93) = string_from_7(v0, v87, v91)
                 #(v92, v93)
             }
@@ -539,8 +518,7 @@ pub fn digits_end_9(v0: String, v1: Int) -> Int {
                                                                                     True -> True
                                                                                     False -> {
                                                                                         let v26 = int.to_string(9)
-                                                                                        let v27 = v7 |> string.starts_with(v26)
-                                                                                        v27
+                                                                                        v7 |> string.starts_with(v26)
                                                                                     }
                                                                                 }
                                                                             }
@@ -583,17 +561,14 @@ pub fn digits_11(v0: String, v1: Int, v2: Int) -> Us3 {
                 case v7 {
                     True -> 0
                     False -> {
-                        let v8 = "0123456789"
-                        let v9 = option.from_result(result.map(string.split_once(v8, v6), pair.first))
+                        let v9 = option.from_result(result.map(string.split_once("0123456789", v6), pair.first))
                         let v10 = closure1(Nil)
                         let v11 = v9 |> option.map(v10)
-                        let v12 = Us2None
-                        let v13 = v11 |> option.unwrap(v12)
+                        let v13 = v11 |> option.unwrap(Us2None)
                         case v13  {
                             Us2None -> -1
                             Us2Some(v14) -> {
-                                let v15 = bit_array.byte_size(bit_array.from_string(v14))
-                                v15
+                                bit_array.byte_size(bit_array.from_string(v14))
                             }
                         }
                     }
@@ -603,8 +578,7 @@ pub fn digits_11(v0: String, v1: Int, v2: Int) -> Us3 {
                 case v19 {
                     True -> True
                     False -> {
-                        let v20 = v2 > 100000000
-                        v20
+                        v2 > 100000000
                     }
                 }
             case v21 {
@@ -647,16 +621,13 @@ pub fn count_of_text_10(v0: String) -> Us3 {
                 let v20 = v18 |> string.replace(v19, v3)
                 let v21 = int.to_string(9)
                 let v22 = v20 |> string.replace(v21, v3)
-                let v23 = v22 != ""
-                v23
+                v22 != ""
             }
         }
     case v24 {
         True -> Us3None
         False -> {
-            let v26 = 0
-            let v27 = 0
-            digits_11(v0, v26, v27)
+            digits_11(v0, 0, 0)
         }
     }
 }
@@ -678,8 +649,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
             True -> True
             False -> {
                 let v4 = spiral_string_length(v0)
-                let v5 = v1 > v4
-                v5
+                v1 > v4
             }
         }
     let v14 =
@@ -691,9 +661,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                 let v9 = spiral_wrap_signed(v1 + v8, 32)
                 let v10 = spiral_wrap_signed(v9 - 1, 32)
                 let v11 = spiral_string_slice(v0, v1, v10)
-                let v12 = "\""
-                let v13 = v11 |> string.starts_with(v12)
-                v13
+                v11 |> string.starts_with("\"")
             }
         }
     let #(v90, v91, v92) =
@@ -708,8 +676,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                         True -> True
                         False -> {
                             let v20 = spiral_string_length(v0)
-                            let v21 = v18 > v20
-                            v21
+                            v18 > v20
                         }
                     }
                 let v30 =
@@ -721,9 +688,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                             let v25 = spiral_wrap_signed(v18 + v24, 32)
                             let v26 = spiral_wrap_signed(v25 - 1, 32)
                             let v27 = spiral_string_slice(v0, v18, v26)
-                            let v28 = ":"
-                            let v29 = v27 |> string.starts_with(v28)
-                            v29
+                            v27 |> string.starts_with(":")
                         }
                     }
                 let #(v86, v87) =
@@ -736,8 +701,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                                     True -> True
                                     False -> {
                                         let v33 = spiral_string_length(v0)
-                                        let v34 = v31 > v33
-                                        v34
+                                        v31 > v33
                                     }
                                 }
                             let v43 =
@@ -749,9 +713,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                                         let v38 = spiral_wrap_signed(v31 + v37, 32)
                                         let v39 = spiral_wrap_signed(v38 - 1, 32)
                                         let v40 = spiral_string_slice(v0, v31, v39)
-                                        let v41 = "\""
-                                        let v42 = v40 |> string.starts_with(v41)
-                                        v42
+                                        v40 |> string.starts_with("\"")
                                     }
                                 }
                             case v43 {
@@ -767,8 +729,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                                             True -> True
                                             False -> {
                                                 let v48 = spiral_string_length(v0)
-                                                let v49 = v31 > v48
-                                                v49
+                                                v31 > v48
                                             }
                                         }
                                     let v58 =
@@ -780,16 +741,13 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                                                 let v53 = spiral_wrap_signed(v31 + v52, 32)
                                                 let v54 = spiral_wrap_signed(v53 - 1, 32)
                                                 let v55 = spiral_string_slice(v0, v31, v54)
-                                                let v56 = "null"
-                                                let v57 = v55 |> string.starts_with(v56)
-                                                v57
+                                                v55 |> string.starts_with("null")
                                             }
                                         }
                                     case v58 {
                                         True -> {
                                             let v59 = spiral_wrap_signed(v31 + 4, 32)
-                                            let v60 = Us0Null
-                                            #(v60, v59)
+                                            #(Us0Null, v59)
                                         }
                                         False -> {
                                             let v61 = v31 >= 0
@@ -797,8 +755,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                                                 case v61 {
                                                     True -> {
                                                         let v62 = spiral_string_length(v0)
-                                                        let v63 = v31 < v62
-                                                        v63
+                                                        v31 < v62
                                                     }
                                                     False -> False
                                                 }
@@ -812,8 +769,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                                                     let v70 = count_of_text_10(v69)
                                                     case v70  {
                                                         Us3None -> {
-                                                            let v73 = Us0Null
-                                                            #(v73, -1)
+                                                            #(Us0Null, -1)
                                                         }
                                                         Us3Some(v71) -> {
                                                             let v72 = Us0Whole(v71)
@@ -822,8 +778,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                                                     }
                                                 }
                                                 False -> {
-                                                    let v78 = Us0Null
-                                                    #(v78, -1)
+                                                    #(Us0Null, -1)
                                                 }
                                             }
                                         }
@@ -832,16 +787,13 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                             }
                         }
                         False -> {
-                            let v85 = Us0Null
-                            #(v85, -1)
+                            #(Us0Null, -1)
                         }
                     }
                 #(v17, v86, v87)
             }
             False -> {
-                let v88 = ""
-                let v89 = Us0Null
-                #(v88, v89, -1)
+                #("", Us0Null, -1)
             }
         }
     let v93 = v92 < 0
@@ -850,8 +802,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
             True -> True
             False -> {
                 let v94 = spiral_string_length(v0)
-                let v95 = v92 > v94
-                v95
+                v92 > v94
             }
         }
     let v104 =
@@ -863,9 +814,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                 let v99 = spiral_wrap_signed(v92 + v98, 32)
                 let v100 = spiral_wrap_signed(v99 - 1, 32)
                 let v101 = spiral_string_slice(v0, v92, v100)
-                let v102 = ","
-                let v103 = v101 |> string.starts_with(v102)
-                v103
+                v101 |> string.starts_with(",")
             }
         }
     case v104 {
@@ -880,8 +829,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                     True -> True
                     False -> {
                         let v108 = spiral_string_length(v0)
-                        let v109 = v92 > v108
-                        v109
+                        v92 > v108
                     }
                 }
             let v118 =
@@ -893,8 +841,7 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                         let v113 = spiral_wrap_signed(v92 + v112, 32)
                         let v114 = spiral_wrap_signed(v113 - 1, 32)
                         let v115 = spiral_string_slice(v0, v92, v114)
-                        let v116 = "}"
-                        let v117 = v115 |> string.starts_with(v116)
+                        let v117 = v115 |> string.starts_with("}")
                         v117
                     }
                 }
@@ -903,15 +850,13 @@ pub fn fields_from_6(v0: String, v1: Int, v2: Uh5) -> Us1 {
                     True -> {
                         let v119 = spiral_wrap_signed(v92 + 1, 32)
                         let v120 = spiral_string_length(v0)
-                        let v121 = v119 == v120
-                        v121
+                        v119 == v120
                     }
                     False -> False
                 }
             case v122 {
                 True -> {
-                    let v123 = Uh5Nil
-                    let v124 = Uh5Cons(v90, v91, v123)
+                    let v124 = Uh5Cons(v90, v91, Uh5Nil)
                     let v125 = method12(v2, v124)
                     Us1Some(v125)
                 }
@@ -947,8 +892,45 @@ pub fn text_at_13(v0: String, v1: Uh5) -> String {
     case v2  {
         Us0Text(v3) -> v3
         _ -> {
-            let v4 = ""
-            v4
+            ""
         }
+    }
+}
+
+pub fn count_at_16(v0: String, v1: Uh5) -> Int {
+    let v2 = value_of_14(v0, v1)
+    case v2  {
+        Us0Whole(v3) -> v3
+        _ -> -1
+    }
+}
+
+pub fn method17(v0: Uh0, v1: Uh0) -> Uh0 {
+    case v0  {
+        Uh0Cons(v2, v3, v4, v5, v6) -> {
+            let v7 = method17(v6, v1)
+            Uh0Cons(v2, v3, v4, v5, v7)
+        }
+        Uh0Nil -> v1
+    }
+}
+
+pub fn method18(v0: Uh3, v1: Uh3) -> Uh3 {
+    case v0  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = method18(v3, v1)
+            Uh3Cons(v2, v4)
+        }
+        Uh3Nil -> v1
+    }
+}
+
+pub fn method19(v0: Uh2, v1: Uh2) -> Uh2 {
+    case v0  {
+        Uh2Cons(v2, v3, v4) -> {
+            let v5 = method19(v4, v1)
+            Uh2Cons(v2, v3, v5)
+        }
+        Uh2Nil -> v1
     }
 }

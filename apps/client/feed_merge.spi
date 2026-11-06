@@ -5,7 +5,6 @@
 
 :< sm'_operators
 
-/// ## newest-first feeds merged into pages, resumable from a typed cursor
 :! feed_cursor t = list (list t)
 
 := cursor_of \* t. (feeds : list (list t)) : feed_cursor t = feed_cursor feeds

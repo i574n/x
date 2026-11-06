@@ -17,13 +17,13 @@ enum UH2 {
     UH2_Nil,
     UH2_Cons(US0, Rc<str>, Rc<UH2>),
 }
-struct Heap0 { l0: Rc<str>, l1: Rc<str>, l2: Rc<str>, l3: Rc<str>, l4: Rc<str>, l5: Rc<str>, l6: Rc<str>, l7: Rc<UH1>, l8: Rc<UH2> }
+pub struct Heap0 { pub l0: Rc<str>, pub l1: Rc<str>, pub l2: Rc<str>, pub l3: Rc<str>, pub l4: Rc<str>, pub l5: Rc<str>, pub l6: Rc<str>, pub l7: Rc<UH1>, pub l8: Rc<UH2> }
 #[derive(Clone)]
 enum UH0 {
     UH0_Nil,
     UH0_Cons(Rc<Heap0>, Rc<UH0>),
 }
-struct Mut0 { l0: i32, l1: Rc<UH1> }
+pub struct Mut0 { pub l0: i32, pub l1: Rc<UH1> }
 #[derive(Clone)]
 enum UH3 {
     UH3_Nil,
@@ -656,9 +656,9 @@ fn method26(mut v0: Rc<UH2>, mut v1: Rc<UH1>) -> Rc<UH1> {
                     v8
                 }
             };
-            let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) };
-            let v14: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v11, v12)), v3));
-            Rc::new(UH1::UH1_Cons(v14, v5))
+            let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(":"); } LIT.with(|lit| lit.clone()) }));
+            let v13: Rc<str> = Rc::<str>::from(format!("{}{}", v12, v3));
+            Rc::new(UH1::UH1_Cons(v13, v5))
         }
         UH2::UH2_Nil => {
             v1
@@ -798,3 +798,5 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, i32, i32) -> Rc<str>> {
 pub fn xc_select(v0: &str, v1: i32, v2: i32) -> Rc<str> {
     closure0()(Rc::<str>::from(v0), v1, v2)
 }
+pub type SpiralShape_bc41c7d2dc72 = Heap0;
+pub type SpiralShape_accbf6de6842 = Mut0;

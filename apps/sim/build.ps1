@@ -170,6 +170,12 @@ if (!$fast) {
         "runner_guard",
         "runner_shell",
         "memory_watch",
-        "xsim_shell_entry"
+        "xsim_shell_entry",
+        "remote_chunks",
+        "sim_progress",
+        "sim_publish",
+        "sim_serve",
+        "timeline_serve",
+        "xsim_split/xsim_split"
     )
 }

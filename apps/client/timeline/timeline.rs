@@ -205,11 +205,9 @@ fn capped_5(mut v0: Rc<UH0>, mut v1: US1, mut v2: i32, mut v3: i32, mut v4: i32,
     let v15: bool = v14 > 100i32;
     if v15 {
         let v16: Rc<str> = Rc::<str>::from((100i32).to_string());
-        let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("at most "); } LIT.with(|lit| lit.clone()) };
-        let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, v16));
-        let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" accounts per run"); } LIT.with(|lit| lit.clone()) };
-        let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v19));
-        US3::US3_Rejected(v20)
+        let v17: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("at most "); } LIT.with(|lit| lit.clone()) }, v16));
+        let v18: Rc<str> = Rc::<str>::from(format!("{}{}", v17, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" accounts per run"); } LIT.with(|lit| lit.clone()) }));
+        US3::US3_Rejected(v18)
     } else {
         finish_6(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12)
     }
@@ -219,22 +217,19 @@ fn with_username_10(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str
     let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("-"); } LIT.with(|lit| lit.clone()) };
     let v19: bool = v3.starts_with(&*v18);
     if v19 {
-        let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown option "); } LIT.with(|lit| lit.clone()) };
-        let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v3));
-        US6::US6_Error(v21)
+        let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("unknown option "); } LIT.with(|lit| lit.clone()) }, v3));
+        US6::US6_Error(v20)
     } else {
         match v17 {
             US1::US1_None => {
-                let v26: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an X username: '"); } LIT.with(|lit| lit.clone()) };
-                let v27: Rc<str> = Rc::<str>::from(format!("{}{}", v26, v3));
-                let v28: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
-                let v29: Rc<str> = Rc::<str>::from(format!("{}{}", v27, v28));
-                US6::US6_Error(v29)
+                let v25: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an X username: '"); } LIT.with(|lit| lit.clone()) }, v3));
+                let v26: Rc<str> = Rc::<str>::from(format!("{}{}", v25, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) }));
+                US6::US6_Error(v26)
             }
-            US1::US1_Some(v23) => {
-                let v23: Rc<str> = v23;
-                let v24: Rc<UH0> = Rc::new(UH0::UH0_Cons(v23, v4));
-                US6::US6_Ok(v24, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+            US1::US1_Some(v22) => {
+                let v22: Rc<str> = v22;
+                let v23: Rc<UH0> = Rc::new(UH0::UH0_Cons(v22, v4));
+                US6::US6_Ok(v23, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
             }
         }
     }
@@ -272,23 +267,22 @@ fn with_date_14(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -
     let v19: US1 = v1(v5.clone());
     match v19 {
         US1::US1_None => {
-            let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '"); } LIT.with(|lit| lit.clone()) };
-            let v22: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v4, v20)), v5));
-            let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
-            let v24: Rc<str> = Rc::<str>::from(format!("{}{}", v22, v23));
-            US6::US6_Error(v24)
+            let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v4, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" expects YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ, got '"); } LIT.with(|lit| lit.clone()) }));
+            let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, v5));
+            let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v21, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) }));
+            US6::US6_Error(v22)
         }
-        US1::US1_Some(v26) => {
-            let v26: Rc<str> = v26;
-            let (mut v27, mut v28, mut v29, mut v30): (Rc<str>, Rc<str>, bool, bool) = match v3 {
+        US1::US1_Some(v24) => {
+            let v24: Rc<str> = v24;
+            let (mut v25, mut v26, mut v27, mut v28): (Rc<str>, Rc<str>, bool, bool) = match v3 {
                 US9::US9_StartTime => {
-                    (v26, v13, v14, v15)
+                    (v24, v13, v14, v15)
                 }
                 _ => {
-                    (v12, v26, v14, v15)
+                    (v12, v24, v14, v15)
                 }
             };
-            US6::US6_Ok(v6, v7, v8, v9, v10, v11, v27, v28, v29, v30, v16, v17, v18)
+            US6::US6_Ok(v6, v7, v8, v9, v10, v11, v25, v26, v27, v28, v16, v17, v18)
         }
     }
 }
@@ -299,23 +293,21 @@ fn with_following_15(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<st
     let v17: US1 = v2(v3.clone());
     match v17 {
         US1::US1_None => {
-            let v18: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an X username: '"); } LIT.with(|lit| lit.clone()) };
-            let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, v3));
-            let v20: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
-            let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v19, v20));
-            US6::US6_Error(v21)
+            let v18: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not an X username: '"); } LIT.with(|lit| lit.clone()) }, v3));
+            let v19: Rc<str> = Rc::<str>::from(format!("{}{}", v18, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) }));
+            US6::US6_Error(v19)
         }
-        US1::US1_Some(v23) => {
-            let v23: Rc<str> = v23;
+        US1::US1_Some(v21) => {
+            let v21: Rc<str> = v21;
             match v5 {
                 US1::US1_None => {
-                    let v27: US1 = US1::US1_Some(v23);
-                    US6::US6_Ok(v4, v27, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
+                    let v25: US1 = US1::US1_Some(v21);
+                    US6::US6_Ok(v4, v25, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
                 }
-                US1::US1_Some(v24) => {
-                    let v24: Rc<str> = v24;
-                    let v25: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--following given twice"); } LIT.with(|lit| lit.clone()) };
-                    US6::US6_Error(v25)
+                US1::US1_Some(v22) => {
+                    let v22: Rc<str> = v22;
+                    let v23: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("--following given twice"); } LIT.with(|lit| lit.clone()) };
+                    US6::US6_Error(v23)
                 }
             }
         }
@@ -381,32 +373,28 @@ fn bounded_16(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> 
                 US6::US6_Ok(v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79, v80)
             } else {
                 let v82: Rc<str> = Rc::<str>::from((v21).to_string());
-                let v83: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" to "); } LIT.with(|lit| lit.clone()) };
-                let v84: Rc<str> = Rc::<str>::from(format!("{}{}", v82, v83));
-                let v85: Rc<str> = Rc::<str>::from((v22).to_string());
-                let v86: Rc<str> = Rc::<str>::from(format!("{}{}", v84, v85));
-                let v87: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" expects a number from "); } LIT.with(|lit| lit.clone()) };
-                let v89: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v4, v87)), v86));
-                let v90: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", got '"); } LIT.with(|lit| lit.clone()) };
-                let v92: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v89, v90)), v5));
-                let v93: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
-                let v94: Rc<str> = Rc::<str>::from(format!("{}{}", v92, v93));
-                US6::US6_Error(v94)
+                let v83: Rc<str> = Rc::<str>::from(format!("{}{}", v82, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" to "); } LIT.with(|lit| lit.clone()) }));
+                let v84: Rc<str> = Rc::<str>::from((v22).to_string());
+                let v85: Rc<str> = Rc::<str>::from(format!("{}{}", v83, v84));
+                let v86: Rc<str> = Rc::<str>::from(format!("{}{}", v4, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" expects a number from "); } LIT.with(|lit| lit.clone()) }));
+                let v87: Rc<str> = Rc::<str>::from(format!("{}{}", v86, v85));
+                let v88: Rc<str> = Rc::<str>::from(format!("{}{}", v87, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", got '"); } LIT.with(|lit| lit.clone()) }));
+                let v89: Rc<str> = Rc::<str>::from(format!("{}{}", v88, v5));
+                let v90: Rc<str> = Rc::<str>::from(format!("{}{}", v89, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) }));
+                US6::US6_Error(v90)
             }
         }
         _ => {
-            let v97: Rc<str> = Rc::<str>::from((v21).to_string());
-            let v98: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" to "); } LIT.with(|lit| lit.clone()) };
-            let v99: Rc<str> = Rc::<str>::from(format!("{}{}", v97, v98));
-            let v100: Rc<str> = Rc::<str>::from((v22).to_string());
-            let v101: Rc<str> = Rc::<str>::from(format!("{}{}", v99, v100));
-            let v102: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" expects a number from "); } LIT.with(|lit| lit.clone()) };
-            let v104: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v4, v102)), v101));
-            let v105: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", got '"); } LIT.with(|lit| lit.clone()) };
-            let v107: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v104, v105)), v5));
-            let v108: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) };
-            let v109: Rc<str> = Rc::<str>::from(format!("{}{}", v107, v108));
-            US6::US6_Error(v109)
+            let v93: Rc<str> = Rc::<str>::from((v21).to_string());
+            let v94: Rc<str> = Rc::<str>::from(format!("{}{}", v93, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" to "); } LIT.with(|lit| lit.clone()) }));
+            let v95: Rc<str> = Rc::<str>::from((v22).to_string());
+            let v96: Rc<str> = Rc::<str>::from(format!("{}{}", v94, v95));
+            let v97: Rc<str> = Rc::<str>::from(format!("{}{}", v4, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" expects a number from "); } LIT.with(|lit| lit.clone()) }));
+            let v98: Rc<str> = Rc::<str>::from(format!("{}{}", v97, v96));
+            let v99: Rc<str> = Rc::<str>::from(format!("{}{}", v98, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", got '"); } LIT.with(|lit| lit.clone()) }));
+            let v100: Rc<str> = Rc::<str>::from(format!("{}{}", v99, v5));
+            let v101: Rc<str> = Rc::<str>::from(format!("{}{}", v100, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("'"); } LIT.with(|lit| lit.clone()) }));
+            US6::US6_Error(v101)
         }
     }
 }
@@ -517,8 +505,8 @@ fn advance_9(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
     };
     match v70 {
         US7::US7_Plain => {
-            let v85: US6 = with_username_10(v0, v1, v2, v16, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
-            (v85, v17)
+            let v84: US6 = with_username_10(v0, v1, v2, v16, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
+            (v84, v17)
         }
         US7::US7_Switched(v71) => {
             let v71: US8 = v71;
@@ -528,18 +516,17 @@ fn advance_9(mut v0: Rc<dyn Fn(Rc<str>) -> US0>, mut v1: Rc<dyn Fn(Rc<str>) -> U
         US7::US7_Valued(v73) => {
             let v73: US9 = v73;
             match Rc::unwrap_or_clone(v17) {
-                UH0::UH0_Cons(v78, v79) => {
-                    let v78: Rc<str> = v78;
-                    let v79: Rc<UH0> = v79;
-                    let v80: US6 = apply_flag_12(v0, v1, v2, v73, v16, v78, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
-                    (v80, v79)
+                UH0::UH0_Cons(v77, v78) => {
+                    let v77: Rc<str> = v77;
+                    let v78: Rc<UH0> = v78;
+                    let v79: US6 = apply_flag_12(v0, v1, v2, v73, v16, v77, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
+                    (v79, v78)
                 }
                 UH0::UH0_Nil => {
-                    let v74: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" needs a value"); } LIT.with(|lit| lit.clone()) };
-                    let v75: Rc<str> = Rc::<str>::from(format!("{}{}", v16, v74));
-                    let v76: US6 = US6::US6_Error(v75);
-                    let v77: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
-                    (v76, v77)
+                    let v74: Rc<str> = Rc::<str>::from(format!("{}{}", v16, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" needs a value"); } LIT.with(|lit| lit.clone()) }));
+                    let v75: US6 = US6::US6_Error(v74);
+                    let v76: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
+                    (v75, v76)
                 }
             }
         }
@@ -609,7 +596,7 @@ fn delimited_19(mut v0: Rc<str>, mut v1: Rc<UH0>) -> Rc<str> {
     v7
 }
 fn fields_of_17(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) {
-    let (mut v89, mut v90, mut v91, mut v92, mut v93, mut v94, mut v95, mut v96, mut v97, mut v98, mut v99, mut v100, mut v101, mut v102, mut v103): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = match &v0 {
+    let (mut v88, mut v89, mut v90, mut v91, mut v92, mut v93, mut v94, mut v95, mut v96, mut v97, mut v98, mut v99, mut v100, mut v101, mut v102): (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) = match &v0 {
         US3::US3_ShowTimeline(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12) => {
             let mut v1: US4 = v1.clone();
             let mut v2: i32 = *v2;
@@ -659,25 +646,25 @@ fn fields_of_17(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
             (0i32, v37, v31, v32, v33, v34, v35, v36, v6, v7, v8, v9, v10, v11, v12)
         }
         _ => {
-            let (mut v86, mut v87): (i32, Rc<str>) = match v0 {
+            let (mut v85, mut v86): (i32, Rc<str>) = match v0 {
                 US3::US3_OnThread(v42) => {
                     let v42: US5 = v42;
                     match v42 {
-                        US5::US5_CensusThreads(v55) => {
-                            let v55: Rc<UH0> = v55;
-                            let v56: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                            let v57: Rc<str> = delimited_19(v56, v55);
-                            (12i32, v57)
+                        US5::US5_CensusThreads(v54) => {
+                            let v54: Rc<UH0> = v54;
+                            let v55: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                            let v56: Rc<str> = delimited_19(v55, v54);
+                            (12i32, v56)
                         }
                         US5::US5_DeleteThread(v49) => {
                             let v49: Rc<str> = v49;
                             (9i32, v49)
                         }
-                        US5::US5_Events(v58) => {
-                            let v58: Rc<UH0> = v58;
-                            let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                            let v60: Rc<str> = delimited_19(v59, v58);
-                            (13i32, v60)
+                        US5::US5_Events(v57) => {
+                            let v57: Rc<UH0> = v57;
+                            let v58: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
+                            let v59: Rc<str> = delimited_19(v58, v57);
+                            (13i32, v59)
                         }
                         US5::US5_PostThread(v44) => {
                             let v44: Rc<str> = v44;
@@ -700,9 +687,9 @@ fn fields_of_17(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
                         US5::US5_ResumeThread(v50, v51) => {
                             let v50: Rc<str> = v50;
                             let v51: Rc<str> = v51;
-                            let v52: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) };
-                            let v54: Rc<str> = Rc::<str>::from(format!("{}{}", Rc::<str>::from(format!("{}{}", v50, v52)), v51));
-                            (10i32, v54)
+                            let v52: Rc<str> = Rc::<str>::from(format!("{}{}", v50, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
+                            let v53: Rc<str> = Rc::<str>::from(format!("{}{}", v52, v51));
+                            (10i32, v53)
                         }
                     }
                 }
@@ -723,15 +710,15 @@ fn fields_of_17(mut v0: US3) -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32
                     (2i32, v39)
                 }
                 _ => {
-                    let v77: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    (3i32, v77)
+                    let v76: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                    (3i32, v76)
                 }
             };
-            let v88: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-            (v86, v87, false, v88.clone(), 5i32, 20i32, 0i32, 20i32, v88.clone(), v88, false, false, 0i32, false, false)
+            let v87: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+            (v85, v86, false, v87.clone(), 5i32, 20i32, 0i32, 20i32, v87.clone(), v87, false, false, 0i32, false, false)
         }
     };
-    (v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102, v103)
+    (v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v101, v102)
 }
 fn timeline_fields_0() -> (i32, Rc<str>, bool, Rc<str>, i32, i32, i32, i32, Rc<str>, Rc<str>, bool, bool, i32, bool, bool) {
     let mut v0: i32 = command_line_argument_count_1();
