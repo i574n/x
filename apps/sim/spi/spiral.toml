@@ -3,7 +3,7 @@ packageDir = '../../../../spiral/lib'
 packages = ['|core-', 'spiral-', '../../client-']
 modules = '''
 exsss
-events
+sim_events
 final_state
 personas
 scenario

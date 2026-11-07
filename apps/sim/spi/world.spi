@@ -10,7 +10,7 @@
 :< protocol
 :< splitter
 :< defuse
-:< events
+:< sim_events
 :< final_state
 :< personas
 :< scenario

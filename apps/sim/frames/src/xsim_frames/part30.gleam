@@ -2,13 +2,39 @@ import gleam/dict
 import gleam/dynamic.{type Dynamic}
 import gleam/erlang/atom
 import gleam/string
-import xsim_frames/types.{type Uh3, type Uh30, type Uh38, type Uh37, Uh30Cons, Uh30Nil, Uh37Cons, Uh37Nil, Uh38Cons, Uh38Nil, Uh39Nil, Uh3Cons, Uh3Nil}
+import xsim_frames/types.{type Uh3, type Uh29, type Uh37, type Uh36, Uh29Cons, Uh29Nil, Uh36Cons, Uh36Nil, Uh37Cons, Uh37Nil, Uh38Nil, Uh3Cons, Uh3Nil}
 import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, erlang_term_tuple}
-import xsim_frames/part12.{items_from_303, method302}
+import xsim_frames/part12.{items_from_301, method300}
 import xsim_frames/part27.{method537, method538}
-import xsim_frames/part29.{deduped_592, included_authors_580, method583, method584, method585, method586, method590, method596, method597, method598, method599, method600, method601}
+import xsim_frames/part29.{deduped_592, included_authors_580, method583, method584, method585, method586, method590, method596, method597, method598, method599}
 
-pub fn simple_pairs_595(v0: Dynamic, v1: Uh3) -> Uh38 {
+pub fn closure163(capt: Nil) -> fn(String) -> Bool {
+    fn (v0) {
+        v0 == "author_id"
+    }
+}
+
+pub fn method600() -> fn(String) -> Bool {
+    closure163(Nil)
+}
+
+pub fn method601(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
+    case v1  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = v0(v2)
+            case v4 {
+                True -> True
+                False -> {
+                    let v5 = method600()
+                    method601(v5, v3)
+                }
+            }
+        }
+        Uh3Nil -> False
+    }
+}
+
+pub fn simple_pairs_595(v0: Dynamic, v1: Uh3) -> Uh37 {
     let v2 = ""
     let v3 = erlang_term_coerce(v2)
     let v4 = "created_at"
@@ -29,9 +55,9 @@ pub fn simple_pairs_595(v0: Dynamic, v1: Uh3) -> Uh38 {
     let v22 =
         case v18 {
             True -> {
-                Uh38Cons(v4, v16, Uh38Nil)
+                Uh37Cons(v4, v16, Uh37Nil)
             }
-            False -> Uh38Nil
+            False -> Uh37Nil
         }
     let v23 = erlang_term_coerce(v2)
     let v25 = erlang_term_coerce("id")
@@ -60,9 +86,9 @@ pub fn simple_pairs_595(v0: Dynamic, v1: Uh3) -> Uh38 {
     let v51 =
         case v47 {
             True -> {
-                Uh38Cons(v35, v45, Uh38Nil)
+                Uh37Cons(v35, v45, Uh37Nil)
             }
-            False -> Uh38Nil
+            False -> Uh37Nil
         }
     let v52 = erlang_term_coerce(v2)
     let v53 = "author_id"
@@ -81,11 +107,11 @@ pub fn simple_pairs_595(v0: Dynamic, v1: Uh3) -> Uh38 {
     let v69 =
         case v65 {
             True -> {
-                Uh38Cons(v53, v63, Uh38Nil)
+                Uh37Cons(v53, v63, Uh37Nil)
             }
-            False -> Uh38Nil
+            False -> Uh37Nil
         }
-    let v71 = method537(v69, Uh38Nil)
+    let v71 = method537(v69, Uh37Nil)
     let v72 = method537(v22, v71)
     method537(v51, v72)
 }
@@ -142,7 +168,7 @@ pub fn method607(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
     }
 }
 
-pub fn counted_pairs_605(v0: Dynamic, v1: Uh3) -> Uh38 {
+pub fn counted_pairs_605(v0: Dynamic, v1: Uh3) -> Uh37 {
     let v2 = method584()
     let v3 = method585(v2, v1)
     let v29 =
@@ -165,9 +191,9 @@ pub fn counted_pairs_605(v0: Dynamic, v1: Uh3) -> Uh38 {
                 let v23 = []
                 let v24 = [v18, ..v23]
                 let v25 = erlang_term_apply(v20, v22, v24)
-                let v27 = items_from_303(v25, Uh30Nil)
+                let v27 = items_from_301(v25, Uh29Nil)
                 case v27  {
-                    Uh30Nil -> False
+                    Uh29Nil -> False
                     _ -> True
                 }
             }
@@ -190,9 +216,9 @@ pub fn counted_pairs_605(v0: Dynamic, v1: Uh3) -> Uh38 {
     let v49 =
         case v29 {
             True -> {
-                Uh38Cons("referenced_posts", v44, Uh38Nil)
+                Uh37Cons("referenced_posts", v44, Uh37Nil)
             }
-            False -> Uh38Nil
+            False -> Uh37Nil
         }
     let v50 = []
     let v51 = erlang_term_coerce(v50)
@@ -338,9 +364,9 @@ pub fn counted_pairs_605(v0: Dynamic, v1: Uh3) -> Uh38 {
     let v196 =
         case v191 {
             True -> {
-                Uh38Cons("public_metrics", v189, Uh38Nil)
+                Uh37Cons("public_metrics", v189, Uh37Nil)
             }
-            False -> Uh38Nil
+            False -> Uh37Nil
         }
     method537(v196, v49)
 }
@@ -371,9 +397,9 @@ pub fn method609(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
     }
 }
 
-pub fn method610(v0: Uh30, v1: Uh30) -> Uh30 {
+pub fn method610(v0: Uh29, v1: Uh29) -> Uh29 {
     case v0  {
-        Uh30Cons(v2, v3) -> {
+        Uh29Cons(v2, v3) -> {
             let v4 = method610(v3, v1)
             let v6 = erlang_term_coerce("")
             let v8 = erlang_term_coerce("media_key")
@@ -386,13 +412,13 @@ pub fn method610(v0: Uh30, v1: Uh30) -> Uh30 {
             let v17 = [v8, ..v16]
             let v18 = erlang_term_apply(v11, v13, v17)
             let v19 = erlang_term_coerce(v18)
-            Uh30Cons(v19, v4)
+            Uh29Cons(v19, v4)
         }
-        Uh30Nil -> v1
+        Uh29Nil -> v1
     }
 }
 
-pub fn nested_pairs_602(v0: Dynamic, v1: Uh3) -> Uh38 {
+pub fn nested_pairs_602(v0: Dynamic, v1: Uh3) -> Uh37 {
     let v2 = method603()
     let v3 = method604(v2, v1)
     let v29 =
@@ -415,9 +441,9 @@ pub fn nested_pairs_602(v0: Dynamic, v1: Uh3) -> Uh38 {
                 let v23 = []
                 let v24 = [v18, ..v23]
                 let v25 = erlang_term_apply(v20, v22, v24)
-                let v27 = items_from_303(v25, Uh30Nil)
+                let v27 = items_from_301(v25, Uh29Nil)
                 case v27  {
-                    Uh30Nil -> False
+                    Uh29Nil -> False
                     _ -> True
                 }
             }
@@ -456,9 +482,9 @@ pub fn nested_pairs_602(v0: Dynamic, v1: Uh3) -> Uh38 {
     let v64 =
         case v29 {
             True -> {
-                Uh38Cons("entities", v59, Uh38Nil)
+                Uh37Cons("entities", v59, Uh37Nil)
             }
-            False -> Uh38Nil
+            False -> Uh37Nil
         }
     let v65 = counted_pairs_605(v0, v1)
     let v66 = method608()
@@ -483,9 +509,9 @@ pub fn nested_pairs_602(v0: Dynamic, v1: Uh3) -> Uh38 {
                 let v85 = []
                 let v86 = [v80, ..v85]
                 let v87 = erlang_term_apply(v82, v84, v86)
-                let v89 = items_from_303(v87, Uh30Nil)
+                let v89 = items_from_301(v87, Uh29Nil)
                 case v89  {
-                    Uh30Nil -> False
+                    Uh29Nil -> False
                     _ -> True
                 }
             }
@@ -508,10 +534,10 @@ pub fn nested_pairs_602(v0: Dynamic, v1: Uh3) -> Uh38 {
     let v109 = []
     let v110 = [v104, ..v109]
     let v111 = erlang_term_apply(v106, v108, v110)
-    let v113 = items_from_303(v111, Uh30Nil)
-    let v115 = method610(v113, Uh30Nil)
+    let v113 = items_from_301(v111, Uh29Nil)
+    let v115 = method610(v113, Uh29Nil)
     let v116 = []
-    let v117 = method302(v115, v116)
+    let v117 = method300(v115, v116)
     let v118 = erlang_term_coerce(v117)
     let v120 = atom.create("media_keys")
     let v121 = erlang_term_coerce(v120)
@@ -530,11 +556,11 @@ pub fn nested_pairs_602(v0: Dynamic, v1: Uh3) -> Uh38 {
     let v138 =
         case v91 {
             True -> {
-                Uh38Cons("attachments", v133, Uh38Nil)
+                Uh37Cons("attachments", v133, Uh37Nil)
             }
-            False -> Uh38Nil
+            False -> Uh37Nil
         }
-    let v140 = method537(v138, Uh38Nil)
+    let v140 = method537(v138, Uh37Nil)
     let v141 = method537(v64, v140)
     method537(v65, v141)
 }
@@ -598,9 +624,9 @@ pub fn rendered_594(v0: Dynamic, v1: Uh3) -> Dynamic {
     let v64 = erlang_term_coerce(v63)
     let v65 = simple_pairs_595(v0, v1)
     let v66 = nested_pairs_602(v0, v1)
-    let v68 = method537(v66, Uh38Nil)
+    let v68 = method537(v66, Uh37Nil)
     let v69 = method537(v65, v68)
-    let v71 = method538(v69, Uh30Nil)
+    let v71 = method538(v69, Uh29Nil)
     let v73 = atom.create("edit_history_post_ids")
     let v74 = erlang_term_coerce(v73)
     let v75 = []
@@ -620,7 +646,7 @@ pub fn rendered_594(v0: Dynamic, v1: Uh3) -> Dynamic {
     let v89 = [v86, ..v88]
     let v90 = erlang_term_tuple(v89)
     let v91 = []
-    let v92 = method302(v71, v91)
+    let v92 = method300(v71, v91)
     let v93 = [v78, ..v92]
     let v94 = [v84, ..v93]
     let v95 = [v90, ..v94]
@@ -632,9 +658,9 @@ pub fn rendered_594(v0: Dynamic, v1: Uh3) -> Dynamic {
     erlang_term_apply(v97, v99, v101)
 }
 
-pub fn method593(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh30, v4: Uh38) -> Uh38 {
+pub fn method593(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29, v4: Uh37) -> Uh37 {
     case v3  {
-        Uh30Cons(v5, v6) -> {
+        Uh29Cons(v5, v6) -> {
             let v7 = method593(v0, v1, v2, v6, v4)
             let v9 = erlang_term_coerce("")
             let v11 = erlang_term_coerce("id")
@@ -669,9 +695,9 @@ pub fn method593(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh30, v4: Uh38) -> Uh38 {
                     }
                 }
             let v40 = rendered_594(v5, v0)
-            Uh38Cons(v39, v40, v7)
+            Uh37Cons(v39, v40, v7)
         }
-        Uh30Nil -> v4
+        Uh29Nil -> v4
     }
 }
 
@@ -701,14 +727,14 @@ pub fn method613(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
     }
 }
 
-pub fn method616(v0: Uh30, v1: Uh3) -> Uh3 {
+pub fn method616(v0: Uh29, v1: Uh3) -> Uh3 {
     case v0  {
-        Uh30Cons(v2, v3) -> {
+        Uh29Cons(v2, v3) -> {
             let v4 = method616(v3, v1)
             let v5 = erlang_term_coerce(v2)
             Uh3Cons(v5, v4)
         }
-        Uh30Nil -> v1
+        Uh29Nil -> v1
     }
 }
 
@@ -761,7 +787,7 @@ pub fn method617(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh3, v4: Uh3) -> Uh3 {
     }
 }
 
-pub fn method620(v0: Dynamic, v1: Uh3, v2: Uh38) -> Uh38 {
+pub fn method620(v0: Dynamic, v1: Uh3, v2: Uh37) -> Uh37 {
     case v1  {
         Uh3Cons(v3, v4) -> {
             let v5 = method620(v0, v4, v2)
@@ -776,15 +802,15 @@ pub fn method620(v0: Dynamic, v1: Uh3, v2: Uh38) -> Uh38 {
             let v17 = [v8, ..v16]
             let v18 = erlang_term_apply(v11, v13, v17)
             let v19 = erlang_term_coerce(v18)
-            Uh38Cons(v3, v19, v5)
+            Uh37Cons(v3, v19, v5)
         }
         Uh3Nil -> v2
     }
 }
 
-pub fn method615(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh30, v4: Uh38) -> Uh38 {
+pub fn method615(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29, v4: Uh37) -> Uh37 {
     case v3  {
-        Uh30Cons(v5, v6) -> {
+        Uh29Cons(v5, v6) -> {
             let v7 = method615(v0, v1, v2, v6, v4)
             let v9 = erlang_term_coerce("")
             let v11 = erlang_term_coerce("media_key")
@@ -809,28 +835,28 @@ pub fn method615(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh30, v4: Uh38) -> Uh38 {
             let v34 = []
             let v35 = [v29, ..v34]
             let v36 = erlang_term_apply(v31, v33, v35)
-            let v38 = items_from_303(v36, Uh30Nil)
+            let v38 = items_from_301(v36, Uh29Nil)
             let v40 = method616(v38, Uh3Nil)
             let v42 = method617(v0, v1, v2, v40, Uh3Nil)
-            let v44 = method620(v5, v42, Uh38Nil)
-            let v46 = method538(v44, Uh30Nil)
+            let v44 = method620(v5, v42, Uh37Nil)
+            let v46 = method538(v44, Uh29Nil)
             let v47 = []
-            let v48 = method302(v46, v47)
+            let v48 = method300(v46, v47)
             let v49 = erlang_term_coerce(v48)
             let v50 = atom.create(v13)
             let v52 = atom.create("from_list")
             let v53 = []
             let v54 = [v49, ..v53]
             let v55 = erlang_term_apply(v50, v52, v54)
-            Uh38Cons(v23, v55, v7)
+            Uh37Cons(v23, v55, v7)
         }
-        Uh30Nil -> v4
+        Uh29Nil -> v4
     }
 }
 
-pub fn method614(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh30, v4: Uh37) -> Uh37 {
+pub fn method614(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29, v4: Uh36) -> Uh36 {
     case v3  {
-        Uh30Cons(v5, v6) -> {
+        Uh29Cons(v5, v6) -> {
             let v7 = method614(v0, v1, v2, v6, v4)
             let v8 = []
             let v9 = erlang_term_coerce(v8)
@@ -849,80 +875,80 @@ pub fn method614(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh30, v4: Uh37) -> Uh37 {
             let v27 = []
             let v28 = [v22, ..v27]
             let v29 = erlang_term_apply(v24, v26, v28)
-            let v31 = items_from_303(v29, Uh30Nil)
-            let v33 = method615(v0, v1, v2, v31, Uh38Nil)
-            Uh37Cons(v33, v7)
+            let v31 = items_from_301(v29, Uh29Nil)
+            let v33 = method615(v0, v1, v2, v31, Uh37Nil)
+            Uh36Cons(v33, v7)
         }
-        Uh30Nil -> v4
+        Uh29Nil -> v4
     }
 }
 
-pub fn method621(v0: Uh37, v1: Uh38) -> Uh38 {
+pub fn method621(v0: Uh36, v1: Uh37) -> Uh37 {
     case v0  {
-        Uh37Cons(v2, v3) -> {
+        Uh36Cons(v2, v3) -> {
             let v4 = method621(v3, v1)
             method537(v2, v4)
         }
-        Uh37Nil -> v1
+        Uh36Nil -> v1
     }
 }
 
-pub fn included_media_611(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh30) -> Uh38 {
+pub fn included_media_611(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29) -> Uh37 {
     let v4 = method612()
     let v5 = method613(v4, v1)
     case v5 {
         True -> {
-            let v7 = method614(v0, v1, v2, v3, Uh37Nil)
-            method621(v7, Uh38Nil)
+            let v7 = method614(v0, v1, v2, v3, Uh36Nil)
+            method621(v7, Uh37Nil)
         }
-        False -> Uh38Nil
+        False -> Uh37Nil
     }
 }
 
-pub fn includes_pairs_579(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh37, v13: Uh3, v14: Uh3, v15: Uh3, v16: Uh30) -> Uh38 {
-    let v17 = included_authors_580(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16)
-    let v18 = dict.new()
-    let v19 = deduped_592(v18, v17)
-    let v27 =
-        case v19  {
-            Uh30Nil -> Uh38Nil
+pub fn includes_pairs_579(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh36, v13: String, v14: Uh3, v15: Uh3, v16: Uh3, v17: Uh29) -> Uh37 {
+    let v18 = included_authors_580(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
+    let v19 = dict.new()
+    let v20 = deduped_592(v19, v18)
+    let v28 =
+        case v20  {
+            Uh29Nil -> Uh37Nil
             _ -> {
-                let v21 = []
-                let v22 = method302(v19, v21)
-                let v23 = erlang_term_coerce(v22)
-                Uh38Cons("users", v23, Uh38Nil)
+                let v22 = []
+                let v23 = method300(v20, v22)
+                let v24 = erlang_term_coerce(v23)
+                Uh37Cons("users", v24, Uh37Nil)
             }
         }
-    let v29 = method583(v13, v14, v15, v16, Uh30Nil)
-    let v31 = method586(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v29, Uh39Nil)
-    let v33 = method590(v31, Uh30Nil)
-    let v35 = method593(v13, v14, v15, v33, Uh38Nil)
-    let v36 = dict.new()
-    let v37 = deduped_592(v36, v35)
-    let v45 =
-        case v37  {
-            Uh30Nil -> Uh38Nil
+    let v30 = method583(v14, v15, v16, v17, Uh29Nil)
+    let v32 = method586(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v30, Uh38Nil)
+    let v34 = method590(v32, Uh29Nil)
+    let v36 = method593(v14, v15, v16, v34, Uh37Nil)
+    let v37 = dict.new()
+    let v38 = deduped_592(v37, v36)
+    let v46 =
+        case v38  {
+            Uh29Nil -> Uh37Nil
             _ -> {
-                let v39 = []
-                let v40 = method302(v37, v39)
-                let v41 = erlang_term_coerce(v40)
-                Uh38Cons("posts", v41, Uh38Nil)
+                let v40 = []
+                let v41 = method300(v38, v40)
+                let v42 = erlang_term_coerce(v41)
+                Uh37Cons("posts", v42, Uh37Nil)
             }
         }
-    let v46 = included_media_611(v13, v14, v15, v16)
-    let v47 = dict.new()
-    let v48 = deduped_592(v47, v46)
-    let v56 =
-        case v48  {
-            Uh30Nil -> Uh38Nil
+    let v47 = included_media_611(v14, v15, v16, v17)
+    let v48 = dict.new()
+    let v49 = deduped_592(v48, v47)
+    let v57 =
+        case v49  {
+            Uh29Nil -> Uh37Nil
             _ -> {
-                let v50 = []
-                let v51 = method302(v48, v50)
-                let v52 = erlang_term_coerce(v51)
-                Uh38Cons("media", v52, Uh38Nil)
+                let v51 = []
+                let v52 = method300(v49, v51)
+                let v53 = erlang_term_coerce(v52)
+                Uh37Cons("media", v53, Uh37Nil)
             }
         }
-    let v58 = method537(v56, Uh38Nil)
-    let v59 = method537(v27, v58)
-    method537(v45, v59)
+    let v59 = method537(v57, Uh37Nil)
+    let v60 = method537(v28, v59)
+    method537(v46, v60)
 }

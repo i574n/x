@@ -7,7 +7,7 @@
 :< sm'_operators
 :< prelude
 :< glyphs
-:< events
+:< sim_events
 :< inbox
 
 :| task_status =

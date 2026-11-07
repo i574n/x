@@ -2,10 +2,10 @@ import gleam/bit_array
 import gleam/dict
 import gleam/list
 import gleam/string
-import xsim_frames/types.{type Uh3, type Us2, type Us16, type Uh14, type Uh16, type Us29, type Us30, type Us31, type Us33, type Us45, type Us48, type Us50, type Us52, type Us54, type Us56, type Us57, type Us59, Sha256, Uh14Cons, Uh14Nil, Uh3Cons, Uh3Nil, Us16Content, Us17Posted, Us29CellsExecutor, Us29FakeExecutor, Us29LeakingExecutor, Us2None, Us2Some, Us30EvictAfter, Us31None, Us31Some, Us33Error, Us33Ok, Us34None, Us34Some, Us35None, Us35Some, Us36RunParsed, Us36RunRejected, Us37CorpusBreaking, Us37CorpusCells, Us37CorpusChurn, Us38None, Us38Some, Us39ScheduleEdits, Us39ScheduleRounds, Us39ScheduleSeed, Us39ScheduleUsers, Us3None, Us3Some, Us40None, Us40Some, Us41None, Us41Some, Us42RunnerConcurrency, Us42RunnerGrace, Us42RunnerPace, Us43None, Us43Some, Us44None, Us44Some, Us45Done, Us48Error, Us48Ok, Us50Error, Us50Ok, Us51None, Us51Some, Us52Error, Us52Ok, Us53None, Us53Some, Us54Error, Us54Ok, Us55None, Us55Some, Us56Error, Us56Ok, Us57Error, Us57Ok, Us59Error, Us59Ok}
+import xsim_frames/types.{type Uh3, type Us2, type Us16, type Uh13, type Uh15, type Us29, type Us30, type Us31, type Us33, type Us45, type Us48, type Us50, type Us52, type Us54, type Us56, type Us57, type Us59, Sha256, Uh13Cons, Uh13Nil, Uh3Cons, Uh3Nil, Us16Content, Us17Posted, Us29CellsExecutor, Us29FakeExecutor, Us29LeakingExecutor, Us2None, Us2Some, Us30EvictAfter, Us31None, Us31Some, Us33Error, Us33Ok, Us34None, Us34Some, Us35None, Us35Some, Us36RunParsed, Us36RunRejected, Us37CorpusBreaking, Us37CorpusCells, Us37CorpusChurn, Us38None, Us38Some, Us39ScheduleEdits, Us39ScheduleRounds, Us39ScheduleSeed, Us39ScheduleUsers, Us3None, Us3Some, Us40None, Us40Some, Us41None, Us41Some, Us42RunnerConcurrency, Us42RunnerGrace, Us42RunnerPace, Us43None, Us43Some, Us44None, Us44Some, Us45Done, Us48Error, Us48Ok, Us50Error, Us50Ok, Us51None, Us51Some, Us52Error, Us52Ok, Us53None, Us53Some, Us54Error, Us54Ok, Us55None, Us55Some, Us56Error, Us56Ok, Us57Error, Us57Ok, Us59Error, Us59Ok}
 import xsim_frames/part1.{count_of_text_10, dictm_term_sorted, spiral_crypto_hash, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, unicode_erlang_characters_to_binary}
 import xsim_frames/part2.{delimited_21}
-import xsim_frames/part8.{method236}
+import xsim_frames/part8.{method234}
 
 pub fn closure34(capt: #(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool, String)) -> fn(String) -> Us33 {
     fn (v21) {
@@ -22,7 +22,7 @@ pub fn closure34(capt: #(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int
                                 split_list_2(",", v21)
                             }
                         }
-                    let v29 = method236(v27, Uh3Nil)
+                    let v29 = method234(v27, Uh3Nil)
                     Us34Some(v29, v1, v2, v3, v4, v5, v6)
                 }
                 False -> Us34None
@@ -459,7 +459,7 @@ pub fn closure32(capt: Nil) -> fn(#(Uh3, String, Int, Int, Int, String, Bool, In
     }
 }
 
-pub fn valued_then_239(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> Us31, v1: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> fn(String) -> Us33, v2: Uh3, v3: String, v4: Int, v5: Int, v6: Int, v7: String, v8: Bool, v9: Int, v10: Int, v11: Int, v12: Int, v13: Int, v14: String, v15: String, v16: Us29, v17: Int, v18: Us30, v19: Int, v20: Bool, v21: Bool, v22: String, v23: Uh3) -> Us33 {
+pub fn valued_then_237(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> Us31, v1: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> fn(String) -> Us33, v2: Uh3, v3: String, v4: Int, v5: Int, v6: Int, v7: String, v8: Bool, v9: Int, v10: Int, v11: Int, v12: Int, v13: Int, v14: String, v15: String, v16: Us29, v17: Int, v18: Us30, v19: Int, v20: Bool, v21: Bool, v22: String, v23: Uh3) -> Us33 {
     case v23  {
         Uh3Cons(v24, v25) -> {
             let v26 = v1(#(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21))
@@ -479,7 +479,7 @@ pub fn valued_then_239(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, I
                 }
             let v36 = v26(v35)
             let v37 = v36(v24)
-            continued_240(v0, v1, v37, v25)
+            continued_238(v0, v1, v37, v25)
         }
         Uh3Nil -> {
             let v40 = v22 |> string.starts_with("--")
@@ -503,7 +503,7 @@ pub fn valued_then_239(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, I
     }
 }
 
-pub fn arg_parsed_238(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> Us31, v1: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> fn(String) -> Us33, v2: Uh3, v3: String, v4: Int, v5: Int, v6: Int, v7: String, v8: Bool, v9: Int, v10: Int, v11: Int, v12: Int, v13: Int, v14: String, v15: String, v16: Us29, v17: Int, v18: Us30, v19: Int, v20: Bool, v21: Bool, v22: String, v23: Uh3) -> Us33 {
+pub fn arg_parsed_236(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> Us31, v1: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> fn(String) -> Us33, v2: Uh3, v3: String, v4: Int, v5: Int, v6: Int, v7: String, v8: Bool, v9: Int, v10: Int, v11: Int, v12: Int, v13: Int, v14: String, v15: String, v16: Us29, v17: Int, v18: Us30, v19: Int, v20: Bool, v21: Bool, v22: String, v23: Uh3) -> Us33 {
     let v24 = v0(#(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21))
     let v26 = v22 |> string.starts_with("--")
     let v33 =
@@ -521,12 +521,12 @@ pub fn arg_parsed_238(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, In
         }
     let v34 = v24(v33)
     case v34  {
-        Us31None -> valued_then_239(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23)
-        Us31Some(v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54) -> flags_parsed_237(v0, v1, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54, v23)
+        Us31None -> valued_then_237(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23)
+        Us31Some(v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54) -> flags_parsed_235(v0, v1, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54, v23)
     }
 }
 
-pub fn flags_parsed_237(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> Us31, v1: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> fn(String) -> Us33, v2: Uh3, v3: String, v4: Int, v5: Int, v6: Int, v7: String, v8: Bool, v9: Int, v10: Int, v11: Int, v12: Int, v13: Int, v14: String, v15: String, v16: Us29, v17: Int, v18: Us30, v19: Int, v20: Bool, v21: Bool, v22: Uh3) -> Us33 {
+pub fn flags_parsed_235(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> Us31, v1: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> fn(String) -> Us33, v2: Uh3, v3: String, v4: Int, v5: Int, v6: Int, v7: String, v8: Bool, v9: Int, v10: Int, v11: Int, v12: Int, v13: Int, v14: String, v15: String, v16: Us29, v17: Int, v18: Us30, v19: Int, v20: Bool, v21: Bool, v22: Uh3) -> Us33 {
     case v22  {
         Uh3Cons(v24, v25) -> {
             let v27 = v24 |> string.starts_with("--")
@@ -550,21 +550,21 @@ pub fn flags_parsed_237(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, 
                     let v37 = { v36 } <> { "'" }
                     Us33Error(v37)
                 }
-                False -> arg_parsed_238(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v24, v25)
+                False -> arg_parsed_236(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v24, v25)
             }
         }
         Uh3Nil -> Us33Ok(v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21)
     }
 }
 
-pub fn continued_240(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> Us31, v1: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> fn(String) -> Us33, v2: Us33, v3: Uh3) -> Us33 {
+pub fn continued_238(v0: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> Us31, v1: fn(#(Uh3, String, Int, Int, Int, String, Bool, Int, Int, Int, Int, Int, String, String, Us29, Int, Us30, Int, Bool, Bool)) -> fn(String) -> fn(String) -> Us33, v2: Us33, v3: Uh3) -> Us33 {
     case v2  {
         Us33Error(v25) -> Us33Error(v25)
-        Us33Ok(v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23) -> flags_parsed_237(v0, v1, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v3)
+        Us33Ok(v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23) -> flags_parsed_235(v0, v1, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20, v21, v22, v23, v3)
     }
 }
 
-pub fn hash_text_241(v0: String) -> String {
+pub fn hash_text_239(v0: String) -> String {
     string.lowercase(bit_array.base16_encode(spiral_crypto_hash(Sha256, v0)))
 }
 
@@ -572,7 +572,7 @@ pub fn closure35(capt: Nil) -> fn(Uh3) -> #(Us45, String) {
     fn (v0) {
         let v1 = unicode_erlang_characters_to_binary([0])
         let v2 = delimited_21(v1, v0)
-        let v3 = hash_text_241(v2)
+        let v3 = hash_text_239(v2)
         let v4 = spiral_string_slice(v3, 0, 11)
         #(Us45Done, v4)
     }
@@ -582,7 +582,7 @@ pub fn closure36(capt: Nil) -> fn(Uh3) -> #(Us45, String) {
     fn (v0) {
         let v1 = unicode_erlang_characters_to_binary([0])
         let v2 = delimited_21(v1, v0)
-        let v3 = hash_text_241(v2)
+        let v3 = hash_text_239(v2)
         let v4 = spiral_string_slice(v3, 0, 11)
         #(Us45Done, v4)
     }
@@ -623,7 +623,7 @@ pub fn ok_c45(capt: Nil) -> fn(#(dict.Dict(Int, #(Int, Int, String)), Int)) -> U
     }
 }
 
-pub fn method247() -> fn(#(dict.Dict(Int, #(Int, Int, String)), Int)) -> Us48 {
+pub fn method245() -> fn(#(dict.Dict(Int, #(Int, Int, String)), Int)) -> Us48 {
     ok_c45(Nil)
 }
 
@@ -633,7 +633,7 @@ pub fn error_c46(capt: Nil) -> fn(Nil) -> Us48 {
     }
 }
 
-pub fn method248() -> fn(Nil) -> Us48 {
+pub fn method246() -> fn(Nil) -> Us48 {
     error_c46(Nil)
 }
 
@@ -644,7 +644,7 @@ pub fn ok_c47(capt: Nil) -> fn(#(Int, Int, String)) -> Us50 {
     }
 }
 
-pub fn method252() -> fn(#(Int, Int, String)) -> Us50 {
+pub fn method250() -> fn(#(Int, Int, String)) -> Us50 {
     ok_c47(Nil)
 }
 
@@ -654,18 +654,18 @@ pub fn error_c48(capt: Nil) -> fn(Nil) -> Us50 {
     }
 }
 
-pub fn method253() -> fn(Nil) -> Us50 {
+pub fn method251() -> fn(Nil) -> Us50 {
     error_c48(Nil)
 }
 
-pub fn method251(v0: Int, v1: dict.Dict(Int, #(Int, Int, String)), v2: Int) -> Uh3 {
+pub fn method249(v0: Int, v1: dict.Dict(Int, #(Int, Int, String)), v2: Int) -> Uh3 {
     let v3 = v2 < v0
     case v3 {
         True -> {
             let v4 = spiral_wrap_signed(v2 + 1, 32)
             let v5 = dict.get(v1, v4)
-            let v6 = method252()
-            let v7 = method253()
+            let v6 = method250()
+            let v7 = method251()
             let v8 = case v5 { Ok(x) -> v6(x) Error(x) -> v7(x) }
             let v15 =
                 case v8  {
@@ -684,7 +684,7 @@ pub fn method251(v0: Int, v1: dict.Dict(Int, #(Int, Int, String)), v2: Int) -> U
                         #(v22, v23, v24)
                     }
                 }
-            let v28 = method251(v0, v1, v4)
+            let v28 = method249(v0, v1, v4)
             Uh3Cons(v27, v28)
         }
         False -> Uh3Nil
@@ -697,7 +697,7 @@ pub fn ok_c49(capt: Nil) -> fn(Uh3) -> Us52 {
     }
 }
 
-pub fn method255() -> fn(Uh3) -> Us52 {
+pub fn method253() -> fn(Uh3) -> Us52 {
     ok_c49(Nil)
 }
 
@@ -707,7 +707,7 @@ pub fn error_c50(capt: Nil) -> fn(Nil) -> Us52 {
     }
 }
 
-pub fn method256() -> fn(Nil) -> Us52 {
+pub fn method254() -> fn(Nil) -> Us52 {
     error_c50(Nil)
 }
 
@@ -718,7 +718,7 @@ pub fn ok_c51(capt: Nil) -> fn(#(Us2, dict.Dict(Int, String), Bool)) -> Us54 {
     }
 }
 
-pub fn method258() -> fn(#(Us2, dict.Dict(Int, String), Bool)) -> Us54 {
+pub fn method256() -> fn(#(Us2, dict.Dict(Int, String), Bool)) -> Us54 {
     ok_c51(Nil)
 }
 
@@ -728,7 +728,7 @@ pub fn error_c52(capt: Nil) -> fn(Nil) -> Us54 {
     }
 }
 
-pub fn method259() -> fn(Nil) -> Us54 {
+pub fn method257() -> fn(Nil) -> Us54 {
     error_c52(Nil)
 }
 
@@ -738,7 +738,7 @@ pub fn ok_c53(capt: Nil) -> fn(String) -> Us56 {
     }
 }
 
-pub fn method260() -> fn(String) -> Us56 {
+pub fn method258() -> fn(String) -> Us56 {
     ok_c53(Nil)
 }
 
@@ -748,26 +748,26 @@ pub fn error_c54(capt: Nil) -> fn(Nil) -> Us56 {
     }
 }
 
-pub fn method261() -> fn(Nil) -> Us56 {
+pub fn method259() -> fn(Nil) -> Us56 {
     error_c54(Nil)
 }
 
-pub fn method262(v0: Uh14, v1: Uh14) -> Uh14 {
+pub fn method260(v0: Uh13, v1: Uh13) -> Uh13 {
     case v0  {
-        Uh14Cons(v2, v3) -> {
-            let v4 = Uh14Cons(v2, v1)
-            method262(v3, v4)
+        Uh13Cons(v2, v3) -> {
+            let v4 = Uh13Cons(v2, v1)
+            method260(v3, v4)
         }
-        Uh14Nil -> v1
+        Uh13Nil -> v1
     }
 }
 
-pub fn method263(v0: dict.Dict(Int, String), v1: Uh14, v2: Int) -> Int {
+pub fn method261(v0: dict.Dict(Int, String), v1: Uh13, v2: Int) -> Int {
     case v1  {
-        Uh14Cons(v3, v4) -> {
+        Uh13Cons(v3, v4) -> {
             let v5 = dict.get(v0, v3)
-            let v6 = method260()
-            let v7 = method261()
+            let v6 = method258()
+            let v7 = method259()
             let v8 = case v5 { Ok(x) -> v6(x) Error(x) -> v7(x) }
             let v13 =
                 case v8  {
@@ -785,18 +785,18 @@ pub fn method263(v0: dict.Dict(Int, String), v1: Uh14, v2: Int) -> Int {
                     True -> v3
                     False -> v2
                 }
-            method263(v0, v4, v19)
+            method261(v0, v4, v19)
         }
-        Uh14Nil -> v2
+        Uh13Nil -> v2
     }
 }
 
-pub fn method264(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh16, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int) -> #(dict.Dict(Int, Nil), Uh16, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
+pub fn method262(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
     let #(v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67) =
         case v0  {
             Uh3Cons(v14, v15) -> {
-                let #(v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28) = rekeyed_257(v14, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
-                method264(v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28)
+                let #(v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28) = rekeyed_255(v14, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13)
+                method262(v15, v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28)
             }
             _ -> {
                 let #(v42, v43, v44, v45, v46, v47, v48, v49, v50, v51, v52, v53, v54) =
@@ -810,10 +810,10 @@ pub fn method264(v0: Uh3, v1: dict.Dict(Int, Nil), v2: Uh16, v3: dict.Dict(Strin
     #(v55, v56, v57, v58, v59, v60, v61, v62, v63, v64, v65, v66, v67)
 }
 
-pub fn rekeyed_257(v0: String, v1: dict.Dict(Int, Nil), v2: Uh16, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int) -> #(dict.Dict(Int, Nil), Uh16, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
+pub fn rekeyed_255(v0: String, v1: dict.Dict(Int, Nil), v2: Uh15, v3: dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), v4: dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), v5: dict.Dict(String, String), v6: dict.Dict(String, Uh3), v7: dict.Dict(String, dict.Dict(String, Nil)), v8: dict.Dict(String, #(Int, Bool)), v9: dict.Dict(String, Nil), v10: Int, v11: Int, v12: Int, v13: Int) -> #(dict.Dict(Int, Nil), Uh15, dict.Dict(String, #(dict.Dict(Int, #(Int, Int, String)), Int)), dict.Dict(String, #(Us2, dict.Dict(Int, String), Bool)), dict.Dict(String, String), dict.Dict(String, Uh3), dict.Dict(String, dict.Dict(String, Nil)), dict.Dict(String, #(Int, Bool)), dict.Dict(String, Nil), Int, Int, Int, Int) {
     let v14 = dict.get(v6, v0)
-    let v15 = method255()
-    let v16 = method256()
+    let v15 = method253()
+    let v16 = method254()
     let v17 = case v14 { Ok(x) -> v15(x) Error(x) -> v16(x) }
     let v22 =
         case v17  {
@@ -821,8 +821,8 @@ pub fn rekeyed_257(v0: String, v1: dict.Dict(Int, Nil), v2: Uh16, v3: dict.Dict(
             Us52Ok(v18) -> Us53Some(v18)
         }
     let v23 = dict.get(v4, v0)
-    let v24 = method258()
-    let v25 = method259()
+    let v24 = method256()
+    let v25 = method257()
     let v26 = case v23 { Ok(x) -> v24(x) Error(x) -> v25(x) }
     let v33 =
         case v26  {
@@ -848,8 +848,8 @@ pub fn rekeyed_257(v0: String, v1: dict.Dict(Int, Nil), v2: Uh16, v3: dict.Dict(
             }
             Us2Some(v46) -> {
                 let v47 = dict.get(v5, v46)
-                let v48 = method260()
-                let v49 = method261()
+                let v48 = method258()
+                let v49 = method259()
                 let v50 = case v47 { Ok(x) -> v48(x) Error(x) -> v49(x) }
                 let v55 =
                     case v50  {
@@ -864,17 +864,17 @@ pub fn rekeyed_257(v0: String, v1: dict.Dict(Int, Nil), v2: Uh16, v3: dict.Dict(
         }
     let v63 = dict.keys(v44)
     let v64 = dictm_term_sorted(v63)
-    let listm_fold = v64 |> list.fold (Uh14Nil, fn (acc, x) {
+    let listm_fold = v64 |> list.fold (Uh13Nil, fn (acc, x) {
     let v66 = x
     let v67 = acc
-    Uh14Cons(v66, v67)
+    Uh13Cons(v66, v67)
     })
     let v69 = listm_fold
-    let v71 = method262(v69, Uh14Nil)
-    let v73 = method263(v44, v71, -1)
+    let v71 = method260(v69, Uh13Nil)
+    let v73 = method261(v44, v71, -1)
     let v74 = dict.get(v44, v73)
-    let v75 = method260()
-    let v76 = method261()
+    let v75 = method258()
+    let v76 = method259()
     let v77 = case v74 { Ok(x) -> v75(x) Error(x) -> v76(x) }
     let v82 =
         case v77  {
@@ -889,13 +889,13 @@ pub fn rekeyed_257(v0: String, v1: dict.Dict(Int, Nil), v2: Uh16, v3: dict.Dict(
     let v87 = unicode_erlang_characters_to_binary([0])
     let v88 = { v62 } <> { v87 }
     let v89 = { v88 } <> { v86 }
-    let v90 = hash_text_241(v89)
+    let v90 = hash_text_239(v89)
     let v91 = spiral_string_slice(v90, 0, 15)
     let v92 = dict.insert(v5, v0, v91)
     let v93 = dict.insert(v9, v0, Nil)
     let #(v121, v122, v123, v124, v125, v126, v127, v128, v129, v130, v131, v132, v133) =
         case v22  {
-            Us53Some(v94) -> method264(v94, v1, v2, v3, v4, v92, v6, v7, v8, v93, v10, v11, v12, v13)
+            Us53Some(v94) -> method262(v94, v1, v2, v3, v4, v92, v6, v7, v8, v93, v10, v11, v12, v13)
             _ -> {
                 let #(v108, v109, v110, v111, v112, v113, v114, v115, v116, v117, v118, v119, v120) =
                     case v22  {
@@ -915,7 +915,7 @@ pub fn ok_c55(capt: Nil) -> fn(#(Int, Bool)) -> Us57 {
     }
 }
 
-pub fn method265() -> fn(#(Int, Bool)) -> Us57 {
+pub fn method263() -> fn(#(Int, Bool)) -> Us57 {
     ok_c55(Nil)
 }
 
@@ -925,7 +925,7 @@ pub fn error_c56(capt: Nil) -> fn(Nil) -> Us57 {
     }
 }
 
-pub fn method266() -> fn(Nil) -> Us57 {
+pub fn method264() -> fn(Nil) -> Us57 {
     error_c56(Nil)
 }
 
@@ -935,7 +935,7 @@ pub fn ok_c57(capt: Nil) -> fn(dict.Dict(String, Nil)) -> Us59 {
     }
 }
 
-pub fn method267() -> fn(dict.Dict(String, Nil)) -> Us59 {
+pub fn method265() -> fn(dict.Dict(String, Nil)) -> Us59 {
     ok_c57(Nil)
 }
 
@@ -945,6 +945,6 @@ pub fn error_c58(capt: Nil) -> fn(Nil) -> Us59 {
     }
 }
 
-pub fn method268() -> fn(Nil) -> Us59 {
+pub fn method266() -> fn(Nil) -> Us59 {
     error_c58(Nil)
 }

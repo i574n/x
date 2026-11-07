@@ -4,22 +4,22 @@ import gleam/int
 import gleam/otp/actor
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh3, type Uh14, type Us86, type Us87, Uh14Cons, Uh14Nil, Uh30Nil, Uh3Cons, Uh3Nil, Uh9Nil, Us29CellsExecutor, Us29FakeExecutor, Us29LeakingExecutor, Us30NoEviction, Us33Error, Us33Ok, Us34None, Us34Some, Us36RunParsed, Us36RunRejected, Us56Error, Us56Ok, Us69None, Us69Some, Us70Tick, Us78None, Us78Some, Us80Error, Us80Ok, Us84None, Us84Some, Us85Replied, Us85Unreachable, Us86Finished, Us86Step, Us87None, Us87Some}
+import xsim_frames/types.{type Uh3, type Uh13, type Us86, type Us87, Uh13Cons, Uh13Nil, Uh29Nil, Uh3Cons, Uh3Nil, Uh8Nil, Us29CellsExecutor, Us29FakeExecutor, Us29LeakingExecutor, Us30NoEviction, Us33Error, Us33Ok, Us34None, Us34Some, Us36RunParsed, Us36RunRejected, Us56Error, Us56Ok, Us69None, Us69Some, Us70Tick, Us78None, Us78Some, Us80Error, Us80Ok, Us84None, Us84Some, Us85Replied, Us85Unreachable, Us86Finished, Us86Step, Us87None, Us87Some}
 import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_fs_coerce, spiral_fs_read_file, spiral_fs_write_file, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
 import xsim_frames/part11.{closure39}
-import xsim_frames/part12.{closure69, closure70, closure71, closure73, closure74, closure76, closure77, closure78, items_from_303}
+import xsim_frames/part12.{closure69, closure70, closure71, closure73, closure74, closure76, closure77, closure78, items_from_301}
 import xsim_frames/part13.{closure79, closure82, closure84}
 import xsim_frames/part14.{closure85, closure87, closure88, closure89, closure90}
-import xsim_frames/part16.{method372, method373}
-import xsim_frames/part17.{simulated_by_310}
-import xsim_frames/part18.{get_environment_variable_406, method398, method399, method400, method408, session_405}
+import xsim_frames/part16.{method370, method371}
+import xsim_frames/part17.{simulated_by_308}
+import xsim_frames/part18.{get_environment_variable_404, method396, method397, method398, method406, session_403}
 import xsim_frames/part2.{concat_balanced_22, delimited_21, method20}
-import xsim_frames/part3.{method58, method59}
-import xsim_frames/part5.{controls_from_122}
+import xsim_frames/part3.{method56, method57}
+import xsim_frames/part5.{controls_from_120}
 import xsim_frames/part8.{closure30}
-import xsim_frames/part9.{closure32, closure35, closure36, closure37, flags_parsed_237, method260, method261, quiet_c38}
+import xsim_frames/part9.{closure32, closure35, closure36, closure37, flags_parsed_235, method258, method259, quiet_c38}
 
-pub fn posted_one_410(v0: String, v1: String, v2: String, v3: String, v4: Us86) -> Int {
+pub fn posted_one_408(v0: String, v1: String, v2: String, v3: String, v4: Us86) -> Int {
     let v6 = erlang_term_coerce("authorization")
     let v7 = "unicode"
     let v8 = atom.create(v7)
@@ -54,7 +54,7 @@ pub fn posted_one_410(v0: String, v1: String, v2: String, v3: String, v4: Us86) 
     let v35 = "\""
     let v36 = "\\\""
     let v37 = v34 |> string.replace(v35, v36)
-    let v39 = controls_from_122(0, v37)
+    let v39 = controls_from_120(0, v37)
     let v40 = ""
     let v42 = Uh3Cons(v35, Uh3Nil)
     let v43 = Uh3Cons(v39, v42)
@@ -65,7 +65,7 @@ pub fn posted_one_410(v0: String, v1: String, v2: String, v3: String, v4: Us86) 
     let v48 = { v47 } <> { "\"kind\":" }
     let v49 = v31 |> string.replace(v32, v33)
     let v50 = v49 |> string.replace(v35, v36)
-    let v52 = controls_from_122(0, v50)
+    let v52 = controls_from_120(0, v50)
     let v54 = Uh3Cons(v35, Uh3Nil)
     let v55 = Uh3Cons(v52, v54)
     let v56 = Uh3Cons(v35, v55)
@@ -85,7 +85,7 @@ pub fn posted_one_410(v0: String, v1: String, v2: String, v3: String, v4: Us86) 
             Us86Step(v59) -> {
                 let v60 = v59 |> string.replace(v32, v33)
                 let v61 = v60 |> string.replace(v35, v36)
-                let v63 = controls_from_122(0, v61)
+                let v63 = controls_from_120(0, v61)
                 let v65 = Uh3Cons(v35, Uh3Nil)
                 let v66 = Uh3Cons(v63, v65)
                 let v67 = Uh3Cons(v35, v66)
@@ -105,7 +105,7 @@ pub fn posted_one_410(v0: String, v1: String, v2: String, v3: String, v4: Us86) 
     let v90 = erlang_term_coerce(v89)
     let v91 = v90 |> string.replace(v32, v33)
     let v92 = v91 |> string.replace(v35, v36)
-    let v94 = controls_from_122(0, v92)
+    let v94 = controls_from_120(0, v92)
     let v96 = Uh3Cons(v35, Uh3Nil)
     let v97 = Uh3Cons(v94, v96)
     let v98 = Uh3Cons(v35, v97)
@@ -294,19 +294,19 @@ pub fn posted_one_410(v0: String, v1: String, v2: String, v3: String, v4: Us86) 
     }
 }
 
-pub fn method409(v0: String, v1: String, v2: String, v3: String, v4: Uh3, v5: Uh14) -> Uh14 {
+pub fn method407(v0: String, v1: String, v2: String, v3: String, v4: Uh3, v5: Uh13) -> Uh13 {
     case v4  {
         Uh3Cons(v6, v7) -> {
-            let v8 = method409(v0, v1, v2, v3, v7, v5)
+            let v8 = method407(v0, v1, v2, v3, v7, v5)
             let v9 = Us86Step(v6)
-            let v10 = posted_one_410(v0, v1, v2, v3, v9)
-            Uh14Cons(v10, v8)
+            let v10 = posted_one_408(v0, v1, v2, v3, v9)
+            Uh13Cons(v10, v8)
         }
         Uh3Nil -> v5
     }
 }
 
-pub fn posted_all_407(v0: String, v1: String, v2: String, v3: String, v4: String) -> Nil {
+pub fn posted_all_405(v0: String, v1: String, v2: String, v3: String, v4: String) -> Nil {
     let v5 = v4 == ""
     let v9 =
         case v5 {
@@ -315,8 +315,8 @@ pub fn posted_all_407(v0: String, v1: String, v2: String, v3: String, v4: String
                 split_list_2("\n", v4)
             }
         }
-    let v11 = method408(v9, Uh3Nil)
-    let _v13 = method409(v0, v1, v2, v3, v11, Uh14Nil)
+    let v11 = method406(v9, Uh3Nil)
+    let _v13 = method407(v0, v1, v2, v3, v11, Uh13Nil)
     let v15 = method20(v11, 0)
     let v17 = v4 |> string.contains(" result=pass")
     let v18 =
@@ -325,22 +325,22 @@ pub fn posted_all_407(v0: String, v1: String, v2: String, v3: String, v4: String
             False -> 1
         }
     let v19 = Us86Finished(v15, v18)
-    let _v20 = posted_one_410(v0, v1, v2, v3, v19)
+    let _v20 = posted_one_408(v0, v1, v2, v3, v19)
     Nil
 }
 
-pub fn posted_when_signed_in_404(v0: String) -> Nil {
-    let v1 = session_405()
+pub fn posted_when_signed_in_402(v0: String) -> Nil {
+    let v1 = session_403()
     case v1  {
         Us84None -> Nil
         Us84Some(v2, v3, v4) -> {
-            let v6 = get_environment_variable_406("XSIM_RUN_ID")
+            let v6 = get_environment_variable_404("XSIM_RUN_ID")
             let v7 = spiral_string_length(v6)
-            let v9 = method58(v6, v7, 0)
+            let v9 = method56(v6, v7, 0)
             let v10 = spiral_wrap_signed(v7 - 1, 32)
             let v11 = spiral_string_slice(v6, v9, v10)
             let v12 = spiral_string_length(v11)
-            let v13 = method59(v11, v12)
+            let v13 = method57(v11, v12)
             let v14 = spiral_string_slice(v11, 0, v13)
             let v15 = v14 == ""
             let v17 =
@@ -350,7 +350,7 @@ pub fn posted_when_signed_in_404(v0: String) -> Nil {
                     }
                     False -> v14
                 }
-            posted_all_407(v2, v3, v4, v17, v0)
+            posted_all_405(v2, v3, v4, v17, v0)
         }
     }
 }
@@ -367,19 +367,19 @@ pub fn closure109(capt: Nil) -> fn(String) -> Bool {
     }
 }
 
-pub fn method411() -> fn(String) -> Bool {
+pub fn method409() -> fn(String) -> Bool {
     closure109(Nil)
 }
 
-pub fn method412(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
+pub fn method410(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
     case v1  {
         Uh3Cons(v2, v3) -> {
             let v4 = v0(v2)
             case v4 {
                 True -> True
                 False -> {
-                    let v5 = method411()
-                    method412(v5, v3)
+                    let v5 = method409()
+                    method410(v5, v3)
                 }
             }
         }
@@ -480,12 +480,12 @@ pub fn closure108(capt: Nil) -> fn(String) -> Int {
         let v85 = []
         let v86 = [v80, ..v85]
         let v87 = erlang_term_apply(v82, v84, v86)
-        let v89 = items_from_303(v87, Uh30Nil)
-        let v91 = method398(v89, Uh3Nil)
+        let v89 = items_from_301(v87, Uh29Nil)
+        let v91 = method396(v89, Uh3Nil)
         let v92 = closure30(Nil)
         let v93 = closure32(Nil)
         let v95 = ""
-        let v111 = flags_parsed_237(v92, v93, Uh3Nil, v95, -1, 0, 0, v95, False, 1, 8, 3, 2, 100, v95, v95, Us29FakeExecutor, 4, Us30NoEviction, 0, False, False, v91)
+        let v111 = flags_parsed_235(v92, v93, Uh3Nil, v95, -1, 0, 0, v95, False, 1, 8, 3, 2, 100, v95, v95, Us29FakeExecutor, 4, Us30NoEviction, 0, False, False, v91)
         let v144 =
             case v111  {
                 Us33Error(v141) -> Us36RunRejected(v141)
@@ -515,7 +515,7 @@ pub fn closure108(capt: Nil) -> fn(String) -> Int {
         let #(v248, v249) =
             case v169  {
                 Us34None -> {
-                    #(Uh9Nil, ".")
+                    #(Uh8Nil, ".")
                 }
                 Us34Some(v170, v171, v172, v173, v174, v175, v176) -> {
                     let v177 = v171 == ""
@@ -524,16 +524,16 @@ pub fn closure108(capt: Nil) -> fn(String) -> Int {
                             True -> v170
                             False -> {
                                 let v178 = spiral_fs_read_file(v171)
-                                let v179 = method372()
-                                let v180 = method373()
+                                let v179 = method370()
+                                let v180 = method371()
                                 let v181 = case v178 { Ok(x) -> v179(x) Error(x) -> v180(x) }
                                 let v194 =
                                     case v181  {
                                         Us80Error(v191) -> panic as "file_system.read_all_text: file:read_file failed"
                                         Us80Ok(v182) -> {
                                             let v183 = bit_array.to_string(v182)
-                                            let v184 = method260()
-                                            let v185 = method261()
+                                            let v184 = method258()
+                                            let v185 = method259()
                                             let v186 = case v183 { Ok(x) -> v184(x) Error(x) -> v185(x) }
                                             case v186  {
                                                 Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -549,12 +549,12 @@ pub fn closure108(capt: Nil) -> fn(String) -> Int {
                                         True -> Uh3Nil
                                         False -> split_list_2(v196, v197)
                                     }
-                                method399(v201, Uh3Nil)
+                                method397(v201, Uh3Nil)
                             }
                         }
                     case v204  {
                         Uh3Cons(v205, v206) -> {
-                            let v208 = method400(v172, v204, Uh9Nil)
+                            let v208 = method398(v172, v204, Uh8Nil)
                             let v209 = erlang_term_coerce(v205)
                             let v210 = "filename"
                             let v211 = atom.create(v210)
@@ -585,7 +585,7 @@ pub fn closure108(capt: Nil) -> fn(String) -> Int {
                             #(v208, v237)
                         }
                         Uh3Nil -> {
-                            #(Uh9Nil, ".")
+                            #(Uh8Nil, ".")
                         }
                     }
                 }
@@ -602,7 +602,7 @@ pub fn closure108(capt: Nil) -> fn(String) -> Int {
         let v262 = [v255, ..v261]
         let v263 = [v256, ..v262]
         let v264 = erlang_term_apply(v258, v260, v263)
-        let v281 = flags_parsed_237(v92, v93, Uh3Nil, v95, -1, 0, 0, v95, False, 1, 8, 3, 2, 100, v95, v95, Us29FakeExecutor, 4, Us30NoEviction, 0, False, False, v91)
+        let v281 = flags_parsed_235(v92, v93, Uh3Nil, v95, -1, 0, 0, v95, False, 1, 8, 3, 2, 100, v95, v95, Us29FakeExecutor, 4, Us30NoEviction, 0, False, False, v91)
         let v314 =
             case v281  {
                 Us33Error(v311) -> Us36RunRejected(v311)
@@ -780,7 +780,7 @@ pub fn closure108(capt: Nil) -> fn(String) -> Int {
                     let v479 = closure88(#(v398, v478))
                     let v480 = closure89(Nil)
                     let v481 = closure90(Nil)
-                    let v482 = simulated_by_310(v389, v390, v391, v479, v480, v481, v395, v315, v316, v317, v318, v319, v320, v321, v322, v323, v324, v325, v326, v327, v328, v329, v330, v331, v332, v333, v334, v248)
+                    let v482 = simulated_by_308(v389, v390, v391, v479, v480, v481, v395, v315, v316, v317, v318, v319, v320, v321, v322, v323, v324, v325, v326, v327, v328, v329, v330, v331, v332, v333, v334, v248)
                     delimited_21("\n", v482)
                 }
                 Us36RunRejected(v485) -> {
@@ -788,7 +788,7 @@ pub fn closure108(capt: Nil) -> fn(String) -> Int {
                     v486
                 }
             }
-        posted_when_signed_in_404(v488)
+        posted_when_signed_in_402(v488)
         let v489 = { v488 } <> { "\n" }
         let v490 = erlang_term_coerce(v489)
         let v492 = atom.create("io")
@@ -804,8 +804,8 @@ pub fn closure108(capt: Nil) -> fn(String) -> Int {
                     split_list_2("\n", v488)
                 }
             }
-        let v503 = method411()
-        let v504 = method412(v503, v502)
+        let v503 = method409()
+        let v504 = method410(v503, v502)
         case v504 {
             True -> 1
             False -> 0

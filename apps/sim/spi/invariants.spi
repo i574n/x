@@ -6,7 +6,7 @@
 
 :< sm'_operators
 :< prelude
-:< events
+:< sim_events
 
 :== outcome = { ok : bool; out : string }
 
@@ -147,7 +147,7 @@
     | Held => Broken []
     | broken => broken
 
-:= rule_name (r : rule) : string = reflection::typed_case_name r |> reflection::typed_name_snake
+:= rule_name (r : rule) : string = reflection::case_name_snake r
 
 := verdict_text (v : verdict) : string =
     ?= v ?|

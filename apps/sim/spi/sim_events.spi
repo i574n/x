@@ -1,7 +1,7 @@
 ///- --package . --timeout 600000
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam
-:# events static =
+:# sim_events static =
     :< testing
 
 :< sm'_operators

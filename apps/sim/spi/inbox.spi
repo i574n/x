@@ -8,7 +8,7 @@
 :< prelude
 :< glyphs
 :< defuse
-:< events
+:< sim_events
 
 :== post_state = { parent : option string; revisions : dict::dict i32 string; deleted : bool }
 

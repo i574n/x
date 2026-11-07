@@ -6,7 +6,7 @@
 
 :< sm'_operators
 :< prelude
-:< events
+:< sim_events
 :< personas
 :< splitter
 :< scenario

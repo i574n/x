@@ -6,11 +6,11 @@ import gleam/option
 import gleam/otp/actor
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh3, type Us70, type Uh31, Uh31Cons, Uh31Nil, Uh3Cons, Uh3Nil, Us3None, Us3Some, Us72Error, Us72Ok, Us73Closed, Us73Failed, Us73Refused, Us73TimedOut, Us74Error, Us74Ok, Us75Error, Us75Ok, Us76Error, Us76Ok}
+import xsim_frames/types.{type Uh3, type Us70, type Uh30, Uh30Cons, Uh30Nil, Uh3Cons, Uh3Nil, Us3None, Us3Some, Us72Error, Us72Ok, Us73Closed, Us73Failed, Us73Refused, Us73TimedOut, Us74Error, Us74Ok, Us75Error, Us75Ok, Us76Error, Us76Ok}
 import xsim_frames/part1.{count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, method18, method4, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
 import xsim_frames/part13.{closure86}
 import xsim_frames/part2.{concat_balanced_22}
-import xsim_frames/part3.{method58, method59}
+import xsim_frames/part3.{method56, method57}
 
 pub fn closure85(capt: #(process.Subject(Us70))) -> fn(Int) -> Uh3 {
     fn (v1) {
@@ -293,11 +293,11 @@ pub fn closure85(capt: #(process.Subject(Us70))) -> fn(Int) -> Uh3 {
                 }
             }
         let v253 = spiral_string_length(v252)
-        let v255 = method58(v252, v253, 0)
+        let v255 = method56(v252, v253, 0)
         let v256 = spiral_wrap_signed(v253 - 1, 32)
         let v257 = spiral_string_slice(v252, v255, v256)
         let v258 = spiral_string_length(v257)
-        let v259 = method59(v257, v258)
+        let v259 = method57(v257, v258)
         let v260 = spiral_string_slice(v257, 0, v259)
         let v261 = v260 == ""
         let v265 =
@@ -410,7 +410,7 @@ pub fn closure90(capt: Nil) -> fn(Nil) -> Int {
     }
 }
 
-pub fn is_tld_312(v0: String) -> Bool {
+pub fn is_tld_310(v0: String) -> Bool {
     let v1 = v0 |> string.lowercase
     let v2 = { "|" } <> { v1 }
     let v3 = { v2 } <> { "|" }
@@ -653,7 +653,7 @@ pub fn is_tld_312(v0: String) -> Bool {
 
 pub fn closure94(capt: Nil) -> fn(String) -> Bool {
     fn (v0) {
-        is_tld_312(v0)
+        is_tld_310(v0)
     }
 }
 
@@ -663,7 +663,7 @@ pub fn closure95(capt: Nil) -> fn(Int) -> Int {
     }
 }
 
-pub fn ascii_of_318(v0: String) -> Int {
+pub fn ascii_of_316(v0: String) -> Int {
     let v1 = v0 == ""
     case v1 {
         True -> 0
@@ -683,8 +683,8 @@ pub fn ascii_of_318(v0: String) -> Int {
     }
 }
 
-pub fn ascii_letter_317(v0: String) -> Bool {
-    let v1 = ascii_of_318(v0)
+pub fn ascii_letter_315(v0: String) -> Bool {
+    let v1 = ascii_of_316(v0)
     let v2 = v1 >= 65
     let v4 =
         case v2 {
@@ -707,13 +707,13 @@ pub fn ascii_letter_317(v0: String) -> Bool {
     }
 }
 
-pub fn label_glyph_316(v0: String) -> Bool {
-    let v1 = ascii_letter_317(v0)
+pub fn label_glyph_314(v0: String) -> Bool {
+    let v1 = ascii_letter_315(v0)
     let v6 =
         case v1 {
             True -> True
             False -> {
-                let v2 = ascii_of_318(v0)
+                let v2 = ascii_of_316(v0)
                 let v3 = v2 >= 48
                 case v3 {
                     True -> {
@@ -738,8 +738,8 @@ pub fn label_glyph_316(v0: String) -> Bool {
     }
 }
 
-pub fn run_glyph_315(v0: String) -> Bool {
-    let v1 = label_glyph_316(v0)
+pub fn run_glyph_313(v0: String) -> Bool {
+    let v1 = label_glyph_314(v0)
     case v1 {
         True -> True
         False -> {
@@ -748,14 +748,14 @@ pub fn run_glyph_315(v0: String) -> Bool {
     }
 }
 
-pub fn run_of_320(v0: Uh3, v1: Uh3) -> #(Uh3, Uh3) {
+pub fn run_of_318(v0: Uh3, v1: Uh3) -> #(Uh3, Uh3) {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = run_glyph_315(v2)
+            let v4 = run_glyph_313(v2)
             case v4 {
                 True -> {
                     let v5 = Uh3Cons(v2, v1)
-                    run_of_320(v3, v5)
+                    run_of_318(v3, v5)
                 }
                 False -> {
                     let v9 = method4(v1, Uh3Nil)
@@ -770,57 +770,57 @@ pub fn run_of_320(v0: Uh3, v1: Uh3) -> #(Uh3, Uh3) {
     }
 }
 
-pub fn method322(v0: Uh3, v1: String) -> String {
+pub fn method320(v0: Uh3, v1: String) -> String {
     case v0  {
-        Uh3Cons(v2, v3) -> method322(v3, v2)
+        Uh3Cons(v2, v3) -> method320(v3, v2)
         Uh3Nil -> v1
     }
 }
 
-pub fn last_or_321(v0: String, v1: Uh3) -> String {
-    method322(v1, v0)
+pub fn last_or_319(v0: String, v1: Uh3) -> String {
+    method320(v1, v0)
 }
 
-pub fn run_piece_319(v0: String, v1: Uh3) -> #(String, Uh3, String, Uh3) {
-    let #(v3, v4) = run_of_320(v1, Uh3Nil)
-    let v5 = last_or_321(v0, v3)
+pub fn run_piece_317(v0: String, v1: Uh3) -> #(String, Uh3, String, Uh3) {
+    let #(v3, v4) = run_of_318(v1, Uh3Nil)
+    let v5 = last_or_319(v0, v3)
     #(v5, v4, v0, v3)
 }
 
-pub fn method323(v0: Uh31, v1: Uh31) -> Uh31 {
+pub fn method321(v0: Uh30, v1: Uh30) -> Uh30 {
     case v0  {
-        Uh31Cons(v2, v3, v4) -> {
-            let v5 = Uh31Cons(v2, v3, v1)
-            method323(v4, v5)
+        Uh30Cons(v2, v3, v4) -> {
+            let v5 = Uh30Cons(v2, v3, v1)
+            method321(v4, v5)
         }
-        Uh31Nil -> v1
+        Uh30Nil -> v1
     }
 }
 
-pub fn pieces_from_314(v0: String, v1: Uh3, v2: Uh31) -> Uh31 {
+pub fn pieces_from_312(v0: String, v1: Uh3, v2: Uh30) -> Uh30 {
     case v1  {
         Uh3Cons(v3, v4) -> {
-            let v5 = run_glyph_315(v3)
+            let v5 = run_glyph_313(v3)
             case v5 {
                 True -> {
-                    let #(v6, v7, v8, v9) = run_piece_319(v0, v1)
-                    let v10 = Uh31Cons(v8, v9, v2)
-                    pieces_from_314(v6, v7, v10)
+                    let #(v6, v7, v8, v9) = run_piece_317(v0, v1)
+                    let v10 = Uh30Cons(v8, v9, v2)
+                    pieces_from_312(v6, v7, v10)
                 }
                 False -> {
                     let v13 = Uh3Cons(v3, Uh3Nil)
-                    let v14 = Uh31Cons(v0, v13, v2)
-                    pieces_from_314(v3, v4, v14)
+                    let v14 = Uh30Cons(v0, v13, v2)
+                    pieces_from_312(v3, v4, v14)
                 }
             }
         }
         Uh3Nil -> {
-            method323(v2, Uh31Nil)
+            method321(v2, Uh30Nil)
         }
     }
 }
 
-pub fn blocks_domain_326(v0: String) -> Bool {
+pub fn blocks_domain_324(v0: String) -> Bool {
     let v1 = v0 == "@"
     let v3 =
         case v1 {
@@ -832,27 +832,27 @@ pub fn blocks_domain_326(v0: String) -> Bool {
     case v3 {
         True -> True
         False -> {
-            let v4 = ascii_of_318(v0)
+            let v4 = ascii_of_316(v0)
             v4 > 127
         }
     }
 }
 
-pub fn after_label_329(v0: Uh3) -> Bool {
+pub fn after_label_327(v0: Uh3) -> Bool {
     case v0  {
-        Uh3Cons(v1, v2) -> label_glyph_316(v1)
+        Uh3Cons(v1, v2) -> label_glyph_314(v1)
         Uh3Nil -> False
     }
 }
 
-pub fn letters_after_331(v0: Uh3, v1: Uh3) -> #(String, Bool) {
+pub fn letters_after_329(v0: Uh3, v1: Uh3) -> #(String, Bool) {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = ascii_letter_317(v2)
+            let v4 = ascii_letter_315(v2)
             case v4 {
                 True -> {
                     let v5 = Uh3Cons(v2, v1)
-                    letters_after_331(v3, v5)
+                    letters_after_329(v3, v5)
                 }
                 False -> {
                     let v9 = method4(v1, Uh3Nil)
@@ -870,14 +870,14 @@ pub fn letters_after_331(v0: Uh3, v1: Uh3) -> #(String, Bool) {
     }
 }
 
-pub fn label_before_332(v0: Uh3, v1: Uh3) -> String {
+pub fn label_before_330(v0: Uh3, v1: Uh3) -> String {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = label_glyph_316(v2)
+            let v4 = label_glyph_314(v2)
             case v4 {
                 True -> {
                     let v5 = Uh3Cons(v2, v1)
-                    label_before_332(v3, v5)
+                    label_before_330(v3, v5)
                 }
                 False -> {
                     concat_balanced_22("", v1)
@@ -890,7 +890,7 @@ pub fn label_before_332(v0: Uh3, v1: Uh3) -> String {
     }
 }
 
-pub fn tld_ok_333(v0: fn(String) -> Bool, v1: String, v2: String) -> Bool {
+pub fn tld_ok_331(v0: fn(String) -> Bool, v1: String, v2: String) -> Bool {
     let v3 = spiral_string_length(v2)
     let v4 = v3 >= 2
     let v6 =
@@ -920,12 +920,12 @@ pub fn tld_ok_333(v0: fn(String) -> Bool, v1: String, v2: String) -> Bool {
     }
 }
 
-pub fn linked_dot_330(v0: fn(String) -> Bool, v1: Uh3, v2: Uh3) -> Bool {
-    let #(v4, v5) = letters_after_331(v2, Uh3Nil)
-    let v7 = label_before_332(v1, Uh3Nil)
+pub fn linked_dot_328(v0: fn(String) -> Bool, v1: Uh3, v2: Uh3) -> Bool {
+    let #(v4, v5) = letters_after_329(v2, Uh3Nil)
+    let v7 = label_before_330(v1, Uh3Nil)
     case v5 {
         True -> {
-            let v8 = tld_ok_333(v0, v7, v4)
+            let v8 = tld_ok_331(v0, v7, v4)
             case v8 {
                 True -> True
                 False -> {
@@ -943,15 +943,15 @@ pub fn linked_dot_330(v0: fn(String) -> Bool, v1: Uh3, v2: Uh3) -> Bool {
     }
 }
 
-pub fn defusable_328(v0: fn(String) -> Bool, v1: Uh3, v2: String, v3: Uh3) -> Bool {
+pub fn defusable_326(v0: fn(String) -> Bool, v1: Uh3, v2: String, v3: Uh3) -> Bool {
     let v4 = v2 == "."
     let v6 =
         case v4 {
-            True -> after_label_329(v1)
+            True -> after_label_327(v1)
             False -> False
         }
     case v6 {
-        True -> linked_dot_330(v0, v1, v3)
+        True -> linked_dot_328(v0, v1, v3)
         False -> False
     }
 }

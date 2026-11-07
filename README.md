@@ -14,7 +14,7 @@ Typed apps for X, built on a sibling clone of [spiral](https://github.com/i574n/
 ```powershell
 pwsh scripts/workflow.ps1        # what CI runs
 pwsh scripts/build.ps1 -fast 1   # local rebuild without the Cells notebooks and the real-Cells sim runs
-pwsh apps/sim/build.ps1 -Ladder 6:8:3,10:8:4   # real-Cells scale ladder, notebooks:cells:concurrency per rung; run alone as a heavy eoie job
+pwsh apps/sim/build.ps1 -Ladder 6:8:3,10:8:4   # real-Cells scale ladder, notebooks:cells:concurrency per rung; run alone as a heavy kit job
 ```
 
 ## Starting another Spiral repo from x

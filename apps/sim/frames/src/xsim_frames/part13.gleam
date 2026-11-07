@@ -4,10 +4,10 @@ import gleam/erlang/process
 import gleam/int
 import gleam/otp/actor
 import gleam/string
-import xsim_frames/types.{type Uh3, type Us70, type Us71, Uh30Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us70Peak, Us70Tick, Us71FreshLine, Us71GrowingText, Us72Error, Us72Ok, Us73Closed, Us73Failed, Us73Refused, Us73TimedOut, Us74Error, Us74Ok, Us75Error, Us75Ok, Us76Error, Us76Ok, Us77None, Us77Some}
+import xsim_frames/types.{type Uh3, type Us70, type Us71, Uh29Nil, Uh3Cons, Uh3Nil, Us2None, Us2Some, Us3None, Us3Some, Us70Peak, Us70Tick, Us71FreshLine, Us71GrowingText, Us72Error, Us72Ok, Us73Closed, Us73Failed, Us73Refused, Us73TimedOut, Us74Error, Us74Ok, Us75Error, Us75Ok, Us76Error, Us76Ok, Us77None, Us77Some}
 import xsim_frames/part1.{count_of_text_10, erlang_term_apply, erlang_term_coerce, erlang_term_tuple, method4, spiral_sm_coerce, spiral_sm_find_trailing, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2}
-import xsim_frames/part12.{gleam_collected_308, keep_c81, method302, method307}
-import xsim_frames/part3.{method58, method59}
+import xsim_frames/part12.{gleam_collected_306, keep_c81, method300, method305}
+import xsim_frames/part3.{method56, method57}
 
 pub fn closure80(capt: #(String)) -> fn(Nil) -> String {
     fn (dom) {
@@ -292,11 +292,11 @@ pub fn closure80(capt: #(String)) -> fn(Nil) -> String {
                 }
             }
         let v252 = spiral_string_length(v251)
-        let v254 = method58(v251, v252, 0)
+        let v254 = method56(v251, v252, 0)
         let v255 = spiral_wrap_signed(v252 - 1, 32)
         let v256 = spiral_string_slice(v251, v254, v255)
         let v257 = spiral_string_length(v256)
-        let v258 = method59(v256, v257)
+        let v258 = method57(v256, v257)
         let v259 = spiral_string_slice(v256, 0, v258)
         let v260 = v259 == ""
         let v264 =
@@ -380,9 +380,9 @@ pub fn closure80(capt: #(String)) -> fn(Nil) -> String {
                                     }
                                 }
                             let v327 = method4(v325, Uh3Nil)
-                            let v329 = method307(v327, Uh30Nil)
+                            let v329 = method305(v327, Uh29Nil)
                             let v330 = []
-                            let v331 = method302(v329, v330)
+                            let v331 = method300(v329, v330)
                             let v332 = erlang_term_coerce(v331)
                             let v333 = []
                             let v334 = [v332, ..v333]
@@ -418,7 +418,7 @@ pub fn closure80(capt: #(String)) -> fn(Nil) -> String {
                             let v369 = erlang_term_coerce(v368)
                             let v370 = keep_c81(Nil)
                             let v371 = process.select_record(process.new_selector(), v369, 1, v370)
-                            let #(v373, v374) = gleam_collected_308(v371, "")
+                            let #(v373, v374) = gleam_collected_306(v371, "")
                             #(True, v373, v374)
                         }
                     }
@@ -454,16 +454,16 @@ pub fn closure79(capt: #(String)) -> fn(process.Subject(Us70)) -> #(Int, Int, In
     }
 }
 
-pub fn method309(v0: Uh3, v1: Int, v2: Int, v3: Int, v4: Int) -> #(Int, Int, Int, Int) {
+pub fn method307(v0: Uh3, v1: Int, v2: Int, v3: Int, v4: Int) -> #(Int, Int, Int, Int) {
     let #(v62, v63, v64, v65) =
         case v0  {
             Uh3Cons(v5, v6) -> {
                 let v7 = spiral_string_length(v5)
-                let v9 = method58(v5, v7, 0)
+                let v9 = method56(v5, v7, 0)
                 let v10 = spiral_wrap_signed(v7 - 1, 32)
                 let v11 = spiral_string_slice(v5, v9, v10)
                 let v12 = spiral_string_length(v11)
-                let v13 = method59(v11, v12)
+                let v13 = method57(v11, v12)
                 let v14 = spiral_string_slice(v11, 0, v13)
                 let v15 = v14 == ""
                 let v19 =
@@ -527,7 +527,7 @@ pub fn method309(v0: Uh3, v1: Int, v2: Int, v3: Int, v4: Int) -> #(Int, Int, Int
                             #(v46, v47, v48, v49)
                         }
                     }
-                method309(v6, v50, v51, v52, v53)
+                method307(v6, v50, v51, v52, v53)
             }
             _ -> {
                 let #(v58, v59, v60, v61) =
@@ -596,7 +596,7 @@ pub fn closure83(capt: #(Int, Int, Int, Int, Int, Us71, Int, process.Subject(Us7
                                     True -> Uh3Nil
                                     False -> split_list_2(v20, v33)
                                 }
-                            let #(v38, v39, v40, v41) = method309(v37, v0, v1, v2, v3)
+                            let #(v38, v39, v40, v41) = method307(v37, v0, v1, v2, v3)
                             let v42 = spiral_string_length(v33)
                             let v43 = spiral_wrap_signed(v15 + v42, 32)
                             #(v38, v39, v40, v41, v43, v5, v6, v7)
@@ -614,7 +614,7 @@ pub fn closure83(capt: #(Int, Int, Int, Int, Int, Us71, Int, process.Subject(Us7
                                                     split_list_2("\n", v45)
                                                 }
                                             }
-                                        let #(v51, v52, v53, v54) = method309(v50, v0, v1, v2, v3)
+                                        let #(v51, v52, v53, v54) = method307(v50, v0, v1, v2, v3)
                                         #(v51, v52, v53, v54, v4, v5, v6, v7)
                                     }
                                     _ -> panic as "spiral: union case ruled out by partial evaluation"

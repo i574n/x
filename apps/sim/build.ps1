@@ -149,7 +149,7 @@ if (!$fast) {
 if (!$fast) {
     Invoke-SpiralTests $spi @(
         "exsss",
-        "events",
+        "sim_events",
         "final_state",
         "personas",
         "scenario",

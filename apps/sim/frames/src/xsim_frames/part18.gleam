@@ -4,19 +4,19 @@ import gleam/erlang/atom
 import gleam/otp/actor
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh3, type Uh9, type Uh30, type Us84, Uh30Cons, Uh30Nil, Uh3Cons, Uh3Nil, Uh9Cons, Uh9Nil, Us29CellsExecutor, Us29FakeExecutor, Us29LeakingExecutor, Us30NoEviction, Us33Error, Us33Ok, Us36RunParsed, Us36RunRejected, Us56Error, Us56Ok, Us69None, Us69Some, Us70Tick, Us78None, Us78Some, Us80Error, Us80Ok, Us84None, Us84Some, Us85Replied, Us85Unreachable}
+import xsim_frames/types.{type Uh3, type Uh8, type Uh29, type Us84, Uh29Cons, Uh29Nil, Uh3Cons, Uh3Nil, Uh8Cons, Uh8Nil, Us29CellsExecutor, Us29FakeExecutor, Us29LeakingExecutor, Us30NoEviction, Us33Error, Us33Ok, Us36RunParsed, Us36RunRejected, Us56Error, Us56Ok, Us69None, Us69Some, Us70Tick, Us78None, Us78Some, Us80Error, Us80Ok, Us84None, Us84Some, Us85Replied, Us85Unreachable}
 import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_fs_coerce, spiral_fs_is_regular, spiral_fs_read_file, spiral_fs_write_file, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, unicode_erlang_characters_to_binary}
 import xsim_frames/part11.{closure39}
-import xsim_frames/part12.{closure69, closure70, closure71, closure73, closure74, closure76, closure77, closure78, items_from_303}
+import xsim_frames/part12.{closure69, closure70, closure71, closure73, closure74, closure76, closure77, closure78, items_from_301}
 import xsim_frames/part13.{closure79, closure82, closure84}
 import xsim_frames/part14.{closure85, closure87, closure88, closure89, closure90}
-import xsim_frames/part16.{method372, method373}
-import xsim_frames/part17.{simulated_by_310}
+import xsim_frames/part16.{method370, method371}
+import xsim_frames/part17.{simulated_by_308}
 import xsim_frames/part2.{concat_balanced_22, delimited_21, method20, taken_31}
-import xsim_frames/part3.{method58, method59, method62}
-import xsim_frames/part5.{controls_from_122}
+import xsim_frames/part3.{method56, method57, method60}
+import xsim_frames/part5.{controls_from_120}
 import xsim_frames/part8.{closure30}
-import xsim_frames/part9.{closure32, closure35, closure36, closure37, flags_parsed_237, method260, method261, quiet_c38}
+import xsim_frames/part9.{closure32, closure35, closure36, closure37, flags_parsed_235, method258, method259, quiet_c38}
 
 pub fn closure29(capt: Nil) -> fn(#(String, String, String)) -> String {
     fn (dom) {
@@ -43,11 +43,11 @@ pub fn closure29(capt: Nil) -> fn(#(String, String, String)) -> String {
         let v23 = unicode_erlang_characters_to_binary([1])
         let v24 = split_list_2(v23, v1)
         let v25 = unicode_erlang_characters_to_binary([0])
-        let v27 = method62(v25, v24, Uh9Nil)
+        let v27 = method60(v25, v24, Uh8Nil)
         let v28 = closure30(Nil)
         let v29 = closure32(Nil)
         let v31 = ""
-        let v47 = flags_parsed_237(v28, v29, Uh3Nil, v31, -1, 0, 0, v31, False, 1, 8, 3, 2, 100, v31, v31, Us29FakeExecutor, 4, Us30NoEviction, 0, False, False, v22)
+        let v47 = flags_parsed_235(v28, v29, Uh3Nil, v31, -1, 0, 0, v31, False, 1, 8, 3, 2, 100, v31, v31, Us29FakeExecutor, 4, Us30NoEviction, 0, False, False, v22)
         let v80 =
             case v47  {
                 Us33Error(v77) -> Us36RunRejected(v77)
@@ -224,7 +224,7 @@ pub fn closure29(capt: Nil) -> fn(#(String, String, String)) -> String {
                 let v246 = closure88(#(v164, v245))
                 let v247 = closure89(Nil)
                 let v248 = closure90(Nil)
-                let v249 = simulated_by_310(v155, v156, v157, v246, v247, v248, v161, v81, v82, v83, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v27)
+                let v249 = simulated_by_308(v155, v156, v157, v246, v247, v248, v161, v81, v82, v83, v84, v85, v86, v87, v88, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98, v99, v100, v27)
                 delimited_21("\n", v249)
             }
             Us36RunRejected(v252) -> {
@@ -235,10 +235,10 @@ pub fn closure29(capt: Nil) -> fn(#(String, String, String)) -> String {
     }
 }
 
-pub fn method398(v0: Uh30, v1: Uh3) -> Uh3 {
+pub fn method396(v0: Uh29, v1: Uh3) -> Uh3 {
     case v0  {
-        Uh30Cons(v2, v3) -> {
-            let v4 = method398(v3, v1)
+        Uh29Cons(v2, v3) -> {
+            let v4 = method396(v3, v1)
             let v6 = atom.create("unicode")
             let v8 = atom.create("characters_to_binary")
             let v9 = []
@@ -247,14 +247,14 @@ pub fn method398(v0: Uh30, v1: Uh3) -> Uh3 {
             let v12 = erlang_term_coerce(v11)
             Uh3Cons(v12, v4)
         }
-        Uh30Nil -> v1
+        Uh29Nil -> v1
     }
 }
 
-pub fn method399(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method397(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method399(v3, v1)
+            let v4 = method397(v3, v1)
             let v5 = v2 != ""
             case v5 {
                 True -> Uh3Cons(v2, v4)
@@ -265,14 +265,14 @@ pub fn method399(v0: Uh3, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn file_exists_401(v0: String) -> Bool {
+pub fn file_exists_399(v0: String) -> Bool {
     spiral_fs_is_regular(v0)
 }
 
-pub fn method402(v0: Uh30, v1: Uh30) -> Uh30 {
+pub fn method400(v0: Uh29, v1: Uh29) -> Uh29 {
     case v0  {
-        Uh30Cons(v2, v3) -> {
-            let v4 = method402(v3, v1)
+        Uh29Cons(v2, v3) -> {
+            let v4 = method400(v3, v1)
             let v6 = atom.create("none")
             let v7 = erlang_term_coerce(v6)
             let v9 = atom.create("kind")
@@ -291,18 +291,18 @@ pub fn method402(v0: Uh30, v1: Uh30) -> Uh30 {
             let v25 = erlang_term_coerce(v24)
             let v26 = v22 == v25
             case v26 {
-                True -> Uh30Cons(v2, v4)
+                True -> Uh29Cons(v2, v4)
                 False -> v4
             }
         }
-        Uh30Nil -> v1
+        Uh29Nil -> v1
     }
 }
 
-pub fn method403(v0: Uh30, v1: Uh3) -> Uh3 {
+pub fn method401(v0: Uh29, v1: Uh3) -> Uh3 {
     case v0  {
-        Uh30Cons(v2, v3) -> {
-            let v4 = method403(v3, v1)
+        Uh29Cons(v2, v3) -> {
+            let v4 = method401(v3, v1)
             let v6 = erlang_term_coerce("")
             let v8 = atom.create("source")
             let v9 = erlang_term_coerce(v8)
@@ -319,25 +319,25 @@ pub fn method403(v0: Uh30, v1: Uh3) -> Uh3 {
             let v22 = erlang_term_coerce(v21)
             Uh3Cons(v22, v4)
         }
-        Uh30Nil -> v1
+        Uh29Nil -> v1
     }
 }
 
-pub fn method400(v0: Int, v1: Uh3, v2: Uh9) -> Uh9 {
+pub fn method398(v0: Int, v1: Uh3, v2: Uh8) -> Uh8 {
     case v1  {
         Uh3Cons(v3, v4) -> {
-            let v5 = method400(v0, v4, v2)
+            let v5 = method398(v0, v4, v2)
             let v6 = spiral_fs_read_file(v3)
-            let v7 = method372()
-            let v8 = method373()
+            let v7 = method370()
+            let v8 = method371()
             let v9 = case v6 { Ok(x) -> v7(x) Error(x) -> v8(x) }
             let v22 =
                 case v9  {
                     Us80Error(v19) -> panic as "file_system.read_all_text: file:read_file failed"
                     Us80Ok(v10) -> {
                         let v11 = bit_array.to_string(v10)
-                        let v12 = method260()
-                        let v13 = method261()
+                        let v12 = method258()
+                        let v13 = method259()
                         let v14 = case v11 { Ok(x) -> v12(x) Error(x) -> v13(x) }
                         case v14  {
                             Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -357,20 +357,20 @@ pub fn method400(v0: Int, v1: Uh3, v2: Uh9) -> Uh9 {
                     False -> v3
                 }
             let v30 = { v29 } <> { "_real.spir" }
-            let v31 = file_exists_401(v30)
+            let v31 = file_exists_399(v30)
             let v50 =
                 case v31 {
                     True -> {
                         let v32 = spiral_fs_read_file(v30)
-                        let v33 = method372()
-                        let v34 = method373()
+                        let v33 = method370()
+                        let v34 = method371()
                         let v35 = case v32 { Ok(x) -> v33(x) Error(x) -> v34(x) }
                         case v35  {
                             Us80Error(v45) -> panic as "file_system.read_all_text: file:read_file failed"
                             Us80Ok(v36) -> {
                                 let v37 = bit_array.to_string(v36)
-                                let v38 = method260()
-                                let v39 = method261()
+                                let v38 = method258()
+                                let v39 = method259()
                                 let v40 = case v37 { Ok(x) -> v38(x) Error(x) -> v39(x) }
                                 case v40  {
                                     Us56Error -> panic as "file_system.read_all_text: the file is not UTF-8"
@@ -410,54 +410,54 @@ pub fn method400(v0: Int, v1: Uh3, v2: Uh9) -> Uh9 {
             let v82 = []
             let v83 = [v77, ..v82]
             let v84 = erlang_term_apply(v79, v81, v83)
-            let v86 = items_from_303(v84, Uh30Nil)
-            let v88 = method402(v86, Uh30Nil)
-            let v90 = method403(v88, Uh3Nil)
+            let v86 = items_from_301(v84, Uh29Nil)
+            let v88 = method400(v86, Uh29Nil)
+            let v90 = method401(v88, Uh3Nil)
             let v91 = v0 < 0
             let v93 =
                 case v91 {
                     True -> v90
                     False -> taken_31(v0, v90)
                 }
-            Uh9Cons(v93, v5)
+            Uh8Cons(v93, v5)
         }
         Uh3Nil -> v2
     }
 }
 
-pub fn get_environment_variable_406(v0: String) -> String {
+pub fn get_environment_variable_404(v0: String) -> String {
     v0 |> envoy.get |> result.unwrap("")
 }
 
-pub fn session_405() -> Us84 {
-    let v1 = get_environment_variable_406("IGGY_URL")
+pub fn session_403() -> Us84 {
+    let v1 = get_environment_variable_404("IGGY_URL")
     let v2 = spiral_string_length(v1)
-    let v4 = method58(v1, v2, 0)
+    let v4 = method56(v1, v2, 0)
     let v5 = spiral_wrap_signed(v2 - 1, 32)
     let v6 = spiral_string_slice(v1, v4, v5)
     let v7 = spiral_string_length(v6)
-    let v8 = method59(v6, v7)
+    let v8 = method57(v6, v7)
     let v9 = spiral_string_slice(v6, 0, v8)
-    let v11 = get_environment_variable_406("IGGY_CA_FILE")
+    let v11 = get_environment_variable_404("IGGY_CA_FILE")
     let v12 = spiral_string_length(v11)
-    let v14 = method58(v11, v12, 0)
+    let v14 = method56(v11, v12, 0)
     let v15 = spiral_wrap_signed(v12 - 1, 32)
     let v16 = spiral_string_slice(v11, v14, v15)
     let v17 = spiral_string_length(v16)
-    let v18 = method59(v16, v17)
+    let v18 = method57(v16, v17)
     let v19 = spiral_string_slice(v16, 0, v18)
     let v20 = v9 == ""
     case v20 {
         True -> Us84None
         False -> {
             let v22 = { v9 } <> { "/users/login" }
-            let v24 = get_environment_variable_406("IGGY_USERNAME")
+            let v24 = get_environment_variable_404("IGGY_USERNAME")
             let v25 = spiral_string_length(v24)
-            let v27 = method58(v24, v25, 0)
+            let v27 = method56(v24, v25, 0)
             let v28 = spiral_wrap_signed(v25 - 1, 32)
             let v29 = spiral_string_slice(v24, v27, v28)
             let v30 = spiral_string_length(v29)
-            let v31 = method59(v29, v30)
+            let v31 = method57(v29, v30)
             let v32 = spiral_string_slice(v29, 0, v31)
             let v33 = "\\"
             let v34 = "\\\\"
@@ -465,7 +465,7 @@ pub fn session_405() -> Us84 {
             let v36 = "\""
             let v37 = "\\\""
             let v38 = v35 |> string.replace(v36, v37)
-            let v40 = controls_from_122(0, v38)
+            let v40 = controls_from_120(0, v38)
             let v41 = ""
             let v43 = Uh3Cons(v36, Uh3Nil)
             let v44 = Uh3Cons(v40, v43)
@@ -473,17 +473,17 @@ pub fn session_405() -> Us84 {
             let v46 = concat_balanced_22(v41, v45)
             let v47 = { "{\"username\":" } <> { v46 }
             let v48 = { v47 } <> { ",\"password\":" }
-            let v50 = get_environment_variable_406("IGGY_PASSWORD")
+            let v50 = get_environment_variable_404("IGGY_PASSWORD")
             let v51 = spiral_string_length(v50)
-            let v53 = method58(v50, v51, 0)
+            let v53 = method56(v50, v51, 0)
             let v54 = spiral_wrap_signed(v51 - 1, 32)
             let v55 = spiral_string_slice(v50, v53, v54)
             let v56 = spiral_string_length(v55)
-            let v57 = method59(v55, v56)
+            let v57 = method57(v55, v56)
             let v58 = spiral_string_slice(v55, 0, v57)
             let v59 = v58 |> string.replace(v33, v34)
             let v60 = v59 |> string.replace(v36, v37)
-            let v62 = controls_from_122(0, v60)
+            let v62 = controls_from_120(0, v60)
             let v64 = Uh3Cons(v36, Uh3Nil)
             let v65 = Uh3Cons(v62, v64)
             let v66 = Uh3Cons(v36, v65)
@@ -720,10 +720,10 @@ pub fn session_405() -> Us84 {
     }
 }
 
-pub fn method408(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method406(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method408(v3, v1)
+            let v4 = method406(v3, v1)
             let v6 = v2 |> string.starts_with("XSIM seed=")
             case v6 {
                 True -> Uh3Cons(v2, v4)

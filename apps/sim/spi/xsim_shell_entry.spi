@@ -5,7 +5,7 @@
 
 :< sm'_operators
 :< prelude
-:< events
+:< sim_events
 :< inbox
 :< scheduler
 :< executors

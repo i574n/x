@@ -10,7 +10,7 @@
 :< glyphs
 :< protocol
 :< splitter
-:< events
+:< sim_events
 :< personas
 :< scenario
 :< final_state

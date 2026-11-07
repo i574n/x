@@ -5,15 +5,15 @@ import gleam/int
 import gleam/otp/actor
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh3, type Us45, type Uh30, type Us68, Uh30Cons, Uh30Nil, Uh3Cons, Uh3Nil, Us45Crashed, Us45Done, Us45Erred, Us68Swap}
+import xsim_frames/types.{type Uh3, type Us45, type Uh29, type Us68, Uh29Cons, Uh29Nil, Uh3Cons, Uh3Nil, Us45Crashed, Us45Done, Us45Erred, Us68Swap}
 import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, erlang_term_tuple, spiral_string_slice, spiral_wrap_signed, unicode_erlang_characters_to_binary}
 import xsim_frames/part2.{delimited_21, method20}
-import xsim_frames/part9.{hash_text_241}
+import xsim_frames/part9.{hash_text_239}
 
-pub fn method301(v0: Uh3, v1: Uh30) -> Uh30 {
+pub fn method299(v0: Uh3, v1: Uh29) -> Uh29 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method301(v3, v1)
+            let v4 = method299(v3, v1)
             let v6 = atom.create("spiral")
             let v7 = erlang_term_coerce(v6)
             let v8 = erlang_term_coerce(v2)
@@ -42,23 +42,23 @@ pub fn method301(v0: Uh3, v1: Uh30) -> Uh30 {
             let v35 = []
             let v36 = [v30, ..v35]
             let v37 = erlang_term_apply(v32, v34, v36)
-            Uh30Cons(v37, v4)
+            Uh29Cons(v37, v4)
         }
         Uh3Nil -> v1
     }
 }
 
-pub fn method302(v0: Uh30, v1: List(Dynamic)) -> List(Dynamic) {
+pub fn method300(v0: Uh29, v1: List(Dynamic)) -> List(Dynamic) {
     case v0  {
-        Uh30Cons(v2, v3) -> {
-            let v4 = method302(v3, v1)
+        Uh29Cons(v2, v3) -> {
+            let v4 = method300(v3, v1)
             [v2, ..v4]
         }
-        Uh30Nil -> v1
+        Uh29Nil -> v1
     }
 }
 
-pub fn items_from_303(v0: Dynamic, v1: Uh30) -> Uh30 {
+pub fn items_from_301(v0: Dynamic, v1: Uh29) -> Uh29 {
     let v2 = []
     let v3 = erlang_term_coerce(v2)
     let v4 = v0 == v3
@@ -76,26 +76,26 @@ pub fn items_from_303(v0: Dynamic, v1: Uh30) -> Uh30 {
             let v15 = []
             let v16 = [v0, ..v15]
             let v17 = erlang_term_apply(v12, v14, v16)
-            let v18 = Uh30Cons(v17, v1)
-            items_from_303(v11, v18)
+            let v18 = Uh29Cons(v17, v1)
+            items_from_301(v11, v18)
         }
     }
 }
 
-pub fn method304(v0: Uh30, v1: Uh30) -> Uh30 {
+pub fn method302(v0: Uh29, v1: Uh29) -> Uh29 {
     case v0  {
-        Uh30Cons(v2, v3) -> {
-            let v4 = method304(v3, v1)
+        Uh29Cons(v2, v3) -> {
+            let v4 = method302(v3, v1)
             let v5 = erlang_term_coerce(v2)
-            Uh30Cons(v5, v4)
+            Uh29Cons(v5, v4)
         }
-        Uh30Nil -> v1
+        Uh29Nil -> v1
     }
 }
 
-pub fn method305(v0: Uh30, v1: Int) -> Int {
+pub fn method303(v0: Uh29, v1: Int) -> Int {
     case v0  {
-        Uh30Cons(v2, v3) -> {
+        Uh29Cons(v2, v3) -> {
             let v5 = atom.create("hit")
             let v6 = erlang_term_coerce(v5)
             let v7 = v2 == v6
@@ -106,15 +106,15 @@ pub fn method305(v0: Uh30, v1: Int) -> Int {
                     }
                     False -> v1
                 }
-            method305(v3, v9)
+            method303(v3, v9)
         }
-        Uh30Nil -> v1
+        Uh29Nil -> v1
     }
 }
 
-pub fn method306(v0: Uh30, v1: Int) -> Int {
+pub fn method304(v0: Uh29, v1: Int) -> Int {
     case v0  {
-        Uh30Cons(v2, v3) -> {
+        Uh29Cons(v2, v3) -> {
             let v5 = atom.create("miss")
             let v6 = erlang_term_coerce(v5)
             let v7 = v2 == v6
@@ -125,18 +125,18 @@ pub fn method306(v0: Uh30, v1: Int) -> Int {
                     }
                     False -> v1
                 }
-            method306(v3, v9)
+            method304(v3, v9)
         }
-        Uh30Nil -> v1
+        Uh29Nil -> v1
     }
 }
 
 pub fn closure69(capt: #(String, Bool, Dynamic)) -> fn(Uh3) -> #(Us45, String) {
     fn (v3) {
         let #(v0, v1, v2) = capt
-        let v5 = method301(v3, Uh30Nil)
+        let v5 = method299(v3, Uh29Nil)
         let v6 = []
-        let v7 = method302(v5, v6)
+        let v7 = method300(v5, v6)
         let v8 = erlang_term_coerce(v7)
         let v10 = atom.create("cells")
         let v11 = erlang_term_coerce(v10)
@@ -226,9 +226,9 @@ pub fn closure69(capt: #(String, Bool, Dynamic)) -> fn(Uh3) -> #(Us45, String) {
                     let v103 = []
                     let v104 = [v98, ..v103]
                     let v105 = erlang_term_apply(v100, v102, v104)
-                    let v107 = items_from_303(v105, Uh30Nil)
-                    let v109 = method304(v107, Uh30Nil)
-                    let v111 = method305(v109, 0)
+                    let v107 = items_from_301(v105, Uh29Nil)
+                    let v109 = method302(v107, Uh29Nil)
+                    let v111 = method303(v109, 0)
                     let v112 = erlang_term_coerce(1)
                     let v113 = erlang_term_coerce(v111)
                     let v114 = "counters"
@@ -240,7 +240,7 @@ pub fn closure69(capt: #(String, Bool, Dynamic)) -> fn(Uh3) -> #(Us45, String) {
                     let v120 = [v112, ..v119]
                     let v121 = [v2, ..v120]
                     let _v122 = erlang_term_apply(v115, v117, v121)
-                    let v124 = method306(v109, 0)
+                    let v124 = method304(v109, 0)
                     let v125 = erlang_term_coerce(2)
                     let v126 = erlang_term_coerce(v124)
                     let v127 = atom.create(v114)
@@ -365,9 +365,9 @@ pub fn closure69(capt: #(String, Bool, Dynamic)) -> fn(Uh3) -> #(Us45, String) {
 pub fn closure70(capt: #(String)) -> fn(Uh3) -> #(Us45, String) {
     fn (v1) {
         let #(v0) = capt
-        let v3 = method301(v1, Uh30Nil)
+        let v3 = method299(v1, Uh29Nil)
         let v4 = []
-        let v5 = method302(v3, v4)
+        let v5 = method300(v3, v4)
         let v6 = erlang_term_coerce(v5)
         let v8 = atom.create("cells")
         let v9 = erlang_term_coerce(v8)
@@ -578,7 +578,7 @@ pub fn closure74(capt: #(process.Subject(Us68))) -> fn(Uh3) -> #(Us45, String) {
         let #(v0) = capt
         let v2 = unicode_erlang_characters_to_binary([0])
         let v3 = delimited_21(v2, v1)
-        let v4 = hash_text_241(v3)
+        let v4 = hash_text_239(v3)
         let v5 = spiral_string_slice(v4, 0, 11)
         let v6 = closure75(#(v5))
         let v7 = actor.call(v0, 10000, v6)
@@ -633,17 +633,17 @@ pub fn closure78(capt: Nil) -> fn(Int) -> Uh3 {
     }
 }
 
-pub fn method307(v0: Uh3, v1: Uh30) -> Uh30 {
+pub fn method305(v0: Uh3, v1: Uh29) -> Uh29 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method307(v3, v1)
+            let v4 = method305(v3, v1)
             let v5 = erlang_term_coerce(v2)
             let v7 = atom.create("unicode")
             let v9 = atom.create("characters_to_list")
             let v10 = []
             let v11 = [v5, ..v10]
             let v12 = erlang_term_apply(v7, v9, v11)
-            Uh30Cons(v12, v4)
+            Uh29Cons(v12, v4)
         }
         Uh3Nil -> v1
     }
@@ -655,7 +655,7 @@ pub fn keep_c81(capt: Nil) -> fn(Dynamic) -> Dynamic {
     }
 }
 
-pub fn gleam_collected_308(v0: process.Selector(Dynamic), v1: String) -> #(Int, String) {
+pub fn gleam_collected_306(v0: process.Selector(Dynamic), v1: String) -> #(Int, String) {
     let v2 = process.selector_receive(v0, 86400000)
     let v4 = atom.create("none")
     let v5 = erlang_term_coerce(v4)
@@ -694,7 +694,7 @@ pub fn gleam_collected_308(v0: process.Selector(Dynamic), v1: String) -> #(Int, 
             let v37 = erlang_term_apply(v32, v33, v36)
             let v38 = erlang_term_coerce(v37)
             let v39 = { v1 } <> { v38 }
-            gleam_collected_308(v0, v39)
+            gleam_collected_306(v0, v39)
         }
         False -> {
             let v42 = v29 == "exit_status"
@@ -710,7 +710,7 @@ pub fn gleam_collected_308(v0: process.Selector(Dynamic), v1: String) -> #(Int, 
                     let v50 = erlang_term_coerce(v49)
                     #(v50, v1)
                 }
-                False -> gleam_collected_308(v0, v1)
+                False -> gleam_collected_306(v0, v1)
             }
         }
     }

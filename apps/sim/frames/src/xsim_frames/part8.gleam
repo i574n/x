@@ -5,35 +5,35 @@ import gleam/order
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh3, type Uh20, type Uh21, type Uh22, type Us26, type Uh24, type Uh23, type Uh25, type Uh26, type Uh27, type Uh28, type Us29, type Us30, type Us31, Uh20Cons, Uh20Nil, Uh21Cons, Uh21Nil, Uh22Nil, Uh23Cons, Uh23Nil, Uh24Cons, Uh24Nil, Uh27Cons, Uh27Nil, Uh28Cons, Uh28Nil, Uh3Cons, Uh3Nil, Uh8Nil, Us26None, Us26Some, Us2None, Us2Some, Us30EvictAfter, Us30EvictNow, Us31None, Us31Some, Us32None, Us32Some, Us3None, Us3Some}
+import xsim_frames/types.{type Uh3, type Uh19, type Uh20, type Uh21, type Us26, type Uh23, type Uh22, type Uh24, type Uh25, type Uh26, type Uh27, type Us29, type Us30, type Us31, Uh19Cons, Uh19Nil, Uh20Cons, Uh20Nil, Uh21Nil, Uh22Cons, Uh22Nil, Uh23Cons, Uh23Nil, Uh26Cons, Uh26Nil, Uh27Cons, Uh27Nil, Uh3Cons, Uh3Nil, Uh7Nil, Us26None, Us26Some, Us2None, Us2Some, Us30EvictAfter, Us30EvictNow, Us31None, Us31Some, Us32None, Us32Some, Us3None, Us3Some}
 import xsim_frames/part1.{closure1, count_of_text_10, method18, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, unicode_erlang_characters_to_binary}
 import xsim_frames/part2.{delimited_21, method20}
-import xsim_frames/part3.{method56, method57}
-import xsim_frames/part4.{from_cells_65}
-import xsim_frames/part5.{closure16, deliveries_131, quoted_121, stream_117}
-import xsim_frames/part6.{exploded_140, final_replay_149, method160, method161}
-import xsim_frames/part7.{materialized_162, method184, method194, method198, method199, method202, method203, method215, method216, shared_layout_207}
+import xsim_frames/part3.{method54, method55}
+import xsim_frames/part4.{from_cells_63}
+import xsim_frames/part5.{closure16, deliveries_129, quoted_119, stream_115}
+import xsim_frames/part6.{exploded_138, final_replay_147, method158, method159}
+import xsim_frames/part7.{materialized_160, method182, method192, method196, method197, method200, method201, method213, method214, shared_layout_205}
 
-pub fn method217(v0: String, v1: fn(String) -> Bool, v2: Uh28) -> Bool {
+pub fn method215(v0: String, v1: fn(String) -> Bool, v2: Uh27) -> Bool {
     case v2  {
-        Uh28Cons(v3, v4) -> {
+        Uh27Cons(v3, v4) -> {
             let v5 = v1(v3)
             case v5 {
                 True -> True
                 False -> {
-                    let v6 = method216(v0)
-                    method217(v0, v6, v4)
+                    let v6 = method214(v0)
+                    method215(v0, v6, v4)
                 }
             }
         }
-        Uh28Nil -> False
+        Uh27Nil -> False
     }
 }
 
-pub fn method214(v0: Int, v1: Int, v2: Uh23, v3: Uh25, v4: Uh26, v5: Us26, v6: Uh27, v7: Uh27, v8: Uh23, v9: Uh27) -> Uh27 {
+pub fn method212(v0: Int, v1: Int, v2: Uh22, v3: Uh24, v4: Uh25, v5: Us26, v6: Uh26, v7: Uh26, v8: Uh22, v9: Uh26) -> Uh26 {
     case v8  {
-        Uh23Cons(v10, v11, v12, v13, v14, v15, v16) -> {
-            let v17 = method214(v0, v1, v2, v3, v4, v5, v6, v7, v16, v9)
+        Uh22Cons(v10, v11, v12, v13, v14, v15, v16) -> {
+            let v17 = method212(v0, v1, v2, v3, v4, v5, v6, v7, v16, v9)
             let v31 =
                 case v14  {
                     Us26Some(v18) -> {
@@ -41,127 +41,127 @@ pub fn method214(v0: Int, v1: Int, v2: Uh23, v3: Uh25, v4: Uh26, v5: Us26, v6: U
                         let v25 =
                             case v19 {
                                 True -> {
-                                    let v21 = method215(v2, Uh28Nil)
-                                    let v22 = method216(v18)
-                                    let v23 = method217(v18, v22, v21)
+                                    let v21 = method213(v2, Uh27Nil)
+                                    let v22 = method214(v18)
+                                    let v23 = method215(v18, v22, v21)
                                     v23 == False
                                 }
                                 False -> False
                             }
                         case v25 {
                             True -> {
-                                Uh27Cons(v11, Uh27Nil)
+                                Uh26Cons(v11, Uh26Nil)
                             }
-                            False -> Uh27Nil
+                            False -> Uh26Nil
                         }
                     }
-                    _ -> Uh27Nil
+                    _ -> Uh26Nil
                 }
-            method194(v31, v17)
+            method192(v31, v17)
         }
-        Uh23Nil -> v9
+        Uh22Nil -> v9
     }
 }
 
-pub fn gaps_213(v0: Int, v1: Int, v2: Uh23, v3: Uh25, v4: Uh26, v5: Us26, v6: Uh27, v7: Uh27) -> Uh27 {
-    let v9 = method202(v0, v1, v2, v3, v4, v5, v6, v7, v3, Uh23Nil)
-    method214(v0, v1, v2, v3, v4, v5, v6, v7, v9, Uh27Nil)
+pub fn gaps_211(v0: Int, v1: Int, v2: Uh22, v3: Uh24, v4: Uh25, v5: Us26, v6: Uh26, v7: Uh26) -> Uh26 {
+    let v9 = method200(v0, v1, v2, v3, v4, v5, v6, v7, v3, Uh22Nil)
+    method212(v0, v1, v2, v3, v4, v5, v6, v7, v9, Uh26Nil)
 }
 
-pub fn method218(v0: Uh27, v1: Uh3) -> Uh3 {
+pub fn method216(v0: Uh26, v1: Uh3) -> Uh3 {
     case v0  {
-        Uh27Cons(v2, v3) -> {
-            let v4 = method218(v3, v1)
+        Uh26Cons(v2, v3) -> {
+            let v4 = method216(v3, v1)
             Uh3Cons(v2, v4)
         }
-        Uh27Nil -> v1
+        Uh26Nil -> v1
     }
 }
 
-pub fn method219(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method217(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method219(v3, v1)
-            let v5 = quoted_121(v2)
+            let v4 = method217(v3, v1)
+            let v5 = quoted_119(v2)
             Uh3Cons(v5, v4)
         }
         Uh3Nil -> v1
     }
 }
 
-pub fn method221(v0: Int, v1: Int, v2: Uh23, v3: Uh25, v4: Uh26, v5: Us26, v6: Uh27, v7: Uh27, v8: Uh27, v9: Uh27) -> Uh27 {
+pub fn method219(v0: Int, v1: Int, v2: Uh22, v3: Uh24, v4: Uh25, v5: Us26, v6: Uh26, v7: Uh26, v8: Uh26, v9: Uh26) -> Uh26 {
     case v8  {
-        Uh27Cons(v10, v11) -> {
-            let v12 = method221(v0, v1, v2, v3, v4, v5, v6, v7, v11, v9)
-            let v13 = method198(v10)
-            let v14 = method199(v10, v13, v6)
+        Uh26Cons(v10, v11) -> {
+            let v12 = method219(v0, v1, v2, v3, v4, v5, v6, v7, v11, v9)
+            let v13 = method196(v10)
+            let v14 = method197(v10, v13, v6)
             let v15 = v14 == False
             let v19 =
                 case v15 {
                     True -> {
-                        let v16 = method198(v10)
-                        let v17 = method199(v10, v16, v7)
+                        let v16 = method196(v10)
+                        let v17 = method197(v10, v16, v7)
                         v17 == False
                     }
                     False -> False
                 }
             case v19 {
-                True -> Uh27Cons(v10, v12)
+                True -> Uh26Cons(v10, v12)
                 False -> v12
             }
         }
-        Uh27Nil -> v9
+        Uh26Nil -> v9
     }
 }
 
-pub fn method223(v0: String, v1: Uh23, v2: Uh23) -> Uh23 {
+pub fn method221(v0: String, v1: Uh22, v2: Uh22) -> Uh22 {
     case v1  {
-        Uh23Cons(v3, v4, v5, v6, v7, v8, v9) -> {
-            let v10 = method223(v0, v9, v2)
+        Uh22Cons(v3, v4, v5, v6, v7, v8, v9) -> {
+            let v10 = method221(v0, v9, v2)
             let v11 = v4 == v0
             case v11 {
-                True -> Uh23Cons(v3, v4, v5, v6, v7, v8, v10)
+                True -> Uh22Cons(v3, v4, v5, v6, v7, v8, v10)
                 False -> v10
             }
         }
-        Uh23Nil -> v2
+        Uh22Nil -> v2
     }
 }
 
-pub fn by_k_225(v0: String, v1: String, v2: Int, v3: Int, v4: Us26, v5: Uh24, v6: Uh23) -> Uh23 {
+pub fn by_k_223(v0: String, v1: String, v2: Int, v3: Int, v4: Us26, v5: Uh23, v6: Uh22) -> Uh22 {
     case v6  {
-        Uh23Cons(v7, v8, v9, v10, v11, v12, v13) -> {
+        Uh22Cons(v7, v8, v9, v10, v11, v12, v13) -> {
             let v14 = v9 < v2
             case v14 {
                 True -> {
-                    let v15 = by_k_225(v0, v1, v2, v3, v4, v5, v13)
-                    Uh23Cons(v7, v8, v9, v10, v11, v12, v15)
+                    let v15 = by_k_223(v0, v1, v2, v3, v4, v5, v13)
+                    Uh22Cons(v7, v8, v9, v10, v11, v12, v15)
                 }
-                False -> Uh23Cons(v0, v1, v2, v3, v4, v5, v6)
+                False -> Uh22Cons(v0, v1, v2, v3, v4, v5, v6)
             }
         }
-        _ -> Uh23Cons(v0, v1, v2, v3, v4, v5, v6)
+        _ -> Uh22Cons(v0, v1, v2, v3, v4, v5, v6)
     }
 }
 
-pub fn method224(v0: Uh23, v1: Uh23) -> Uh23 {
+pub fn method222(v0: Uh22, v1: Uh22) -> Uh22 {
     case v0  {
-        Uh23Cons(v2, v3, v4, v5, v6, v7, v8) -> {
-            let v9 = by_k_225(v2, v3, v4, v5, v6, v7, v1)
-            method224(v8, v9)
+        Uh22Cons(v2, v3, v4, v5, v6, v7, v8) -> {
+            let v9 = by_k_223(v2, v3, v4, v5, v6, v7, v1)
+            method222(v8, v9)
         }
+        Uh22Nil -> v1
+    }
+}
+
+pub fn method225(v0: Uh23, v1: String) -> String {
+    case v0  {
+        Uh23Cons(v2, v3, v4, v5) -> method225(v5, v4)
         Uh23Nil -> v1
     }
 }
 
-pub fn method227(v0: Uh24, v1: String) -> String {
-    case v0  {
-        Uh24Cons(v2, v3, v4, v5) -> method227(v5, v4)
-        Uh24Nil -> v1
-    }
-}
-
-pub fn restored_text_228(v0: String) -> String {
+pub fn restored_text_226(v0: String) -> String {
     let v1 = unicode_erlang_characters_to_binary([8203])
     let v2 = { v1 } <> { "." }
     let v4 = v0 |> string.replace(v2, ".")
@@ -176,12 +176,12 @@ pub fn restored_text_228(v0: String) -> String {
     v12 |> string.replace(v14, "$")
 }
 
-pub fn method226(v0: Uh23, v1: Uh3) -> Uh3 {
+pub fn method224(v0: Uh22, v1: Uh3) -> Uh3 {
     case v0  {
-        Uh23Cons(v2, v3, v4, v5, v6, v7, v8) -> {
-            let v9 = method226(v8, v1)
+        Uh22Cons(v2, v3, v4, v5, v6, v7, v8) -> {
+            let v9 = method224(v8, v1)
             let v10 = ""
-            let v11 = method227(v7, v10)
+            let v11 = method225(v7, v10)
             let v13 = option.from_result(result.map(string.split_once(v11, "\n"), pair.first))
             let v14 = closure1(Nil)
             let v15 = v13 |> option.map(v14)
@@ -204,37 +204,37 @@ pub fn method226(v0: Uh23, v1: Uh3) -> Uh3 {
                         let v26 = spiral_wrap_signed(v23 + v25, 32)
                         let v27 = spiral_wrap_signed(v26 - 1, 32)
                         let v28 = spiral_string_slice(v11, v23, v27)
-                        restored_text_228(v28)
+                        restored_text_226(v28)
                     }
                 }
             Uh3Cons(v30, v9)
         }
-        Uh23Nil -> v1
+        Uh22Nil -> v1
     }
 }
 
-pub fn method222(v0: Int, v1: Int, v2: Uh23, v3: Uh25, v4: Uh26, v5: Us26, v6: Uh27, v7: Uh27, v8: Uh27, v9: Uh3) -> Uh3 {
+pub fn method220(v0: Int, v1: Int, v2: Uh22, v3: Uh24, v4: Uh25, v5: Us26, v6: Uh26, v7: Uh26, v8: Uh26, v9: Uh3) -> Uh3 {
     case v8  {
-        Uh27Cons(v10, v11) -> {
-            let v12 = method222(v0, v1, v2, v3, v4, v5, v6, v7, v11, v9)
-            let v14 = method223(v10, v2, Uh23Nil)
-            let v16 = method224(v14, Uh23Nil)
-            let v18 = method226(v16, Uh3Nil)
+        Uh26Cons(v10, v11) -> {
+            let v12 = method220(v0, v1, v2, v3, v4, v5, v6, v7, v11, v9)
+            let v14 = method221(v10, v2, Uh22Nil)
+            let v16 = method222(v14, Uh22Nil)
+            let v18 = method224(v16, Uh3Nil)
             let v20 = delimited_21("", v18)
             Uh3Cons(v20, v12)
         }
-        Uh27Nil -> v9
+        Uh26Nil -> v9
     }
 }
 
-pub fn program_220(v0: Uh22, v1: Int, v2: Int, v3: Uh23, v4: Uh25, v5: Uh26, v6: Us26, v7: Uh27, v8: Uh27) -> String {
-    let v10 = method184(v0, Uh27Nil)
-    let v12 = method221(v1, v2, v3, v4, v5, v6, v7, v8, v10, Uh27Nil)
-    let v14 = method222(v1, v2, v3, v4, v5, v6, v7, v8, v12, Uh3Nil)
+pub fn program_218(v0: Uh21, v1: Int, v2: Int, v3: Uh22, v4: Uh24, v5: Uh25, v6: Us26, v7: Uh26, v8: Uh26) -> String {
+    let v10 = method182(v0, Uh26Nil)
+    let v12 = method219(v1, v2, v3, v4, v5, v6, v7, v8, v10, Uh26Nil)
+    let v14 = method220(v1, v2, v3, v4, v5, v6, v7, v8, v12, Uh3Nil)
     delimited_21("\n\n", v14)
 }
 
-pub fn world_files_148(v0: Int, v1: Int, v2: String, v3: Int, v4: Int, v5: Int, v6: String, v7: String, v8: String, v9: fn(String) -> fn(Int) -> fn(String) -> Uh3, v10: Uh3) -> #(String, String) {
+pub fn world_files_146(v0: Int, v1: Int, v2: String, v3: Int, v4: Int, v5: Int, v6: String, v7: String, v8: String, v9: fn(String) -> fn(Int) -> fn(String) -> Uh3, v10: Uh3) -> #(String, String) {
     let v12 = "+"
     let v13 = v2 |> string.replace(",", v12)
     let v14 = v13 == ""
@@ -243,13 +243,13 @@ pub fn world_files_148(v0: Int, v1: Int, v2: String, v3: Int, v4: Int, v5: Int, 
             True -> Uh3Nil
             False -> split_list_2(v12, v13)
         }
-    let v19 = method56(v17, Uh3Nil)
-    let v21 = method57(v19, Uh8Nil)
-    let #(_v27, v28, _v29) = from_cells_65(v0, 8, v1, 0, 0, v21, False, "", v10)
-    let #(v30, v31) = final_replay_149(v28)
-    let v33 = method160(v30, Uh20Nil)
-    let v35 = method161(v33, Uh22Nil)
-    let #(v36, v37, v38, v39, v40, v41, v42, v43) = materialized_162(v9, v35, v3, v4, v5)
+    let v19 = method54(v17, Uh3Nil)
+    let v21 = method55(v19, Uh7Nil)
+    let #(_v27, v28, _v29) = from_cells_63(v0, 8, v1, 0, 0, v21, False, "", v10)
+    let #(v30, v31) = final_replay_147(v28)
+    let v33 = method158(v30, Uh19Nil)
+    let v35 = method159(v33, Uh21Nil)
+    let #(v36, v37, v38, v39, v40, v41, v42, v43) = materialized_160(v9, v35, v3, v4, v5)
     let v44 = spiral_string_slice(v6, 0, 3)
     let v45 = count_of_text_10(v44)
     let v48 =
@@ -351,24 +351,24 @@ pub fn world_files_148(v0: Int, v1: Int, v2: String, v3: Int, v4: Int, v5: Int, 
             Us3Some(v108) -> v108
         }
     let v111 = spiral_wrap_signed(v105 + v110, 32)
-    let v113 = method202(v36, v37, v38, v39, v40, v41, v42, v43, v39, Uh23Nil)
-    let v115 = method203(v36, v37, v38, v39, v40, v41, v42, v43, v30, v31, v92, v111, v113, Uh3Nil)
-    let v116 = quoted_121(v7)
-    let v118 = quoted_121("id")
+    let v113 = method200(v36, v37, v38, v39, v40, v41, v42, v43, v39, Uh22Nil)
+    let v115 = method201(v36, v37, v38, v39, v40, v41, v42, v43, v30, v31, v92, v111, v113, Uh3Nil)
+    let v116 = quoted_119(v7)
+    let v118 = quoted_119("id")
     let v119 = { v118 } <> { ": " }
     let v120 = { v119 } <> { v116 }
-    let v121 = quoted_121(v8)
-    let v123 = quoted_121("name")
+    let v121 = quoted_119(v8)
+    let v123 = quoted_119("name")
     let v124 = { v123 } <> { ": " }
     let v125 = { v124 } <> { v121 }
     let v126 = "["
     let v127 = "]"
-    let v129 = shared_layout_207(v115, v126, v127, 3)
-    let v131 = quoted_121("posts")
+    let v129 = shared_layout_205(v115, v126, v127, 3)
+    let v131 = quoted_119("posts")
     let v132 = { v131 } <> { ": " }
     let v133 = { v132 } <> { v129 }
-    let v134 = quoted_121(v8)
-    let v136 = quoted_121("username")
+    let v134 = quoted_119(v8)
+    let v136 = quoted_119("username")
     let v137 = { v136 } <> { ": " }
     let v138 = { v137 } <> { v134 }
     let v140 = Uh3Cons(v138, Uh3Nil)
@@ -377,29 +377,29 @@ pub fn world_files_148(v0: Int, v1: Int, v2: String, v3: Int, v4: Int, v5: Int, 
     let v143 = Uh3Cons(v120, v142)
     let v144 = "{"
     let v145 = "}"
-    let v147 = shared_layout_207(v143, v144, v145, 2)
+    let v147 = shared_layout_205(v143, v144, v145, 2)
     let v149 = Uh3Cons(v147, Uh3Nil)
-    let v151 = shared_layout_207(v149, v126, v127, 1)
-    let v153 = quoted_121("users")
+    let v151 = shared_layout_205(v149, v126, v127, 1)
+    let v153 = quoted_119("users")
     let v154 = { v153 } <> { ": " }
     let v155 = { v154 } <> { v151 }
     let v157 = Uh3Cons(v155, Uh3Nil)
-    let v159 = shared_layout_207(v157, v144, v145, 0)
+    let v159 = shared_layout_205(v157, v144, v145, 0)
     let v160 = { v159 } <> { "\n" }
-    let v161 = gaps_213(v36, v37, v38, v39, v40, v41, v42, v43)
-    let v163 = method218(v161, Uh3Nil)
-    let v165 = method219(v163, Uh3Nil)
-    let v167 = shared_layout_207(v165, v126, v127, 1)
-    let v169 = quoted_121("gaps")
+    let v161 = gaps_211(v36, v37, v38, v39, v40, v41, v42, v43)
+    let v163 = method216(v161, Uh3Nil)
+    let v165 = method217(v163, Uh3Nil)
+    let v167 = shared_layout_205(v165, v126, v127, 1)
+    let v169 = quoted_119("gaps")
     let v170 = { v169 } <> { ": " }
     let v171 = { v170 } <> { v167 }
-    let v173 = method218(v42, Uh3Nil)
-    let v175 = method219(v173, Uh3Nil)
-    let v177 = shared_layout_207(v175, v126, v127, 1)
-    let v179 = quoted_121("incomplete")
+    let v173 = method216(v42, Uh3Nil)
+    let v175 = method217(v173, Uh3Nil)
+    let v177 = shared_layout_205(v175, v126, v127, 1)
+    let v179 = quoted_119("incomplete")
     let v180 = { v179 } <> { ": " }
     let v181 = { v180 } <> { v177 }
-    let v182 = program_220(v35, v36, v37, v38, v39, v40, v41, v42, v43)
+    let v182 = program_218(v35, v36, v37, v38, v39, v40, v41, v42, v43)
     let v183 = v182 == ""
     let v187 =
         case v183 {
@@ -408,9 +408,9 @@ pub fn world_files_148(v0: Int, v1: Int, v2: String, v3: Int, v4: Int, v5: Int, 
                 split_list_2("\n", v182)
             }
         }
-    let v189 = method219(v187, Uh3Nil)
-    let v191 = shared_layout_207(v189, v126, v127, 1)
-    let v193 = quoted_121("program")
+    let v189 = method217(v187, Uh3Nil)
+    let v191 = shared_layout_205(v189, v126, v127, 1)
+    let v193 = quoted_119("program")
     let v194 = { v193 } <> { ": " }
     let v195 = { v194 } <> { v191 }
     let v200 =
@@ -418,16 +418,16 @@ pub fn world_files_148(v0: Int, v1: Int, v2: String, v3: Int, v4: Int, v5: Int, 
             Us26None -> {
                 "null"
             }
-            Us26Some(v196) -> quoted_121(v196)
+            Us26Some(v196) -> quoted_119(v196)
         }
-    let v202 = quoted_121("root")
+    let v202 = quoted_119("root")
     let v203 = { v202 } <> { ": " }
     let v204 = { v203 } <> { v200 }
     let v206 = Uh3Cons(v204, Uh3Nil)
     let v207 = Uh3Cons(v195, v206)
     let v208 = Uh3Cons(v181, v207)
     let v209 = Uh3Cons(v171, v208)
-    let v211 = shared_layout_207(v209, v144, v145, 0)
+    let v211 = shared_layout_205(v209, v144, v145, 0)
     let v212 = { v211 } <> { "\n" }
     #(v160, v212)
 }
@@ -438,11 +438,11 @@ pub fn closure19(capt: Nil) -> fn(#(String, Int, Int, String, Int, Int, Int, Str
         let v10 = closure16(Nil)
         let v11 = unicode_erlang_characters_to_binary([0])
         let v12 = split_list_2(v11, v0)
-        world_files_148(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v12)
+        world_files_146(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v12)
     }
 }
 
-pub fn scenario_stream_229(v0: Int, v1: Int, v2: Int, v3: String, v4: Int, v5: Bool, v6: fn(String) -> fn(Int) -> fn(String) -> Uh3, v7: Uh3) -> String {
+pub fn scenario_stream_227(v0: Int, v1: Int, v2: Int, v3: String, v4: Int, v5: Bool, v6: fn(String) -> fn(Int) -> fn(String) -> Uh3, v7: Uh3) -> String {
     let v9 = "+"
     let v10 = v3 |> string.replace(",", v9)
     let v11 = v10 == ""
@@ -451,18 +451,18 @@ pub fn scenario_stream_229(v0: Int, v1: Int, v2: Int, v3: String, v4: Int, v5: B
             True -> Uh3Nil
             False -> split_list_2(v9, v10)
         }
-    let v16 = method56(v14, Uh3Nil)
-    let v18 = method57(v16, Uh8Nil)
-    let #(_v23, v24, _v25) = from_cells_65(v0, v1, v2, 0, 0, v18, False, "", v7)
+    let v16 = method54(v14, Uh3Nil)
+    let v18 = method55(v16, Uh7Nil)
+    let #(_v23, v24, _v25) = from_cells_63(v0, v1, v2, 0, 0, v18, False, "", v7)
     let v28 =
         case v5 {
             True -> {
-                exploded_140(v6, 280, v24)
+                exploded_138(v6, 280, v24)
             }
             False -> v24
         }
-    let v31 = deliveries_131(v28, 1, v4, 6)
-    stream_117(v31)
+    let v31 = deliveries_129(v28, 1, v4, 6)
+    stream_115(v31)
 }
 
 pub fn closure27(capt: Nil) -> fn(#(String, Int, Int, Int, String, Int, Bool)) -> String {
@@ -471,26 +471,26 @@ pub fn closure27(capt: Nil) -> fn(#(String, Int, Int, Int, String, Int, Bool)) -
         let v7 = closure16(Nil)
         let v8 = unicode_erlang_characters_to_binary([0])
         let v9 = split_list_2(v8, v0)
-        scenario_stream_229(v1, v2, v3, v4, v5, v6, v7, v9)
+        scenario_stream_227(v1, v2, v3, v4, v5, v6, v7, v9)
     }
 }
 
-pub fn method232(v0: Uh20, v1: Uh3) -> Uh3 {
+pub fn method230(v0: Uh19, v1: Uh3) -> Uh3 {
     case v0  {
-        Uh20Cons(v2, v3, v4, v5, v6) -> {
-            let v7 = method232(v6, v1)
+        Uh19Cons(v2, v3, v4, v5, v6) -> {
+            let v7 = method230(v6, v1)
             let v12 =
                 case v3  {
                     Us2None -> {
                         "null"
                     }
-                    Us2Some(v8) -> quoted_121(v8)
+                    Us2Some(v8) -> quoted_119(v8)
                 }
-            let v14 = quoted_121("parent")
+            let v14 = quoted_119("parent")
             let v15 = { v14 } <> { ": " }
             let v16 = { v15 } <> { v12 }
-            let v17 = quoted_121(v2)
-            let v19 = quoted_121("post")
+            let v17 = quoted_119(v2)
+            let v19 = quoted_119("post")
             let v20 = { v19 } <> { ": " }
             let v21 = { v20 } <> { v17 }
             let v26 =
@@ -500,23 +500,23 @@ pub fn method232(v0: Uh20, v1: Uh3) -> Uh3 {
                         ""
                     }
                 }
-            let v27 = quoted_121(v26)
-            let v29 = quoted_121("source")
+            let v27 = quoted_119(v26)
+            let v29 = quoted_119("source")
             let v30 = { v29 } <> { ": " }
             let v31 = { v30 } <> { v27 }
             let v33 = Uh3Cons(v31, Uh3Nil)
             let v34 = Uh3Cons(v21, v33)
             let v35 = Uh3Cons(v16, v34)
-            let v39 = shared_layout_207(v35, "{", "}", 2)
+            let v39 = shared_layout_205(v35, "{", "}", 2)
             Uh3Cons(v39, v7)
         }
-        Uh20Nil -> v1
+        Uh19Nil -> v1
     }
 }
 
-pub fn inserted_234(v0: String, v1: Uh3, v2: Uh21) -> Uh21 {
+pub fn inserted_232(v0: String, v1: Uh3, v2: Uh20) -> Uh20 {
     case v2  {
-        Uh21Cons(v3, v4, v5) -> {
+        Uh20Cons(v3, v4, v5) -> {
             let v6 = string.compare(v0, v3) == order.Lt
             let v9 =
                 case v6 {
@@ -532,64 +532,64 @@ pub fn inserted_234(v0: String, v1: Uh3, v2: Uh21) -> Uh21 {
             let v10 = v9 == 1
             case v10 {
                 True -> {
-                    let v11 = inserted_234(v0, v1, v5)
-                    Uh21Cons(v3, v4, v11)
+                    let v11 = inserted_232(v0, v1, v5)
+                    Uh20Cons(v3, v4, v11)
                 }
-                False -> Uh21Cons(v0, v1, v2)
+                False -> Uh20Cons(v0, v1, v2)
             }
         }
-        _ -> Uh21Cons(v0, v1, v2)
+        _ -> Uh20Cons(v0, v1, v2)
     }
 }
 
-pub fn method233(v0: Uh21, v1: Uh21) -> Uh21 {
+pub fn method231(v0: Uh20, v1: Uh20) -> Uh20 {
     case v0  {
-        Uh21Cons(v2, v3, v4) -> {
-            let v5 = inserted_234(v2, v3, v1)
-            method233(v4, v5)
+        Uh20Cons(v2, v3, v4) -> {
+            let v5 = inserted_232(v2, v3, v1)
+            method231(v4, v5)
         }
-        Uh21Nil -> v1
+        Uh20Nil -> v1
     }
 }
 
-pub fn method235(v0: Uh21, v1: Uh3) -> Uh3 {
+pub fn method233(v0: Uh20, v1: Uh3) -> Uh3 {
     case v0  {
-        Uh21Cons(v2, v3, v4) -> {
-            let v5 = method235(v4, v1)
+        Uh20Cons(v2, v3, v4) -> {
+            let v5 = method233(v4, v1)
             let v7 = method20(v3, 0)
             let v8 = int.to_string(v7)
-            let v9 = quoted_121(v2)
+            let v9 = quoted_119(v2)
             let v10 = { v9 } <> { ": " }
             let v11 = { v10 } <> { v8 }
             Uh3Cons(v11, v5)
         }
-        Uh21Nil -> v1
+        Uh20Nil -> v1
     }
 }
 
-pub fn final_json_231(v0: Uh20, v1: Uh21) -> String {
-    let v3 = method160(v0, Uh20Nil)
-    let v5 = method232(v3, Uh3Nil)
-    let v9 = shared_layout_207(v5, "[", "]", 1)
-    let v11 = quoted_121("cells")
+pub fn final_json_229(v0: Uh19, v1: Uh20) -> String {
+    let v3 = method158(v0, Uh19Nil)
+    let v5 = method230(v3, Uh3Nil)
+    let v9 = shared_layout_205(v5, "[", "]", 1)
+    let v11 = quoted_119("cells")
     let v12 = { v11 } <> { ": " }
     let v13 = { v12 } <> { v9 }
-    let v15 = method233(v1, Uh21Nil)
-    let v17 = method235(v15, Uh3Nil)
+    let v15 = method231(v1, Uh20Nil)
+    let v17 = method233(v15, Uh3Nil)
     let v18 = "{"
     let v19 = "}"
-    let v21 = shared_layout_207(v17, v18, v19, 1)
-    let v23 = quoted_121("likes")
+    let v21 = shared_layout_205(v17, v18, v19, 1)
+    let v23 = quoted_119("likes")
     let v24 = { v23 } <> { ": " }
     let v25 = { v24 } <> { v21 }
     let v27 = Uh3Cons(v25, Uh3Nil)
     let v28 = Uh3Cons(v13, v27)
-    let v30 = shared_layout_207(v28, v18, v19, 0)
+    let v30 = shared_layout_205(v28, v18, v19, 0)
     let v31 = { v30 } <> { "\n" }
     v31
 }
 
-pub fn scenario_final_230(v0: Int, v1: Int, v2: Int, v3: String, _v4: Int, _v5: Bool, _v6: fn(String) -> fn(Int) -> fn(String) -> Uh3, v7: Uh3) -> String {
+pub fn scenario_final_228(v0: Int, v1: Int, v2: Int, v3: String, _v4: Int, _v5: Bool, _v6: fn(String) -> fn(Int) -> fn(String) -> Uh3, v7: Uh3) -> String {
     let v9 = "+"
     let v10 = v3 |> string.replace(",", v9)
     let v11 = v10 == ""
@@ -598,11 +598,11 @@ pub fn scenario_final_230(v0: Int, v1: Int, v2: Int, v3: String, _v4: Int, _v5: 
             True -> Uh3Nil
             False -> split_list_2(v9, v10)
         }
-    let v16 = method56(v14, Uh3Nil)
-    let v18 = method57(v16, Uh8Nil)
-    let #(_v23, v24, _v25) = from_cells_65(v0, v1, v2, 0, 0, v18, False, "", v7)
-    let #(v26, v27) = final_replay_149(v24)
-    final_json_231(v26, v27)
+    let v16 = method54(v14, Uh3Nil)
+    let v18 = method55(v16, Uh7Nil)
+    let #(_v23, v24, _v25) = from_cells_63(v0, v1, v2, 0, 0, v18, False, "", v7)
+    let #(v26, v27) = final_replay_147(v24)
+    final_json_229(v26, v27)
 }
 
 pub fn closure28(capt: Nil) -> fn(#(String, Int, Int, Int, String, Int, Bool)) -> String {
@@ -611,7 +611,7 @@ pub fn closure28(capt: Nil) -> fn(#(String, Int, Int, Int, String, Int, Bool)) -
         let v7 = closure16(Nil)
         let v8 = unicode_erlang_characters_to_binary([0])
         let v9 = split_list_2(v8, v0)
-        scenario_final_230(v1, v2, v3, v4, v5, v6, v7, v9)
+        scenario_final_228(v1, v2, v3, v4, v5, v6, v7, v9)
     }
 }
 
@@ -663,10 +663,10 @@ pub fn closure30(capt: Nil) -> fn(#(Uh3, String, Int, Int, Int, String, Bool, In
     }
 }
 
-pub fn method236(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method234(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method236(v3, v1)
+            let v4 = method234(v3, v1)
             let v5 = v2 == ""
             let v9 =
                 case v5 {

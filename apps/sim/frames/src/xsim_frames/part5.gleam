@@ -1,13 +1,13 @@
 import gleam/int
 import gleam/string
 import xsim_split
-import xsim_frames/types.{type Uh3, type Uh5, type Us2, type Uh10, type Us16, type Uh11, type Uh16, type Us21, type Us22, type Uh17, type Uh18, type Uh19, type Us24, Uh11Cons, Uh11Nil, Uh16Cons, Uh16Nil, Uh17Cons, Uh17Nil, Uh18Cons, Uh18Nil, Uh19Cons, Uh19Nil, Uh3Cons, Uh3Nil, Uh5Nil, Uh8Nil, Uh9Nil, Us0Text, Us16Content, Us16Reaction, Us16Revision, Us17Framed, Us17Posted, Us18Deleted, Us18Edited, Us18FrameEdited, Us19Liked, Us19Unliked, Us1None, Us1Some, Us21Error, Us21Ok, Us22Error, Us22Ok, Us23None, Us23Some, Us24None, Us24Some, Us2None, Us2Some}
+import xsim_frames/types.{type Uh3, type Uh5, type Us2, type Uh9, type Us16, type Uh10, type Uh15, type Us21, type Us22, type Uh16, type Uh17, type Uh18, type Us24, Uh10Cons, Uh10Nil, Uh15Cons, Uh15Nil, Uh16Cons, Uh16Nil, Uh17Cons, Uh17Nil, Uh18Cons, Uh18Nil, Uh3Cons, Uh3Nil, Uh5Nil, Uh7Nil, Uh8Nil, Us0Text, Us16Content, Us16Reaction, Us16Revision, Us17Framed, Us17Posted, Us18Deleted, Us18Edited, Us18FrameEdited, Us19Liked, Us19Unliked, Us1None, Us1Some, Us21Error, Us21Ok, Us22Error, Us22Ok, Us23None, Us23Some, Us24None, Us24Some, Us2None, Us2Some}
 import xsim_frames/part1.{count_at_16, fields_from_6, spiral_string_length, spiral_string_slice, spiral_wrap_signed, spiral_wrap_unsigned, split_list_2, text_at_13, unicode_erlang_characters_to_binary, value_of_14}
 import xsim_frames/part2.{concat_balanced_22, delimited_21}
-import xsim_frames/part3.{method56, method57, method58, method59, method62, seeded_68, uniform_71}
-import xsim_frames/part4.{break_source_84, from_cells_65, from_corpus_63, method115, method116}
+import xsim_frames/part3.{method54, method55, method56, method57, method60, seeded_66, uniform_69}
+import xsim_frames/part4.{break_source_82, from_cells_63, from_corpus_61, method113, method114}
 
-pub fn controls_from_122(v0: Int, v1: String) -> String {
+pub fn controls_from_120(v0: Int, v1: String) -> String {
     let v2 = v0 >= 32
     case v2 {
         True -> v1
@@ -98,55 +98,55 @@ pub fn controls_from_122(v0: Int, v1: String) -> String {
                     Us2Some(v35) -> v35
                 }
             let v49 = v1 |> string.replace(v13, v48)
-            controls_from_122(v3, v49)
+            controls_from_120(v3, v49)
         }
     }
 }
 
-pub fn quoted_121(v0: String) -> String {
+pub fn quoted_119(v0: String) -> String {
     let v3 = v0 |> string.replace("\\", "\\\\")
     let v4 = "\""
     let v6 = v3 |> string.replace(v4, "\\\"")
-    let v8 = controls_from_122(0, v6)
+    let v8 = controls_from_120(0, v6)
     let v11 = Uh3Cons(v4, Uh3Nil)
     let v12 = Uh3Cons(v8, v11)
     let v13 = Uh3Cons(v4, v12)
     concat_balanced_22("", v13)
 }
 
-pub fn field_120(v0: String, v1: String) -> String {
-    let v2 = quoted_121(v0)
+pub fn field_118(v0: String, v1: String) -> String {
+    let v2 = quoted_119(v0)
     let v3 = { v2 } <> { ":" }
     let v4 = { v3 } <> { v1 }
     v4
 }
 
-pub fn encoded_119(v0: Int, v1: Us16) -> String {
+pub fn encoded_117(v0: Int, v1: Us16) -> String {
     let v191 =
         case v1  {
             Us16Content(v2) -> {
                 case v2  {
                     Us17Framed(v31, v32, v33, v34, v35) -> {
                         let v37 = int.to_string(v0)
-                        let v38 = field_120("at", v37)
-                        let v40 = quoted_121(v35)
-                        let v41 = field_120("body", v40)
+                        let v38 = field_118("at", v37)
+                        let v40 = quoted_119(v35)
+                        let v41 = field_118("body", v40)
                         let v43 = int.to_string(v33)
-                        let v44 = field_120("k", v43)
-                        let v47 = quoted_121("frame")
-                        let v48 = field_120("kind", v47)
+                        let v44 = field_118("k", v43)
+                        let v47 = quoted_119("frame")
+                        let v48 = field_118("kind", v47)
                         let v50 = int.to_string(v34)
-                        let v51 = field_120("n", v50)
+                        let v51 = field_118("n", v50)
                         let v57 =
                             case v32  {
                                 Us2None -> {
                                     "null"
                                 }
-                                Us2Some(v53) -> quoted_121(v53)
+                                Us2Some(v53) -> quoted_119(v53)
                             }
-                        let v58 = field_120("parent", v57)
-                        let v60 = quoted_121(v31)
-                        let v61 = field_120("post", v60)
+                        let v58 = field_118("parent", v57)
+                        let v60 = quoted_119(v31)
+                        let v61 = field_118("post", v60)
                         let v63 = Uh3Cons(v61, Uh3Nil)
                         let v64 = Uh3Cons(v58, v63)
                         let v65 = Uh3Cons(v51, v64)
@@ -157,22 +157,22 @@ pub fn encoded_119(v0: Int, v1: Us16) -> String {
                     }
                     Us17Posted(v3, v4, v5) -> {
                         let v7 = int.to_string(v0)
-                        let v8 = field_120("at", v7)
+                        let v8 = field_118("at", v7)
                         let v10 = "post"
-                        let v11 = quoted_121(v10)
-                        let v12 = field_120("kind", v11)
+                        let v11 = quoted_119(v10)
+                        let v12 = field_118("kind", v11)
                         let v18 =
                             case v4  {
                                 Us2None -> {
                                     "null"
                                 }
-                                Us2Some(v14) -> quoted_121(v14)
+                                Us2Some(v14) -> quoted_119(v14)
                             }
-                        let v19 = field_120("parent", v18)
-                        let v20 = quoted_121(v3)
-                        let v21 = field_120(v10, v20)
-                        let v23 = quoted_121(v5)
-                        let v24 = field_120("source", v23)
+                        let v19 = field_118("parent", v18)
+                        let v20 = quoted_119(v3)
+                        let v21 = field_118(v10, v20)
+                        let v23 = quoted_119(v5)
+                        let v24 = field_118("source", v23)
                         let v26 = Uh3Cons(v24, Uh3Nil)
                         let v27 = Uh3Cons(v21, v26)
                         let v28 = Uh3Cons(v19, v27)
@@ -185,13 +185,13 @@ pub fn encoded_119(v0: Int, v1: Us16) -> String {
                 case v146  {
                     Us19Liked(v147, v148) -> {
                         let v150 = int.to_string(v0)
-                        let v151 = field_120("at", v150)
-                        let v154 = quoted_121("like")
-                        let v155 = field_120("kind", v154)
-                        let v157 = quoted_121(v147)
-                        let v158 = field_120("post", v157)
-                        let v160 = quoted_121(v148)
-                        let v161 = field_120("user", v160)
+                        let v151 = field_118("at", v150)
+                        let v154 = quoted_119("like")
+                        let v155 = field_118("kind", v154)
+                        let v157 = quoted_119(v147)
+                        let v158 = field_118("post", v157)
+                        let v160 = quoted_119(v148)
+                        let v161 = field_118("user", v160)
                         let v163 = Uh3Cons(v161, Uh3Nil)
                         let v164 = Uh3Cons(v158, v163)
                         let v165 = Uh3Cons(v155, v164)
@@ -199,13 +199,13 @@ pub fn encoded_119(v0: Int, v1: Us16) -> String {
                     }
                     Us19Unliked(v167, v168) -> {
                         let v170 = int.to_string(v0)
-                        let v171 = field_120("at", v170)
-                        let v174 = quoted_121("unlike")
-                        let v175 = field_120("kind", v174)
-                        let v177 = quoted_121(v167)
-                        let v178 = field_120("post", v177)
-                        let v180 = quoted_121(v168)
-                        let v181 = field_120("user", v180)
+                        let v171 = field_118("at", v170)
+                        let v174 = quoted_119("unlike")
+                        let v175 = field_118("kind", v174)
+                        let v177 = quoted_119(v167)
+                        let v178 = field_118("post", v177)
+                        let v180 = quoted_119(v168)
+                        let v181 = field_118("user", v180)
                         let v183 = Uh3Cons(v181, Uh3Nil)
                         let v184 = Uh3Cons(v178, v183)
                         let v185 = Uh3Cons(v175, v184)
@@ -217,24 +217,24 @@ pub fn encoded_119(v0: Int, v1: Us16) -> String {
                 case v72  {
                     Us18Deleted(v128) -> {
                         let v130 = int.to_string(v0)
-                        let v131 = field_120("at", v130)
-                        let v134 = quoted_121("delete")
-                        let v135 = field_120("kind", v134)
-                        let v137 = quoted_121(v128)
-                        let v138 = field_120("post", v137)
+                        let v131 = field_118("at", v130)
+                        let v134 = quoted_119("delete")
+                        let v135 = field_118("kind", v134)
+                        let v137 = quoted_119(v128)
+                        let v138 = field_118("post", v137)
                         let v140 = Uh3Cons(v138, Uh3Nil)
                         let v141 = Uh3Cons(v135, v140)
                         Uh3Cons(v131, v141)
                     }
                     Us18Edited(v73, v74) -> {
                         let v76 = int.to_string(v0)
-                        let v77 = field_120("at", v76)
-                        let v80 = quoted_121("edit")
-                        let v81 = field_120("kind", v80)
-                        let v83 = quoted_121(v73)
-                        let v84 = field_120("post", v83)
-                        let v86 = quoted_121(v74)
-                        let v87 = field_120("source", v86)
+                        let v77 = field_118("at", v76)
+                        let v80 = quoted_119("edit")
+                        let v81 = field_118("kind", v80)
+                        let v83 = quoted_119(v73)
+                        let v84 = field_118("post", v83)
+                        let v86 = quoted_119(v74)
+                        let v87 = field_118("source", v86)
                         let v89 = Uh3Cons(v87, Uh3Nil)
                         let v90 = Uh3Cons(v84, v89)
                         let v91 = Uh3Cons(v81, v90)
@@ -242,19 +242,19 @@ pub fn encoded_119(v0: Int, v1: Us16) -> String {
                     }
                     Us18FrameEdited(v93, v94, v95, v96, v97) -> {
                         let v99 = int.to_string(v0)
-                        let v100 = field_120("at", v99)
-                        let v102 = quoted_121(v97)
-                        let v103 = field_120("body", v102)
+                        let v100 = field_118("at", v99)
+                        let v102 = quoted_119(v97)
+                        let v103 = field_118("body", v102)
                         let v105 = int.to_string(v95)
-                        let v106 = field_120("k", v105)
-                        let v109 = quoted_121("edit_frame")
-                        let v110 = field_120("kind", v109)
+                        let v106 = field_118("k", v105)
+                        let v109 = quoted_119("edit_frame")
+                        let v110 = field_118("kind", v109)
                         let v112 = int.to_string(v96)
-                        let v113 = field_120("n", v112)
-                        let v115 = quoted_121(v93)
-                        let v116 = field_120("post", v115)
+                        let v113 = field_118("n", v112)
+                        let v115 = quoted_119(v93)
+                        let v116 = field_118("post", v115)
                         let v118 = int.to_string(v94)
-                        let v119 = field_120("rev", v118)
+                        let v119 = field_118("rev", v118)
                         let v121 = Uh3Cons(v119, Uh3Nil)
                         let v122 = Uh3Cons(v116, v121)
                         let v123 = Uh3Cons(v113, v122)
@@ -272,29 +272,29 @@ pub fn encoded_119(v0: Int, v1: Us16) -> String {
     v195
 }
 
-pub fn method118(v0: Uh16, v1: Uh3) -> Uh3 {
+pub fn method116(v0: Uh15, v1: Uh3) -> Uh3 {
     case v0  {
-        Uh16Cons(v2, v3, v4) -> {
-            let v5 = method118(v4, v1)
-            let v6 = encoded_119(v2, v3)
+        Uh15Cons(v2, v3, v4) -> {
+            let v5 = method116(v4, v1)
+            let v6 = encoded_117(v2, v3)
             Uh3Cons(v6, v5)
         }
-        Uh16Nil -> v1
+        Uh15Nil -> v1
     }
 }
 
-pub fn stream_117(v0: Uh16) -> String {
-    let v2 = method118(v0, Uh3Nil)
+pub fn stream_115(v0: Uh15) -> String {
+    let v2 = method116(v0, Uh3Nil)
     let v5 = Uh3Cons("{\"format\":\"xsim-events\",\"version\":1}", v2)
     let v6 = concat_balanced_22("\n", v5)
     let v7 = { v6 } <> { "\n" }
     v7
 }
 
-pub fn raw_scenario_114(_v0: Uh10, v1: Uh11, v2: Uh3) -> #(String, Uh3) {
-    let #(v5, _v6) = method115(v1, Uh16Nil, 0)
-    let v8 = method116(v5, Uh16Nil)
-    let v9 = stream_117(v8)
+pub fn raw_scenario_112(_v0: Uh9, v1: Uh10, v2: Uh3) -> #(String, Uh3) {
+    let #(v5, _v6) = method113(v1, Uh15Nil, 0)
+    let v8 = method114(v5, Uh15Nil)
+    let v9 = stream_115(v8)
     #(v9, v2)
 }
 
@@ -309,14 +309,14 @@ pub fn closure10(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Boo
                 True -> Uh3Nil
                 False -> split_list_2(v11, v12)
             }
-        let v18 = method56(v16, Uh3Nil)
-        let v20 = method57(v18, Uh8Nil)
+        let v18 = method54(v16, Uh3Nil)
+        let v20 = method55(v18, Uh7Nil)
         let v22 = unicode_erlang_characters_to_binary([1])
         let v23 = split_list_2(v22, v0)
         let v24 = unicode_erlang_characters_to_binary([0])
-        let v26 = method62(v24, v23, Uh9Nil)
-        let #(v27, v28, v29) = from_corpus_63(v1, v2, v3, v4, v5, v20, False, v26)
-        let #(v30, v31) = raw_scenario_114(v27, v28, v29)
+        let v26 = method60(v24, v23, Uh8Nil)
+        let #(v27, v28, v29) = from_corpus_61(v1, v2, v3, v4, v5, v20, False, v26)
+        let #(v30, v31) = raw_scenario_112(v27, v28, v29)
         let v32 = unicode_erlang_characters_to_binary([0])
         let v33 = delimited_21(v32, v31)
         #(v30, v33)
@@ -334,8 +334,8 @@ pub fn closure12(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Boo
                 True -> Uh3Nil
                 False -> split_list_2(v11, v12)
             }
-        let v18 = method56(v16, Uh3Nil)
-        let v20 = method57(v18, Uh8Nil)
+        let v18 = method54(v16, Uh3Nil)
+        let v20 = method55(v18, Uh7Nil)
         let v23 = unicode_erlang_characters_to_binary([0])
         let v24 = v0 == ""
         let v27 =
@@ -343,24 +343,24 @@ pub fn closure12(capt: Nil) -> fn(#(String, Int, Int, Int, Int, Int, String, Boo
                 True -> Uh3Nil
                 False -> split_list_2(v23, v0)
             }
-        let #(v28, v29, v30) = from_cells_65(v1, v2, v3, v4, v5, v20, False, "", v27)
-        let #(v31, v32) = raw_scenario_114(v28, v29, v30)
+        let #(v28, v29, v30) = from_cells_63(v1, v2, v3, v4, v5, v20, False, "", v27)
+        let #(v31, v32) = raw_scenario_112(v28, v29, v30)
         let v33 = unicode_erlang_characters_to_binary([0])
         let v34 = delimited_21(v33, v32)
         #(v31, v34)
     }
 }
 
-pub fn method125(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method123(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method125(v3, v1)
+            let v4 = method123(v3, v1)
             let v5 = spiral_string_length(v2)
-            let v7 = method58(v2, v5, 0)
+            let v7 = method56(v2, v5, 0)
             let v8 = spiral_wrap_signed(v5 - 1, 32)
             let v9 = spiral_string_slice(v2, v7, v8)
             let v10 = spiral_string_length(v9)
-            let v11 = method59(v9, v10)
+            let v11 = method57(v9, v10)
             let v12 = spiral_string_slice(v9, 0, v11)
             Uh3Cons(v12, v4)
         }
@@ -368,10 +368,10 @@ pub fn method125(v0: Uh3, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn method126(v0: Uh3, v1: Uh3) -> Uh3 {
+pub fn method124(v0: Uh3, v1: Uh3) -> Uh3 {
     case v0  {
         Uh3Cons(v2, v3) -> {
-            let v4 = method126(v3, v1)
+            let v4 = method124(v3, v1)
             let v5 = v2 != ""
             case v5 {
                 True -> Uh3Cons(v2, v4)
@@ -382,7 +382,7 @@ pub fn method126(v0: Uh3, v1: Uh3) -> Uh3 {
     }
 }
 
-pub fn parent_at_129(v0: Uh5) -> Us2 {
+pub fn parent_at_127(v0: Uh5) -> Us2 {
     let v2 = value_of_14("parent", v0)
     case v2  {
         Us0Text(v3) -> Us2Some(v3)
@@ -390,7 +390,7 @@ pub fn parent_at_129(v0: Uh5) -> Us2 {
     }
 }
 
-pub fn decoded_128(v0: String) -> Us22 {
+pub fn decoded_126(v0: String) -> Us22 {
     let v1 = spiral_string_length(v0)
     let v2 = 0 > v1
     let v7 =
@@ -423,7 +423,7 @@ pub fn decoded_128(v0: String) -> Us22 {
                 case v16 {
                     True -> {
                         let v18 = text_at_13("post", v13)
-                        let v19 = parent_at_129(v13)
+                        let v19 = parent_at_127(v13)
                         let v21 = text_at_13("source", v13)
                         let v22 = Us17Posted(v18, v19, v21)
                         let v23 = Us16Content(v22)
@@ -434,7 +434,7 @@ pub fn decoded_128(v0: String) -> Us22 {
                         case v25 {
                             True -> {
                                 let v27 = text_at_13("post", v13)
-                                let v28 = parent_at_129(v13)
+                                let v28 = parent_at_127(v13)
                                 let v30 = count_at_16("k", v13)
                                 let v32 = count_at_16("n", v13)
                                 let v34 = text_at_13("body", v13)
@@ -524,26 +524,26 @@ pub fn decoded_128(v0: String) -> Us22 {
     }
 }
 
-pub fn all_decoded_127(v0: Uh3, v1: Uh16) -> Us21 {
+pub fn all_decoded_125(v0: Uh3, v1: Uh15) -> Us21 {
     case v0  {
         Uh3Cons(v5, v6) -> {
-            let v7 = decoded_128(v5)
+            let v7 = decoded_126(v5)
             case v7  {
                 Us22Error(v12) -> Us21Error(v12)
                 Us22Ok(v8, v9) -> {
-                    let v10 = Uh16Cons(v8, v9, v1)
-                    all_decoded_127(v6, v10)
+                    let v10 = Uh15Cons(v8, v9, v1)
+                    all_decoded_125(v6, v10)
                 }
             }
         }
         Uh3Nil -> {
-            let v3 = method116(v1, Uh16Nil)
+            let v3 = method114(v1, Uh15Nil)
             Us21Ok(v3)
         }
     }
 }
 
-pub fn decoded_stream_124(v0: String) -> Us21 {
+pub fn decoded_stream_122(v0: String) -> Us21 {
     let v1 = v0 == ""
     let v5 =
         case v1 {
@@ -552,8 +552,8 @@ pub fn decoded_stream_124(v0: String) -> Us21 {
                 split_list_2("\n", v0)
             }
         }
-    let v7 = method125(v5, Uh3Nil)
-    let v9 = method126(v7, Uh3Nil)
+    let v7 = method123(v5, Uh3Nil)
+    let v9 = method124(v7, Uh3Nil)
     case v9  {
         Uh3Cons(v10, v11) -> {
             let v12 = spiral_string_length(v10)
@@ -592,7 +592,7 @@ pub fn decoded_stream_124(v0: String) -> Us21 {
                 }
             case v33 {
                 True -> {
-                    all_decoded_127(v11, Uh16Nil)
+                    all_decoded_125(v11, Uh15Nil)
                 }
                 False -> {
                     Us21Error("not an xsim-events v1 stream")
@@ -605,17 +605,17 @@ pub fn decoded_stream_124(v0: String) -> Us21 {
     }
 }
 
-pub fn method130(v0: Uh16, v1: Uh11) -> Uh11 {
+pub fn method128(v0: Uh15, v1: Uh10) -> Uh10 {
     case v0  {
-        Uh16Cons(v2, v3, v4) -> {
-            let v5 = method130(v4, v1)
-            Uh11Cons(v3, v5)
+        Uh15Cons(v2, v3, v4) -> {
+            let v5 = method128(v4, v1)
+            Uh10Cons(v3, v5)
         }
-        Uh16Nil -> v1
+        Uh15Nil -> v1
     }
 }
 
-pub fn method133(v0: Int, v1: Int, v2: Int, v3: Us16, v4: Int) -> Uh17 {
+pub fn method131(v0: Int, v1: Int, v2: Int, v3: Us16, v4: Int) -> Uh16 {
     let v5 = v4 < v0
     case v5 {
         True -> {
@@ -623,31 +623,31 @@ pub fn method133(v0: Int, v1: Int, v2: Int, v3: Us16, v4: Int) -> Uh17 {
             let v7 = spiral_wrap_signed(v6 + v4, 32)
             let v8 = spiral_wrap_signed(v7 + 1, 32)
             let v9 = spiral_wrap_signed(v4 + 1, 32)
-            let v10 = method133(v0, v1, v2, v3, v9)
-            Uh17Cons(v8, v1, v3, v10)
+            let v10 = method131(v0, v1, v2, v3, v9)
+            Uh16Cons(v8, v1, v3, v10)
         }
-        False -> Uh17Nil
+        False -> Uh16Nil
     }
 }
 
-pub fn method134(v0: Uh17, v1: Uh17) -> Uh17 {
+pub fn method132(v0: Uh16, v1: Uh16) -> Uh16 {
     case v0  {
-        Uh17Cons(v2, v3, v4, v5) -> {
-            let v6 = method134(v5, v1)
-            Uh17Cons(v2, v3, v4, v6)
+        Uh16Cons(v2, v3, v4, v5) -> {
+            let v6 = method132(v5, v1)
+            Uh16Cons(v2, v3, v4, v6)
         }
-        Uh17Nil -> v1
+        Uh16Nil -> v1
     }
 }
 
-pub fn method132(v0: Int, v1: Int, v2: Uh11, v3: Uh17, v4: Int, v5: Int, v6: Int) -> #(Uh17, Int, Int, Int) {
+pub fn method130(v0: Int, v1: Int, v2: Uh10, v3: Uh16, v4: Int, v5: Int, v6: Int) -> #(Uh16, Int, Int, Int) {
     let #(v33, v34, v35, v36) =
         case v2  {
-            Uh11Cons(v7, v8) -> {
+            Uh10Cons(v7, v8) -> {
                 let v9 = spiral_wrap_unsigned(v1, 64)
-                let #(v10, v11, v12) = uniform_71(v9, v4, v5)
+                let #(v10, v11, v12) = uniform_69(v9, v4, v5)
                 let v13 = spiral_wrap_signed(v10, 32)
-                let #(v15, v16, v17) = uniform_71(1000, v11, v12)
+                let #(v15, v16, v17) = uniform_69(1000, v11, v12)
                 let v18 = spiral_wrap_signed(v15, 32)
                 let v19 = v18 <= v0
                 let v20 =
@@ -655,15 +655,15 @@ pub fn method132(v0: Int, v1: Int, v2: Uh11, v3: Uh17, v4: Int, v5: Int, v6: Int
                         True -> 2
                         False -> 1
                     }
-                let v22 = method133(v20, v6, v13, v7, 0)
-                let v23 = method134(v22, v3)
+                let v22 = method131(v20, v6, v13, v7, 0)
+                let v23 = method132(v22, v3)
                 let v24 = spiral_wrap_signed(v6 + 1, 32)
-                method132(v0, v1, v8, v23, v16, v17, v24)
+                method130(v0, v1, v8, v23, v16, v17, v24)
             }
             _ -> {
                 let #(v29, v30, v31, v32) =
                     case v2  {
-                        Uh11Nil -> #(v3, v4, v5, v6)
+                        Uh10Nil -> #(v3, v4, v5, v6)
                         _ -> panic as "spiral: union case ruled out by partial evaluation"
                     }
                 #(v29, v30, v31, v32)
@@ -672,38 +672,38 @@ pub fn method132(v0: Int, v1: Int, v2: Uh11, v3: Uh17, v4: Int, v5: Int, v6: Int
     #(v33, v34, v35, v36)
 }
 
-pub fn halved_keyed_136(v0: Uh17) -> #(Uh17, Uh17) {
+pub fn halved_keyed_134(v0: Uh16) -> #(Uh16, Uh16) {
     case v0  {
-        Uh17Cons(v1, v2, v3, v4) -> {
+        Uh16Cons(v1, v2, v3, v4) -> {
             case v4  {
-                Uh17Cons(v5, v6, v7, v8) -> {
-                    let #(v9, v10) = halved_keyed_136(v8)
-                    let v11 = Uh17Cons(v1, v2, v3, v9)
-                    let v12 = Uh17Cons(v5, v6, v7, v10)
+                Uh16Cons(v5, v6, v7, v8) -> {
+                    let #(v9, v10) = halved_keyed_134(v8)
+                    let v11 = Uh16Cons(v1, v2, v3, v9)
+                    let v12 = Uh16Cons(v5, v6, v7, v10)
                     #(v11, v12)
                 }
                 _ -> {
-                    #(v0, Uh17Nil)
+                    #(v0, Uh16Nil)
                 }
             }
         }
         _ -> {
-            #(v0, Uh17Nil)
+            #(v0, Uh16Nil)
         }
     }
 }
 
-pub fn merged_keyed_137(v0: Uh17, v1: Uh17) -> Uh17 {
+pub fn merged_keyed_135(v0: Uh16, v1: Uh16) -> Uh16 {
     case v0  {
-        Uh17Nil -> v1
+        Uh16Nil -> v1
         _ -> {
             case v1  {
-                Uh17Nil -> v0
+                Uh16Nil -> v0
                 _ -> {
                     case v0  {
-                        Uh17Cons(v2, v3, v4, v5) -> {
+                        Uh16Cons(v2, v3, v4, v5) -> {
                             case v1  {
-                                Uh17Cons(v6, v7, v8, v9) -> {
+                                Uh16Cons(v6, v7, v8, v9) -> {
                                     let v10 = v2 < v6
                                     let v14 =
                                         case v10 {
@@ -720,12 +720,12 @@ pub fn merged_keyed_137(v0: Uh17, v1: Uh17) -> Uh17 {
                                         }
                                     case v14 {
                                         True -> {
-                                            let v15 = merged_keyed_137(v5, v1)
-                                            Uh17Cons(v2, v3, v4, v15)
+                                            let v15 = merged_keyed_135(v5, v1)
+                                            Uh16Cons(v2, v3, v4, v15)
                                         }
                                         False -> {
-                                            let v17 = merged_keyed_137(v0, v9)
-                                            Uh17Cons(v6, v7, v8, v17)
+                                            let v17 = merged_keyed_135(v0, v9)
+                                            Uh16Cons(v6, v7, v8, v17)
                                         }
                                     }
                                 }
@@ -740,34 +740,34 @@ pub fn merged_keyed_137(v0: Uh17, v1: Uh17) -> Uh17 {
     }
 }
 
-pub fn sorted_keyed_135(v0: Uh17) -> Uh17 {
+pub fn sorted_keyed_133(v0: Uh16) -> Uh16 {
     case v0  {
-        Uh17Cons(v1, v2, v3, v4) -> {
+        Uh16Cons(v1, v2, v3, v4) -> {
             case v4  {
-                Uh17Nil -> v0
+                Uh16Nil -> v0
                 _ -> {
-                    let #(v5, v6) = halved_keyed_136(v0)
-                    let v7 = sorted_keyed_135(v5)
-                    let v8 = sorted_keyed_135(v6)
-                    merged_keyed_137(v7, v8)
+                    let #(v5, v6) = halved_keyed_134(v0)
+                    let v7 = sorted_keyed_133(v5)
+                    let v8 = sorted_keyed_133(v6)
+                    merged_keyed_135(v7, v8)
                 }
             }
         }
-        Uh17Nil -> v0
+        Uh16Nil -> v0
     }
 }
 
-pub fn method138(v0: Uh17, v1: Uh16) -> Uh16 {
+pub fn method136(v0: Uh16, v1: Uh15) -> Uh15 {
     case v0  {
-        Uh17Cons(v2, v3, v4, v5) -> {
-            let v6 = method138(v5, v1)
-            Uh16Cons(v3, v4, v6)
+        Uh16Cons(v2, v3, v4, v5) -> {
+            let v6 = method136(v5, v1)
+            Uh15Cons(v3, v4, v6)
         }
-        Uh17Nil -> v1
+        Uh16Nil -> v1
     }
 }
 
-pub fn deliveries_131(v0: Uh11, v1: Int, v2: Int, v3: Int) -> Uh16 {
+pub fn deliveries_129(v0: Uh10, v1: Int, v2: Int, v3: Int) -> Uh15 {
     let v4 = spiral_wrap_signed(v1 * 31, 32)
     let v5 = spiral_wrap_signed(v4 + 5, 32)
     let v6 = spiral_wrap_signed(v1 * 17, 32)
@@ -775,20 +775,20 @@ pub fn deliveries_131(v0: Uh11, v1: Int, v2: Int, v3: Int) -> Uh16 {
     let v8 = spiral_wrap_unsigned(v1, 64)
     let v9 = spiral_wrap_unsigned(v5, 64)
     let v10 = spiral_wrap_unsigned(v7, 64)
-    let #(v11, v12) = seeded_68(v8, v9, v10)
-    let #(v15, _v16, _v17, _v18) = method132(v2, v3, v0, Uh17Nil, v11, v12, 0)
-    let v19 = sorted_keyed_135(v15)
-    method138(v19, Uh16Nil)
+    let #(v11, v12) = seeded_66(v8, v9, v10)
+    let #(v15, _v16, _v17, _v18) = method130(v2, v3, v0, Uh16Nil, v11, v12, 0)
+    let v19 = sorted_keyed_133(v15)
+    method136(v19, Uh15Nil)
 }
 
-pub fn rescheduled_123(v0: String, v1: Int, v2: Int, v3: Int) -> String {
-    let v4 = decoded_stream_124(v0)
+pub fn rescheduled_121(v0: String, v1: Int, v2: Int, v3: Int) -> String {
+    let v4 = decoded_stream_122(v0)
     case v4  {
         Us21Error(v10) -> v10
         Us21Ok(v5) -> {
-            let v7 = method130(v5, Uh11Nil)
-            let v8 = deliveries_131(v7, v1, v2, v3)
-            stream_117(v8)
+            let v7 = method128(v5, Uh10Nil)
+            let v8 = deliveries_129(v7, v1, v2, v3)
+            stream_115(v8)
         }
     }
 }
@@ -796,13 +796,13 @@ pub fn rescheduled_123(v0: String, v1: Int, v2: Int, v3: Int) -> String {
 pub fn closure13(capt: Nil) -> fn(#(String, Int, Int, Int)) -> String {
     fn (dom) {
         let #(v0, v1, v2, v3) = dom
-        rescheduled_123(v0, v1, v2, v3)
+        rescheduled_121(v0, v1, v2, v3)
     }
 }
 
 pub fn closure14(capt: Nil) -> fn(String) -> String {
     fn (v0) {
-        break_source_84(v0)
+        break_source_82(v0)
     }
 }
 
@@ -834,71 +834,71 @@ pub fn closure16(capt: Nil) -> fn(String) -> fn(Int) -> fn(String) -> Uh3 {
     }
 }
 
-pub fn method143(v0: Uh19, v1: Uh19) -> Uh19 {
+pub fn method141(v0: Uh18, v1: Uh18) -> Uh18 {
     case v0  {
-        Uh19Cons(v2, v3, v4, v5) -> {
-            let v6 = method143(v5, v1)
-            Uh19Cons(v2, v3, v4, v6)
+        Uh18Cons(v2, v3, v4, v5) -> {
+            let v6 = method141(v5, v1)
+            Uh18Cons(v2, v3, v4, v6)
         }
-        Uh19Nil -> v1
+        Uh18Nil -> v1
     }
 }
 
-pub fn method142(v0: Int, v1: Uh3, v2: Uh19, v3: Int) -> #(Uh19, Int) {
+pub fn method140(v0: Int, v1: Uh3, v2: Uh18, v3: Int) -> #(Uh18, Int) {
     case v1  {
         Uh3Cons(v4, v5) -> {
-            let v7 = Uh19Cons(v3, v0, v4, Uh19Nil)
-            let v8 = method143(v2, v7)
+            let v7 = Uh18Cons(v3, v0, v4, Uh18Nil)
+            let v8 = method141(v2, v7)
             let v9 = spiral_wrap_signed(v3 + 1, 32)
-            method142(v0, v5, v8, v9)
+            method140(v0, v5, v8, v9)
         }
         Uh3Nil -> #(v2, v3)
     }
 }
 
-pub fn method144(v0: String, v1: Us2, v2: String, v3: Uh19, v4: Uh11) -> Uh11 {
+pub fn method142(v0: String, v1: Us2, v2: String, v3: Uh18, v4: Uh10) -> Uh10 {
     case v3  {
-        Uh19Cons(v5, v6, v7, v8) -> {
-            let v9 = method144(v0, v1, v2, v8, v4)
+        Uh18Cons(v5, v6, v7, v8) -> {
+            let v9 = method142(v0, v1, v2, v8, v4)
             let v10 = Us17Framed(v0, v1, v5, v6, v7)
             let v11 = Us16Content(v10)
-            Uh11Cons(v11, v9)
+            Uh10Cons(v11, v9)
         }
-        Uh19Nil -> v4
+        Uh18Nil -> v4
     }
 }
 
-pub fn method145(v0: Uh11, v1: Uh11) -> Uh11 {
+pub fn method143(v0: Uh10, v1: Uh10) -> Uh10 {
     case v0  {
-        Uh11Cons(v2, v3) -> {
-            let v4 = Uh11Cons(v2, v1)
-            method145(v3, v4)
+        Uh10Cons(v2, v3) -> {
+            let v4 = Uh10Cons(v2, v1)
+            method143(v3, v4)
         }
-        Uh11Nil -> v1
+        Uh10Nil -> v1
     }
 }
 
-pub fn method146(v0: String, v1: Uh18) -> Us24 {
+pub fn method144(v0: String, v1: Uh17) -> Us24 {
     case v1  {
-        Uh18Cons(v3, v4, v5) -> {
+        Uh17Cons(v3, v4, v5) -> {
             let v6 = v3 == v0
             case v6 {
                 True -> Us24Some(v3, v4)
-                False -> method146(v0, v5)
+                False -> method144(v0, v5)
             }
         }
-        Uh18Nil -> Us24None
+        Uh17Nil -> Us24None
     }
 }
 
-pub fn method147(v0: Int, v1: String, v2: String, v3: Uh19, v4: Uh11) -> Uh11 {
+pub fn method145(v0: Int, v1: String, v2: String, v3: Uh18, v4: Uh10) -> Uh10 {
     case v3  {
-        Uh19Cons(v5, v6, v7, v8) -> {
-            let v9 = method147(v0, v1, v2, v8, v4)
+        Uh18Cons(v5, v6, v7, v8) -> {
+            let v9 = method145(v0, v1, v2, v8, v4)
             let v10 = Us18FrameEdited(v1, v0, v5, v6, v7)
             let v11 = Us16Revision(v10)
-            Uh11Cons(v11, v9)
+            Uh10Cons(v11, v9)
         }
-        Uh19Nil -> v4
+        Uh18Nil -> v4
     }
 }

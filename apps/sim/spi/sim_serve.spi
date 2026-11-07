@@ -62,7 +62,8 @@
 
 :== api_world =
     { token : string; user_token : string; by_handle : index; by_id : index; page_size : i32; by_post : index;
-        now : string; raw : term; issued : list string; writes : write_state; feeds : list (list (string * term)) }
+        now : string; raw : term; issued : list string; writes : write_state; feeds : list (list (string * term));
+        media_root : string }
 
 := writes_of (me : term) (created : dict::dict string ()) (next_id : i32) : write_state = { me; created; next_id }
 
@@ -156,7 +157,7 @@
 
 := blank_world (token : string) (user_token : string) (now : string) : api_world =
     { token; user_token; by_handle = fresh (); by_id = fresh (); page_size = 100i32; by_post = fresh ();
-        now; raw = str ""; issued = []; writes = no_writes (); feeds = [] }
+        now; raw = str ""; issued = []; writes = no_writes (); feeds = []; media_root = "" }
 
 := no_fields () : term = (erlang_map::map_new () : fields) |> erlang_map::map_term
 
@@ -173,7 +174,8 @@
 
 :~ world_of (path : string) : api_world =
     := w = json_file path
-    included_users path w |> listm::fold with_user (empty_world w)
+    := loaded = included_users path w |> listm::fold with_user (empty_world w)
+    { loaded ?| media_root = dir_of path ++# "/media" }
 
 := pct (s : string) : string = erlang_text::percent_encoded s
 

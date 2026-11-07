@@ -8,7 +8,7 @@
 :< prelude
 :< exsss
 :< glyphs
-:< events
+:< sim_events
 :< personas
 
 :== casting =

@@ -3,8 +3,8 @@ import gleam/option
 import gleam/pair
 import gleam/result
 import gleam/string
-import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Us11, type Uh6, type Uh7, Uh0Cons, Uh0Nil, Uh1Cons, Uh1Nil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Uh5Nil, Uh6Cons, Uh6Nil, Uh7Cons, Uh7Nil, Us10PlainRow, Us10TallyRow, Us11None, Us11Some, Us12Broken, Us12Held, Us13BreakingEditsFail, Us13NoStaleResults, Us13OneCompilePerPrefix, Us13SequentialEquivalence, Us13UnwantedResultsFreed, Us13WithdrawnDemandHidden, Us1None, Us1Some, Us2None, Us2Some, Us5BrokenId, Us5Evicting, Us5Result, Us5Visible, Us5Wanted, Us6None, Us6Some, Us7Cancelled, Us7Evicted, Us7Started, Us8None, Us8Some, Us9None, Us9Some}
-import xsim_frames/part1.{closure1, count_at_16, digits_end_9, fields_from_6, method17, method18, method19, method4, spiral_array_from_list, spiral_array_get, spiral_string_index, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, text_at_13}
+import xsim_frames/types.{type Uh0, type Uh1, type Uh2, type Uh3, type Uh4, type Us11, type Uh6, Uh0Cons, Uh0Nil, Uh1Cons, Uh1Nil, Uh2Cons, Uh2Nil, Uh3Cons, Uh3Nil, Uh4Cons, Uh4Nil, Uh5Nil, Uh6Cons, Uh6Nil, Us10PlainRow, Us10TallyRow, Us11None, Us11Some, Us12Broken, Us12Held, Us13BreakingEditsFail, Us13NoStaleResults, Us13OneCompilePerPrefix, Us13SequentialEquivalence, Us13UnwantedResultsFreed, Us13WithdrawnDemandHidden, Us1None, Us1Some, Us2None, Us2Some, Us5BrokenId, Us5Evicting, Us5Result, Us5Visible, Us5Wanted, Us6None, Us6Some, Us7Cancelled, Us7Evicted, Us7Started, Us8None, Us8Some, Us9None, Us9Some}
+import xsim_frames/part1.{closure1, count_at_16, digits_end_9, fields_from_6, method17, method18, method19, method4, spiral_array_from_list, spiral_array_get, spiral_string_length, spiral_string_slice, spiral_wrap_signed, split_list_2, text_at_13}
 
 pub fn method5(v0: Uh3, v1: Uh0, v2: Uh1, v3: Uh2, v4: Uh2, v5: Uh2, v6: Uh3, v7: Bool, v8: Uh4, v9: Uh3, v10: Uh3) -> #(Uh0, Uh1, Uh2, Uh2, Uh2, Uh3, Bool, Uh4, Uh3, Uh3) {
     let #(v290, v291, v292, v293, v294, v295, v296, v297, v298, v299) =
@@ -843,74 +843,28 @@ pub fn method40(v0: Uh0, v1: Uh1, v2: Uh2, v3: Uh2, v4: Uh2, v5: Uh3, v6: Bool, 
     }
 }
 
-pub fn method44(v0: Int, v1: String, v2: Int) -> Uh7 {
-    let v3 = v2 < v0
-    case v3 {
-        True -> {
-            let v4 = spiral_string_index(v1, v2)
-            let v5 = spiral_wrap_signed(v2 + 1, 64)
-            let v6 = method44(v0, v1, v5)
-            Uh7Cons(v4, v6)
-        }
-        False -> Uh7Nil
-    }
-}
-
-pub fn method45(v0: Uh7, v1: Uh3) -> Uh3 {
-    case v0  {
-        Uh7Cons(v2, v3) -> {
-            let v4 = v2
-            let v5 = v4 |> string.lowercase
-            let v6 = v5 != v4
-            let v10 =
-                case v6 {
-                    True -> {
-                        let v8 = method20(v1, 0)
-                        v8 > 0
-                    }
-                    False -> False
-                }
-            let v15 =
-                case v10 {
-                    True -> {
-                        let v12 = Uh3Cons("_", v1)
-                        Uh3Cons(v5, v12)
-                    }
-                    False -> Uh3Cons(v5, v1)
-                }
-            method45(v3, v15)
-        }
-        Uh7Nil -> v1
-    }
-}
-
 pub fn method43(v0: Uh6, v1: Uh3) -> Uh3 {
     case v0  {
         Uh6Cons(v2, v3, v4) -> {
             let v5 = method43(v4, v1)
-            let v12 = spiral_array_from_list([ "SequentialEquivalence", "NoStaleResults", "OneCompilePerPrefix", "WithdrawnDemandHidden", "UnwantedResultsFreed", "BreakingEditsFail" ])
+            let v12 = spiral_array_from_list([ "sequential_equivalence", "no_stale_results", "one_compile_per_prefix", "withdrawn_demand_hidden", "unwanted_results_freed", "breaking_edits_fail" ])
             let v13 = case v2 { Us13SequentialEquivalence -> 0 Us13NoStaleResults -> 1 Us13OneCompilePerPrefix -> 2 Us13WithdrawnDemandHidden -> 3 Us13UnwantedResultsFreed -> 4 Us13BreakingEditsFail -> 5 }
             let v14 = spiral_array_get(v12, v13)
-            let v15 = spiral_string_length(v14)
-            let v17 = method44(v15, v14, 0)
-            let v19 = method45(v17, Uh3Nil)
-            let v21 = method4(v19, Uh3Nil)
-            let v23 = concat_balanced_22("", v21)
-            let v24 = { v23 } <> { "=" }
-            let v32 =
+            let v15 = { v14 } <> { "=" }
+            let v23 =
                 case v3  {
-                    Us12Broken(v26) -> {
-                        let v28 = delimited_21(",", v26)
-                        let v29 = { "FAIL[" } <> { v28 }
-                        let v30 = { v29 } <> { "]" }
-                        v30
+                    Us12Broken(v17) -> {
+                        let v19 = delimited_21(",", v17)
+                        let v20 = { "FAIL[" } <> { v19 }
+                        let v21 = { v20 } <> { "]" }
+                        v21
                     }
                     Us12Held -> {
                         "ok"
                     }
                 }
-            let v33 = { v24 } <> { v32 }
-            Uh3Cons(v33, v5)
+            let v24 = { v15 } <> { v23 }
+            Uh3Cons(v24, v5)
         }
         Uh6Nil -> v1
     }

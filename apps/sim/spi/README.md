@@ -5,7 +5,7 @@ The simulator in Spiral (it replaced the Elixir `lib/xsim`, now gone), one modul
 | Module | What it holds |
 | --- | --- |
 | `exsss.spi` | Erlang's `rand` exsss generator (splitmix64 seeding, xorshift116**, `uniform_s`) on `u64`, so Rust, Gleam and the BEAM simulator draw the same numbers from the same seed |
-| `events.spi` | the simulator's event stream (xsim-events v1): an `event` union over content, revisions and reactions, its compact JSON encoder, and a decoder that reads a stream back byte for byte or says why it cannot |
+| `sim_events.spi` | the simulator's event stream (xsim-events v1): an `event` union over content, revisions and reactions, its compact JSON encoder, and a decoder that reads a stream back byte for byte or says why it cannot |
 | `final_state.spi` | the state every replay of a scenario must reach: live cells with their latest distinct revision, likes as distinct users per post, laid out as the simulator's JSON |
 | `personas.spi` | the simulator's personas (lurker, fickle, editor, breaker) as a union, their seeded actions, and `break_source` (the last number of a test cell bumped) |
 | `scenario.spi` | a file's cells to a seeded scenario: posts chained to their parents, likes, unlikes, edits, breaking edits, persona actions and churn woven in |

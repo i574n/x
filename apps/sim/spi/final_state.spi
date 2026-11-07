@@ -7,7 +7,7 @@
 :< sm'_operators
 :< prelude
 :< glyphs
-:< events
+:< sim_events
 
 :== cell_state = { post_id : string; parent : option string; revisions : list string; deleted : bool }
 

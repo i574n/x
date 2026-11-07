@@ -55,7 +55,12 @@ exit $code
 }
 $command = $command.Replace('FREED', $freed)
 $coreCheck = if ($Core) { @('-RequireCore', $Core) } else { @() }
+function Test-JobListed([string] $label) {
+    $rows = @(pwsh -NoProfile -File (Join-Path $org 'remote.ps1') node job list 40 2>&1 | ForEach-Object { "$_" })
+    [bool]($rows | Where-Object { $_ -match ('label=' + [regex]::Escape($label) + '(\s|$)') })
+}
 foreach ($try in 1..4) {
+    if ($try -gt 1 -and (Test-JobListed $Label)) { "x node-run / a job labeled $Label already exists on the node; not relaunching (read it with node-proof -Summary)"; break }
     $o = @(pwsh -NoProfile -File (Join-Path $org 'node-proof.ps1') -MirrorName $MirrorName -Label $Label @coreCheck -CompilerDll $dll -TimeoutMs $TimeoutMs @land -Command $command 2>&1 | ForEach-Object { "$_" })
     $o | Where-Object { $_ -match 'REMOTE-SYNC-OK|manifest|job start' }
     if (($o -join ' ') -match 'job start ok') { break }

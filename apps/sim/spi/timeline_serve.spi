@@ -83,8 +83,14 @@
     := id = protocol::post_id (sim_serve::post_key p)
     timeline_page::plain_entry id username (field_text "created_at" p) (field_text "text" p)
 
+:= media_item_of_term (m : erlang_term::term) : timeline_page::media_item =
+    timeline_page::media_item_of (field_text "path" m) (field_text "type" m) (field_text "alt_text" m)
+
+:= media_of (p : erlang_term::term) : list timeline_page::media_item =
+    sim_serve::terms_of (sim_serve::items_at "media" p) |> each media_item_of_term
+
 := entry_of ((username, s) : shown_item) : labeled =
-    ?= s ?| ShownPost p => timeline_page::labeled_of (plain_of username p) (kind_of p)
+    ?= s ?| ShownPost p => timeline_page::labeled_of (plain_of username p) (kind_of p) (media_of p)
 
 := kept (acc : list (shown_item)) (i : feed_item) : list (shown_item) =
     ?= surviving i ?| Some s => s :: acc | None => acc
@@ -210,9 +216,37 @@
 := feed_reply (w : sim_serve::api_world) (r : sim_serve::request) : string =
     erlang_http_server::response_text 200i32 "text/html; charset=utf-8" (feed_page w r::query)
 
+:= media_ext (rel : string) : string = ?= listm::rev (pieces "." rel) ?| e :: _ => sm'::to_lower e | [] => ""
+
+:= media_type (rel : string) : string =
+    := e = media_ext rel
+    ? e = "jpg" ?> "image/jpeg" |? e = "jpeg" ?> "image/jpeg" |? e = "png" ?> "image/png"
+    |? e = "gif" ?> "image/gif" |? e = "webp" ?> "image/webp"
+    |? e = "mp4" ?> "video/mp4" |? e = "webm" ?> "video/webm" |: "application/octet-stream"
+
+:= safe_rel (rel : string) : bool =
+    rel <> "" && not (sm'::contains ".." rel) && not (sm'::starts_with "/" rel)
+        && not (sm'::starts_with "\\" rel) && not (sm'::contains ":" rel)
+
+:= media_read (full : string) : option string =
+    := r = erlang_term::apply "file" "read_file" [ erlang_term::charlist full ]
+    ? erlang_term::equal (erlang_term::element_at 1i32 r) (erlang_term::atom "ok")
+    ?> Some (sim_serve::text (erlang_term::element_at 2i32 r)) |: None
+
+:= media_404 () : string = erlang_http_server::response_text 404i32 "text/plain; charset=utf-8" "not found"
+
+:= media_hit (ctype : string) (full : string) : string =
+    ?= media_read full ?| Some bin => erlang_http_server::response_text 200i32 ctype bin | None => media_404 ()
+
+:= media_reply (w : sim_serve::api_world) (path : string) : string =
+    := rel = sm'::substring 7i32 (sm'::length path - 7i32) path
+    ? safe_rel rel ?> media_hit (media_type rel) (w::media_root ++# "/" ++# rel) |: media_404 ()
+
 :~ feed_or_api (w : sim_serve::api_world) (log : string) (raw : string) : string * sim_serve::api_world =
     := r = erlang_http_server::request_of raw
-    ? r::path = "/timeline" ?> (\ fed => (feed_reply fed r, fed)) (with_feeds w) |: sim_serve::replied w log raw
+    ? r::path = "/timeline" ?> (\ fed => (feed_reply fed r, fed)) (with_feeds w)
+    |? sm'::starts_with "/media/" r::path ?> (media_reply w r::path, w)
+    |: sim_serve::replied w log raw
 
 := serve (args : list string) : i32 = sim_serve::serve_with feed_or_api args
 
@@ -271,3 +305,20 @@
 :# the_page_ends_with_the_scroll_script =
     := page = feed_page (sample_world ()) ""
     (sm'::contains "article.post" page, sm'::ends_with "</script>" page) |> _assert_eq (!+, !+)
+
+:# media_type_maps_image_extensions =
+    := got = [ media_type "a.jpg"; media_type "a.jpeg"; media_type "a.png"; media_type "a.gif"; media_type "a.webp" ]
+    := want = [ "image/jpeg"; "image/jpeg"; "image/png"; "image/gif"; "image/webp" ]
+    got |> _assert_eq want
+
+:# media_type_maps_video_and_fallback =
+    := got = [ media_type "a.mp4"; media_type "a.webm"; media_type "a.bin" ]
+    got |> _assert_eq [ "video/mp4"; "video/webm"; "application/octet-stream" ]
+
+:# a_clean_media_relpath_is_allowed =
+    [ safe_rel "accounts/u/media/1_0.jpg" ] |> _assert_eq [ !+ ]
+
+:# traversal_and_absolute_relpaths_are_refused =
+    := bad1 = [ safe_rel "../etc/passwd"; safe_rel "a/../b"; safe_rel "/etc/passwd" ]
+    := bad2 = [ safe_rel "\\win"; safe_rel "c:/x"; safe_rel "" ]
+    listm::append bad1 bad2 |> _assert_eq [ !-; !-; !-; !-; !-; !- ]

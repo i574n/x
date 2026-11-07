@@ -260,7 +260,7 @@
     := mb = erlang_process::beam_memory_mb ()
     { a ?| peak_mb = ? mb > a::peak_mb ?> mb |: a::peak_mb }
 
-:= stepped (exec : executor) (reply : reply_to) (pace : i32) (a : async_state) (d : events::delivery) : async_state =
+:= stepped (exec : executor) (reply : reply_to) (pace : i32) (a : async_state) (d : sim_events::delivery) : async_state =
     := b = { a ?| sched = delivered_to d a::sched }
     b |> launched exec reply |> sampled |> harvested reply (deadline_after pace)
 
@@ -283,7 +283,7 @@
 
 := finished_view (a : async_state) : scheduler = a::sched |> expired !+ |> settled_view
 
-:= async_run_with (pace : i32) (x : executor) (f : fault_set) (l : list events::delivery) : scheduler * i32 =
+:= async_run_with (pace : i32) (x : executor) (f : fault_set) (l : list sim_events::delivery) : scheduler * i32 =
     := r = erlang_process::new_subject ()
     := a = listm::fold (stepped x r pace) (async_start f) l |> settled_runs x r
     finished_view a, a::peak_mb
