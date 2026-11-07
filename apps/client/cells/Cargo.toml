@@ -1,0 +1,17 @@
+[package]
+name = "xc_cells"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "cells.spi"
+output = "cells.rs"
+
+[lib]
+name = "xc_cells"
+path = "cells.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+unicode-segmentation = "1.13"

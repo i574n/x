@@ -1,0 +1,17 @@
+[package]
+name = "xc_preview"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "preview.spi"
+output = "preview.rs"
+
+[lib]
+name = "xc_preview"
+path = "preview.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+xc_frames = { path = "../frames" }

@@ -1,0 +1,18 @@
+[package]
+name = "xc_requests"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "requests.spi"
+output = "requests.rs"
+
+[lib]
+name = "xc_requests"
+path = "requests.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+xc_net = { path = "../net" }
+xc_api = { path = "../api" }

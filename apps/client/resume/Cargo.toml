@@ -1,0 +1,16 @@
+[package]
+name = "xc_resume"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "resume.spi"
+output = "resume.rs"
+
+[lib]
+name = "xc_resume"
+path = "resume.rs"
+
+[dependencies]
+serde_json = { workspace = true }

@@ -1,0 +1,46 @@
+///- --package .
+///> gleam
+:# sim_progress static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< run_signals
+
+:= schedule_lines (text : string) : list string = pieces "\n" text |> keep (\ l => sm'::starts_with "XSIM seed=" l)
+
+:= verdict_failed (text : string) : i32 = ? sm'::contains " result=pass" text ?> 0i32 |: 1i32
+
+:= run_id () : string =
+    := named = sim_publish::env_text "XSIM_RUN_ID"
+    ? named = "" ?> "xsim" |: named
+
+:= finished_of (lines : list string) (text : string) : run_signal =
+    Finished ((listm::length lines : i32), verdict_failed text)
+
+:~ posted_one (s : sim_publish::iggy) (run : string) (signal : run_signal) : i32 = sim_publish::posted s run signal
+
+:~ session () : option sim_publish::iggy = sim_publish::signed_in ()
+
+:~ posted_all (s : sim_publish::iggy) (run : string) (text : string) : () =
+    := lines = schedule_lines text
+    lines |> each (\ line => posted_one s run (Step line)) |> ignore
+    posted_one s run (finished_of lines text) |> ignore
+
+:~ posted_when_signed_in (text : string) : () =
+    ?= session () ?|
+    | Some s => posted_all s (run_id ()) text
+    | None => ()
+
+:= published_text (text : string) : string =
+    posted_when_signed_in text
+    text
+
+:= sample_run () : string =
+    "XSIM seed=1 schedule=1 posts=1\nXSIM seed=1 schedule=2 posts=1\nXSIM commute=ok result=pass"
+
+:# schedule_lines_are_the_steps =
+    schedule_lines (sample_run ()) |> listm::length |> _assert_eq 2i32
+
+:# the_verdict_decides_failure =
+    (verdict_failed (sample_run ()), verdict_failed "XSIM commute=ok result=fail") |> _assert_eq (0i32, 1i32)

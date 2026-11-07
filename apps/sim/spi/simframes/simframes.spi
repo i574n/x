@@ -1,0 +1,442 @@
+///- --package .. --timeout 600000
+///> gleam
+:# simframes static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< glyphs
+:< protocol
+:< splitter
+:< schedule
+:< invariants
+:< world
+:< scenario
+:< personas
+
+:= joined_chunks (name : string) (limit : i32) (source : string) : string =
+    global "import xsim_split"
+    $'xsim_split.split_cell_joined(!name, !limit, !source)'
+
+:= remote_split (label : string) (limit : i32) (source : string) : list string =
+    := joined = joined_chunks label limit source
+    ? joined = "" ?> [] |: split_all (char_of 0i32) joined
+
+:== staged_cells = string * i32 * i32 * i32 * string * i32 * bool
+
+:= staged_stream (x : staged_cells) : string =
+    := cells, seed, users, edits, personas, permille, framed = x
+    := g = { seed users edits personas permille framed chunking = remote_split }
+    scenario_stream g (split_all (char_of 0i32) cells)
+
+:= staged_final (x : staged_cells) : string =
+    := cells, seed, users, edits, personas, permille, framed = x
+    := g = { seed users edits personas permille framed chunking = remote_split }
+    scenario_final g (split_all (char_of 0i32) cells)
+
+:= stream_export () : () =
+    export "scenario_stream" ((\ x => staged_stream x) : staged_cells -> string)
+    export "scenario_final" ((\ x => staged_final x) : staged_cells -> string)
+
+:== world_cells = string * i32 * i32 * string * i32 * i32 * i32 * string * string * string
+
+:= view_of (x : world_cells) : losses * account_view =
+    := _, _, _, _, _, lost, lost_cells, _, user_id, username = x
+    { lost lost_cells }, { user_id username }
+
+:= ask_of (x : world_cells) : world_ask =
+    := _, seed, edits, personas, id_base, _, _, base_time, _, _ = x
+    := losses, account = view_of x
+    { seed edits personas id_base losses base_time account chunking = remote_split }
+
+:= staged_world (x : world_cells) : string * string =
+    := cells, _, _, _, _, _, _, _, _, _ = x
+    world_files (ask_of x) (split_all (char_of 0i32) cells)
+
+:= world_export () : () = export "world_files" ((\ x => staged_world x) : world_cells -> string * string)
+
+:== run_cells = string * i32 * i32 * i32 * i32 * i32 * string * bool * i32 * i32
+
+:= threads_of (text : string) : list (list string) = split_all (char_of 1i32) text |> each (split_all (char_of 0i32))
+
+:# threads_of_splits_threads_then_cells =
+    := ~s = "a" ++# char_of 0i32 ++# "b" ++# char_of 1i32 ++# "c"
+    threads_of s |> each (delimited ",") |> delimited "|" |> _assert_eq "a,b|c"
+
+:= run_cast (x : run_cells) : casting =
+    := _, seed, users, edits, breaking, churn, personas, _, _, _ = x
+    := c = plain_casting seed
+    { c ?| users = users; edits = edits; breaking = breaking; churn = churn; personas = parsed_personas personas }
+
+:= run_ask_of (x : run_cells) : run_ask =
+    := _, _, _, _, _, _, _, framed, schedule, permille = x
+    { cast = run_cast x; framed; schedule; permille; chunking = remote_split }
+
+:= staged_run (x : run_cells) : string * i32 * i32 * string =
+    := threads, _, _, _, _, _, _, _, _, _ = x
+    := text, posts, events, broken = corpus_run (run_ask_of x) (threads_of threads)
+    text, posts, events, delimited (char_of 0i32) broken
+
+:= run_export () : () = export "corpus_run" ((\ x => staged_run x) : run_cells -> string * i32 * i32 * string)
+
+:= joined_broken (r : string * list string) : string * string =
+    := text, broken = r
+    text, delimited (char_of 0i32) broken
+
+:= corpus_raw (x : run_cells) : string * string =
+    := threads, _, _, _, _, _, _, _, _, _ = x
+    from_corpus (run_cast x) (threads_of threads) |> raw_scenario |> joined_broken
+
+:= cells_raw (x : run_cells) : string * string =
+    := cells, _, _, _, _, _, _, _, _, _ = x
+    from_cells (run_cast x) "" (pieces (char_of 0i32) cells) |> raw_scenario |> joined_broken
+
+:== pacing_cells = string * i32 * i32 * i32
+
+:= paced (x : pacing_cells) : string =
+    := text, seed, permille, window = x
+    rescheduled text seed { permille window }
+
+:= raw_exports () : () =
+    export "corpus_raw" ((\ x => corpus_raw x) : run_cells -> string * string)
+    export "cells_raw" ((\ x => cells_raw x) : run_cells -> string * string)
+
+:== simulate_cells = string * string * string
+
+:== beam = sim_run::beam_executors
+
+:= with_tally (root : string) (b : beam) : beam =
+    := tally = cells_executor::memo_tally ()
+    := run = \ (memo : bool) => cells_executor::cells_counted root memo tally
+    { b ?| cells = run; memo_counts = \ () => cells_executor::memo_counts tally }
+
+:= with_vm (root : string) (b : beam) : beam =
+    := baseline = cells_executor::cells_executor root
+    { b ?| cells_baseline = baseline; leak = cells_executor::shared_leak }
+
+:= with_meters (b : beam) : beam =
+    { b ?| beam_mb = erlang_process::beam_memory_mb; clock_ms = cells_executor::clock_ms }
+
+:= with_daemon (b : beam) : beam = { b ?| daemon_watch = cells_executor::daemon_watch }
+
+:= with_async (b : beam) : beam = { b ?| async_run = cells_executor::async_run_with }
+
+:= beam_for (root : string) : beam =
+    sim_run::idle_beam () |> with_tally root |> with_vm root |> with_meters |> with_daemon |> with_async
+
+:= simulated_lines (x : simulate_cells) : string =
+    := args, threads, root = x
+    sim_run::simulated_text (beam_for root) (pieces (char_of 0i32) args) (threads_of threads)
+
+:= plain_args () : list string = erlang_process::plain_arguments ()
+
+:= spi_files (c : sim_args::corpus_options) : list string =
+    ? c::spi_file = "" ?> c::spi
+    |: file_system::read_all_text c::spi_file |> sm'::replace "\r\n" "\n" |> pieces "\n" |> keep (\ l => l <> "")
+
+:= limited (limit : i32) (l : list string) : list string = ? limit < 0i32 ?> l |: take_first limit l
+
+:= run_cells (limit : i32) (spi : string) : list string =
+    cells_executor::parsed_spi spi |> cells_executor::document_sources |> limited limit
+
+:= plain_cells (limit : i32) (spi : string) : list string =
+    cells_executor::plain_spi spi |> cells_executor::document_sources |> limited limit
+
+:= base_name (path : string) : string = erlang_file::base_name path
+
+:= byte_count (s : string) : i32 = erlang_term::byte_size_of s
+
+:= joined_cells (cells : list string) : string = delimited (char_of 0i32) cells
+
+:= events_staged (o : sim_args::events_options) : staged_cells =
+    := cells = plain_cells o::cells o::spi |> joined_cells
+    cells, o::seed, o::users, o::edits, o::personas, o::duplicates_permille, o::frames
+
+:= delivery_count (stream : string) : i32 = (listm::length (pieces "\n" stream |> keep (\ l => l <> "")) : i32) - 1i32
+
+:= both_written (out : string) (expected : string) (texts : string * string) : () =
+    := a, b = texts
+    file_system::write_all_text out a
+    file_system::write_all_text expected b
+
+:= events_line (spi : string) (stream : string) : string =
+    "xsim.events " ++# base_name spi ++# " deliveries=" ++# sm'::obj_to_string (delivery_count stream)
+
+:= events_written (o : sim_args::events_options) : string =
+    := x = events_staged o
+    := stream = staged_stream x
+    both_written o::out o::expected (stream, staged_final x)
+    events_line o::spi stream
+
+:= events_command (args : list string) : string =
+    ?= sim_args::events_args args ?|
+    | Ok o => events_written o
+    | Error why => "XSIM rejected events: " ++# why
+
+:= world_cells_of (o : sim_args::world_options) (cells : string) : world_cells =
+    cells, o::seed, o::edits, o::personas, o::id_base, o::lost, o::lost_cells, o::base_time, o::user_id, o::username
+
+:= world_line (spi : string) (cells : i32) (bytes : i32) : string =
+    := counts = " cells=" ++# sm'::obj_to_string cells ++# " bytes=" ++# sm'::obj_to_string bytes
+    "xsim.world " ++# base_name spi ++# counts
+
+:= world_texts (o : sim_args::world_options) (cells : list string) : string * string =
+    staged_world (world_cells_of o (joined_cells cells))
+
+:= world_written (o : sim_args::world_options) : string =
+    := cells = plain_cells o::cells o::spi
+    := world, expected = world_texts o cells
+    both_written o::out o::expected (world, expected)
+    world_line o::spi (listm::length cells) (byte_count world)
+
+:= world_command (args : list string) : string =
+    ?= sim_args::world_args args ?|
+    | Ok o => world_written o
+    | Error why => "XSIM rejected world: " ++# why
+
+:= dir_of (path : string) : string = erlang_file::dir_name (erlang_file::absolute_path path)
+
+:= cli_threads (limit : i32) (files : list string) : list (list string) * string =
+    ?= files ?|
+    | first :: _ => files |> each (run_cells limit), dir_of first
+    | [] => [], "."
+
+:= cli_input (argv : list string) : list (list string) * string =
+    ?= sim_args::parsed_corpus argv ?|
+    | Some c => cli_threads c::cells (spi_files c)
+    | None => [], "."
+
+:= failed_line (l : string) : bool = sm'::starts_with "XSIM rejected" l || sm'::ends_with "result=fail" l
+
+:= printed (text : string) : i32 =
+    erlang_file::put_text (text ++# "\n")
+    ? has failed_line (pieces "\n" text) ?> 1i32 |: 0i32
+
+:= run_command (argv : list string) : string =
+    := threads, root = cli_input argv
+    sim_run::simulated_text (beam_for root) argv threads |> sim_progress::published_text
+
+:= json_quoted (s : string) : string = erlang_term::json_encoded (erlang_term::of s)
+
+:= nfc (s : string) : string = unicode::nfc s
+
+:= json_list (items : list string) : string =
+    ?= items ?|
+    | [] => "[]"
+    | _ => "[\n        " ++# delimited ",\n        " (items |> each json_quoted) ++# "\n    ]"
+
+:= program_lines (text : string) : list string =
+    := program = file_cells text |> each nfc |> delimited "\n\n"
+    ? program = "" ?> [] |: pieces "\n" program
+
+:= frames_json (posts : list string) (lines : list string) : string =
+    "{\n    \"posts\": " ++# json_list posts ++# ",\n    \"program\": " ++# json_list lines ++# "\n}\n"
+
+:= frames_line (file : string) (cells : i32) (posts : i32) : string =
+    := counts = " cells=" ++# sm'::obj_to_string cells ++# " posts=" ++# sm'::obj_to_string posts
+    "xsim.frames " ++# base_name file ++# counts
+
+:= frames_summary (file : string) (text : string) : string =
+    frames_line file (listm::length (file_cells text)) (listm::length (posts_of text))
+
+:= frames_written (o : sim_args::frames_options) : string =
+    := text = file_system::read_all_text o::file
+    file_system::write_all_text o::out (frames_json (posts_of text) (program_lines text))
+    frames_summary o::file text
+
+:= frames_command (args : list string) : string =
+    ?= sim_args::frames_args args ?|
+    | Ok o => frames_written o
+    | Error why => "XSIM rejected frames: " ++# why
+
+:= absolute (path : string) : string = erlang_file::absolute_path path
+
+:= program_of (doc : erlang_term::term) : erlang_term::term =
+    erlang_map::map_get_or "program" (erlang_term::list_term []) (erlang_map::map_view doc)
+
+:= json_program (path : string) : erlang_term::term =
+    program_of (erlang_term::json_decoded (file_system::read_all_text path))
+
+:= expected_program (path : string) : string =
+    := joined = erlang_term::apply "lists" "join" [ erlang_term::of "\n"; json_program path ]
+    (erlang_term::apply "erlang" "iolist_to_binary" [ joined ] |> erlang_term::cast) ++# "\n"
+
+:= program_of (o : sim_args::thread_options) : string =
+    ? o::program <> "" ?> file_system::read_all_text o::program |: expected_program o::expected
+
+:= text_sources (text : string) : list string = cells_executor::parsed_text text "" |> cells_executor::document_sources
+
+:== verdict = { ok : bool; rows : list string }
+
+:= warned (text : string) : () = erlang_file::put_error_text (text ++# "\n")
+
+:= checked_status (result : erlang_term::term) : bool =
+    := ok = cells_executor::result_ok result
+    ? ok ?> () |: warned ("xsim thread_run / evaluate status " ++# cells_executor::status_text result)
+    ok
+
+:= verdict_of (file : string) (text : string) : verdict =
+    := result = cells_executor::evaluated_tests (cells_executor::parsed_text text "") file (dir_of file)
+    { ok = checked_status result; rows = cells_executor::test_rows result }
+
+:= bool_word (b : bool) : string = ? b ?> "true" |: "false"
+
+:= status_word (v : verdict) : string = ? v::ok ?> "ok" |: "error"
+
+:= same_rows (a : list string) (b : list string) : bool = delimited "\n" a = delimited "\n" b
+
+:= has_rows (v : verdict) : bool = ?= v::rows ?| _ :: _ => !+ | [] => !-
+
+:= agreed (same : bool) (want : verdict) (got : verdict) : bool =
+    same && want::ok = got::ok && same_rows want::rows got::rows && has_rows want && want::ok
+
+:= thread_counts (program : string) (got : verdict) : string =
+    := cells, tests = (listm::length (text_sources program) : i32), (listm::length got::rows : i32)
+    " cells=" ++# sm'::obj_to_string cells ++# " tests=" ++# sm'::obj_to_string tests
+
+:= thread_head (file : string) (program : string) (got : verdict) (same : bool) : string =
+    := counts = thread_counts program got
+    "XSIM thread_run file=" ++# base_name file ++# counts ++# " same_cells=" ++# bool_word same
+
+:= thread_tail (want : verdict) (got : verdict) (agree : bool) : string =
+    " status=" ++# status_word got ++# "/" ++# status_word want ++# " result=" ++# (? agree ?> "pass" |: "fail")
+
+:~ ^ paired_rows (w : list string) (g : list string) : list string =
+    ?= w, g ?|
+    | (a :: ra), (b :: rb) ?& a = b => paired_rows ra rb
+    | (a :: ra), (b :: rb) => ("  file=" ++# a ++# "\n  thread=" ++# b) :: paired_rows ra rb
+    | _ => []
+
+:= differing_rows (want : verdict) (got : verdict) : list string = paired_rows want::rows got::rows
+
+:= thread_lines (want : verdict) (got : verdict) (head : string) (agree : bool) : string =
+    delimited "\n" (head ++# thread_tail want got agree :: differing_rows want got)
+
+:= file_verdict (file : string) : verdict = verdict_of file (file_system::read_all_text file)
+
+:= thread_report (file : string) (program : string) (same : bool) : string =
+    := want, got = file_verdict file, verdict_of file program
+    thread_lines want got (thread_head file program got same) (agreed same want got)
+
+:= same_cells (program : string) (file : string) : bool =
+    delimited "\n" (text_sources program) = delimited "\n" (text_sources (file_system::read_all_text file))
+
+:= thread_ran (o : sim_args::thread_options) : string =
+    := file = absolute o::file
+    := program = program_of o
+    thread_report file program (same_cells program file)
+
+:= thread_command (args : list string) : string =
+    ?= sim_args::thread_args args ?|
+    | Ok o => thread_ran o
+    | Error why => "XSIM rejected thread_run: " ++# why
+
+:= shown (t : erlang_term::term) : string = cells_executor::elixir_inspect t []
+
+:= shown_long (t : erlang_term::term) : string =
+    cells_executor::elixir_inspect t [ cells_executor::option_pair "printable_limit" (erlang_term::of 600i32) ]
+
+:= diff_status (a : erlang_term::term) (b : erlang_term::term) : string =
+    := status = \ r => shown (cells_executor::at "status" r (erlang_term::atom "nil"))
+    "XDIFF status a=" ++# status a ++# " b=" ++# status b
+
+:= diff_head (a : erlang_term::term) (b : erlang_term::term) (last : i32) : string =
+    := verdict = \ r => shown (cells_executor::indexed "verdicts" last r)
+    diff_status a b ++# " verdict a=" ++# verdict a ++# " b=" ++# verdict b
+
+:= cell_differs (a : erlang_term::term) (b : erlang_term::term) (i : i32) : bool =
+    not (erlang_term::equal (cells_executor::indexed "outputs" i a) (cells_executor::indexed "outputs" i b))
+
+:= cell_diff_text (a : erlang_term::term) (b : erlang_term::term) (i : i32) : string =
+    := out = \ r => shown_long (cells_executor::indexed "outputs" i r)
+    "XDIFF cell " ++# sm'::obj_to_string i ++# "\n  a=" ++# out a ++# "\n  b=" ++# out b
+
+:= cell_diffs (a : erlang_term::term) (b : erlang_term::term) (n : i32) : list string =
+    listm::init n id |> keep (cell_differs a b) |> each (cell_diff_text a b)
+
+:= outputs_of (r : erlang_term::term) : erlang_term::term = cells_executor::at "outputs" r (erlang_term::atom "nil")
+
+:= diff_done (a : erlang_term::term) (b : erlang_term::term) : string =
+    "XDIFF done identical=" ++# bool_word (erlang_term::equal (outputs_of a) (outputs_of b))
+
+:= diff_report (a : erlang_term::term) (b : erlang_term::term) (n : i32) : string =
+    delimited "\n" (diff_head a b (n - 1i32) :: listm::append (cell_diffs a b n) [ diff_done a b ])
+
+:= diff_ran (o : sim_args::diff_options) : string =
+    := sources = plain_cells o::cells o::spi
+    := evaluated = \ () => cells_executor::evaluated_cells sources (dir_of o::spi)
+    := a, b = evaluated (), evaluated ()
+    diff_report a b (listm::length sources)
+
+:= diff_command (args : list string) : string =
+    ?= sim_args::diff_args args ?|
+    | Ok o => diff_ran o
+    | Error why => "XSIM rejected diff: " ++# why
+
+:= command_args () : list string = ?= plain_args () ?| _ :: rest => rest | [] => []
+
+:= cli_run (_ : string) : i32 =
+    cells_executor::cli_vm_started () |> ignore
+    plain_args () |> run_command |> printed
+
+:= cli_events (_ : string) : i32 =
+    cells_executor::cli_vm_started () |> ignore
+    command_args () |> events_command |> printed
+
+:= cli_world (_ : string) : i32 =
+    cells_executor::cli_vm_started () |> ignore
+    command_args () |> world_command |> printed
+
+:= cli_frames (_ : string) : i32 = command_args () |> frames_command |> printed
+
+:= cli_thread_run (_ : string) : i32 =
+    cells_executor::cli_vm_started () |> ignore
+    command_args () |> thread_command |> printed
+
+:= cli_diff (_ : string) : i32 =
+    cells_executor::cli_vm_started () |> ignore
+    command_args () |> diff_command |> printed
+
+:= diff_export () : () =
+    export "cli_diff" ((\ x => cli_diff x) : string -> i32)
+    export "cli_serve" ((\ x => timeline_serve::serve (command_args ())) : string -> i32)
+
+:= tool_exports () : () =
+    export "cli_frames" ((\ x => cli_frames x) : string -> i32)
+    export "cli_thread_run" ((\ x => cli_thread_run x) : string -> i32)
+    diff_export ()
+
+:= cli_exports () : () =
+    export "cli_events" ((\ x => cli_events x) : string -> i32)
+    export "cli_world" ((\ x => cli_world x) : string -> i32)
+    tool_exports ()
+
+:= simulate_exports () : () =
+    export "simulated_lines" ((\ x => simulated_lines x) : simulate_cells -> string)
+    export "cli_run" ((\ x => cli_run x) : string -> i32)
+
+
+:= facade_exports () : () =
+    raw_exports ()
+    export "rescheduled" ((\ x => paced x) : pacing_cells -> string)
+    export "break_source" ((\ s => break_source s) : string -> string)
+
+:= check_exports () : () =
+    export "checked_text" ((\ t => checked_text t) : string -> string)
+    export "commute_text" ((\ (a, b) => commute_text a b) : string * string -> string)
+
+:= invariant_exports () : () =
+    check_exports ()
+    export "breaking_text" ((\ t => breaking_text t) : string -> string)
+    export "masked_text" ((\ t => masked_text t) : string -> string)
+
+///> _
+:= main () : i32 =
+    invariant_exports ()
+    facade_exports ()
+    run_export ()
+    world_export ()
+    stream_export ()
+    simulate_exports ()
+    cli_exports ()
+    0i32

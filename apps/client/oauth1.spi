@@ -1,0 +1,26 @@
+///- --package .
+:# oauth1 static =
+    :< testing
+
+:< sm'_operators
+
+:== oauth1 = oauth::oauth1_credentials
+
+:== pair = oauth::oauth1_pair
+
+:= percent (s : string) : string = sm'::percent_encode s
+
+:= clock_seed () : string =
+    := micros = unix_clock::nanos_count (unix_clock::unix_now_nanos ()) / 1000u64
+    sm'::obj_to_string micros ++# "-" ++# sm'::obj_to_string (env::process_id ())
+
+:= unix_seconds () : string = unix_clock::unix_now_seconds () |> unix_clock::seconds_count |> sm'::obj_to_string
+
+:= fresh_nonce () : string = crypto::sha1_hex (clock_seed ())
+
+:~ oauth_header (o : oauth1) (method : string) (url : string) (nonce : string) (stamp : string) : string =
+    oauth::authorization_header o method url nonce stamp
+
+///> rust -d sha1
+:# a_fresh_nonce_is_forty_hex_digits =
+    sm'::length (fresh_nonce ()) |> _assert_eq 40i32

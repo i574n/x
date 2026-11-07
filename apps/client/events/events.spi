@@ -1,0 +1,121 @@
+///- --package ..
+///> rust
+:# events static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+
+:< run_signals
+
+:= page_query (offset : i32) : string =
+    "?consumer_id=1&partition_id=0&kind=offset&value=" ++# sm'::obj_to_string offset ++# "&count=1000&auto_commit=false"
+
+:! tls = $'ureq::tls::TlsConfig'
+
+:! agent = $'ureq::Agent'
+
+:! bodied = $'ureq::RequestBuilder<ureq::typestate::WithBody>'
+
+:! outcome = $'Result<ureq::http::Response<ureq::Body>, ureq::Error>'
+
+:! json_value = $'serde_json::Value'
+
+:= tls_of (pem : string) : tls =
+    $'ureq::tls::TlsConfig::builder().root_certs(ureq::tls::Certificate::from_pem((&*!pem).as_bytes()).ok().into()).bu\
+        ild()'
+
+:= agent_of (t : tls) : agent =
+    $'ureq::Agent::config_builder().http_status_as_error(false).timeout_global(Some(std::time::Duration::from_secs(10)\
+        )).tls_config(!t).build().into()'
+
+:= text_of (r : outcome) : string = $'Rc::<str>::from(!r.ok().and_then(|mut r| \
+    r.body_mut().read_to_string().ok()).unwrap_or_default())'
+
+:= status_of (r : outcome) : i32 = ($'!r.map(|r| r.status().as_u16()).unwrap_or(0)' : u16) |> conv
+
+:= json_post (a : agent) (url : string) : bodied = $'!a.post(&*!url).header("Content-Type", "application/json")'
+
+:= with_auth (b : bodied) (auth : string) : bodied = $'!b.header("Authorization", &*!auth)'
+
+:= sent (b : bodied) (body : string) : outcome = $'!b.send(&*!body)'
+
+:= got (a : agent) (url : string) (auth : string) : outcome = $'!a.get(&*!url).header("Authorization", &*!auth).call()'
+
+:= json_of (text : string) : json_value = $'serde_json::from_str::<serde_json::Value>(&*!text).unwrap_or_default()'
+
+:= token_of (v : json_value) : string = $'Rc::<str>::from(!v["access_token"]["token"].as_str().unwrap_or(""))'
+
+:= payloads_of (v : json_value) : string =
+    $'Rc::<str>::from(!v["messages"].as_array().map(|m| m.iter().filter_map(|x| \
+        x["payload"].as_str()).collect::<Vec<_>>().join("\n")).unwrap_or_default())'
+
+:= base64_of (s : string) : string = $'Rc::<str>::from(base64::Engine::encode(&base64::prelude::BASE64_STANDARD, \
+    (&*!s).as_bytes()))'
+
+:= text_of_base64 (s : string) : string =
+    $'Rc::<str>::from(base64::Engine::decode(&base64::prelude::BASE64_STANDARD, \
+        (&*!s).as_bytes()).ok().and_then(|b| String::from_utf8(b).ok()).unwrap_or_default())'
+
+:== session = { agent : agent; base : string; auth : string }
+
+:= env_text (name : string) : string = env::get_environment_variable name |> sm'::trim
+
+:= login_body () : string =
+    "{\"username\":"
+    ++# json::quote (env_text "IGGY_USERNAME")
+    ++# ",\"password\":"
+    ++# json::quote (env_text "IGGY_PASSWORD")
+    ++# "}"
+
+:= token_for (a : agent) (base : string) : string =
+    token_of (json_of (text_of (sent (json_post a (base ++# "/users/login")) (login_body ()))))
+
+:= signed_in () : session =
+    := a = agent_of (tls_of (file_system::read_all_text (env_text "IGGY_CA_FILE")))
+    := base = env_text "IGGY_URL"
+    { agent = a; base = base; auth = "Bearer " ++# token_for a base }
+
+:= topic_url (s : session) : string = s::base ++# "/streams/x/topics/run-progress/messages"
+
+:= event_body (run : string) (s : run_signal) : string = message_body (base64_of (payload_of run s))
+
+:= published (run : string) (signal : run_signal) : string =
+    := s = signed_in ()
+    := status = status_of (sent (with_auth (json_post s::agent (topic_url s)) s::auth) (event_body run signal))
+    "published " ++# sm'::obj_to_string status
+
+:= page_payloads (s : session) (offset : i32) : list string =
+    pieces "\n" (payloads_of (json_of (text_of (got s::agent (topic_url s ++# page_query offset) s::auth))))
+
+:~ ^ payloads_from (s : session) (at : i32) (got : list string) : list string =
+    := page = listm::map text_of_base64 (page_payloads s at)
+    := all = listm::append got page
+    ? listm::length page < 1000i32 ?> all |: payloads_from s (at + 1000i32) all
+
+:= count_line (run : string) (payloads : list string) : string =
+    := tail = ? finished_in run payloads ?> ", finished" |: ""
+    "counted " ++# sm'::obj_to_string (count_of_run run payloads) ++# tail
+
+:= counted (run : string) : string = count_line run (payloads_from (signed_in ()) 0i32 [])
+
+:= number_or_zero (t : string) : i32 = ?= count_of_text t ?| Some n => n | None => 0i32
+
+:= finished (run : string) (steps : string) (failures : string) : string =
+    published run (Finished (number_or_zero steps, number_or_zero failures))
+
+:= reply_of_words (words : list string) : string =
+    ?= words ?|
+    | verb :: run :: steps :: failures :: [] ?& verb = "finish" => finished run steps failures
+    | verb :: run :: [] ?& verb = "count" => counted run
+    | _ => "events: bad arguments"
+
+:= events_reply (payload : string) : string =
+    ?= pieces "\n" payload ?|
+    | verb :: run :: line :: [] ?& verb = "publish" => published run (Step line)
+    | words => reply_of_words words
+
+///> _
+:= main () : i32 =
+    export "xc_events" ((\ payload => events_reply payload) : string -> string)
+    0i32

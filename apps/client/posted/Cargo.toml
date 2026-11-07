@@ -1,0 +1,18 @@
+[package]
+name = "xc_posted"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "posted.spi"
+output = "posted.rs"
+
+[lib]
+name = "xc_posted"
+path = "posted.rs"
+
+[dependencies]
+xc_domains = { path = "../domains" }
+xc_entities = { path = "../entities" }
+unicode-segmentation = "1.13"
