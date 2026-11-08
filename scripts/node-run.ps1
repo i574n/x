@@ -19,7 +19,7 @@ foreach ($d in '{mirror}\spiral\target', '{mirror}\x\target') {
 '@
 $land = @()
 if ($Mode -eq 'verify') {
-    $machine = (Get-Content ~/.config/remote-machines.json -Raw | ConvertFrom-Json -AsHashtable)['laptop']
+    $machine = (Get-Content ~/.config/remote-machines.json -Raw | ConvertFrom-Json -AsHashtable)['node']
     $out = Join-Path $machine.stage (($Label -replace '^x-verify', 'xv') + '-out')
     $land = @('-LandRepos', 'x,spiral')
     $command = @'
