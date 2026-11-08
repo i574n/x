@@ -600,24 +600,26 @@ fn absorb_entry_3(mut v0: Rc<UH1>, mut v1: Rc<UH1>, mut v2: Rc<UH5>, mut v3: Rc<
     (v56, v57, v58, v59)
 }
 fn method2(mut v0: Rc<UH0>, mut v1: Rc<UH1>, mut v2: Rc<UH1>, mut v3: Rc<UH5>, mut v4: Rc<UH6>) -> (Rc<UH1>, Rc<UH1>, Rc<UH5>, Rc<UH6>) {
-    let (mut v19, mut v20, mut v21, mut v22): (Rc<UH1>, Rc<UH1>, Rc<UH5>, Rc<UH6>) = match &*v0 {
-        UH0::UH0_Cons(v5, v6) => {
-            let v5: serde_json::Value = v5.clone();
-            let v6: Rc<UH0> = v6.clone();
-            let (mut v7, mut v8, mut v9, mut v10): (Rc<UH1>, Rc<UH1>, Rc<UH5>, Rc<UH6>) = absorb_entry_3(v1, v2, v3, v4, v5);
-            method2(v6, v7, v8, v9, v10)
+    loop {
+        match &*v0 {
+            UH0::UH0_Cons(v5, v6) => {
+                let v5: serde_json::Value = v5.clone();
+                let v6: Rc<UH0> = v6.clone();
+                let (mut v7, mut v8, mut v9, mut v10): (Rc<UH1>, Rc<UH1>, Rc<UH5>, Rc<UH6>) = absorb_entry_3(v1, v2, v3, v4, v5);
+                (v0, v1, v2, v3, v4) = (v6, v7, v8, v9, v10);
+                continue;
+            }
+            _ => {
+                let (mut v15, mut v16, mut v17, mut v18): (Rc<UH1>, Rc<UH1>, Rc<UH5>, Rc<UH6>) = match Rc::unwrap_or_clone(v0) {
+                    UH0::UH0_Nil => {
+                        (v1, v2, v3, v4)
+                    }
+                    _ => unreachable!(),
+                };
+                return (v15, v16, v17, v18);
+            }
         }
-        _ => {
-            let (mut v15, mut v16, mut v17, mut v18): (Rc<UH1>, Rc<UH1>, Rc<UH5>, Rc<UH6>) = match Rc::unwrap_or_clone(v0) {
-                UH0::UH0_Nil => {
-                    (v1, v2, v3, v4)
-                }
-                _ => unreachable!(),
-            };
-            (v15, v16, v17, v18)
-        }
-    };
-    (v19, v20, v21, v22)
+    }
 }
 fn method27(mut v0: &Rc<Heap0>, mut v1: Rc<UH6>) -> US2 {
     loop {

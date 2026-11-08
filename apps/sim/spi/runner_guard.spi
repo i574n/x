@@ -1,5 +1,4 @@
 ///- --package . --timeout 600000
-///> gleam
 :# runner_guard static =
     :< testing
 
@@ -66,14 +65,18 @@
 := first_report_out (inbox : erlang_process::subject visible_entry) : option string =
     erlang_process::receive_within inbox 20000i32 |> erlang_process::receipt_value |> optionm::map \ e => e::result::out
 
+:= booming (key : string) : guarded_task = { key; timeout_ms = 10000i32; work = \ () => failwith "boom" }
+
+///> gleam
 :# a_crashing_worker_is_reported_as_crashed =
     := ~key = "k1"
     := inbox = new_inbox ()
-    guarded (reports_to inbox) ignored_handle { key; timeout_ms = 10000i32; work = \ () => failwith "boom" } |> ignore
+    guarded (reports_to inbox) ignored_handle (booming key) |> ignore
     first_report_out inbox |> _assert_eq (Some "crashed")
 
 := stalled () : () = (erlang_process::new_subject () : handle) |> erlang_process::receive_forever
 
+///> gleam
 :# a_slow_worker_is_reported_as_timed_out =
     := ~key = "k2"
     := inbox = new_inbox ()

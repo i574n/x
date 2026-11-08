@@ -785,7 +785,7 @@ pub type Uh43 {
 
 pub type Uh41 {
     Uh41Nil
-    Uh41Cons(Heap0, Us102, Uh43, Uh41)
+    Uh41Cons(Heap0, Us102, Uh43, Uh43, Int, Int, String, Uh41)
 }
 
 pub type Us103 {
@@ -864,29 +864,34 @@ pub type Uh51 {
 }
 
 pub type Us107 {
-    Us107AppBearer
+    Us107Some(f0i0 : Int, f0i1 : Int)
+    Us107None
 }
 
 pub type Us108 {
-    Us108UsersBy
-    Us108UsersByIds
-    Us108Following(f2i0 : Dynamic)
-    Us108Timeline(f3i0 : Dynamic)
-    Us108Lookup
-    Us108Single(f5i0 : String)
-    Us108SearchRecent
-    Us108SearchAll
-    Us108Elsewhere
+    Us108Some(f0i0 : Dynamic)
+    Us108None
 }
 
 pub type Us109 {
-    Us109Ok(f0i0 : Dynamic)
-    Us109Error
+    Us109AppBearer
 }
 
 pub type Us110 {
-    Us110Some(f0i0 : Dynamic)
-    Us110None
+    Us110UsersBy
+    Us110UsersByIds
+    Us110Following(f2i0 : Dynamic)
+    Us110Timeline(f3i0 : Dynamic)
+    Us110Lookup
+    Us110Single(f5i0 : String)
+    Us110SearchRecent
+    Us110SearchAll
+    Us110Elsewhere
+}
+
+pub type Us111 {
+    Us111Ok(f0i0 : Dynamic)
+    Us111Error
 }
 
 pub type Uh52 {
@@ -894,25 +899,25 @@ pub type Uh52 {
     Uh52Cons(Int, String, Uh52)
 }
 
-pub type Us111 {
-    Us111UserBearer
-    Us111OAuth1User
-}
-
 pub type Us112 {
-    Us112ClientBasic
+    Us112UserBearer
+    Us112OAuth1User
 }
 
 pub type Us113 {
-    Us113Unauthenticated
+    Us113ClientBasic
 }
 
 pub type Us114 {
-    Us114Ok(f0i0 : Dynamic)
-    Us114Error(f1i0 : Us73)
+    Us114Unauthenticated
 }
 
 pub type Us115 {
-    Us115Ok(f0i0 : String, f0i1 : String, f0i2 : String, f0i3 : dict.Dict(String, Dynamic), f0i4 : dict.Dict(String, Dynamic), f0i5 : Int, f0i6 : dict.Dict(String, Dynamic), f0i7 : String, f0i8 : Dynamic, f0i9 : Uh3, f0i10 : Dynamic, f0i11 : dict.Dict(String, Nil), f0i12 : Int, f0i13 : Uh36, f0i14 : String)
-    Us115Error(f1i0 : String)
+    Us115Ok(f0i0 : Dynamic)
+    Us115Error(f1i0 : Us73)
+}
+
+pub type Us116 {
+    Us116Ok(f0i0 : String, f0i1 : String, f0i2 : String, f0i3 : dict.Dict(String, Dynamic), f0i4 : dict.Dict(String, Dynamic), f0i5 : Int, f0i6 : dict.Dict(String, Dynamic), f0i7 : String, f0i8 : Dynamic, f0i9 : Uh3, f0i10 : Dynamic, f0i11 : dict.Dict(String, Nil), f0i12 : Int, f0i13 : Uh36, f0i14 : String)
+    Us116Error(f1i0 : String)
 }

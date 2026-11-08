@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d sha2 unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# scenario_checks static =
     :< testing
 
@@ -37,11 +35,13 @@
 
 := schedule_holds (events : flow) (schedule : i32) : bool =
     := s = scheduled_run (plain_faults ()) events schedule 300i32 6i32
-    all_held s && dict::size s::visible_map > 0i32
+    all_held s && dict::count s::visible_map > 0i32
 
 :~ ^ schedules_hold (events : flow) (schedule : i32) (last : i32) : bool =
     ? schedule > last ?> !+ |: schedule_holds events schedule && schedules_hold events (schedule + 1i32) last
 
+///> rust -d sha2
+///> gleam
 :# a_correct_runner_keeps_every_invariant_on_shuffled_duplicated_deliveries =
     := ~cells = elixir_cells ()
     schedules_hold (from_cells (cast 3i32 5i32 3i32) "" cells)::all_events 1i32 6i32 |> _assert_eq !+
@@ -50,6 +50,8 @@
     := first = scheduled_run (plain_faults ()) events 1i32 100i32 6i32
     runs_commute first (scheduled_run (plain_faults ()) events 9i32 500i32 12i32) |> verdict_text
 
+///> rust -d sha2
+///> gleam
 :# different_delivery_orders_of_the_same_events_reach_the_same_visible_results =
     := ~cells = elixir_cells ()
     (from_cells (cast 5i32 4i32 2i32) "" cells)::all_events |> orders_commute |> _assert_eq "ok"
@@ -67,10 +69,14 @@
 := root_edited (a : string) : scheduler =
     sync_run (plain_faults ()) (listm::append (liked_chain a) [ edited_at 5i32 a "inl a = 2" ])
 
+///> rust -d sha2
+///> gleam
 :# editing_a_root_rekeys_its_subtree_and_visible_results_follow =
     := ~a = "a"
     root_edit_shape (sync_run (plain_faults ()) (liked_chain a)) (root_edited a) |> _assert_eq (!+, !+, !+)
 
+///> rust -d sha2
+///> gleam
 :# an_edited_root_flows_into_its_subtree_sources =
     := ~a = "a"
     sources (root_edited a)::in_box "c" |> _assert_eq [ "inl a = 2"; "inl b = a + 1"; "inl c = b + 1" ]
@@ -95,11 +101,15 @@
     := s = churned_run events
     (listm::length (root_edits events) : i32), all_held s, newest_root s = last_of (root_edits events)
 
+///> rust -d sha2
+///> gleam
 :# heavy_churn_on_the_root_rekeys_everything_and_keeps_every_invariant =
     := ~cells = elixir_cells ()
     churn_shape cells |> _assert_eq (12i32, !+, !+)
 
 := long_cell () : string = sm'::replicate 40i32 "inl long_name_1 = 1\n"
+
+:= cells_and_a_long_one () : list string = listm::append (elixir_cells ()) [ long_cell () ]
 
 := framed_run (s : scenario) : scheduler =
     scheduled_run (plain_faults ()) (exploded split_named 120i32 s::all_events) 1i32 300i32 20i32
@@ -110,10 +120,16 @@
     := framed = framed_run s
     framed::in_box::tallies::framed, all_held framed, runs_commute framed (plain_run s) |> verdict_text
 
-:# framed_posts_out_of_order_and_duplicated_keep_every_invariant =
-    := ~cells = listm::append (elixir_cells ()) [ long_cell () ]
+:= framed_vs_posts (cells : list string) : (i32 * bool * string) * (i32 * bool * string) =
     := s = from_cells (cast 7i32 3i32 2i32) "" cells
-    framed_shape s |> _assert_eq ((listm::length s::posts : i32), !+, "ok")
+    framed_shape s, ((listm::length s::posts : i32), !+, "ok")
+
+///> rust -d sha2 unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+:# framed_posts_out_of_order_and_duplicated_keep_every_invariant =
+    := ~cells = cells_and_a_long_one ()
+    := got, want = framed_vs_posts cells
+    got |> _assert_eq want
 
 := test_edits (events : flow) : list string =
     events |> spread \ e => ?= e ?| Revision (Edited r) ?& sm'::contains "--test" r::source => [ r::source ] | _ => []
@@ -122,7 +138,7 @@
     has (\ n => sm'::ends_with ("_assert_eq " ++# n) (sm'::trim source)) [ "10"; "17"; "9"; "5" ]
 
 := distinct_count (ids : list string) : i32 =
-    ids |> listm::fold (\ d id => dict::set_add id d) (dict::set_empty ()) |> dict::set_size
+    ids |> listm::fold (\ d id => dict::set_add id d) (dict::set_empty ()) |> dict::set_count
 
 := authors_interleaved (ids : list string) : bool = has (sm'::starts_with "f0") ids && has (sm'::starts_with "f1") ids
 
@@ -144,6 +160,8 @@
     := distinct = (listm::length ids : i32) = distinct_count ids
     distinct, authors_interleaved ids, breaks_assert s::all_events, notebook_runs_hold s
 
+///> rust -d sha2
+///> gleam
 :# several_notebooks_become_interleaved_author_threads_with_breaking_edits =
     := ~cells = elixir_cells ()
     notebooks_scenario cells |> notebooks_shape |> _assert_eq (!+, !+, !+, !+)
@@ -204,17 +222,18 @@
 
 := persona_signals (s : scenario) : bool * bool * bool =
     := restores = restores_original (originals_of s) s::all_events
-    has fickle_unlike s::all_events, restores, dict::set_size (broken_set s) > 0i32
+    has fickle_unlike s::all_events, restores, dict::set_count (broken_set s) > 0i32
 
 := persona_runs_hold (s : scenario) : bool * bool =
     := broken = broken_set s
     persona_runs broken s::all_events 1i32 [] |> personas_hold broken (originals_of s)
 
+///> rust -d sha2
+///> gleam
 :# personas_toggle_demand_revert_rewrites_and_fix_breaks_without_breaking_an_invariant =
     := ~cells = elixir_cells ()
     := s = persona_scenario cells
-    persona_signals s |> _assert_eq (!+, !+, !+)
-    persona_runs_hold s |> _assert_eq (!+, !+)
+    (persona_signals s, persona_runs_hold s) |> _assert_eq ((!+, !+, !+), (!+, !+))
 
 := breaker_scenario (unbreakable : string) : scenario =
     := c = cast 3i32 2i32 0i32
@@ -233,10 +252,14 @@
     := empty = from_cells { e ?| personas = parsed_personas "lurker=1,fickle=2,editor=1,breaker=1" } "" []
     (listm::length empty::all_events : i32), (listm::length empty::broken : i32)
 
+///> rust
+///> gleam
 :# breakers_only_pick_tests_a_break_changes =
     := ~unbreakable = "///- --test\n\nvalue () |> _assert_eq pair.1"
     breaker_scenario unbreakable |> breaker_shape unbreakable |> _assert_eq (!+, 0i32, !-)
 
+///> rust
+///> gleam
 :# personas_survive_an_empty_thread =
     := ~seed = 1i32
     empty_thread_shape () |> _assert_eq (0i32, 0i32)
@@ -251,6 +274,8 @@
     := paced = sync_run { evicting ?| eviction = EvictNow } l
     all_held paced, runs_commute paced (deferred_run (plain_faults ()) l) |> verdict_text
 
+///> rust -d sha2
+///> gleam
 :# a_paced_run_ends_where_the_unpaced_run_ends =
     := ~cells = elixir_cells ()
     fickle_deliveries cells |> paced_shape |> _assert_eq (!+, "ok")
@@ -278,8 +303,12 @@
     := framed = framed_edits_run s
     all_held framed, runs_commute framed (plain_run s) |> verdict_text
 
+:= framing_report (cells : list string) : (bool * bool * bool) * (bool * string) =
+    := s = framing_scenario cells
+    frame_edit_shape s, framed_ends s
+
+///> rust -d sha2 unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# edits_travel_as_frames_and_end_where_the_unframed_run_ends =
     := ~cells = elixir_cells ()
-    := s = framing_scenario cells
-    frame_edit_shape s |> _assert_eq (!+, !+, !+)
-    framed_ends s |> _assert_eq (!+, "ok")
+    framing_report cells |> _assert_eq ((!+, !+, !+), (!+, "ok"))

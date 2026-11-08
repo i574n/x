@@ -750,7 +750,7 @@
     := problem = object [ member "title" (quoted_text "T"); member "detail" (quoted_text "D") ]
     parse_json (object [ member "errors" (items [ problem ]) ]) |> first_error |> _assert_eq "D"
 
-///> rust -d serde_json
+///> rust
 :# text_comes_back_unescaped =
     := ~escaped = "a |&gt; b &amp;&amp; c &lt;d&gt; &amp;lt;"
     unescaped escaped |> _assert_eq "a |> b && c <d> &lt;"
@@ -834,7 +834,7 @@
 
 := blank_keys () : oauth1 = { consumer_key = ""; consumer_secret = ""; token = ""; token_secret = "" }
 
-///> rust -d serde_json
+///> rust
 :# only_a_user_context_is_signed =
     := ~nonce = "n"
     ?= signed_api "https://api.x.com" (blank_keys ()) nonce "1" ?|

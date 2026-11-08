@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# assemble static =
     :< testing
 
@@ -44,6 +43,7 @@
     := code, sources, notes = r
     sm'::obj_to_string code ++# "|" ++# sources ++# "|" ++# notes
 
+///> rust -d serde_json
 :# frames_in_any_order_join_their_cell =
     := ~body = "inl a"
     [ frame_doc "c1" 2i32 2i32 " = 1"; frame_doc "c1" 1i32 2i32 body ]
@@ -52,6 +52,7 @@
     |> reply_text
     |> _assert_eq "0|inl a = 1|"
 
+///> rust -d serde_json
 :# a_lost_frame_holes_its_cell =
     := ~body = "inl a"
     [ frame_doc "c1" 1i32 2i32 body ]
@@ -60,7 +61,6 @@
     |> reply_text
     |> _assert_eq "4||cell c1 is missing frame 2 of 2"
 
-///> _
 := main () : i32 =
     export "xc_assemble" ((\ bundle => assembled_of bundle) : string -> assembled_reply)
     0i32

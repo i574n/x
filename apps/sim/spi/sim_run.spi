@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d sha2 unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# sim_run static =
     :< testing
 
@@ -266,10 +264,14 @@
     := commuted = has ((=) "XSIM commute=ok result=pass") lines
     (listm::length lines : i32), has (sm'::starts_with "XSIM seed=1 schedule=2 ") lines, commuted
 
+///> rust -d sha2 unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# a_fake_run_prints_one_line_per_schedule_and_a_verdict =
     := ~corpus = small_corpus ()
     simulated (small_options ()) corpus |> run_summary |> _assert_eq (3i32, !+, !+)
 
+///> rust
+///> gleam
 :# a_save_pattern_names_each_schedule =
     (saved_path "runs/s{schedule}.jsonl" 2i32, saved_path "plain.jsonl" 1i32)
     |> _assert_eq ("runs/s2.jsonl", "plain.jsonl")
@@ -300,10 +302,14 @@
     := run, baseline = x::run [ "inl a = 1i32" ], x::baseline [ "inl a = 1i32" ]
     run::out, baseline::out
 
+///> rust
+///> gleam
 :# the_executor_flag_picks_the_run_and_baseline =
     (picked (with_executor CellsExecutor), picked (with_executor LeakingExecutor |> with_memo !+))
     |> _assert_eq (("cells", "cells-baseline"), ("leak:xsim_leak_run", "leak:xsim_leak_baseline"))
 
+///> rust
+///> gleam
 :# only_memo_runs_reach_the_cells_run_and_not_the_baseline =
     picked (with_executor CellsExecutor |> with_memo !+) |> _assert_eq ("cells+memo", "cells-baseline")
 
@@ -311,6 +317,8 @@
     := x = executor_pair_of (marked_beam ()) (with_executor e)
     x::judges_breaking
 
+///> rust
+///> gleam
 :# only_the_cells_executor_judges_breaking_edits =
     (judges_breaking_for CellsExecutor, judges_breaking_for FakeExecutor) |> _assert_eq (!+, !-)
 
@@ -318,6 +326,8 @@
     := x = executor_pair_of (marked_beam ()) o
     x::notes round
 
+///> rust
+///> gleam
 :# the_memo_line_follows_each_schedule_only_with_memo =
     (notes_at (with_executor FakeExecutor |> with_memo !+) 3i32, notes_at (with_executor FakeExecutor) 3i32)
     |> _assert_eq ([ "  memo hits=2 misses=1 cumulative_after_schedule=3" ], [])
@@ -329,9 +339,13 @@
 := daemon_notes_at (memo : bool) (round : i32) : list string =
     notes_at (with_executor FakeExecutor |> with_memo memo |> with_daemon) round
 
+///> rust
+///> gleam
 :# the_daemon_line_comes_only_with_daemon_memory =
     (daemon_notes_at !- 1i32, notes_at (with_executor FakeExecutor) 1i32) |> _assert_eq ([ "  daemon marked 1" ], [])
 
+///> rust
+///> gleam
 :# the_daemon_line_follows_the_memo_line =
     daemon_notes_at !+ 2i32 |> _assert_eq [ "  memo hits=2 misses=1 cumulative_after_schedule=2"; "  daemon marked 2" ]
 
@@ -340,5 +354,7 @@
     := p = fake_pair ()
     x::memory_mb (), p::memory_mb ()
 
+///> rust
+///> gleam
 :# the_schedule_memory_comes_from_the_beam_record_for_every_executor =
     (memory_pair FakeExecutor, memory_pair CellsExecutor) |> _assert_eq ((7i32, 0i32), (7i32, 0i32))

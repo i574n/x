@@ -1,5 +1,4 @@
 ///- --package .. --timeout 600000
-///> gleam
 :# xsim_world static =
     :< testing
 
@@ -25,7 +24,6 @@
     := cells, _, _, _, _, _, _, _, _, _ = x
     world_files (ask_of x) (split_all (char_of 0i32) cells)
 
-///> _
 := main () : i32 =
     export "world_files" ((\ x => staged_world x) : world_cells -> string * string)
     0i32

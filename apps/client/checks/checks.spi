@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust
 :# checks static =
     :< testing
 
@@ -24,6 +23,7 @@
 
 := username_or_empty (t : string) : string = username_of_text t |> text_or_empty
 
+///> rust
 :# counts_and_usernames_have_empty_answers =
     := ~t = "12"
     count_or_none t |> _assert_eq 12i32
@@ -31,7 +31,6 @@
     username_or_empty ("@" ++# "bob") |> _assert_eq "bob"
     username_or_empty "al-ice" |> _assert_eq ""
 
-///> _
 := main () : i32 =
     export "xc_count" ((\ t => count_or_none t) : string -> i32)
     export "xc_date" ((\ t => date_or_empty t) : string -> string)

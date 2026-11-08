@@ -1,5 +1,4 @@
 ///- --package .
-///> rust
 :# fields static =
     :< testing
 

@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# token static =
     :< testing
 
@@ -152,12 +151,14 @@
 
 := shown_cr (s : string) : string = sm'::replace "\r" "~" s
 
+:= renewed_text (text : string) : string = rewritten text (renewed_tokens ()) |> shown_cr
+
+///> rust
 :# renewal_replaces_and_appends_keys =
     := ~text = "X_BEARER_TOKEN=kept\r\nX_OAUTH2_ACCESS_TOKEN=old\r\n"
-    rewritten text (renewed_tokens ()) |> shown_cr
+    renewed_text text
     |> _assert_eq "X_BEARER_TOKEN=kept~\nX_OAUTH2_ACCESS_TOKEN=new~\nX_OAUTH2_REFRESH_TOKEN=r2~\n"
 
-///> _
 := main () : i32 =
     export "xc_refresh" ((\ x => refreshed x) : refresh_args -> i32 * string)
     0i32

@@ -1,6 +1,16 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
+fn string_concat(parts: &[&str]) -> Rc<str> {
+    let mut joined = Rc::<[u8]>::new_uninit_slice(parts.iter().map(|part| part.len()).sum());
+    let bytes = Rc::get_mut(&mut joined).unwrap().as_mut_ptr() as *mut u8;
+    let mut at = 0;
+    for part in parts {
+        unsafe { std::ptr::copy_nonoverlapping(part.as_ptr(), bytes.add(at), part.len()) };
+        at += part.len();
+    }
+    unsafe { Rc::from_raw(Rc::into_raw(joined.assume_init()) as *const str) }
+}
 #[derive(Clone)]
 enum UH0 {
     UH0_Nil,
@@ -320,24 +330,26 @@ fn step_6(mut v0: Rc<UH0>, mut v1: Rc<UH0>, mut v2: i32, mut v3: bool, mut v4: R
     (v52, v53, v54, v55)
 }
 fn method5(mut v0: Rc<UH0>, mut v1: Rc<UH0>, mut v2: Rc<UH0>, mut v3: i32, mut v4: bool) -> (Rc<UH0>, Rc<UH0>, i32, bool) {
-    let (mut v19, mut v20, mut v21, mut v22): (Rc<UH0>, Rc<UH0>, i32, bool) = match &*v0 {
-        UH0::UH0_Cons(v5, v6) => {
-            let v5: Rc<str> = v5.clone();
-            let v6: Rc<UH0> = v6.clone();
-            let (mut v7, mut v8, mut v9, mut v10): (Rc<UH0>, Rc<UH0>, i32, bool) = step_6(v1, v2, v3, v4, v5);
-            method5(v6, v7, v8, v9, v10)
+    loop {
+        match &*v0 {
+            UH0::UH0_Cons(v5, v6) => {
+                let v5: Rc<str> = v5.clone();
+                let v6: Rc<UH0> = v6.clone();
+                let (mut v7, mut v8, mut v9, mut v10): (Rc<UH0>, Rc<UH0>, i32, bool) = step_6(v1, v2, v3, v4, v5);
+                (v0, v1, v2, v3, v4) = (v6, v7, v8, v9, v10);
+                continue;
+            }
+            _ => {
+                let (mut v15, mut v16, mut v17, mut v18): (Rc<UH0>, Rc<UH0>, i32, bool) = match Rc::unwrap_or_clone(v0) {
+                    UH0::UH0_Nil => {
+                        (v1, v2, v3, v4)
+                    }
+                    _ => unreachable!(),
+                };
+                return (v15, v16, v17, v18);
+            }
         }
-        _ => {
-            let (mut v15, mut v16, mut v17, mut v18): (Rc<UH0>, Rc<UH0>, i32, bool) = match Rc::unwrap_or_clone(v0) {
-                UH0::UH0_Nil => {
-                    (v1, v2, v3, v4)
-                }
-                _ => unreachable!(),
-            };
-            (v15, v16, v17, v18)
-        }
-    };
-    (v19, v20, v21, v22)
+    }
 }
 fn file_cells_1(mut v0: Rc<str>) -> Rc<UH0> {
     let v1: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\r\n"); } LIT.with(|lit| lit.clone()) };
@@ -419,8 +431,7 @@ fn cells_json_0(mut v0: Rc<str>) -> Rc<str> {
     let v8: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v7).as_ref().clone()));
     let mut v9: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
     let v10: Rc<str> = Rc::<str>::from((*v8.borrow()).join(&*v9));
-    let v11: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("["); } LIT.with(|lit| lit.clone()) }, v10));
-    let v12: Rc<str> = Rc::<str>::from(format!("{}{}", v11, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) }));
+    let v12: Rc<str> = string_concat(&["[", &*v10, "]"]);
     v12
 }
 fn closure0() -> Rc<dyn Fn(Rc<str>) -> Rc<str>> {

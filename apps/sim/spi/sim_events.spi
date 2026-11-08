@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# sim_events static =
     :< testing
 
@@ -293,11 +291,15 @@
 := first_frame () : string =
     "{\"at\":0,\"body\":\"x\",\"k\":1,\"kind\":\"frame\",\"n\":1,\"parent\":null,\"post\":\"p0\"}"
 
+///> rust
+///> gleam
 :# frames_encode_like_the_fixture =
     := ~post_id = "p0"
     := e = Content (Framed { post_id parent = None; part = { k = 1i32; n = 1i32; body = "x" } })
     encoded { at = 0i32; event = e } |> _assert_eq (first_frame ())
 
+///> rust
+///> gleam
 :# bodies_escape_quotes_and_lines =
     := ~body = "a \"b\"\n\tc\\"
     quoted body |> _assert_eq "\"a \\\"b\\\"\\n\\tc\\\\\""
@@ -305,11 +307,15 @@
 
 := liked_line () : string = "{\"at\":7,\"kind\":\"like\",\"post\":\"p2\",\"user\":\"u3\"}"
 
+///> rust
+///> gleam
 :# reactions_name_the_user =
     := ~user = "u3"
     encoded { at = 7i32; event = Reaction (Liked { post_id = "p2"; user }) } |> _assert_eq (liked_line ())
     kind_of (Reaction (Unliked { post_id = "p2"; user })) |> _assert_eq "unlike"
 
+///> rust
+///> gleam
 :# an_empty_stream_is_its_header =
     := ~header = stream_header ()
     stream [] |> _assert_eq (header ++# "\n")
@@ -341,6 +347,8 @@
     | Ok l => stream l
     | Error e => e
 
+///> rust
+///> gleam
 :# streams_decode_back_to_themselves =
     := ~text = stream (sample_deliveries ())
     reencoded text |> _assert_eq text
@@ -353,6 +361,8 @@
     | Ok d => encoded d
     | Error e => e
 
+///> rust
+///> gleam
 :# fixture_lines_keep_their_escapes =
     := ~line = edit_line ()
     line_again line |> _assert_eq line
@@ -362,12 +372,16 @@
     | Ok l => sm'::obj_to_string (listm::length l : i32)
     | Error e => e
 
+///> rust
+///> gleam
 :# foreign_streams_are_refused =
     := ~other = "{\"format\":\"other\",\"version\":1}"
     decoded_stream (other ++# "\n") |> verdict |> _assert_eq "not an xsim-events v1 stream"
 
 := boosted () : string = stream_header () ++# "\n{\"at\":1,\"kind\":\"boost\"}"
 
+///> rust
+///> gleam
 :# unknown_kinds_are_refused =
     := ~text = boosted ()
     decoded_stream text |> verdict |> _assert_eq "unknown event kind 'boost'"

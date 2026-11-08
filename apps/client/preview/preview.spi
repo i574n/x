@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# preview static =
     :< testing
 
@@ -48,12 +47,14 @@
     := n = listm::length posts
     sm'::concat_list "\n" (previews n 1i32 posts []) ++# summary site n
 
+///> rust
 :# previews_price_every_post =
     := ~n = 15i32
     dollars n |> _assert_eq "$0.015"
     dollars 1725i32 |> _assert_eq "$1.725"
     (summary "x" 2i32, summary "mastodon" 2i32) |> _assert_eq ("\n--- 2 posts, $0.030 to create", "\n--- 2 posts")
 
+///> rust -d serde_json
 :# a_framed_post_keeps_its_text_and_weight =
     := ~text = "c1 1/1\na"
     "[{\"text\":\"c1 1/1\\na\",\"weight\":8}]"
@@ -62,7 +63,6 @@
     |> each \ p => p::text, p::weight
     |> _assert_eq [ text, 8i32 ]
 
-///> _
 := main () : i32 =
     export "xc_preview" ((\ (site, t) => preview site t) : string * string -> string)
     0i32

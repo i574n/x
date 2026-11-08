@@ -1,5 +1,4 @@
 ///- --package . --timeout 600000
-///> gleam
 :# runner_shell static =
     :< testing
 
@@ -78,7 +77,7 @@
     erlang_process::send reply (st::sched |> expired !+ |> settled_view)
     st
 
-:= busy (st : shell_state) : bool = dict::size st::sched::task_work::running > 0i32
+:= busy (st : shell_state) : bool = dict::count st::sched::task_work::running > 0i32
 
 := settle_or_wait (st : shell_state) (reply : erlang_process::subject scheduler) : shell_state =
     ? busy st ?>
@@ -133,8 +132,9 @@
     ]
 
 := settled_sizes (inbox : shell_inbox) (l : list delivery) : i32 * i32 =
-    dict::size (shell_settled inbox l)::visible_map, dict::size (sync_run (plain_faults ()) l)::visible_map
+    dict::count (shell_settled inbox l)::visible_map, dict::count (sync_run (plain_faults ()) l)::visible_map
 
+///> gleam
 :# the_otp_shell_settles_like_sync_run =
     := ~l = two_posts ()
     ?= shell_started (plain_faults ()) (fake_executor ()) ?|
@@ -157,6 +157,7 @@
     | Some leak => leaky_in_shell leak l
     | None => "leak cell did not start"
 
+///> gleam
 :# a_leaking_executor_breaks_sequential_equivalence =
     := ~l = two_posts ()
     leaky_run l |> sm'::starts_with "FAIL" |> _assert_eq !+
@@ -166,7 +167,7 @@
         paused 50i32
         { status = Done; out = fake_out sources }
 
-:= cancel_shape (s : scheduler) : i32 * i32 = s::run_counts::cancels, dict::size s::visible_map
+:= cancel_shape (s : scheduler) : i32 * i32 = s::run_counts::cancels, dict::count s::visible_map
 
 := shell_cancels (l : list delivery) : i32 * i32 =
     ?= shell_started (plain_faults ()) (slow_executor ()) ?|
@@ -175,6 +176,7 @@
 
 := withdrawn_demand () : list delivery = [ post_at 0i32 "p0" None "x"; like_at 1i32 "p0" "u"; unlike_at 2i32 "p0" "u" ]
 
+///> gleam
 :# a_withdrawn_demand_cancels_the_running_task_like_deferred_run =
     := ~l = withdrawn_demand ()
     (shell_cancels l, deferred_run (plain_faults ()) l |> cancel_shape) |> _assert_eq ((1i32, 0i32), (1i32, 0i32))
@@ -200,6 +202,7 @@
     | Some inbox => probe_after inbox probe l
     | None => failwith "runner shell did not start"
 
+///> gleam
 :# a_cancelled_worker_is_killed_before_it_finishes =
     := ~l = [ post_at 0i32 "p0" None "x"; like_at 1i32 "p0" "u" ]
     (probe_reached (listm::append l [ unlike_at 2i32 "p0" "u" ]), probe_reached l) |> _assert_eq (!-, !+)
@@ -207,13 +210,15 @@
 := test_state () : shell_state = fresh_state (plain_faults ()) (fake_executor ()) (erlang_process::new_subject ())
 
 := guard_shape (own : handle) (st : shell_state) : bool * i32 * i32 =
-    signalled_in 100i32 own, dict::size st::guards, dict::set_size st::early_cancels
+    signalled_in 100i32 own, dict::count st::guards, dict::set_count st::early_cancels
 
+///> gleam
 :# a_cancel_before_its_guard_reaches_the_guard_on_adoption =
     := ~key = "k"
     := own : handle = erlang_process::new_subject ()
     adopted (cancelled (test_state ()) key) key own |> guard_shape own |> _assert_eq (!+, 0i32, 0i32)
 
+///> gleam
 :# a_cancel_after_adoption_signals_the_guard =
     := ~key = "k"
     := own : handle = erlang_process::new_subject ()
@@ -246,6 +251,7 @@
     | Some paced => against_plain_shell paced l
     | None => failwith "paced runner shell did not start"
 
+///> gleam
 :# a_paced_run_waits_between_deliveries_and_ends_where_the_unpaced_run_ends =
     := ~l = fickle_churn ()
     paced_run_holds l |> _assert_eq (!+, "ok")

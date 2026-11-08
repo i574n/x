@@ -1,6 +1,16 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
+fn string_concat(parts: &[&str]) -> Rc<str> {
+    let mut joined = Rc::<[u8]>::new_uninit_slice(parts.iter().map(|part| part.len()).sum());
+    let bytes = Rc::get_mut(&mut joined).unwrap().as_mut_ptr() as *mut u8;
+    let mut at = 0;
+    for part in parts {
+        unsafe { std::ptr::copy_nonoverlapping(part.as_ptr(), bytes.add(at), part.len()) };
+        at += part.len();
+    }
+    unsafe { Rc::from_raw(Rc::into_raw(joined.assume_init()) as *const str) }
+}
 #[derive(Clone)]
 enum US0 {
     US0_Some(Rc<str>),
@@ -416,65 +426,67 @@ fn method19(mut v0: Rc<UH3>, mut v1: Rc<UH3>) -> Rc<UH3> {
     }
 }
 fn method9(mut v0: Rc<UH5>, mut v1: Rc<UH1>, mut v2: Rc<UH3>) -> (Rc<UH1>, Rc<UH3>) {
-    let (mut v36, mut v37): (Rc<UH1>, Rc<UH3>) = match &*v0 {
-        UH5::UH5_Cons(v3, v4, v5, v6, v7) => {
-            let mut v3: Rc<str> = v3.clone();
-            let v4: i32 = *v4;
-            let v5: Rc<str> = v5.clone();
-            let v6: Rc<UH0> = v6.clone();
-            let v7: Rc<UH5> = v7.clone();
-            let v8: i32 = 0i32;
-            let v9: Rc<UH4> = method10(v4, v8);
-            let mut v10: Rc<UH4> = { thread_local!{ static CASE: Rc<UH4> = Rc::new(UH4::UH4_Nil); } CASE.with(|case| case.clone()) };
-            let mut v11: Rc<UH4> = method11(&v3, v4, &v5, v6.clone(), v9, v10);
-            let v19: US2 = match &*v11 {
-                UH4::UH4_Nil => {
-                    let v12: i32 = 0i32;
-                    let v13: Rc<UH1> = method14(v4, &v3, v4, &v5, v6, v12);
-                    let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
-                    let mut v15: Rc<str> = delimited_16(v14, v13);
-                    US2::US2_Whole(v15)
-                }
-                _ => {
-                    let v17: US1 = US1::US1_MissingFrames(v3, v11, v4);
-                    US2::US2_Holed(v17)
-                }
-            };
-            let (mut v30, mut v31): (Rc<UH1>, Rc<UH3>) = match &v19 {
-                US2::US2_Whole(v20) => {
-                    let v20: Rc<str> = v20.clone();
-                    let v21: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
-                    let v22: Rc<UH1> = Rc::new(UH1::UH1_Cons(v20, v21));
-                    let v23: Rc<UH1> = method18(v1, v22);
-                    (v23, v2)
-                }
-                _ => {
-                    let (mut v28, mut v29): (Rc<UH1>, Rc<UH3>) = match v19 {
-                        US2::US2_Holed(v24) => {
-                            let v24: US1 = v24;
-                            let v25: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
-                            let v26: Rc<UH3> = Rc::new(UH3::UH3_Cons(v24, v25));
-                            let v27: Rc<UH3> = method19(v2, v26);
-                            (v1, v27)
-                        }
-                        _ => unreachable!(),
-                    };
-                    (v28, v29)
-                }
-            };
-            method9(v7, v30, v31)
+    loop {
+        match &*v0 {
+            UH5::UH5_Cons(v3, v4, v5, v6, v7) => {
+                let mut v3: Rc<str> = v3.clone();
+                let v4: i32 = *v4;
+                let v5: Rc<str> = v5.clone();
+                let v6: Rc<UH0> = v6.clone();
+                let v7: Rc<UH5> = v7.clone();
+                let v8: i32 = 0i32;
+                let v9: Rc<UH4> = method10(v4, v8);
+                let mut v10: Rc<UH4> = { thread_local!{ static CASE: Rc<UH4> = Rc::new(UH4::UH4_Nil); } CASE.with(|case| case.clone()) };
+                let mut v11: Rc<UH4> = method11(&v3, v4, &v5, v6.clone(), v9, v10);
+                let v19: US2 = match &*v11 {
+                    UH4::UH4_Nil => {
+                        let v12: i32 = 0i32;
+                        let v13: Rc<UH1> = method14(v4, &v3, v4, &v5, v6, v12);
+                        let v14: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
+                        let mut v15: Rc<str> = delimited_16(v14, v13);
+                        US2::US2_Whole(v15)
+                    }
+                    _ => {
+                        let v17: US1 = US1::US1_MissingFrames(v3, v11, v4);
+                        US2::US2_Holed(v17)
+                    }
+                };
+                let (mut v30, mut v31): (Rc<UH1>, Rc<UH3>) = match &v19 {
+                    US2::US2_Whole(v20) => {
+                        let v20: Rc<str> = v20.clone();
+                        let v21: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
+                        let v22: Rc<UH1> = Rc::new(UH1::UH1_Cons(v20, v21));
+                        let v23: Rc<UH1> = method18(v1, v22);
+                        (v23, v2)
+                    }
+                    _ => {
+                        let (mut v28, mut v29): (Rc<UH1>, Rc<UH3>) = match v19 {
+                            US2::US2_Holed(v24) => {
+                                let v24: US1 = v24;
+                                let v25: Rc<UH3> = { thread_local!{ static CASE: Rc<UH3> = Rc::new(UH3::UH3_Nil); } CASE.with(|case| case.clone()) };
+                                let v26: Rc<UH3> = Rc::new(UH3::UH3_Cons(v24, v25));
+                                let v27: Rc<UH3> = method19(v2, v26);
+                                (v1, v27)
+                            }
+                            _ => unreachable!(),
+                        };
+                        (v28, v29)
+                    }
+                };
+                (v0, v1, v2) = (v7, v30, v31);
+                continue;
+            }
+            _ => {
+                let (mut v34, mut v35): (Rc<UH1>, Rc<UH3>) = match Rc::unwrap_or_clone(v0) {
+                    UH5::UH5_Nil => {
+                        (v1, v2)
+                    }
+                    _ => unreachable!(),
+                };
+                return (v34, v35);
+            }
         }
-        _ => {
-            let (mut v34, mut v35): (Rc<UH1>, Rc<UH3>) = match Rc::unwrap_or_clone(v0) {
-                UH5::UH5_Nil => {
-                    (v1, v2)
-                }
-                _ => unreachable!(),
-            };
-            (v34, v35)
-        }
-    };
-    (v36, v37)
+    }
 }
 fn method21(mut v0: &Rc<str>, mut v1: i32, mut v2: &Rc<str>, mut v3: &Rc<UH0>, mut v4: Rc<UH0>, mut v5: Rc<UH0>) -> Rc<UH0> {
     match Rc::unwrap_or_clone(v4) {
@@ -662,25 +674,18 @@ fn method27(mut v0: Rc<UH3>, mut v1: Rc<UH1>) -> Rc<UH1> {
                     let v5: Rc<str> = v5;
                     let v6: Rc<UH4> = v6;
                     let v7: i32 = v7;
-                    let v8: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cell "); } LIT.with(|lit| lit.clone()) }, v5));
-                    let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" is missing frame "); } LIT.with(|lit| lit.clone()) }));
                     let mut v10: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
                     let mut v11: Rc<UH1> = method28(v6, v10);
                     let v12: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", "); } LIT.with(|lit| lit.clone()) };
                     let v13: Rc<str> = delimited_16(v12, v11);
-                    let v14: Rc<str> = Rc::<str>::from(format!("{}{}", v9, v13));
-                    let mut v15: Rc<str> = Rc::<str>::from(format!("{}{}", v14, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" of "); } LIT.with(|lit| lit.clone()) }));
                     let v16: Rc<str> = Rc::<str>::from((v7).to_string());
-                    let v17: Rc<str> = Rc::<str>::from(format!("{}{}", v15, v16));
+                    let v17: Rc<str> = string_concat(&["cell ", &*v5, " is missing frame ", &*v13, " of ", &*v16]);
                     v17
                 }
                 US1::US1_ReplyGap(v18, v19) => {
                     let v18: Rc<str> = v18;
                     let v19: Rc<str> = v19;
-                    let v20: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("cell "); } LIT.with(|lit| lit.clone()) }, v18));
-                    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", v20, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" replies to "); } LIT.with(|lit| lit.clone()) }));
-                    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v21, v19));
-                    let v23: Rc<str> = Rc::<str>::from(format!("{}{}", v22, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(", which is not in the thread: posts before it are missing"); } LIT.with(|lit| lit.clone()) }));
+                    let v23: Rc<str> = string_concat(&["cell ", &*v18, " replies to ", &*v19, ", which is not in the thread: posts before it are missing"]);
                     v23
                 }
             };

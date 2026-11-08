@@ -1,6 +1,4 @@
 ///- --package . --timeout 900000
-///> rust
-///> gleam
 :# tlds static =
     :< testing
 
@@ -188,6 +186,8 @@
     := key = "|" ++# sm'::to_lower label ++# "|"
     tld_chunks () |> has \ c => sm'::contains key c
 
+///> rust
+///> gleam
 :# common_and_generic_tlds_are_known =
     := ~label = "map"
     (is_tld label, is_tld "IO", is_tld "post", is_tld "head", is_tld "") |> _assert_eq (!+, !+, !+, !-, !-)

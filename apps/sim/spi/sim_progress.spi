@@ -1,5 +1,4 @@
 ///- --package .
-///> gleam
 :# sim_progress static =
     :< testing
 
@@ -39,8 +38,10 @@
 := sample_run () : string =
     "XSIM seed=1 schedule=1 posts=1\nXSIM seed=1 schedule=2 posts=1\nXSIM commute=ok result=pass"
 
+///> gleam
 :# schedule_lines_are_the_steps =
     schedule_lines (sample_run ()) |> listm::length |> _assert_eq 2i32
 
+///> gleam
 :# the_verdict_decides_failure =
     (verdict_failed (sample_run ()), verdict_failed "XSIM commute=ok result=fail") |> _assert_eq (0i32, 1i32)

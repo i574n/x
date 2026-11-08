@@ -1,5 +1,4 @@
 ///- --package . --timeout 600000
-///> gleam
 :# xsim_shell_entry static =
     :< testing
 
@@ -46,8 +45,8 @@
     | Ok deliveries => settled_in_shell limit deliveries
 
 := shell_line (s : scheduler) : string =
-    := visible = sm'::obj_to_string (dict::size s::visible_map)
-    "XSHELL visible=" ++# visible ++# " results=" ++# sm'::obj_to_string (dict::size s::task_work::results)
+    := visible = sm'::obj_to_string (dict::count s::visible_map)
+    "XSHELL visible=" ++# visible ++# " results=" ++# sm'::obj_to_string (dict::count s::task_work::results)
 
 := reported_settled (s : scheduler) : i32 =
     console::write_line (shell_line s)
@@ -77,6 +76,7 @@
         like_at 3i32 "p1" "v"
     ]
 
+///> gleam
 :# a_replayed_stream_settles_in_the_shell =
     := ~limit = 1i32
     ?= replayed limit (stream (entry_two_posts ())) ?|
@@ -87,6 +87,7 @@
 
 := refusal_of (r : result shell_run string) : string = ?= r ?| Ok _ => "" | Error why => why
 
+///> gleam
 :# shell_arguments_are_checked =
     := ~path = "s.jsonl"
     (limit_of (shell_run_of [ "--replay"; path; "--max-concurrency"; "2" ]), refusal_of (shell_run_of [ "--replay" ]))
@@ -97,5 +98,4 @@
         ? i < 0i32 ?> acc |: from (i - 1i32) (env::command_line_argument i :: acc)
     from (env::command_line_argument_count () - 1i32) []
 
-///> _
 := main () : i32 = shell_entry (shell_arguments ())

@@ -1,6 +1,4 @@
 ///- --package . --timeout 900000
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# splitter static =
     :< testing
 
@@ -268,26 +266,43 @@
 
 := heaviest (posts : list string) : i32 = posts |> listm::fold (\ top t => ? x_weight t > top ?> x_weight t |: top) 0i32
 
+:= count_fits (posts : list string) : i32 * bool = (listm::length posts, heaviest posts <= post_limit ())
+
+:= joined_posts (n : i32) (cell : string) : string = cell_posts n cell |> sm'::concat_list "|"
+
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# cells_start_at_column_zero =
     := ~text = "a\n\nb\n  c\n\n\nd\n"
     := cells = file_cells text
     cells |> listm::length |> _assert_eq 3i32
     cells |> sm'::concat_list "|" |> _assert_eq "a|b\n  c|\nd"
 
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# a_short_cell_is_one_post =
     := ~cell = "inl x = 1"
     cell_posts 4i32 cell |> sm'::concat_list "|" |> _assert_eq "c4 1/1\ninl x = 1"
     posts_of "" |> listm::length |> _assert_eq 0i32
 
-:# mastodon_keeps_dots_in_one_long_post =
-    := ~cell = "go x.io " ++# repeated 300i32 "b" ""
-    := posts = cell_posts_on OnMastodon 1i32 cell
-    (listm::length posts, sm'::contains (defused_dot ()) (sm'::concat_list "" posts)) |> _assert_eq (1i32, !-)
+:= long_dotted_cell () : string = "go x.io " ++# repeated 300i32 "b" ""
 
+:= dotted (posts : list string) : i32 * bool = (listm::length posts, sm'::contains (defused_dot ()) (sm'::concat_list "" posts))
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
+:# mastodon_keeps_dots_in_one_long_post =
+    := ~cell = long_dotted_cell ()
+    cell_posts_on OnMastodon 1i32 cell |> dotted |> _assert_eq (1i32, !-)
+
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# mastodon_weighs_a_glyph_one =
     := ~g = "e"
     weight_on OnMastodon g |> _assert_eq 1i32
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# mastodon_links_weigh_twenty_three =
     := ~short = "http://a.co"
     (weight_on OnMastodon short, weight_on OnMastodon ("see " ++# short ++# " now")) |> _assert_eq (23i32, 31i32)
@@ -301,54 +316,75 @@
     := tail = tenfold (tenfold "b") ++# tenfold "bbbbbbbb" ++# "bbbbbbbb"
     "RT @x: " ++# ninefold line ++# "漢漢漢漢漢" ++# tail
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# a_real_long_form_shape_weighs_its_chars_plus_its_wide_ones =
     weight_on OnX (long_form ()) |> _assert_eq 2014i32
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# a_long_link_weighs_twenty_three_on_x_and_mastodon =
     := ~long = "https://example.com/" ++# sm'::replicate 40i32 "a"
     (weight_on OnX ("x " ++# long), weight_on OnMastodon long) |> _assert_eq (25i32, 23i32)
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# bluesky_counts_a_glyph_by_its_bytes =
     := ~e = "e"
     := b = OnBluesky (unwritten ())
     (weight_on b e, weight_on b (family ())) |> _assert_eq (1i32, 3i32)
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# long_plain_text_is_not_a_link =
     := ~n = 30i32
     weight_on OnMastodon (repeated n "h" "") |> _assert_eq 30i32
 
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# dots_that_x_would_link_are_defused =
     := ~cell = "go x.com now"
-    cell_posts 1i32 cell |> sm'::concat_list "|" |> _assert_eq ("c1 1/1\ngo x" ++# defused_dot () ++# "com now")
+    joined_posts 1i32 cell |> _assert_eq ("c1 1/1\ngo x" ++# defused_dot () ++# "com now")
 
+:= split_text (cell : string) : string = split_cell (cell_id "c1") 280i32 cell |> sm'::concat_list "|"
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# split_cell_posts_before_splitting =
     := ~cell = "cell.app"
-    split_cell (cell_id "c1") 280i32 cell |> sm'::concat_list "|" |> _assert_eq ("cell" ++# defused_dot () ++# "app")
+    split_text cell |> _assert_eq ("cell" ++# defused_dot () ++# "app")
 
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# short_labels_before_two_letter_tlds_stay_plain =
     := ~cell = "go x.io now"
     cell_posts 1i32 cell |> sm'::concat_list "|" |> _assert_eq "c1 1/1\ngo x.io now"
 
+:= sigil_units (cell : string) : i32 = units_of (posted_on OnX cell) |> listm::length
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# a_mention_sigil_keeps_its_zero_width_space_in_one_unit =
     := ~cell = "@" ++# "bob"
-    units_of (posted_on OnX cell) |> listm::length |> _assert_eq 4i32
-    cell_posts 1i32 "1.5" |> sm'::concat_list "|" |> _assert_eq "c1 1/1\n1.5"
+    (sigil_units cell, joined_posts 1i32 "1.5") |> _assert_eq (4i32, "c1 1/1\n1.5")
 
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# long_cells_split_between_words =
     := ~word = "ab "
-    := posts = cell_posts 2i32 (repeated 120i32 word "")
-    posts |> listm::length |> _assert_eq 2i32
-    (heaviest posts <= post_limit ()) |> _assert_eq !+
+    cell_posts 2i32 (repeated 120i32 word "") |> count_fits |> _assert_eq (2i32, !+)
 
 := post_count (cell : string) : i32 = cell_posts 1i32 cell |> listm::length
 
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# one_post_cells_budget_a_one_digit_header =
     := ~cell = repeated 273i32 "a" ""
     post_count cell |> _assert_eq 1i32
     post_count (cell ++# "a") |> _assert_eq 2i32
 
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# ten_posts_widen_the_header =
     := ~glyphs = 3000i32
-    := posts = cell_posts 1i32 (repeated glyphs "a" "")
-    posts |> listm::length |> _assert_eq 12i32
-    (heaviest posts <= post_limit ()) |> _assert_eq !+
+    cell_posts 1i32 (repeated glyphs "a" "") |> count_fits |> _assert_eq (12i32, !+)

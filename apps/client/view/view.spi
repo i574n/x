@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust
 :# view static =
     :< testing
 
@@ -27,6 +26,7 @@
 
 := quiet_line () : string = "2026-10-15 09:05  @" ++# "b  t1  [0 replies, 0 reposts, 0 likes]|1"
 
+///> rust
 :# entry_lines_render_as_the_timeline =
     := ~line = at "1" "b" "2026-10-15T09:05:00Z" |> lone |> entry_line "p"
     := d = digest_of line
@@ -34,7 +34,6 @@
 
 :== view_args = string * i32 * i32 * i32 * bool
 
-///> _
 := main () : i32 =
     export
         "xc_view"

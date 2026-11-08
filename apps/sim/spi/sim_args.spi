@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d sha2
-///> gleam
 :# sim_args static =
     :< testing
 
@@ -460,6 +458,8 @@
 := run_flags (spi : string) : list string =
     [ "--spi"; spi; "--seed"; "7"; "--duplicates"; "0.25"; "--evict-grace"; "3"; "--evict"; "--frames" ]
 
+///> rust
+///> gleam
 :# run_options_follow_xsim_run =
     := ~spi = "a.spi,b.spi+c.spi"
     run_args (default_run ()) (run_flags spi) |> run_text
@@ -478,6 +478,8 @@
 := bad_shape_texts () : string * string =
     "rejected: missing --spi or --spi-file", "rejected: --duplicates takes a decimal like 0.1, got '0.1234'"
 
+///> rust
+///> gleam
 :# bad_run_options_are_named =
     := ~spi = "a.spi"
     (bad_values spi, bad_shapes spi) |> _assert_eq (bad_value_texts (), bad_shape_texts ())
@@ -511,6 +513,8 @@
     "a.spi seed=1 users=3 dup=200 frames=yes out=s.jsonl expected=f.json", "rejected: missing --expected",
     "rejected: --users takes a whole number, got 'two'"
 
+///> rust
+///> gleam
 :# events_options_follow_xsim_events =
     := ~spi = "a.spi"
     events_cases spi |> _assert_eq (events_expected ())
@@ -528,6 +532,8 @@
     world_args [ "--spi"; spi; "--out"; "w.json"; "--expected"; "p.txt"; "--lost"; "2" ] |> world_text,
     world_args [ "--spi"; spi; "--out"; "w.json"; "--expected"; "p.txt"; "--frames" ] |> world_text
 
+///> rust
+///> gleam
 :# world_options_follow_xsim_world =
     := ~spi = "a.spi"
     world_cases spi |> _assert_eq ("a.spi id=3000000 lost=2 user=spiralposts", "rejected: --frames needs a value")

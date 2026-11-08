@@ -1,5 +1,6 @@
 $XRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $SpiralRoot = [IO.Path]::GetFullPath((Join-Path $XRoot '../spiral'))
+$CellsRoot = $env:SPIRAL_CELLS_ROOT ? $env:SPIRAL_CELLS_ROOT : (Join-Path $SpiralRoot 'apps/cells')
 
 function Assert-SpiralBeside {
     if (!(Test-Path (Join-Path $SpiralRoot 'lib/spiral/lib.ps1'))) {
@@ -29,11 +30,11 @@ function Assert-CellBudget([Parameter(Mandatory)] [string] $Path, [Parameter(Man
     if (Test-Path $scoopErlang) { $env:PATH = "$scoopErlang$([IO.Path]::PathSeparator)$env:PATH" }
     $env:MIX_BUILD_PATH = Get-XTargetDir 'sim-cells'
     $guard = $null
-    if ($IsWindows) { . (Join-Path $SpiralRoot 'apps/cells/spi/erl_memory_limit.ps1'); $guard = Start-ErlMemoryLimit }
-    Push-Location (Join-Path $SpiralRoot 'apps/cells')
+    if ($IsWindows) { . (Join-Path $CellsRoot 'spi/erl_memory_limit.ps1'); $guard = Start-ErlMemoryLimit }
+    Push-Location $CellsRoot
     try {
         $deps = @(mix deps.get 2>&1 | ForEach-Object { "$_" })
-        if ($LASTEXITCODE) { $deps | Select-Object -Last 10 | Write-Host; throw "CELL-BUDGET $Label / mix deps.get failed in spiral/apps/cells" }
+        if ($LASTEXITCODE) { $deps | Select-Object -Last 10 | Write-Host; throw "CELL-BUDGET $Label / mix deps.get failed in $CellsRoot" }
         $report = @(mix spiral.cell_budget --check $target 2>&1 | ForEach-Object { "$_" })
         $code = $LASTEXITCODE
     } finally {
@@ -72,7 +73,7 @@ function Invoke-SpiralTests([Parameter(Mandatory)] [string] $AppDir, [Parameter(
     $failed = [Collections.Generic.List[string]]::new()
     try {
         foreach ($module in $Modules) {
-            $runner = Join-Path $SpiralRoot 'apps/cells/spi/run_notebook.ps1'
+            $runner = Join-Path $CellsRoot 'spi/run_notebook.ps1'
             $runArgs = @('-NoProfile', '-File', $runner, '--path', (Join-Path $AppDir "$module.spi"), '--output-path', (Join-Path $notebooks "$module.spi.ipynb"), '--no-html')
             $run = Start-Process pwsh -ArgumentList $runArgs -NoNewWindow -PassThru
             Write-Host "x/scripts/common.ps1 / notebook $module runner pid $($run.Id) at $(Get-Date -Format 'HH:mm:ss')"

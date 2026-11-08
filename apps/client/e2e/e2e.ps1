@@ -2,7 +2,8 @@ param(
     [Parameter(Mandatory)] [string] $Exe,
     [Parameter(Mandatory)] [string] $WorkDir,
     [string] $Tutorial = (Join-Path $PSScriptRoot "../README.md"),
-    [switch] $Accept
+    [switch] $Accept,
+    [switch] $AcceptExitSteps
 )
 $ErrorActionPreference = "Stop"
 
@@ -79,11 +80,12 @@ try {
         $outputs.Add($r.Text)
         $accepted.Add([pscustomobject]@{ Index = $step.Groups[2].Index; Length = $step.Groups[2].Length; Text = $r.Text })
         Check ($Accept -or $r.Text -ceq $expected) "tutorial step '$script'`n--- expected`n$expected`n--- actual`n$($r.Text)"
+        Check (!$Accept -or $AcceptExitSteps -or $script -notmatch 'LASTEXITCODE' -or $r.Text -ceq $expected) "accept would rewrite exit-code step '$script' (its exit code is part of the text); rerun with -AcceptExitSteps only if the new behaviour is intended`n--- expected`n$expected`n--- actual`n$($r.Text)"
         if ($script -notmatch 'LASTEXITCODE') { Check ($r.Exit -eq 0) "tutorial step '$script' exited $($r.Exit)" }
         Write-Output "x e2e / tutorial / $script / $(if ($r.Text -ceq $expected) { 'same' } else { 'DIFFERENT' }) / $($r.Requests.Count) request(s)"
     }
 
-    $postsPath = "/2/users/{0}/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments"
+    $postsPath = "/2/users/{0}/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments&exclude=replies"
     $nothingRead = "xc: 2 API requests, 0 posts read, 0 shown"
     $extra = @(
         @{ Script = "xc timeline alice"; Token = "wrong-token"; Text = "xc: X API answered 401 for /2/users/by?usernames=alice: Unauthorized"; Exit = 4 },
@@ -221,6 +223,8 @@ try {
     Check ($capped.Count -eq 1 -and $capped[0].query -eq "max_results=2") "--max-following 2 read more than one page of 2"
     Check (@(Queries-Of (Step-Of $results '--start-time') | Where-Object { $_ -match 'start_time=2026-10-15T12:00:00Z&end_time=2026-10-15T13:06:00Z' }).Count -eq 1) "--start-time/--end-time did not become start_time/end_time"
     Check (@(Queries-Of (Step-Of $results '--originals') | Where-Object { $_ -match 'exclude=replies,retweets' }).Count -eq 2) "--originals did not exclude replies and reposts at the API"
+    Check (@(Queries-Of (Step-Of $results '^xc timeline alice') | Where-Object { $_ -match 'exclude=replies$' }).Count -eq 2) "a default timeline did not exclude replies at the API"
+    Check (@(Queries-Of (Step-Of $results '--all alice') | Where-Object { $_ -match 'exclude=' }).Count -eq 0) "--all still excluded posts at the API"
     $deep = Queries-Of (Step-Of $results '--depth 3')
     Check (($deep -match '^GET /2/tweets\?ids=').Count -eq 2 -and ($deep -match '^GET /2/users\?ids=').Count -eq 1) "--depth 3 did not look up two levels and name authors once: $($deep -join ' ')"
     $posted = @((Step-Of $results 'xc post "hello from xc"').Requests)
@@ -246,7 +250,7 @@ if ($Accept) {
 }
 
 if ($failures.Count) {
-    $failures | ForEach-Object { Write-Output "x e2e / FAILED / $_" }
+    $failures | ForEach-Object { Write-Output "x e2e / FAILED / $_"; [Console]::Error.WriteLine("x e2e / FAILED / $_") }
     throw "RUST-FAILED x/apps/client / e2e: $($failures.Count) failure(s)"
 }
 Write-Output "RUST-OK x/apps/client / e2e: $($steps.Count) tutorial steps and $($extra.Count) extra cases"

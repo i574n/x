@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust
 :# events static =
     :< testing
 
@@ -115,7 +114,6 @@
     | verb :: run :: line :: [] ?& verb = "publish" => published run (Step line)
     | words => reply_of_words words
 
-///> _
 := main () : i32 =
     export "xc_events" ((\ payload => events_reply payload) : string -> string)
     0i32

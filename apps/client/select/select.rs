@@ -309,32 +309,34 @@ fn method5(mut v0: Rc<UH1>, mut v1: Rc<UH3>) -> Rc<UH3> {
     }
 }
 fn method14(mut v0: Rc<UH3>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> (Rc<UH0>, Rc<UH0>) {
-    let (mut v15, mut v16): (Rc<UH0>, Rc<UH0>) = match &*v0 {
-        UH3::UH3_Cons(v3, v4, v5) => {
-            let v3: Rc<str> = v3.clone();
-            let v4: Rc<Heap0> = v4.clone();
-            let v5: Rc<UH3> = v5.clone();
-            let v6: bool = &*v3 == "p";
-            let (mut v9, mut v10): (Rc<UH0>, Rc<UH0>) = if v6 {
-                let v7: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v1));
-                (v7, v2)
-            } else {
-                let mut v8: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v2));
-                (v1, v8)
-            };
-            method14(v5, v9, v10)
+    loop {
+        match &*v0 {
+            UH3::UH3_Cons(v3, v4, v5) => {
+                let v3: Rc<str> = v3.clone();
+                let v4: Rc<Heap0> = v4.clone();
+                let v5: Rc<UH3> = v5.clone();
+                let v6: bool = &*v3 == "p";
+                let (mut v9, mut v10): (Rc<UH0>, Rc<UH0>) = if v6 {
+                    let v7: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v1));
+                    (v7, v2)
+                } else {
+                    let mut v8: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v2));
+                    (v1, v8)
+                };
+                (v0, v1, v2) = (v5, v9, v10);
+                continue;
+            }
+            _ => {
+                let (mut v13, mut v14): (Rc<UH0>, Rc<UH0>) = match Rc::unwrap_or_clone(v0) {
+                    UH3::UH3_Nil => {
+                        (v1, v2)
+                    }
+                    _ => unreachable!(),
+                };
+                return (v13, v14);
+            }
         }
-        _ => {
-            let (mut v13, mut v14): (Rc<UH0>, Rc<UH0>) = match Rc::unwrap_or_clone(v0) {
-                UH3::UH3_Nil => {
-                    (v1, v2)
-                }
-                _ => unreachable!(),
-            };
-            (v13, v14)
-        }
-    };
-    (v15, v16)
+    }
 }
 fn method15(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {
@@ -568,58 +570,60 @@ fn method23(mut v0: Rc<str>, mut v1: Rc<UH4>, mut v2: Rc<UH4>) -> Rc<UH4> {
     }
 }
 fn method21(mut v0: i32, mut v1: Rc<UH0>, mut v2: Rc<UH4>, mut v3: Rc<UH0>) -> (Rc<UH4>, Rc<UH0>) {
-    let (mut v30, mut v31): (Rc<UH4>, Rc<UH0>) = match &*v1 {
-        UH0::UH0_Cons(v4, v5) => {
-            let v4: Rc<Heap0> = v4.clone();
-            let v5: Rc<UH0> = v5.clone();
-            let v6: Rc<str> = v4.l1.clone();
-            let v7: US1 = method22(v6, v2.clone());
-            let v11: i32 = match v7 {
-                US1::US1_None => {
-                    0i32
-                }
-                US1::US1_Some(v8, v9) => {
-                    let mut v8: Rc<str> = v8;
-                    let mut v9: i32 = v9;
-                    v9
-                }
-            };
-            let v12: bool = v11 >= v0;
-            let (mut v24, mut v25): (Rc<UH4>, Rc<UH0>) = if v12 {
-                (v2, v3)
-            } else {
-                let v13: Rc<str> = v4.l1.clone();
-                let v14: US1 = method22(v13.clone(), v2.clone());
-                let v18: i32 = match v14 {
+    loop {
+        match &*v1 {
+            UH0::UH0_Cons(v4, v5) => {
+                let v4: Rc<Heap0> = v4.clone();
+                let v5: Rc<UH0> = v5.clone();
+                let v6: Rc<str> = v4.l1.clone();
+                let v7: US1 = method22(v6, v2.clone());
+                let v11: i32 = match v7 {
                     US1::US1_None => {
                         0i32
                     }
-                    US1::US1_Some(v15, v16) => {
-                        let v15: Rc<str> = v15;
-                        let v16: i32 = v16;
-                        v16
+                    US1::US1_Some(v8, v9) => {
+                        let mut v8: Rc<str> = v8;
+                        let mut v9: i32 = v9;
+                        v9
                     }
                 };
-                let v19: i32 = v18.wrapping_add(1i32);
-                let v20: Rc<UH4> = { thread_local!{ static CASE: Rc<UH4> = Rc::new(UH4::UH4_Nil); } CASE.with(|case| case.clone()) };
-                let mut v21: Rc<UH4> = method23(v13.clone(), v2, v20);
-                let v22: Rc<UH4> = Rc::new(UH4::UH4_Cons(v13, v19, v21));
-                let v23: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v3));
-                (v22, v23)
-            };
-            method21(v0, v5, v24, v25)
-        }
-        _ => {
-            let (mut v28, mut v29): (Rc<UH4>, Rc<UH0>) = match Rc::unwrap_or_clone(v1) {
-                UH0::UH0_Nil => {
+                let v12: bool = v11 >= v0;
+                let (mut v24, mut v25): (Rc<UH4>, Rc<UH0>) = if v12 {
                     (v2, v3)
-                }
-                _ => unreachable!(),
-            };
-            (v28, v29)
+                } else {
+                    let v13: Rc<str> = v4.l1.clone();
+                    let v14: US1 = method22(v13.clone(), v2.clone());
+                    let v18: i32 = match v14 {
+                        US1::US1_None => {
+                            0i32
+                        }
+                        US1::US1_Some(v15, v16) => {
+                            let v15: Rc<str> = v15;
+                            let v16: i32 = v16;
+                            v16
+                        }
+                    };
+                    let v19: i32 = v18.wrapping_add(1i32);
+                    let v20: Rc<UH4> = { thread_local!{ static CASE: Rc<UH4> = Rc::new(UH4::UH4_Nil); } CASE.with(|case| case.clone()) };
+                    let mut v21: Rc<UH4> = method23(v13.clone(), v2, v20);
+                    let v22: Rc<UH4> = Rc::new(UH4::UH4_Cons(v13, v19, v21));
+                    let v23: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v3));
+                    (v22, v23)
+                };
+                (v1, v2, v3) = (v5, v24, v25);
+                continue;
+            }
+            _ => {
+                let (mut v28, mut v29): (Rc<UH4>, Rc<UH0>) = match Rc::unwrap_or_clone(v1) {
+                    UH0::UH0_Nil => {
+                        (v2, v3)
+                    }
+                    _ => unreachable!(),
+                };
+                return (v28, v29);
+            }
         }
-    };
-    (v30, v31)
+    }
 }
 fn selected_16(mut v0: i32, mut v1: i32, mut v2: Rc<UH0>) -> Rc<UH0> {
     let v3: Rc<UH0> = newest_first_18(v2);

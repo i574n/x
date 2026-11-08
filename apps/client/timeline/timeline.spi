@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust
 :# timeline static =
     :< testing
 
@@ -13,7 +12,6 @@
     | _ :: rest => parse_from (external_checks ()) (seeded_draft ()) rest |> fields_of
     | [] => fields_of ShowHelp
 
-///> _
 := main () : i32 =
     export "xc_timeline_fields" ((\ () => timeline_fields ()) : () -> command_fields)
     0i32

@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# refs static =
     :< testing
 
@@ -51,6 +50,7 @@
     | Ok sizes => sizes
     | Error _ => []
 
+///> rust
 :# a_lookup_level_fetches_every_wanted_post =
     := ~n = 150i32
     := wanted = listm::init n \ i => post_id (sm'::obj_to_string i)
@@ -103,6 +103,7 @@
 := unnamed_after (body : string) : string =
     absorbed (parse_json body) body (started "7" "7") |> unnamed |> delimited ","
 
+///> rust -d serde_json
 :# lookups_name_unseen_authors_and_the_next_level =
     := ~body = lookup_doc ()
     unnamed_after body |> _assert_eq "9"
@@ -116,7 +117,6 @@
 
 := refs_export () : () = export "xc_refs" ((\ x => refs_of x) : refs_args -> refs_reply)
 
-///> _
 := main () : i32 =
     refs_export ()
     0i32

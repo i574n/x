@@ -1,5 +1,4 @@
 ///- --package .
-///> gleam
 :# sim_publish static =
     :< testing
 
@@ -39,14 +38,21 @@
     := auth = [ erlang_http::header "authorization" s::auth ]
     erlang_http::posted_json (topic_url s) auth (iggy_body run signal) s::ca |> erlang_http::replied_status
 
+///> gleam
 :# a_login_reply_yields_its_token =
     token_in "{\"user_id\":1,\"access_token\":{\"token\":\"t0k\",\"expiry\":9}}" |> _assert_eq "t0k"
 
-:# only_a_200_login_opens_a_session =
+///> gleam
+:# a_200_login_opens_a_session =
     := ok = session_of "u" "c" 200i32 "{\"access_token\":{\"token\":\"t\"}}"
-    := no = session_of "u" "c" 401i32 ""
-    (ok |> optionm::map (\ s => s::auth), no |> optionm::map (\ s => s::auth)) |> _assert_eq (Some "Bearer t", None)
+    ok |> optionm::map (\ s => s::auth) |> _assert_eq (Some "Bearer t")
 
+///> gleam
+:# a_401_login_opens_no_session =
+    := no = session_of "u" "c" 401i32 ""
+    no |> optionm::map (\ s => s::auth) |> _assert_eq None
+
+///> gleam
 :# a_step_body_carries_the_shared_payload_base64 =
     := encoded = erlang_text::base64_encoded (payload_of "r1" (Step "a"))
     sm'::contains encoded (iggy_body "r1" (Step "a")) |> _assert_eq !+

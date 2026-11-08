@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# digest static =
     :< testing
 
@@ -67,19 +66,18 @@
 := two_post_bundle (keep : i32) : string =
     items [ primary_entry keep (object [ member "data" (items [ post_json (); post_json () ]) ]) ]
 
+:= kept_count (keep : i32) : i32 = listm::length (rebuilt_of (two_post_bundle keep))::primary
+
+///> rust -d serde_json
 :# keep_cuts_each_account_to_its_newest =
     := ~keep = 1i32
-    (
-        (listm::length (rebuilt_of (two_post_bundle keep))::primary : i32),
-        (listm::length (rebuilt_of (two_post_bundle 0i32))::primary : i32)
-    )
-    |> _assert_eq (1i32, 2i32)
+    (kept_count keep, kept_count 0i32) |> _assert_eq (1i32, 2i32)
 
+///> rust -d serde_json
 :# primary_posts_become_entry_lines =
     := ~bundle = primary_bundle ()
     digested bundle |> _assert_eq (quote_line "p" ++# "\n" ++# quote_line "r")
 
-///> _
 := main () : i32 =
     export "xc_digest" ((\ bundle => digested bundle) : string -> string)
     0i32

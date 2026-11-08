@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json unicode-segmentation=1.13 unicode-normalization=0.1
 :# chunks static =
     :< testing
 
@@ -29,15 +28,16 @@
 
 := local_json (i : i32) (posted : string) : string = chunks_by (weight_on OnX) (weighed_on OnX (nfc posted)) OnX i
 
+///> rust -d serde_json unicode-segmentation=1.13 unicode-normalization=0.1
 :# a_short_cell_is_one_chunk =
     := ~cell = "a"
     local_json 1i32 cell |> _assert_eq "[\"a\"]"
 
+///> rust -d serde_json unicode-segmentation=1.13 unicode-normalization=0.1
 :# a_posted_dot_stays_glued_to_its_space =
     := ~cell = "go x" ++# defused_dot () ++# "io"
     local_json 1i32 cell |> _assert_eq ("[\"go x" ++# defused_dot () ++# "io\"]")
 
-///> _
 := main () : i32 =
     export "xc_cell_chunks" ((\ (name, i, posted) => chunks_json name i posted) : string * i32 * string -> string)
     0i32

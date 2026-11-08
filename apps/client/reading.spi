@@ -1,6 +1,4 @@
 ///- --package . --timeout 900000
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# reading static =
     :< testing
 
@@ -119,30 +117,41 @@
 := mixed_cells () : string =
     "go x.com now\n\n" ++# repeated 150i32 "日本" "" ++# "\n\n" ++# repeated 120i32 "ab " ""
 
+:= rebuilt (text : string) : string * string * i32 =
+    := p = posts_of text |> read_thread
+    (p::sources |> delimited "|", file_cells text |> delimited "|", listm::length p::flaws)
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# posted_cells_rebuild_exactly =
     := ~text = mixed_cells ()
-    := p = posts_of text |> read_thread
-    p::sources |> delimited "|" |> _assert_eq (file_cells text |> delimited "|")
-    p::flaws |> listm::length |> _assert_eq 0i32
+    := got, want, flaws = rebuilt text
+    (got, flaws) |> _assert_eq (want, 0i32)
 
 := carries_defused_dot (t : string) : bool = sm'::index_of (defused_dot ()) t >= 0i32
 
 := ends_in_space (t : string) : bool = trimmed_end t <> t
 
+:= frame_traits (posts : list string) : bool * bool * bool =
+    (listm::length posts > 3i32, has ends_in_space posts, has carries_defused_dot posts)
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# posted_frames_keep_no_trailing_space =
     := ~text = mixed_cells ()
-    := posts = posts_of text
-    (listm::length posts > 3i32) |> _assert_eq !+
-    has ends_in_space posts |> _assert_eq !-
-    has carries_defused_dot posts |> _assert_eq !+
+    posts_of text |> frame_traits |> _assert_eq (!+, !-, !+)
 
 := without_post (k : i32) (l : list string) : list string =
     listm::init (listm::length l) id |> keep (\ i => i <> k) |> each \ i => field_at i l
 
 := notes_of (p : program) : string = p::flaws |> each note_of |> delimited "|"
 
+:= hole_report (p : program) : string * i32 = (notes_of p, listm::length p::sources)
+
+:= read_without (k : i32) : program = posts_of (mixed_cells ()) |> without_post k |> read_thread
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# a_lost_frame_leaves_its_cell_holed =
     := ~lost = 2i32
-    := p = posts_of (mixed_cells ()) |> without_post lost |> read_thread
-    notes_of p |> _assert_eq "cell c2 is missing frame 2 of 3"
-    p::sources |> listm::length |> _assert_eq 2i32
+    read_without lost |> hole_report |> _assert_eq ("cell c2 is missing frame 2 of 3", 2i32)

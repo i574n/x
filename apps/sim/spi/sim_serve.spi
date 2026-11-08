@@ -1,5 +1,4 @@
 ///- --package . --timeout 900000
-///> gleam
 :# sim_serve static =
     :< testing
 
@@ -155,8 +154,9 @@
 
 := fresh () : dict::dict string term = dict::empty ()
 
-:= blank_world (token : string) (user_token : string) (now : string) : api_world =
-    { token; user_token; by_handle = fresh (); by_id = fresh (); page_size = 100i32; by_post = fresh ();
+:= blank_world (t : string) (u : string) (now : string) =
+    := e = fresh ()
+    { token = t; user_token = u; by_handle = e; by_id = e; page_size = 100i32; by_post = e;
         now; raw = str ""; issued = []; writes = no_writes (); feeds = []; media_root = "" }
 
 := no_fields () : term = (erlang_map::map_new () : fields) |> erlang_map::map_term
@@ -798,7 +798,7 @@
     ? parent = "" ?> str id |: field_or "conversation_id" (str parent) (post_of w parent)
 
 := created_head (w : api_world) (id : string) (t : string) : list (string * term) =
-    := made = str (stamp_after w (dict::size w::writes::created))
+    := made = str (stamp_after w (dict::count w::writes::created))
     [ ("id", str id); ("text", str t); ("author_id", w::writes::me); ("created_at", made) ]
 
 :~ created_post (w : api_world) (id : string) (t : string) (parent : string) : term =
@@ -952,6 +952,7 @@
 := authors_of (w : api_world) (id : string) : list string =
     user_posts w (dict::present id w::by_id) |> each (\ p => text (field "author_id" p))
 
+///> gleam
 :# a_repost_shared_by_two_accounts_stays_on_both =
     := w = two_reposters ()
     (authors_of w "1", authors_of w "2") |> _assert_eq ([ "1" ], [ "2" ])
@@ -959,30 +960,36 @@
 := stamped (id : string) (at : string) : term =
     erlang_term::json_decoded ("{\"id\":\"" ++# id ++# "\",\"created_at\":\"2026-10-18T10:00:0" ++# at ++# "Z\"}")
 
+///> gleam
 :# newest_first_orders_by_time_then_longer_id =
     [ stamped "5" "1"; stamped "10" "2"; stamped "9" "2"; stamped "7" "3" ] |> newest_first |> each post_key
     |> _assert_eq [ "7"; "10"; "9"; "5" ]
 
+///> gleam
 :# found_ids_sort_longer_then_greater_first =
     [ stamped "9" "1"; stamped "10" "1"; stamped "8" "1" ]
     |> list_sort::sorted_by \ a b => not (not_before (id_order b) (id_order a))
     |> each post_key
     |> _assert_eq [ "10"; "9"; "8" ]
 
+///> gleam
 :# a_world_without_oauth2_loads =
     := w = erlang_term::json_decoded "{\"users\":[]}" |> empty_world
     w::issued |> _assert_eq [ "" ]
 
+///> gleam
 :# a_closed_preconnect_is_not_a_request =
     [ ""; "GET /timeline HTTP/1.1\r\nHost: h"; "GET / HTTP/1.1\r\nHost: h\r\n\r\n" ]
     |> each erlang_http_server::complete
     |> _assert_eq [ !-; !-; !+ ]
 
+///> gleam
 :# a_port_setting_reads_as_a_number_or_ephemeral =
     [ "8787"; " 8787 "; ""; "x" ] |> each port_from |> _assert_eq [ 8787i32; 8787i32; 0i32; 0i32 ]
 
 := issued_count (w : api_world) : i32 = listm::length w::issued
 
+///> gleam
 :# a_crashing_handler_answers_500_and_keeps_the_world =
     := w = two_reposters ()
     := reply, kept = contained w (Error "badarg")
@@ -1004,11 +1011,13 @@
     etf_written path (erlang_term::json_decoded "{\"a\":2}")
     path
 
+///> gleam
 :# a_newer_etf_answers_for_its_json =
     := path = cache_fixture "world-cache-newer.json"
     stamped (etf_of path) 2099i32
     a_of (json_file path) |> _assert_eq 2i32
 
+///> gleam
 :# a_newer_json_wins_and_recaches =
     := path = cache_fixture "world-cache-older.json"
     stamped (etf_of path) 2000i32

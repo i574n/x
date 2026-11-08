@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json unicode-segmentation=1.13 unicode-normalization=0.1
 test frames static =
     :< testing
 
@@ -33,11 +32,11 @@ test frames static =
 := framed_json (name : string) (text : string) : string =
     framed_by (remote_chunks name) (remote_weight name) (cells_of text)
 
+///> rust -d serde_json unicode-segmentation=1.13 unicode-normalization=0.1
 test each_post_carries_its_weight =
     := ~text = "a"
     framed_by (local_chunks OnX) (weight_on OnX) [ text ] |> _assert_eq "[{\"text\":\"c1 1/1\\na\",\"weight\":8}]"
 
-///> _
 := main () : i32 =
     export "xc_frames" ((\ (name, t) => framed_json name t) : string * string -> string)
     0i32

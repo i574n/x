@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# chain static =
     :< testing
 
@@ -84,14 +83,17 @@
 
 := three_posts () : list framed = [ post_of "3" "2" "c1 3/3"; post_of "1" "" "c1 1/3"; post_of "2" "1" "c1 2/3" ]
 
+///> rust
 :# a_thread_chain_runs_from_its_root_to_the_last_reply =
     := ~posts = three_posts ()
     (chain_listed posts, chain_listed []) |> _assert_eq ("1,2,3", "none")
 
+///> rust -d serde_json
 :# a_chain_keeps_multiline_quoted_texts =
     := ~text = "c1 1/1\nsay \"hi\""
     [ post_of "1" "" text ] |> chain_json |> parse_json |> collect (at_key "text") |> _assert_eq [ text ]
 
+///> rust
 :# a_branch_or_a_second_root_refuses =
     := ~posts = three_posts ()
     (chain_listed (post_of "4" "1" "x" :: posts), chain_listed (post_of "5" "9" "y" :: posts))
@@ -107,7 +109,6 @@
         := code, bundle, failure = thread_pages base bearer id
         ? code = 0i32 ?> chain_reply bundle |: code, "", failure
 
-///> _
 := main () : i32 =
     export "xc_chain" ((\ x => chains x) : ask -> pages_reply)
     0i32

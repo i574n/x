@@ -1,5 +1,4 @@
 ///- --package .
-///> rust
 :# run_signals static =
     :< testing
 
@@ -36,10 +35,12 @@
     := partition = "{\"kind\":\"partition_id\",\"value\":\"AAAAAA==\"}"
     "{\"partitioning\":" ++# partition ++# ",\"messages\":[{\"id\":0,\"payload\":" ++# json::quote encoded ++# "}]}"
 
+///> rust
 :# a_step_payload_carries_its_run_and_kind_first =
     payload_of "r1" (Step "x e2e / \"a\"")
     |> _assert_eq "{\"run\":\"r1\",\"kind\":\"step\",\"line\":\"x e2e / \\\"a\\\"\"}"
 
+///> rust
 :# counts_steps_and_sees_finish =
     := mine = [ payload_of "r1" (Step "a"); payload_of "r10" (Step "a"); payload_of "r1" (Finished (1i32, 0i32)) ]
     (count_of_run "r1" mine, finished_in "r1" mine, finished_in "r10" mine) |> _assert_eq (1i32, !+, !-)

@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d sha2
-///> gleam
 :# runner_checks static =
     :< testing
 
@@ -102,15 +100,21 @@
 
 := liked_once (id : string) : list delivery = [ post_at 0i32 id None "x"; like_at 1i32 id "u" ]
 
+///> rust -d sha2
+///> gleam
 :# a_sync_run_holds_every_rule =
     := ~id = "p0"
     runner_checks (sync_run (plain_faults ()) (liked_pair id)) fake_baseline |> findings_text |> _assert_eq (all_ok ())
 
+///> rust -d sha2
+///> gleam
 :# a_differing_baseline_names_the_post =
     := ~id = "p0"
     runner_checks (sync_run (plain_faults ()) (liked_once id)) wrong_baseline |> verdict_where equivalence_rule
     |> _assert_eq "FAIL[p0]"
 
+///> rust -d sha2
+///> gleam
 :# sync_and_deferred_runs_commute =
     := ~id = "p0"
     := l = two_thread id
@@ -121,6 +125,8 @@
     breaking_failed s (dict::set_empty ())
     |> verdict_text
 
+///> rust -d sha2
+///> gleam
 :# a_broken_source_that_runs_ok_is_named =
     := ~id = "p0"
     sync_run (plain_faults ()) (liked_once id) |> broken_pair |> _assert_eq ("FAIL[p0]", "ok")
@@ -143,14 +149,20 @@
     =
     rule_under wanted (run (naive_faults ())) l, rule_under wanted (run (plain_faults ())) l
 
+:= liked_then (id : string) (last : delivery) : list delivery = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u1"; last ]
+
+///> rust -d sha2
+///> gleam
 :# naive_visibility_without_cancelling_surfaces_a_stale_revision =
     := ~id = "p0"
-    := l = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u1"; edited_at 2i32 id "inl a = 1\n" ]
+    := l = liked_then id (edited_at 2i32 id "inl a = 1\n")
     naive_vs_plain stale_rule newest_first_run l |> _assert_eq ("FAIL[p0]", "ok")
 
+///> rust -d sha2
+///> gleam
 :# withdrawn_demand_stays_hidden_unless_assigned_naively =
     := ~id = "p0"
-    := l = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u1"; unlike_at 2i32 id "u1" ]
+    := l = liked_then id (unlike_at 2i32 id "u1")
     naive_vs_plain withdrawn_rule deferred_run l |> _assert_eq ("FAIL[p0]", "ok")
 
 := graced (n : i32) : fault_set =
@@ -166,13 +178,15 @@
     sync_run (graced 1i32) (listm::append (lapse_of id) more)
 
 := lapse_shape (s : scheduler) : i32 * i32 * i32 =
-    s::run_counts::rescues, s::run_counts::recomputes, dict::size s::life_cycle::doomed
+    s::run_counts::rescues, s::run_counts::recomputes, dict::count s::life_cycle::doomed
 
 := grace_shape (id : string) : (i32 * i32 * i32) * string * bool =
     := short = relapsed (graced 12i32) id
     lapse_shape short, runs_commute short (relapsed (plain_faults ()) id)
-    |> verdict_text, dict::size (long_lapse id)::run_counts::evicted > 0i32
+    |> verdict_text, dict::count (long_lapse id)::run_counts::evicted > 0i32
 
+///> rust -d sha2
+///> gleam
 :# a_grace_window_keeps_a_result_through_a_short_lapse_and_frees_it_after =
     := ~id = "p0"
     grace_shape id |> _assert_eq ((1i32, 0i32, 0i32), "ok", !+)
@@ -182,6 +196,8 @@
     | Ok replay => runs_commute (sync_run (plain_faults ()) l) (sync_run (plain_faults ()) replay) |> verdict_text
     | Error why => why
 
+///> rust -d sha2
+///> gleam
 :# a_saved_stream_replays_to_the_same_visible_results =
     := ~id = "p0"
     two_thread id |> replay_commutes |> _assert_eq "ok"
@@ -194,6 +210,8 @@
     rule_under prefix_rule (sync_run (rerun_faults ())) l
     |> sm'::starts_with "FAIL", rule_under prefix_rule (sync_run (plain_faults ())) l
 
+///> rust -d sha2
+///> gleam
 :# rerunning_finished_results_recompiles_shared_prefixes =
     := ~id = "p0"
     two_thread id |> rerun_pair |> _assert_eq (!+, "ok")

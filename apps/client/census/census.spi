@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust
 :# census static =
     :< testing
 
@@ -86,14 +85,17 @@
 
 := total_of (rows : string) : string = repo_line (repo_total "total" (rows_back rows))
 
+///> rust
 :# a_preview_counts_cells_spills_and_posts =
     census_of "a.spi" "c1 1/1\nbody\nc2 1/2\nmore\nc2 2/2\nend" |> census_row
     |> _assert_eq "a.spi class=hand cells=2 spilled=1 posts=3"
 
+///> rust
 :# a_repo_total_reads_like_the_report_line =
     := a = census_of "a.spi" "c1 1/1\nbody\nc2 1/2\nmore\nc2 2/2\nend"
     repo_total "x" [ a; census_of "b.spi" "c1 1/1\nx" ] |> repo_line |> _assert_eq (sample_line ())
 
+///> rust
 :# paths_sort_into_hand_generated_and_data =
     listm::map (\ p => class_text (class_named p)) [
         "a\\b.spi"
@@ -103,6 +105,7 @@
     ]
     |> _assert_eq [ "hand"; "generated"; "data"; "data" ]
 
+///> rust
 :# rows_read_back_into_the_same_total =
     := rows = "a.spi cells=2 spilled=1 posts=3\nb c.spi cells=1 spilled=0 posts=1"
     total_of rows
@@ -128,7 +131,6 @@
     := rows = pieces "\n" payload |> listm::fold (rows_into site) [] |> listm::rev
     sm'::concat_list "\n" (listm::append rows (report_tail rows))
 
-///> _
 := main () : i32 =
     export "xc_census_files" ((\ (site, payload) => files_report site payload) : string * string -> string)
     0i32

@@ -1,5 +1,4 @@
 ///- --package . --timeout 900000
-///> gleam
 :# timeline_serve static =
     :< testing
 
@@ -23,18 +22,22 @@
 
 := sample_cursor () : page_cursor = { feeds = [ "72784485"; "1637273636049498112" ]; offsets = [ 20i32; 0i32 ] }
 
+///> gleam
 :# a_cursor_prints_feeds_then_offsets =
     cursor_query (sample_cursor ()) |> _assert_eq "f=72784485.1637273636049498112&c=20.0"
 
+///> gleam
 :# a_printed_cursor_parses_back =
     := c = sample_cursor ()
     := back = cursor_of_query (cursor_query c)
     (back::feeds, back::offsets) |> _assert_eq (c::feeds, c::offsets)
 
+///> gleam
 :# a_bad_offset_reads_as_zero =
     := c = cursor_of_query "f=a.b&c=x.7"
     (c::feeds, c::offsets) |> _assert_eq ([ "a"; "b" ], [ 0i32; 7i32 ])
 
+///> gleam
 :# an_empty_query_is_the_first_page =
     := c = cursor_of_query ""
     (c::feeds, c::offsets) |> _assert_eq ([], [])
@@ -86,11 +89,29 @@
 := media_item_of_term (m : erlang_term::term) : timeline_page::media_item =
     timeline_page::media_item_of (field_text "path" m) (field_text "type" m) (field_text "alt_text" m)
 
-:= media_of (p : erlang_term::term) : list timeline_page::media_item =
-    sim_serve::terms_of (sim_serve::items_at "media" p) |> each media_item_of_term
+:= media_terms (x : erlang_term::term) : list timeline_page::media_item =
+    sim_serve::terms_of (sim_serve::items_at "media" x) |> keep (\ m => erlang_term::is_map m) |> each media_item_of_term
+
+:= media_of (p : erlang_term::term) : list timeline_page::media_item = media_terms p
+
+:= quote_media_of (p : erlang_term::term) : list timeline_page::media_item =
+    := q = sim_serve::field "quote" p
+    ? not (erlang_term::is_map q) ?> [] |: media_terms q
+
+:= int_term (v : erlang_term::term) : bool = erlang_term::cast (erlang_term::apply "erlang" "is_integer" [ v ])
+
+:= int_field (key : string) (p : erlang_term::term) : i32 =
+    := v = sim_serve::field key p
+    ? erlang_term::is_binary v || int_term v ?> offset_of (sim_serve::id_text v) |: 0i32
+
+:= post_meta_of (p : erlang_term::term) : timeline_page::post_meta =
+    := base = timeline_page::meta_of (int_field "favorite_count" p) (int_field "conversation_count" p)
+    timeline_page::with_lang (field_text "lang" p) base
 
 := entry_of ((username, s) : shown_item) : labeled =
-    ?= s ?| ShownPost p => timeline_page::labeled_of (plain_of username p) (kind_of p) (media_of p)
+    ?= s ?| ShownPost p =>
+        := base = timeline_page::labeled_of (plain_of username p) (kind_of p) (media_of p) (quote_media_of p)
+        timeline_page::with_meta (post_meta_of p) base
 
 := kept (acc : list (shown_item)) (i : feed_item) : list (shown_item) =
     ?= surviving i ?| Some s => s :: acc | None => acc
@@ -140,9 +161,25 @@
     := name = label_of users u
     authored u |> newest_posts |> each \ p => (name, p)
 
+:= older_item (a : feed_item) (b : feed_item) : bool = newer_item b a
+
+:= oriented (dir : string) (feeds : list (list feed_item)) : list (list feed_item) =
+    ? dir = "up" ?> (feeds |> each listm::rev) |: feeds
+
+:= cmp_of (dir : string) : feed_item -> feed_item -> bool = ? dir = "up" ?> older_item |: newer_item
+
+:= dir_of (query : string) : string = ?= dotted_in "d" query ?| v :: _ => v | [] => "down"
+
+:= merged_from (dir : string) (fs : list (list feed_item)) (offsets : list i32) (budget : i32) =
+    feed_merge::merged_page (cmp_of dir) budget (feed_merge::resumed fs offsets)
+
+:= page_dir (dir : string) (feeds : list (list feed_item)) (c : page_cursor) (budget : i32) : page =
+    := fs = oriented dir feeds
+    := items, next = merged_from dir fs c::offsets budget
+    visible items, feed_merge::offsets_of fs next
+
 := page_of (feeds : list (list feed_item)) (c : page_cursor) (budget : i32) : page =
-    := items, next = feed_merge::merged_page newer_item budget (feed_merge::resumed feeds c::offsets)
-    visible items, feed_merge::offsets_of feeds next
+    page_dir "down" feeds c budget
 
 := post_json (id : string) (lost : string) : erlang_term::term =
     := head = "{\"id\":\"" ++# id ++# "\",\"created_at\":\"2026-10-18T10:00:0" ++# id ++# "Z\""
@@ -157,10 +194,12 @@
 := account (id : string) (name : string) : erlang_term::term =
     erlang_term::json_decoded ("{\"id\":\"" ++# id ++# "\",\"username\":\"" ++# name ++# "\",\"posts\":[]}")
 
+///> gleam
 :# a_reclaimed_handle_labels_each_account_by_id =
     := users = [ account "1" "fc1943s"; account "2" "FC1943s"; account "3" "b" ]
     users |> each (label_of users) |> _assert_eq [ "fc1943s · 1"; "FC1943s · 2"; "b" ]
 
+///> gleam
 :# a_page_hides_lost_posts_but_counts_them =
     := shown, offsets = page_of (two_feeds ()) { feeds = [ "a"; "b" ]; offsets = [] } 3i32
     (shown |> each (\ e => e::entry::text), offsets) |> _assert_eq ([ "t4"; "t2" ], [ 1i32; 2i32 ])
@@ -174,9 +213,12 @@
     := c = cursor_of_query query
     ? c::feeds = ids ?> c |: { feeds = ids; offsets = [] }
 
-:= next_link (ids : list string) (next : list i32) (entries : list labeled) : string =
+:= more_anchor (c : string) (d : string) : string = "\n<a class=\"more\" href=\"/timeline?" ++# c ++# d ++# "\">next</a>"
+
+:= next_link (ids : list string) (next : list i32) (dir : string) (entries : list labeled) : string =
     := c = cursor_query { feeds = ids; offsets = next }
-    ?= entries ?| [] => "" | _ => "\n<a href=\"/timeline?" ++# c ++# "\">next</a>"
+    := d = ? dir = "down" ?> "" |: "&d=" ++# dir
+    ?= entries ?| [] => "" | _ => more_anchor c d
 
 := with_feeds (w : sim_serve::api_world) : sim_serve::api_world =
     ?= w::feeds ?|
@@ -184,7 +226,7 @@
     | _ => w
 
 := scroll_find () : string =
-    "<script>(function(){var busy=!1;function last(){var a=document.querySelectorAll('a[href^=\"/timeline?\"]');"
+    "<script>(function(){var busy=!1;function last(){var a=document.querySelectorAll('a.more');"
     ++# "return a.length?a[a.length-1]:null}"
 
 := scroll_fetch () : string =
@@ -192,78 +234,190 @@
     ++# ".then(function(r){return r.text()}).then(function(h){var d=new DOMParser().parseFromString(h,'text/html');"
 
 := scroll_append () : string =
-    "d.querySelectorAll('article.post').forEach(function(x){a.parentNode.insertBefore(document.importNode(x,!0),a)});"
-    ++# "var n=d.querySelector('a[href^=\"/timeline?\"]');"
+    "var fa=1;d.querySelectorAll('article.post').forEach(function(x){var y=document.importNode(x,!0);if(fa){y.dataset.c=a.getAttribute('href');fa=0}a.parentNode.insertBefore(y,a)});"
+    ++# "var n=d.querySelector('a.more');"
 
 := scroll_advance () : string =
     "if(n){a.setAttribute('href',n.getAttribute('href'));busy=!1;check()}else a.remove()})"
     ++# ".catch(function(){busy=!1})}"
 
+:= scroll_track () : string =
+    "var base=location.pathname+location.search;function track(){var q=document.querySelectorAll('article.post[data-c]'),c=base;"
+
+:= scroll_track_scan () : string =
+    "for(var i=0;i<q.length;i++){if(q[i].getBoundingClientRect().top>80)break;c=q[i].dataset.c}"
+
+:= scroll_track_apply () : string =
+    "if(c!==location.pathname+location.search)history.replaceState(null,'',c)}"
+
 := scroll_watch () : string =
     "function check(){var a=last();if(a&&a.getBoundingClientRect().top<innerHeight*2)more()}"
-    ++# "addEventListener('scroll',check,{passive:!0});check()})()</script>"
+    ++# "addEventListener('scroll',function(){check();track()},{passive:!0});check()})()</script>"
 
 := scroll_script () : string =
-    "\n" ++# scroll_find () ++# scroll_fetch () ++# scroll_append () ++# scroll_advance () ++# scroll_watch ()
+    "\n" ++# scroll_find () ++# scroll_fetch () ++# scroll_append () ++# scroll_advance () ++# scroll_track () ++# scroll_track_scan () ++# scroll_track_apply () ++# scroll_watch ()
 
-:= page_html (ids : list string) ((entries, next) : page) : string =
-    timeline_page::labeled_html "Following" entries ++# next_link ids next entries ++# scroll_script ()
+:= page_html (ids : list string) (dir : string) ((entries, next) : page) : string =
+    timeline_page::labeled_html "Following" entries ++# next_link ids next dir entries ++# scroll_script ()
+
+:= post_stamp ((_, p) : feed_item) : string = field_text "created_at" p
+
+:= from_of (query : string) : string = ?= dotted_in "from" query ?| v :: _ => v | [] => ""
+
+:= seek_feed (bound : string) (feed : list feed_item) : i32 =
+    listm::fold (\ acc fi => ? erlang_term::text_at_least (post_stamp fi) bound ?> acc + 1i32 |: acc) 0i32 feed
+
+:= seek_offsets (bound : string) (feeds : list (list feed_item)) : list i32 = feeds |> each (seek_feed bound)
+
+:= seek_from (c : page_cursor) (from : string) (feeds : list (list feed_item)) : page_cursor =
+    { c ?| offsets = seek_offsets (from ++# "T9") feeds }
+
+:= seeded (dir : string) (ids : list string) (query : string) (feeds : list (list feed_item)) : page_cursor =
+    := c = resumed_cursor ids query
+    := from = from_of query
+    ?= c::offsets ?| [] => ? from = "" || dir = "up" ?> c |: seek_from c from feeds | _ => c
 
 := feed_page (w : sim_serve::api_world) (query : string) : string =
     := ids = cursor_ids (following w)
-    page_of w::feeds (resumed_cursor ids query) 50i32 |> page_html ids
+    := dir = dir_of query
+    page_dir dir w::feeds (seeded dir ids query w::feeds) 50i32 |> page_html ids dir
 
 := feed_reply (w : sim_serve::api_world) (r : sim_serve::request) : string =
     erlang_http_server::response_text 200i32 "text/html; charset=utf-8" (feed_page w r::query)
 
 := media_ext (rel : string) : string = ?= listm::rev (pieces "." rel) ?| e :: _ => sm'::to_lower e | [] => ""
 
+:= motion_type (e : string) : string =
+    ? e = "gif" ?> "image/gif" |? e = "webp" ?> "image/webp"
+    |? e = "mp4" ?> "video/mp4" |? e = "webm" ?> "video/webm" |? e = "woff2" ?> "font/woff2" |: "application/octet-stream"
+
 := media_type (rel : string) : string =
     := e = media_ext rel
-    ? e = "jpg" ?> "image/jpeg" |? e = "jpeg" ?> "image/jpeg" |? e = "png" ?> "image/png"
-    |? e = "gif" ?> "image/gif" |? e = "webp" ?> "image/webp"
-    |? e = "mp4" ?> "video/mp4" |? e = "webm" ?> "video/webm" |: "application/octet-stream"
+    ? e = "jpg" || e = "jpeg" ?> "image/jpeg" |? e = "png" ?> "image/png" |: motion_type e
 
 := safe_rel (rel : string) : bool =
     rel <> "" && not (sm'::contains ".." rel) && not (sm'::starts_with "/" rel)
         && not (sm'::starts_with "\\" rel) && not (sm'::contains ":" rel)
 
+:= ok_tag (t : erlang_term::term) : bool = erlang_term::equal (erlang_term::element_at 1i32 t) (erlang_term::atom "ok")
+
+:= ok_text (r : erlang_term::term) : option string =
+    ? ok_tag r ?> Some (sim_serve::text (erlang_term::element_at 2i32 r)) |: None
+
 := media_read (full : string) : option string =
-    := r = erlang_term::apply "file" "read_file" [ erlang_term::charlist full ]
-    ? erlang_term::equal (erlang_term::element_at 1i32 r) (erlang_term::atom "ok")
-    ?> Some (sim_serve::text (erlang_term::element_at 2i32 r)) |: None
+    ok_text (erlang_term::apply "file" "read_file" [ erlang_term::charlist full ])
 
 := media_404 () : string = erlang_http_server::response_text 404i32 "text/plain; charset=utf-8" "not found"
 
-:= media_hit (ctype : string) (full : string) : string =
-    ?= media_read full ?| Some bin => erlang_http_server::response_text 200i32 ctype bin | None => media_404 ()
+:= clamp0 (n : i32) : i32 = ? n < 0i32 ?> 0i32 |: n
 
-:= media_reply (w : sim_serve::api_world) (path : string) : string =
+:= suffix_bounds (e : string) (total : i32) : option (i32 * i32) =
+    ?= count_of_text e ?| Some n => Some (clamp0 (total - n), total - 1i32) | None => None
+
+:= open_bounds (s : string) (total : i32) : option (i32 * i32) =
+    ?= count_of_text s ?| Some a => ? a < total ?> Some (a, total - 1i32) |: None | None => None
+
+:= closed_bounds (s : string) (e : string) (total : i32) : option (i32 * i32) =
+    ?= count_of_text s ?|
+    | None => None
+    | Some a => ?= count_of_text e ?| Some b => ? a <= b && b < total ?> Some (a, b) |: None | None => None
+
+:= range_bounds (s : string) (e : string) (total : i32) : option (i32 * i32) =
+    ? s = "" && e = "" ?> None
+    |? s = "" ?> suffix_bounds e total
+    |? e = "" ?> open_bounds s total
+    |: closed_bounds s e total
+
+:= range_body (body : string) (total : i32) : option (i32 * i32) =
+    ? sm'::contains "," body ?> None |: ?= pieces "-" body ?| s :: e :: [] => range_bounds s e total | _ => None
+
+:= range_spec (header : string) (total : i32) : option (i32 * i32) =
+    ? header = "" ?> None
+    |? not (sm'::starts_with "bytes=" header) ?> None
+    |: range_body (sm'::substring 6i32 (sm'::length header - 6i32) header) total
+
+:= file_mode () : erlang_term::term =
+    erlang_term::list_term [ erlang_term::atom "read"; erlang_term::atom "binary"; erlang_term::atom "raw" ]
+
+:= opened_fd (full : string) : option erlang_term::term =
+    := opened = erlang_term::apply "file" "open" [ erlang_term::charlist full; file_mode () ]
+    ? ok_tag opened ?> Some (erlang_term::element_at 2i32 opened) |: None
+
+:= pread_fd (fd : erlang_term::term) (offset : i32) (len : i32) : option string =
+    := r = erlang_term::apply "file" "pread" [ fd; erlang_term::of offset; erlang_term::of len ]
+    := _c = erlang_term::apply "file" "close" [ fd ]
+    ok_text r
+
+:= pread_slice (full : string) (offset : i32) (len : i32) : option string =
+    ?= opened_fd full ?| Some fd => pread_fd fd offset len | None => None
+
+:= file_size (full : string) : i32 =
+    offset_of (sim_serve::id_text (erlang_term::apply "filelib" "file_size" [ erlang_term::charlist full ]))
+
+:= ok_response (ctype : string) (bin : string) : string =
+    erlang_http_server::response_ranged 200i32 ctype "\r\nAccept-Ranges: bytes" bin
+
+:= content_range (lo : i32) (hi : i32) (total : i32) : string =
+    := n = \ (x : i32) => sm'::obj_to_string x
+    "\r\nAccept-Ranges: bytes\r\nContent-Range: bytes " ++# n lo ++# "-" ++# n hi ++# "/" ++# n total
+
+:= range_response (ctype : string) (data : string) (lo : i32) (hi : i32) (total : i32) : string =
+    erlang_http_server::response_ranged 206i32 ctype (content_range lo hi total) data
+
+:= full_response (ctype : string) (full : string) : string =
+    ?= media_read full ?| Some bin => ok_response ctype bin | None => media_404 ()
+
+:= slice_response (ctype : string) (full : string) (lo : i32) (hi : i32) (total : i32) : string =
+    ?= pread_slice full lo (hi - lo + 1i32) ?| Some d => range_response ctype d lo hi total | None => media_404 ()
+
+:= ranged_hit (ctype : string) (full : string) (range : string) (total : i32) : string =
+    ?= range_spec range total ?|
+    | None => full_response ctype full
+    | Some (lo, hi) => slice_response ctype full lo hi total
+
+:= media_hit (ctype : string) (full : string) (range : string) : string =
+    := total = file_size full
+    ? total <= 0i32 ?> media_404 () |: ranged_hit ctype full range total
+
+:= media_reply (w : sim_serve::api_world) (path : string) (range : string) : string =
     := rel = sm'::substring 7i32 (sm'::length path - 7i32) path
-    ? safe_rel rel ?> media_hit (media_type rel) (w::media_root ++# "/" ++# rel) |: media_404 ()
+    ? safe_rel rel ?> media_hit (media_type rel) (w::media_root ++# "/" ++# rel) range |: media_404 ()
 
-:~ feed_or_api (w : sim_serve::api_world) (log : string) (raw : string) : string * sim_serve::api_world =
+:= media_route (w : sim_serve::api_world) (r : sim_serve::request) : string =
+    media_reply w r::path (erlang_http_server::header_value "range" r::head)
+
+:== routed = string * sim_serve::api_world
+
+:= timeline_reply (w : sim_serve::api_world) (r : sim_serve::request) : routed =
+    (\ fed => (feed_reply fed r, fed)) (with_feeds w)
+
+:= media_or_api (w : sim_serve::api_world) (r : sim_serve::request) (log : string) (raw : string) : routed =
+    ? sm'::starts_with "/media/" r::path ?> (media_route w r, w) |: sim_serve::replied w log raw
+
+:~ feed_or_api (w : sim_serve::api_world) (log : string) (raw : string) : routed =
     := r = erlang_http_server::request_of raw
-    ? r::path = "/timeline" ?> (\ fed => (feed_reply fed r, fed)) (with_feeds w)
-    |? sm'::starts_with "/media/" r::path ?> (media_reply w r::path, w)
-    |: sim_serve::replied w log raw
+    ? r::path = "/timeline" ?> timeline_reply w r |: media_or_api w r log raw
 
 := serve (args : list string) : i32 = sim_serve::serve_with feed_or_api args
 
+///> gleam
 :# cursor_ids_lists_account_ids_in_order =
     cursor_ids [ account "72784485" "fc1943s"; account "1637273636049498112" "fc1943s" ]
     |> _assert_eq [ "72784485"; "1637273636049498112" ]
 
+///> gleam
 :# a_cursor_resumes_only_for_the_same_accounts =
     := same, other = resumed_cursor [ "1"; "2" ] "f=1.2&c=4.5", resumed_cursor [ "1"; "2" ] "f=1.3&c=4.5"
     (same::offsets, other::feeds, other::offsets) |> _assert_eq ([ 4i32; 5i32 ], [ "1"; "2" ], [])
 
 := sample_world () : sim_serve::api_world = with_feeds (sim_serve::two_reposters ())
 
+///> gleam
 :# the_timeline_path_serves_an_html_page =
     := r = erlang_http_server::request_of "GET /timeline HTTP/1.1\r\n\r\n"
     feed_reply (sample_world ()) r |> sm'::starts_with "HTTP/1.1 200 OK\r\nContent-Type: text/html" |> _assert_eq !+
 
+///> gleam
 :# the_feeds_are_built_once_per_world =
     := w = sample_world ()
     := n, again = (listm::length (following w) : i32), with_feeds w
@@ -273,10 +427,12 @@
 
 := descending () : list string = [ "6"; "6"; "5"; "4"; "3"; "2"; "1" ]
 
+///> gleam
 :# runs_sort_like_the_merge_sort =
     := ps = [ "1"; "3"; "2"; "5"; "4"; "6"; "6" ] |> each (\ id => post_json id "false")
     (ids_of (newest_posts ps), ids_of (list_sort::sorted_by newer_post ps)) |> _assert_eq (descending (), descending ())
 
+///> gleam
 :# oldest_first_input_is_one_run =
     := ps = [ "1"; "2"; "3" ] |> each (\ id => post_json id "false")
     := rs = runs_of (listm::rev ps) [] []
@@ -288,37 +444,105 @@
 
 := label_for (kind : string) (extra : string) : string = kind_of (kinded kind extra) |> timeline_page::label_of
 
+///> gleam
 :# a_repost_names_the_original_author =
-    label_for "retweet" ",\"retweet_author\":\"gfixler\"" |> _assert_eq "Repost of @gfixler, not this account's words"
+    label_for "retweet" ",\"retweet_author\":\"gfixler\"" |> _assert_eq "Repost of @gfixler"
 
-:# a_reply_names_the_account_it_answers =
-    label_for "reply" ",\"reply_to_user\":\"dsy\"" |> _assert_eq "Reply to @dsy"
+///> gleam
+:# a_reply_has_no_label =
+    label_for "reply" ",\"reply_to_user\":\"dsy\"" |> _assert_eq ""
 
+///> gleam
 :# a_quote_names_its_author_even_when_the_quote_is_missing =
     := quoted = label_for "quote" ",\"quote\":{\"author\":\"m2\",\"id\":\"1\",\"text\":\"q\"}"
     (quoted, label_for "quote" ",\"quote\":null")
     |> _assert_eq ("Quoting @m2", "Quoting")
 
+:= one_photo () : string = "[{\"path\":\"a.jpg\",\"type\":\"photo\",\"alt_text\":\"\"}]"
+
+:= quoted_photo () : string = ",\"quote\":{\"media\":" ++# one_photo () ++# "}"
+
+///> gleam
+:# quote_media_reads_only_a_quote_map =
+    := count (extra : string) : i32 = listm::length (quote_media_of (kinded "quote" extra))
+    (count ",\"quote\":null", count "", count (quoted_photo ())) |> _assert_eq (0i32, 0i32, 1i32)
+
+///> gleam
+:# a_null_or_missing_count_reads_as_zero =
+    := count (extra : string) : i32 = int_field "favorite_count" (kinded "tweet" extra)
+    (count ",\"favorite_count\":null", count "", count ",\"favorite_count\":7") |> _assert_eq (0i32, 0i32, 7i32)
+
+///> gleam
+:# media_skips_bare_url_strings_and_reads_maps =
+    := n (extra : string) : i32 = listm::length (media_of (kinded "tweet" extra))
+    (n ",\"media\":[\"https://pbs.twimg.com/media/x.jpg\"]", n (",\"media\":" ++# one_photo ())) |> _assert_eq (0i32, 1i32)
+
+///> gleam
 :# an_original_post_has_no_label =
     label_for "tweet" "" |> _assert_eq ""
 
+///> gleam
 :# the_page_ends_with_the_scroll_script =
     := page = feed_page (sample_world ()) ""
     (sm'::contains "article.post" page, sm'::ends_with "</script>" page) |> _assert_eq (!+, !+)
 
-:# media_type_maps_image_extensions =
-    := got = [ media_type "a.jpg"; media_type "a.jpeg"; media_type "a.png"; media_type "a.gif"; media_type "a.webp" ]
-    := want = [ "image/jpeg"; "image/jpeg"; "image/png"; "image/gif"; "image/webp" ]
-    got |> _assert_eq want
+///> gleam
+:# the_next_link_and_scroll_target_the_more_class =
+    := page = feed_page (sample_world ()) ""
+    (sm'::contains "class=\"more\"" page, sm'::contains "querySelector('a.more')" page, sm'::contains "href^=" page)
+    |> _assert_eq (!+, !+, !-)
 
+:= image_names () : list string = [ "a.jpg"; "a.jpeg"; "a.png"; "a.gif"; "a.webp" ]
+
+:= image_types () : list string = [ "image/jpeg"; "image/jpeg"; "image/png"; "image/gif"; "image/webp" ]
+
+///> gleam
+:# media_type_maps_image_extensions =
+    image_names () |> each media_type |> _assert_eq (image_types ())
+
+///> gleam
 :# media_type_maps_video_and_fallback =
     := got = [ media_type "a.mp4"; media_type "a.webm"; media_type "a.bin" ]
     got |> _assert_eq [ "video/mp4"; "video/webm"; "application/octet-stream" ]
 
+///> gleam
 :# a_clean_media_relpath_is_allowed =
     [ safe_rel "accounts/u/media/1_0.jpg" ] |> _assert_eq [ !+ ]
 
+///> gleam
 :# traversal_and_absolute_relpaths_are_refused =
-    := bad1 = [ safe_rel "../etc/passwd"; safe_rel "a/../b"; safe_rel "/etc/passwd" ]
-    := bad2 = [ safe_rel "\\win"; safe_rel "c:/x"; safe_rel "" ]
-    listm::append bad1 bad2 |> _assert_eq [ !-; !-; !-; !-; !-; !- ]
+    [ safe_rel "../etc/passwd"; safe_rel "a/../b"; safe_rel "/etc/passwd" ] |> _assert_eq [ !-; !-; !- ]
+
+///> gleam
+:# windows_drive_and_empty_relpaths_are_refused =
+    [ safe_rel "\\win"; safe_rel "c:/x"; safe_rel "" ] |> _assert_eq [ !-; !-; !- ]
+
+///> gleam
+:# range_spec_parses_explicit_and_open_ended =
+    := a, b = range_spec "bytes=0-99" 1000i32, range_spec "bytes=500-" 1000i32
+    (a, b) |> _assert_eq (Some (0i32, 99i32), Some (500i32, 999i32))
+
+///> gleam
+:# range_spec_rejects_out_of_range_and_missing =
+    (range_spec "bytes=2000-3000" 1000i32, range_spec "" 1000i32) |> _assert_eq (None, None)
+
+///> gleam
+:# range_spec_suffix_takes_last_n_bytes =
+    range_spec "bytes=-500" 1000i32 |> _assert_eq (Some (500i32, 999i32))
+
+///> gleam
+:# range_spec_rejects_multirange_and_garbage =
+    := m, g = range_spec "bytes=0-1,5-6" 1000i32, range_spec "bytes=x-y" 1000i32
+    (m, g) |> _assert_eq (None, None)
+
+///> gleam
+:# dir_of_reads_the_d_param =
+    (dir_of "d=up", dir_of "f=1&c=2", dir_of "d=down") |> _assert_eq ("up", "down", "down")
+
+///> gleam
+:# from_of_reads_the_from_param =
+    (from_of "from=2026-01-15", from_of "f=1&c=2") |> _assert_eq ("2026-01-15", "")
+
+///> gleam
+:# a_from_bound_seeks_each_feed_past_newer_posts =
+    seek_offsets "2026-10-18T10:00:03Z" (two_feeds ()) |> _assert_eq [ 1i32; 1i32 ]

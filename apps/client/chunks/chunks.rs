@@ -1,6 +1,16 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
+fn string_concat(parts: &[&str]) -> Rc<str> {
+    let mut joined = Rc::<[u8]>::new_uninit_slice(parts.iter().map(|part| part.len()).sum());
+    let bytes = Rc::get_mut(&mut joined).unwrap().as_mut_ptr() as *mut u8;
+    let mut at = 0;
+    for part in parts {
+        unsafe { std::ptr::copy_nonoverlapping(part.as_ptr(), bytes.add(at), part.len()) };
+        at += part.len();
+    }
+    unsafe { Rc::from_raw(Rc::into_raw(joined.assume_init()) as *const str) }
+}
 #[derive(Clone)]
 enum UH0 {
     UH0_Nil,
@@ -442,12 +452,8 @@ fn method16(mut v0: Rc<UH1>, mut v1: i32) -> i32 {
 }
 fn chunks_of_3(mut v0: i32, mut v1: Rc<str>, mut v2: Rc<dyn Fn(Rc<str>) -> i32>, mut v3: Rc<UH0>, mut v4: i32) -> Rc<UH1> {
     loop {
-        let mut v5: Rc<str> = Rc::<str>::from(format!("{}{}", v1.clone(), { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" "); } LIT.with(|lit| lit.clone()) }));
         let v6: Rc<str> = Rc::<str>::from((v4).to_string());
-        let v7: Rc<str> = Rc::<str>::from(format!("{}{}", v5, v6.clone()));
-        let v8: Rc<str> = Rc::<str>::from(format!("{}{}", v7, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("/"); } LIT.with(|lit| lit.clone()) }));
-        let v9: Rc<str> = Rc::<str>::from(format!("{}{}", v8, v6.clone()));
-        let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\n"); } LIT.with(|lit| lit.clone()) }));
+        let v10: Rc<str> = string_concat(&[&*v1, " ", &*v6, "/", &*v6, "\n"]);
         let mut v11: i32 = v2(v10);
         let v12: i32 = v0.wrapping_sub(v11);
         let v13: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };
@@ -501,7 +507,7 @@ fn chunks_by_1(mut v0: Rc<dyn Fn(Rc<str>) -> i32>, mut v1: Rc<UH0>, mut v2: US0,
         }
     };
     let v9: Rc<str> = Rc::<str>::from((v3).to_string());
-    let v10: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("c"); } LIT.with(|lit| lit.clone()) }, v9));
+    let v10: Rc<str> = string_concat(&["c", &*v9]);
     let mut v11: Rc<UH1> = split_units_2(v8, v10, v0, v1);
     let v12: Rc<UH1> = { thread_local!{ static CASE: Rc<UH1> = Rc::new(UH1::UH1_Nil); } CASE.with(|case| case.clone()) };
     let v13: Rc<UH1> = method17(v11, v12);
@@ -512,8 +518,7 @@ fn chunks_by_1(mut v0: Rc<dyn Fn(Rc<str>) -> i32>, mut v1: Rc<UH0>, mut v2: US0,
     let v18: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v17).as_ref().clone()));
     let v19: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
     let v20: Rc<str> = Rc::<str>::from((*v18.borrow()).join(&*v19));
-    let v21: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("["); } LIT.with(|lit| lit.clone()) }, v20));
-    let v22: Rc<str> = Rc::<str>::from(format!("{}{}", v21, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) }));
+    let v22: Rc<str> = string_concat(&["[", &*v20, "]"]);
     v22
 }
 fn closure4(mut v0: Rc<str>) -> Rc<dyn Fn(Rc<str>) -> i32> {

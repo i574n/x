@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# locate static =
     :< testing
 
@@ -62,6 +61,7 @@
 
 := located_pair () : string = "{\"frames\":[" ++# one_frame () ++# "],\"known\":[\"5\",\"5\",\"6\",\"6\"]}"
 
+///> rust -d serde_json
 :# posts_with_headers_become_frames =
     := ~text = "c1 1/2\ngo a" ++# defused_dot () ++# "zz"
     located (one_page [ page_post "5" text; page_post "6" "no header here" ]) |> _assert_eq (located_pair ())
@@ -73,11 +73,11 @@
         member "edit_history_post_ids" (items [ quoted_text "7"; quoted_text "8" ])
     ]
 
+///> rust -d serde_json
 :# superseded_edits_are_known_but_not_framed =
     := ~page = one_page [ edited_post () ]
     located page |> _assert_eq "{\"frames\":[],\"known\":[\"7\",\"7\",\"8\"]}"
 
-///> _
 := main () : i32 =
     export "xc_locate" ((\ bundle => located bundle) : string -> string)
     0i32

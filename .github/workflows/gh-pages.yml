@@ -18,7 +18,7 @@ jobs:
 
       - uses: moonrepo/setup-rust@v1.3.0
         with:
-          channel: "nightly-2026-10-18"
+          channel: "nightly-2026-11-05"
 
       - run: pwsh scripts/workflow.ps1 -Xc
 
@@ -40,7 +40,7 @@ jobs:
 
       - uses: moonrepo/setup-rust@v1.3.0
         with:
-          channel: "nightly-2026-10-18"
+          channel: "nightly-2026-11-05"
 
       - uses: erlef/setup-beam@v1.24.1
         with:

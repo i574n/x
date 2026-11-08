@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# jsonl static =
     :< testing
 
@@ -70,13 +69,13 @@
     := text, n = r
     text ++# "|" ++# sm'::obj_to_string n
 
+///> rust
 :# entry_lines_become_json_lines =
     := ~line = at "1" "b" "09:05" |> lone |> entry_line "p"
     rendered_json (digest_of line) 0i32 |> lines_text |> _assert_eq (quiet_entry () ++# "|1")
 
 :== jsonl_args = string * i32 * i32 * i32
 
-///> _
 := main () : i32 =
     export
         "xc_jsonl"

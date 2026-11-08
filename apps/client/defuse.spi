@@ -1,6 +1,4 @@
 ///- --package . --timeout 900000
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# defuse static =
     :< testing
 
@@ -89,14 +87,20 @@
 
 := zw (s : string) : string = sm'::replace "|" (zero_width_space ()) s
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# only_dots_before_a_known_tld_are_defused =
     := ~s = "listm.map.foo head.zzz x.io a.b.post"
     defused_dots s |> _assert_eq (zw "listm|.map|.foo head.zzz x.io a.b|.post")
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# a_link_right_after_a_wide_glyph_stays_plain =
     := ~s = "日本x.com"
     defused_dots s |> _assert_eq s
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# blocked_runs_and_numbers_stay_plain =
     := ~at = "@"
     defused_dots (at ++# "x.map /y.map 1.5 t.co") |> _assert_eq (at ++# zw "x.map /y.map 1.5 t|.co")
@@ -169,22 +173,34 @@
 
 :~ defused_entities (s : string) : string = entities_from "" (graphemes s) [] |> sm'::concat_list ""
 
+:= sigil_line (z : string) (at : string) (hash : string) (cash : string) : string =
+    at ++# z ++# "bob " ++# hash ++# z ++# "tag " ++# cash ++# z ++# "ABC"
+
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# entity_sigils_get_a_zero_width_space =
     := ~at, hash, cash = "@", "#", "$"
-    defused_entities (at ++# "bob " ++# hash ++# "tag " ++# cash ++# "ABC")
-    |> _assert_eq (at ++# zw "|bob " ++# hash ++# zw "|tag " ++# cash ++# zw "|ABC")
+    defused_entities (sigil_line "" at hash cash) |> _assert_eq (sigil_line (zero_width_space ()) at hash cash)
 
 := at_bob (lead : string) : string = defused_entities (lead ++# "@" ++# "bob")
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# a_mention_right_after_rt_is_defused =
     (at_bob "RT", at_bob "rt:", at_bob "art")
     |> _assert_eq (zw "RT@|bob", zw "rt:@|bob", "art" ++# "@" ++# "bob")
 
+:= after_wide (wide : string) (sigil : string) (word : string) : string = defused_entities (wide ++# sigil ++# word)
+
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# sigils_after_wide_glyphs_are_defused =
     := ~at, hash = "@", "#"
-    (defused_entities ("日本" ++# at ++# "bob"), defused_entities ("🙂" ++# hash ++# "tag"))
+    (after_wide "日本" at "bob", after_wide "🙂" hash "tag")
     |> _assert_eq ("日本" ++# at ++# zw "|bob", "🙂" ++# hash ++# zw "|tag")
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# a_link_and_a_mention_at_the_start_are_defused =
     := ~at = "@"
     (defused_dots "cell.app x", defused_entities (at ++# "bob hi"))
@@ -195,12 +211,16 @@
 :~ restored_text (s : string) : string =
     sm'::replace (defused_dot ()) "." s |> sigil_restored "@" |> sigil_restored "#" |> sigil_restored "$"
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# restoring_undoes_both_defusings =
     := ~at, hash = "@", "#"
     := s = "see listm.map " ++# at ++# "bob " ++# hash ++# "tag"
     s |> defused_dots |> defused_entities |> restored_text |> _assert_eq s
 
+///> rust -d unicode-segmentation=1.13
+///> gleam
 :# emails_numbers_and_long_names_stay_plain =
     := ~at, hash, cash = "@", "#", "$"
-    defused_entities ("a" ++# at ++# "b.co " ++# hash ++# "123 " ++# cash ++# "ABCDEFG")
-    |> _assert_eq ("a" ++# at ++# "b.co " ++# hash ++# "123 " ++# cash ++# "ABCDEFG")
+    := plain = "a" ++# at ++# "b.co " ++# hash ++# "123 " ++# cash ++# "ABCDEFG"
+    defused_entities plain |> _assert_eq plain

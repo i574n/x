@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# final_state static =
     :< testing
 
@@ -123,6 +121,8 @@
         Reaction (Unliked { post_id = "p0"; user = "u2" })
     ]
 
+///> rust
+///> gleam
 :# likes_count_distinct_users_and_unlikes_leave_zero =
     := ~events = liked_twice ()
     final_replay events
@@ -136,6 +136,8 @@
         Revision (Edited { post_id = "p0"; source = "b" })
     ]
 
+///> rust
+///> gleam
 :# the_latest_distinct_revision_is_the_source =
     := ~events = edited_twice ()
     final_replay events |> final_json |> sm'::contains "\"source\": \"b\"" |> _assert_eq !+

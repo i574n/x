@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust
-///> gleam
 :# invariants static =
     :< testing
 
@@ -324,9 +322,13 @@
     "sequential_equivalence no_stale_results one_compile_per_prefix withdrawn_demand_hidden "
     ^^ "unwanted_results_freed breaking_edits_fail"
 
+///> rust
+///> gleam
 :# rule_names_are_the_snake_case_of_their_cases =
     every_rule () |> each rule_name |> delimited " " |> _assert_eq (rule_names ())
 
+///> rust
+///> gleam
 :# a_settled_snapshot_holds_every_rule =
     := ~s = settled ()
     checked s same_as_shown |> findings_text |> _assert_eq (all_held ())
@@ -337,6 +339,8 @@
 
 := drifted () : snapshot = with_visible [ one_shown "1" "k0" "a"; one_shown "2" "k2" "b" ]
 
+///> rust
+///> gleam
 :# stale_and_withdrawn_results_are_named =
     := ~s = drifted ()
     no_stale s |> verdict_text |> _assert_eq "FAIL[1,2]"
@@ -348,6 +352,8 @@
     := s = settled ()
     { s ?| starts = k1_count 3i32; cancelled = k1_count cancelled; evicted = k1_count evicted }
 
+///> rust
+///> gleam
 :# a_second_live_compile_breaks_one_per_prefix =
     := ~cancelled = 1i32
     restarted cancelled 0i32 |> one_compile |> verdict_text |> _assert_eq "FAIL[k1]"
@@ -355,11 +361,15 @@
 
 := masked (out : string) : string = (comparable (passed out))::out
 
+///> rust
+///> gleam
 :# run_dirs_are_masked =
     := ~out = "at spiral_cells\\12-34\\a.rs and spiral_cells/5-6"
     masked out |> _assert_eq "at spiral_cells/_\\a.rs and spiral_cells/_"
     masked "spiral_cells/12 x" |> _assert_eq "spiral_cells/12 x"
 
+///> rust
+///> gleam
 :# thread_numbers_are_masked =
     := ~out = "thread 'main' (4242) panicked at x"
     masked out |> _assert_eq "thread 'main' (_) panicked at x"
@@ -369,6 +379,8 @@
 
 := ran_elsewhere () : snapshot = with_visible [ one_shown "1" "k1" "at spiral_cells/1-2" ]
 
+///> rust
+///> gleam
 :# sequential_equivalence_compares_masked_outcomes =
     := ~s = ran_elsewhere ()
     sequential_equivalence s elsewhere |> verdict_text |> _assert_eq "ok"
@@ -376,12 +388,16 @@
 
 := commuted (a : snapshot) (b : snapshot) : string = commute a b |> verdict_text
 
+///> rust
+///> gleam
 :# schedules_commute_only_with_equal_results =
     := ~a = settled ()
     commuted a a |> _assert_eq "ok"
     commuted a (with_visible [ one_shown "1" "k1" "z" ]) |> _assert_eq "FAIL[1]"
     commuted a (quiet ()) |> _assert_eq "FAIL[1]"
 
+///> rust
+///> gleam
 :# extra_results_break_commuting_without_ids =
     := ~a = settled ()
     commuted a (drifted ()) |> _assert_eq "FAIL[]"
@@ -391,6 +407,8 @@
     := q = quiet ()
     { q ?| visible = listm::init 7i32 (\ i => one_shown (sm'::obj_to_string i) "k" "a") }
 
+///> rust
+///> gleam
 :# verdicts_name_at_most_five =
     := ~s = crowd ()
     withdrawn_hidden s |> verdict_text |> _assert_eq "FAIL[0,1,2,3,4]"

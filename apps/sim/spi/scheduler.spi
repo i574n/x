@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d sha2
-///> gleam
 :# scheduler static =
     :< testing
 
@@ -195,7 +193,7 @@
 
 :~ ^ started_queued (s : scheduler) : scheduler =
     ?= s::task_work::queue ?|
-    | key :: rest ?& dict::size s::task_work::running < s::faults::limit =>
+    | key :: rest ?& dict::count s::task_work::running < s::faults::limit =>
         s |> with_work (\ w => { w ?| queue = rest }) |> started_one key |> started_queued
     | _ => s
 
@@ -204,7 +202,7 @@
         peak_results = ? r > c::peak_results ?> r |: c::peak_results }
 
 := with_peak (s : scheduler) : scheduler =
-    s |> counted_with (peaked (dict::size s::task_work::running) (dict::size s::task_work::results))
+    s |> counted_with (peaked (dict::count s::task_work::running) (dict::count s::task_work::results))
 
 := reconciled_with (rerun : bool) (s : scheduler) : scheduler =
     := dirty, b = dirty_taken s::in_box
@@ -244,7 +242,7 @@
     | None => v
 
 := settled_view (s : scheduler) : scheduler =
-    ? dict::size s::visible_map > 0i32 ?> s
+    ? dict::count s::visible_map > 0i32 ?> s
     |: { s ?| visible_map = wanted_keys s::in_box |> dict::fold (result_shown s) (dict::empty ()) }
 
 := commands_taken (s : scheduler) : list task_command * scheduler =
@@ -296,25 +294,33 @@
 := liked_post (id : string) : list delivery = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u" ]
 
 := computed_once_shape (id : string) (s : scheduler) : i32 * string * i32 =
-    dict::size s::run_counts::starts, visible_out s id, sm'::length (visible_out s id)
+    dict::count s::run_counts::starts, visible_out s id, sm'::length (visible_out s id)
 
+///> rust -d sha2
+///> gleam
 :# a_liked_post_is_computed_once =
     := ~id = "p0"
     sync_run (plain_faults ()) (liked_post id) |> computed_once_shape id
     |> _assert_eq (1i32, fake_out [ "inl a = 1" ], 12i32)
 
+:= withdrawn_like (id : string) : list delivery = [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u" ]
+
+///> rust -d sha2
+///> gleam
 :# withdrawn_demand_cancels_the_running_task =
     := ~id = "p0"
-    := s = deferred_run (plain_faults ()) [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u" ]
-    (s::run_counts::cancels, dict::size s::visible_map) |> _assert_eq (1i32, 0i32)
+    := s = deferred_run (plain_faults ()) (withdrawn_like id)
+    (s::run_counts::cancels, dict::count s::visible_map) |> _assert_eq (1i32, 0i32)
 
 := same_source_roots (a : string) : list delivery =
     [ post_at 0i32 a None "x"; post_at 1i32 "b" None "x"; like_at 2i32 a "u"; like_at 3i32 "b" "u" ]
 
+///> rust -d sha2
+///> gleam
 :# same_source_roots_share_one_task =
     := ~a = "a"
     := s = sync_run (plain_faults ()) (same_source_roots a)
-    (dict::size s::run_counts::starts, visible_out s a = visible_out s "b") |> _assert_eq (1i32, !+)
+    (dict::count s::run_counts::starts, visible_out s a = visible_out s "b") |> _assert_eq (1i32, !+)
 
 := evict_now () : fault_set =
     := plain = plain_faults ()
@@ -326,6 +332,8 @@
 := recompute_shape (id : string) (s : scheduler) : i32 * i32 =
     s::run_counts::recomputes, dict::present (dict::present id s::owner_map::post_key) s::run_counts::evicted
 
+///> rust -d sha2
+///> gleam
 :# eviction_then_relike_recomputes =
     := ~id = "p0"
     sync_run (evict_now ()) (relike_stream id) |> recompute_shape id |> _assert_eq (1i32, 1i32)
@@ -350,7 +358,9 @@
         | _ => "not a crash"
     | None => "-"
 
+///> rust -d sha2
+///> gleam
 :# a_crashed_task_is_a_visible_crash_result =
     := ~id = "p0"
     := s = crashed_run id
-    (crash_out s id, dict::size s::run_counts::starts) |> _assert_eq ("boom", 1i32)
+    (crash_out s id, dict::count s::run_counts::starts) |> _assert_eq ("boom", 1i32)

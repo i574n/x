@@ -1,5 +1,4 @@
 ///- --package .. --timeout 600000
-///> gleam
 :# simframes static =
     :< testing
 
@@ -59,6 +58,7 @@
 
 := threads_of (text : string) : list (list string) = split_all (char_of 1i32) text |> each (split_all (char_of 0i32))
 
+///> gleam
 :# threads_of_splits_threads_then_cells =
     := ~s = "a" ++# char_of 0i32 ++# "b" ++# char_of 1i32 ++# "c"
     threads_of s |> each (delimited ",") |> delimited "|" |> _assert_eq "a,b|c"
@@ -430,7 +430,6 @@
     export "breaking_text" ((\ t => breaking_text t) : string -> string)
     export "masked_text" ((\ t => masked_text t) : string -> string)
 
-///> _
 := main () : i32 =
     invariant_exports ()
     facade_exports ()

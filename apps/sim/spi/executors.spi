@@ -1,5 +1,4 @@
 ///- --package . --timeout 600000
-///> gleam
 :# executors static =
     :< testing
 
@@ -34,6 +33,7 @@
     := second = run sources
     first::out, second::out
 
+///> gleam
 :# a_leaking_executor_carries_the_previous_digest =
     := ~a = [ "inl a = 1" ]
     ?= leak_started () ?|

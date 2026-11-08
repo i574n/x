@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust
 :# args static =
     :< testing
 
@@ -21,23 +20,31 @@
 := originals_since (day : string) : command_fields =
     fields_for [ "timeline"; "--start-time"; day; "--originals"; "alice" ]
 
+///> rust
 :# a_timeline_fills_the_window_fields =
     := ~day = "2026-10-15"
     := f = originals_since day
     f::kind |> _assert_eq 0i32
     f::selection::usernames ++# " " ++# f::window::since |> _assert_eq "alice 2026-10-15T00:00:00Z"
 
+///> rust
 :# originals_drop_replies_and_reposts =
     := ~day = "2026-10-15"
     := f = originals_since day
     (f::window::no_replies && f::window::no_reposts) |> _assert_eq !+
 
+///> rust
+:# a_timeline_hides_replies_unless_all =
+    := plain = fields_for [ "timeline"; "alice" ]
+    := every = fields_for [ "timeline"; "--all"; "alice" ]
+    (plain::window::no_replies, plain::window::no_reposts, every::window::no_replies) |> _assert_eq (!+, !-, !-)
+
+///> rust
 :# other_commands_carry_their_payload =
     := ~path = "a.spi"
     := f = fields_for [ "post-thread"; "--dry-run"; path ]
     sm'::obj_to_string f::kind ++# " " ++# f::payload |> _assert_eq "8 a.spi"
 
-///> _
 := main () : i32 =
     export "xc_parse_os_args" ((\ () => parsed_fields ()) : () -> command_fields)
     export "xc_usage" ((\ () => usage ()) : () -> string)

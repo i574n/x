@@ -314,32 +314,34 @@ fn method5(mut v0: Rc<UH1>, mut v1: Rc<UH3>) -> Rc<UH3> {
     }
 }
 fn method14(mut v0: Rc<UH3>, mut v1: Rc<UH0>, mut v2: Rc<UH0>) -> (Rc<UH0>, Rc<UH0>) {
-    let (mut v15, mut v16): (Rc<UH0>, Rc<UH0>) = match &*v0 {
-        UH3::UH3_Cons(v3, v4, v5) => {
-            let mut v3: Rc<str> = v3.clone();
-            let v4: Rc<Heap0> = v4.clone();
-            let v5: Rc<UH3> = v5.clone();
-            let v6: bool = &*v3 == "p";
-            let (mut v9, mut v10): (Rc<UH0>, Rc<UH0>) = if v6 {
-                let v7: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v1));
-                (v7, v2)
-            } else {
-                let mut v8: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v2));
-                (v1, v8)
-            };
-            method14(v5, v9, v10)
+    loop {
+        match &*v0 {
+            UH3::UH3_Cons(v3, v4, v5) => {
+                let mut v3: Rc<str> = v3.clone();
+                let v4: Rc<Heap0> = v4.clone();
+                let v5: Rc<UH3> = v5.clone();
+                let v6: bool = &*v3 == "p";
+                let (mut v9, mut v10): (Rc<UH0>, Rc<UH0>) = if v6 {
+                    let v7: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v1));
+                    (v7, v2)
+                } else {
+                    let mut v8: Rc<UH0> = Rc::new(UH0::UH0_Cons(v4, v2));
+                    (v1, v8)
+                };
+                (v0, v1, v2) = (v5, v9, v10);
+                continue;
+            }
+            _ => {
+                let (mut v13, mut v14): (Rc<UH0>, Rc<UH0>) = match Rc::unwrap_or_clone(v0) {
+                    UH3::UH3_Nil => {
+                        (v1, v2)
+                    }
+                    _ => unreachable!(),
+                };
+                return (v13, v14);
+            }
         }
-        _ => {
-            let (mut v13, mut v14): (Rc<UH0>, Rc<UH0>) = match Rc::unwrap_or_clone(v0) {
-                UH3::UH3_Nil => {
-                    (v1, v2)
-                }
-                _ => unreachable!(),
-            };
-            (v13, v14)
-        }
-    };
-    (v15, v16)
+    }
 }
 fn method15(mut v0: Rc<UH0>, mut v1: Rc<UH0>) -> Rc<UH0> {
     loop {

@@ -14,15 +14,15 @@ $build = Get-XTargetDir 'sim-cells'
 $entry = if ($RunArgs.Count -and $RunArgs[0] -in 'events', 'world', 'frames', 'thread_run', 'diff', 'serve') { "cli_$($RunArgs[0])" } else { 'cli_run' }
 if ($entry -eq 'cli_serve' -and $RunArgs.Count -lt 4) { throw "xsim / usage: sim-run.ps1 serve WORLD PORTFILE LOG" }
 $guard = $null
-if ($IsWindows) { . (Join-Path $SpiralRoot 'apps/cells/spi/erl_memory_limit.ps1'); $guard = Start-ErlMemoryLimit }
+if ($IsWindows) { . (Join-Path $CellsRoot 'spi/erl_memory_limit.ps1'); $guard = Start-ErlMemoryLimit }
 $paths = @(Get-ChildItem (Join-Path $frames '*/ebin') -Directory).FullName
 if ($entry -ne 'cli_serve') {
     $env:MIX_BUILD_PATH = $build
-    Push-Location (Join-Path $SpiralRoot 'apps/cells')
+    Push-Location $CellsRoot
     try {
         foreach ($step in 'deps.get', 'compile') {
             $out = @(mix $step 2>&1 | ForEach-Object { "$_" })
-            if ($LASTEXITCODE) { $out | Select-Object -Last 20 | ForEach-Object { [Console]::Error.WriteLine($_) }; throw "xsim / mix $step failed in spiral/apps/cells" }
+            if ($LASTEXITCODE) { $out | Select-Object -Last 20 | ForEach-Object { [Console]::Error.WriteLine($_) }; throw "xsim / mix $step failed in $CellsRoot" }
         }
     } finally { Pop-Location; Remove-Item Env:MIX_BUILD_PATH }
     New-Item -ItemType Directory -Force $build | Out-Null

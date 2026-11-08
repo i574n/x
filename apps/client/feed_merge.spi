@@ -1,5 +1,4 @@
 ///- --package .
-///> rust
 :# feed_merge static =
     :< testing
 
@@ -72,16 +71,19 @@
 
 := newer_i64 (a : i64) (b : i64) : bool = a > b
 
+///> rust
 :# pages_resume_from_the_cursor =
     := first, c = merged_page newer_i64 3i32 (cursor_of (sample_feeds ()))
     := second, _ = merged_page newer_i64 100i32 c
     (first, second) |> _assert_eq ([ 90i64; 80i64; 75i64 ], [ 70i64; 60i64; 20i64; 10i64; 5i64 ])
 
+///> rust
 :# an_exhausted_cursor_pages_empty =
     := _, c = merged_page newer_i64 100i32 (cursor_of (sample_feeds ()))
     := last, _ = merged_page newer_i64 5i32 c
     (last, merged_page newer_i64 0i32 (cursor_of [ [ 1i64 ] ]) |> fst) |> _assert_eq ([], [])
 
+///> rust
 :# equal_heads_keep_the_earlier_feed_first =
     merged_page newer_i64 4i32 (cursor_of [ [ 5i64; 1i64 ]; [ 5i64; 2i64 ] ])
     |> fst
@@ -91,12 +93,15 @@
     := all = sample_feeds ()
     merged_page newer_i64 3i32 (cursor_of all) |> snd |> offsets_of all
 
+///> rust
 :# offsets_count_each_feed_consumed =
     first_page_offsets () |> _assert_eq [ 1i32; 2i32; 0i32 ]
 
+///> rust
 :# resumed_offsets_page_like_the_cursor =
     merged_page newer_i64 100i32 (resumed (sample_feeds ()) (first_page_offsets ())) |> fst
     |> _assert_eq [ 70i64; 60i64; 20i64; 10i64; 5i64 ]
 
+///> rust
 :# offsets_past_the_end_or_missing_resume_safely =
     merged_page newer_i64 5i32 (resumed [ [ 3i64 ]; [ 2i64 ] ] [ 9i32 ]) |> fst |> _assert_eq [ 2i64 ]

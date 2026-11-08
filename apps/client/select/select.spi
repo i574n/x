@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust
 :# select static =
     :< testing
 
@@ -15,17 +14,18 @@
 
 := quoting_line (role : string) : string = role ++# "\t1\terin\t\tquoted:2\thi\t2\t1\t14"
 
+///> rust
 :# a_selected_line_keeps_its_digest_form =
     := ~line = quoting_line "p"
     selected_text (line ++# "\n" ++# quoting_line "r") 5i32 0i32 |> _assert_eq (line ++# "\n" ++# quoting_line "r")
 
+///> rust
 :# the_limit_keeps_the_newest_lines =
     := ~limit = 1i32
     := older = "p\t1\terin\t2026-10-15T09:00:00Z\t\ta\t0\t0\t0"
     := newer = "p\t2\terin\t2026-10-15T09:05:00Z\t\tb\t0\t0\t0"
     selected_text (older ++# "\n" ++# newer) limit 0i32 |> _assert_eq newer
 
-///> _
 := main () : i32 =
     export
         "xc_select"

@@ -34,7 +34,7 @@ if (!(BuildSpiral $splitEntry (Join-Path $split 'src/xsim_split.gleam') 'x/apps/
 if (!(BuildSpiral (Join-Path $PSScriptRoot 'spi/simframes/simframes.spi') (Join-Path $frames 'src/xsim_frames.gleam') 'x/apps/sim/frames' -Backend Gleam)) { throw "GLEAM-FAILED x/apps/sim/frames / compile" }
 { pwsh -NoProfile -File (Join-Path $XRoot 'scripts/gleam-modules.ps1') -Source (Join-Path $frames 'src/xsim_frames.gleam') -Entry (Join-Path $PSScriptRoot 'spi/simframes/simframes.spi') } | Invoke-Block
 $guard = $null
-if ($IsWindows) { . (Join-Path $SpiralRoot 'apps/cells/spi/erl_memory_limit.ps1'); $guard = Start-ErlMemoryLimit }
+if ($IsWindows) { . (Join-Path $CellsRoot 'spi/erl_memory_limit.ps1'); $guard = Start-ErlMemoryLimit }
 try { { gleam build --target erlang } | Invoke-Block -Location $frames }
 finally { if ($guard) { $guard.Stop() } }
 

@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# scenario static =
     :< testing
 
@@ -197,6 +195,8 @@
 := chain_text (s : scenario) : string =
     s::posts |> each (\ (r : rooted) => r::post_id ++# "<" ++# parent_text r::parent) |> delimited ","
 
+///> rust
+///> gleam
 :# posts_chain_their_parents =
     := ~cells = [ "a"; "b" ]
     from_cells (plain_casting 1i32) "f0" cells |> chain_text |> _assert_eq "f0p0<-,f0p1<f0p0"
@@ -208,6 +208,8 @@
 
 := deletions (l : list string) : list event = l |> each \ id => Revision (Deleted id)
 
+///> rust
+///> gleam
 :# churn_lands_between_every_step =
     := ~churn = deletions [ "x"; "y" ]
     weave (deletions [ "1"; "2"; "3"; "4" ]) churn |> each deleted_id |> delimited "," |> _assert_eq "1,x,2,y,3,4"

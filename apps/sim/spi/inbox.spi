@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d sha2
-///> gleam
 :# inbox static =
     :< testing
 
@@ -152,7 +150,7 @@
 := edit_key (id : string) (rev : i32) : string = "edit\n" ++# id ++# "\n" ++# sm'::obj_to_string rev
 
 := rebuilt_parts (frame_parts : dict::dict i32 frame_part) : string =
-    listm::init (dict::size frame_parts) \ i => (dict::present (i + 1i32) frame_parts)::body
+    listm::init (dict::count frame_parts) \ i => (dict::present (i + 1i32) frame_parts)::body
     |> delimited ""
     |> restored_text
 
@@ -219,7 +217,7 @@
     (key : string) (g : gathering) (part : frame_part) (made : maker) (bump : tally_bump) (w : inbox)
     : inbox_step
     =
-    ? dict::size g::frame_parts = part::n ?> frame_done key g made bump w |: Applied (with_gathering key g w)
+    ? dict::count g::frame_parts = part::n ?> frame_done key g made bump w |: Applied (with_gathering key g w)
 
 :& :~ frame_done (key : string) (g : gathering) (made : maker) (bump : tally_bump) (w : inbox) : inbox_step =
     completed g::first (made (rebuilt_parts g::frame_parts)) (without_gathering key w |> counted_as bump)
@@ -265,7 +263,7 @@
 
 := wanted_key (w : inbox) (id : string) : option string =
     ?= dict::find id w::reactions::demand, dict::find id w::graph::posts ?|
-    | Some users, Some p ?& dict::set_size users > 0i32 && not p::deleted => dict::find id w::graph::keys
+    | Some users, Some p ?& dict::set_count users > 0i32 && not p::deleted => dict::find id w::graph::keys
     | _ => None
 
 := wanted_keys (w : inbox) : dict::dict string string =
@@ -298,24 +296,34 @@
 
 := run (l : list delivery) : inbox = l |> listm::fold delivered (new_inbox ())
 
+:= parent_and_child (id : string) : inbox = run [ post_at 0i32 id None "a"; post_at 1i32 "c" (Some id) "b" ]
+
+///> rust -d sha2
+///> gleam
 :# duplicates_are_counted_once =
     := ~id = "p0"
     := w = run [ post_at 0i32 id None "inl a = 1"; post_at 0i32 id None "inl a = 1" ]
-    (w::tallies::duplicates, dict::size w::graph::posts) |> _assert_eq (1i32, 1i32)
+    (w::tallies::duplicates, dict::count w::graph::posts) |> _assert_eq (1i32, 1i32)
 
 := waiting_shape (w : inbox) : i32 * i32 * i32 =
-    w::tallies::buffered, dict::size w::graph::posts, (listm::length w::intake::pending : i32)
+    w::tallies::buffered, dict::count w::graph::posts, (listm::length w::intake::pending : i32)
 
+///> rust -d sha2
+///> gleam
 :# a_child_before_its_parent_waits_then_lands =
     := ~id = "c"
     run [ post_at 1i32 id (Some "p") "inl b = 2"; post_at 0i32 "p" None "inl a = 1" ] |> waiting_shape
     |> _assert_eq (1i32, 2i32, 0i32)
 
+///> rust -d sha2
+///> gleam
 :# frames_in_any_order_rebuild_the_post =
     := ~id = "f"
     := w = run [ frame_delivery 2i32 id 2i32 2i32 "b"; frame_delivery 1i32 id 1i32 2i32 "a" ]
     (w::tallies::framed, sources w id) |> _assert_eq (1i32, [ "ab" ])
 
+///> rust -d sha2
+///> gleam
 :# an_older_unlike_does_not_undo_a_newer_like =
     := ~id = "p0"
     := w = run [ post_at 0i32 id None "x"; like_at 5i32 id "u"; unlike_at 3i32 id "u" ]
@@ -328,14 +336,18 @@
 := edited_to (id : string) (source : string) : delivery =
     { at = 2i32; event = Revision (Edited { post_id = id; source }) }
 
+///> rust -d sha2
+///> gleam
 :# an_edit_rekeys_the_children =
     := ~id = "p"
-    := w = run [ post_at 0i32 id None "a"; post_at 1i32 "c" (Some id) "b" ]
+    := w = parent_and_child id
     := before = child_key w
     (child_key (delivered w (edited_to id "a2")) <> before, sm'::length before) |> _assert_eq (!+, 16i32)
 
+///> rust -d sha2
+///> gleam
 :# keys_match_the_elixir_world =
     := ~id = "p"
-    := w = run [ post_at 0i32 id None "a"; post_at 1i32 "c" (Some id) "b" ]
+    := w = parent_and_child id
     (dict::present id w::graph::keys, dict::present "c" w::graph::keys)
     |> _assert_eq ("022a6979e6dab7aa", "451526e1c47e6023")

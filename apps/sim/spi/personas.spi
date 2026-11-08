@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# personas static =
     :< testing
 
@@ -185,12 +183,21 @@
     := c = personas |> listm::fold (acted_in posts) (fresh_cast st)
     { act_events = round_robin c::streams []; broken = c::broken; rng = c::rng }
 
+///> rust
+///> gleam
 :# numbers_at_the_end_are_broken =
     := ~s = "///- --test\n1 + 1 |> _assert_eq 2  \n"
     break_source s |> _assert_eq "///- --test\n1 + 1 |> _assert_eq 3  \n"
-    break_source "x 1.50" |> _assert_eq "x 2.50"
+
+///> rust
+///> gleam
+:# decimals_and_carries_are_broken_too =
+    := ~s = "x 1.50"
+    break_source s |> _assert_eq "x 2.50"
     break_source "x 099" |> _assert_eq "x 100"
 
+///> rust
+///> gleam
 :# numbers_after_a_dot_or_none_stay =
     := ~s = "v1.2.3"
     break_source s |> _assert_eq "v1.2.3"
@@ -199,6 +206,8 @@
 
 := persona_text (l : list persona) : string = l |> each persona_name |> delimited ","
 
+///> rust
+///> gleam
 :# persona_lists_parse_like_the_simulator =
     := ~text = "fickle=1+editor=2"
     parsed_personas text |> persona_text |> _assert_eq "fickle,editor,editor"

@@ -560,64 +560,65 @@ fn add_primary_12(mut v0: &Rc<str>, mut v1: Rc<str>, mut v2: i32, mut v3: serde_
     (v100, v101, v102, v103, v104, v105)
 }
 fn gather_6(mut v0: Rc<str>, mut v1: US0, mut v2: i32, mut v3: Rc<str>, mut v4: Rc<str>, mut v5: bool, mut v6: bool, mut v7: i32, mut v8: bool, mut v9: Rc<UH1>, mut v10: Rc<UH2>, mut v11: Rc<UH2>, mut v12: Rc<UH0>, mut v13: Rc<UH0>, mut v14: Rc<str>, mut v15: Rc<UH0>) -> (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) {
-    let (mut v71, mut v72, mut v73, mut v74, mut v75, mut v76): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = match &*v9 {
-        UH1::UH1_Nil => {
-            (v10, v11, v12, v13, v14, v15)
-        }
-        _ => {
-            let (mut v65, mut v66, mut v67, mut v68, mut v69, mut v70): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = match Rc::unwrap_or_clone(v9) {
-                UH1::UH1_Cons(v16, v17, v18) => {
-                    let v16: Rc<str> = v16;
-                    let v17: Rc<str> = v17;
-                    let v18: Rc<UH1> = v18;
-                    let v19: Rc<str> = posts_path_7(v16.clone(), v2, v3.clone(), v4.clone(), v5, v6, v7, v8);
-                    let v20: US1 = app_reply_10(v0.clone(), v1.clone(), v19);
-                    let v34: US4 = match v20 {
-                        US1::US1_Error(v30) => {
-                            let v30: US2 = v30;
-                            let v31: Rc<str> = describe_failure_11(v30);
-                            US4::US4_Error(v10, v11, v12, v13, v31, v15)
-                        }
-                        US1::US1_Ok(v21, v22) => {
-                            let v21: serde_json::Value = v21;
-                            let v22: Rc<str> = v22;
-                            let (mut v23, mut v24, mut v25, mut v26, mut v27, mut v28): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = add_primary_12(&v16, v17, v2, v21, v22, v10, v11, v12, v13, v14, v15);
-                            US4::US4_Ok(v23, v24, v25, v26, v27, v28)
-                        }
-                    };
-                    match &v34 {
-                        US4::US4_Ok(v35, v36, v37, v38, v39, v40) => {
-                            let v35: Rc<UH2> = v35.clone();
-                            let v36: Rc<UH2> = v36.clone();
-                            let v37: Rc<UH0> = v37.clone();
-                            let v38: Rc<UH0> = v38.clone();
-                            let v39: Rc<str> = v39.clone();
-                            let v40: Rc<UH0> = v40.clone();
-                            gather_6(v0, v1, v2, v3, v4, v5, v6, v7, v8, v18, v35, v36, v37, v38, v39, v40)
-                        }
-                        _ => {
-                            let (mut v53, mut v54, mut v55, mut v56, mut v57, mut v58): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = match v34 {
-                                US4::US4_Error(v47, v48, v49, v50, v51, v52) => {
-                                    let v47: Rc<UH2> = v47;
-                                    let v48: Rc<UH2> = v48;
-                                    let v49: Rc<UH0> = v49;
-                                    let v50: Rc<UH0> = v50;
-                                    let v51: Rc<str> = v51;
-                                    let mut v52: Rc<UH0> = v52;
-                                    (v47, v48, v49, v50, v51, v52)
-                                }
-                                _ => unreachable!(),
-                            };
-                            (v53, v54, v55, v56, v57, v58)
+    loop {
+        match &*v9 {
+            UH1::UH1_Nil => {
+                return (v10, v11, v12, v13, v14, v15);
+            }
+            _ => {
+                match Rc::unwrap_or_clone(v9) {
+                    UH1::UH1_Cons(v16, v17, v18) => {
+                        let v16: Rc<str> = v16;
+                        let v17: Rc<str> = v17;
+                        let v18: Rc<UH1> = v18;
+                        let v19: Rc<str> = posts_path_7(v16.clone(), v2, v3.clone(), v4.clone(), v5, v6, v7, v8);
+                        let v20: US1 = app_reply_10(v0.clone(), v1.clone(), v19);
+                        let v34: US4 = match v20 {
+                            US1::US1_Error(v30) => {
+                                let v30: US2 = v30;
+                                let v31: Rc<str> = describe_failure_11(v30);
+                                US4::US4_Error(v10, v11, v12, v13, v31, v15)
+                            }
+                            US1::US1_Ok(v21, v22) => {
+                                let v21: serde_json::Value = v21;
+                                let v22: Rc<str> = v22;
+                                let (mut v23, mut v24, mut v25, mut v26, mut v27, mut v28): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = add_primary_12(&v16, v17, v2, v21, v22, v10, v11, v12, v13, v14, v15);
+                                US4::US4_Ok(v23, v24, v25, v26, v27, v28)
+                            }
+                        };
+                        match &v34 {
+                            US4::US4_Ok(v35, v36, v37, v38, v39, v40) => {
+                                let v35: Rc<UH2> = v35.clone();
+                                let v36: Rc<UH2> = v36.clone();
+                                let v37: Rc<UH0> = v37.clone();
+                                let v38: Rc<UH0> = v38.clone();
+                                let v39: Rc<str> = v39.clone();
+                                let v40: Rc<UH0> = v40.clone();
+                                (v9, v10, v11, v12, v13, v14, v15) = (v18, v35, v36, v37, v38, v39, v40);
+                                continue;
+                            }
+                            _ => {
+                                let (mut v53, mut v54, mut v55, mut v56, mut v57, mut v58): (Rc<UH2>, Rc<UH2>, Rc<UH0>, Rc<UH0>, Rc<str>, Rc<UH0>) = match v34 {
+                                    US4::US4_Error(v47, v48, v49, v50, v51, v52) => {
+                                        let v47: Rc<UH2> = v47;
+                                        let v48: Rc<UH2> = v48;
+                                        let v49: Rc<UH0> = v49;
+                                        let v50: Rc<UH0> = v50;
+                                        let v51: Rc<str> = v51;
+                                        let mut v52: Rc<UH0> = v52;
+                                        (v47, v48, v49, v50, v51, v52)
+                                    }
+                                    _ => unreachable!(),
+                                };
+                                return (v53, v54, v55, v56, v57, v58);
+                            }
                         }
                     }
+                    _ => unreachable!(),
                 }
-                _ => unreachable!(),
-            };
-            (v65, v66, v67, v68, v69, v70)
+            }
         }
-    };
-    (v71, v72, v73, v74, v75, v76)
+    }
 }
 fn method20(mut v0: Rc<UH2>, mut v1: Rc<UH0>) -> Rc<UH0> {
     match Rc::unwrap_or_clone(v0) {

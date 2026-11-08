@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# api static =
     :< testing
 
@@ -15,10 +14,12 @@
 :~ classified_reply (resource : string) (status : i32) (body : string) : i32 * string =
     classified resource status body |> reply_of
 
+///> rust -d serde_json
 :# an_unreached_api_says_why =
     := ~resource = "/2/users/7"
     classified_reply resource 0i32 "refused" |> _assert_eq (4i32, "could not reach the X API for /2/users/7: refused")
 
+///> rust -d serde_json
 :# an_accepted_reply_keeps_its_body =
     := ~body = "{\"data\":1}"
     classified_reply "/2/users/7" 200i32 body |> _assert_eq (0i32, body)
@@ -34,6 +35,7 @@
 :~ posts_read (bundle : string) : i32 =
     parse_json bundle |> collect id |> listm::fold (\ n e => n + billed_posts e) 0i32
 
+///> rust -d serde_json
 :# posts_read_counts_what_x_returned =
     := ~bundle =
         "[{\"role\":\"primary\",\"doc\":{\"data\":[{\"id\":\"1\"}]}},{\"role\":\"users\",\"doc\":{\"data\":[{}]}}]"
@@ -44,7 +46,6 @@
         "xc_classified"
         ((\ (resource, status, body) => classified_reply resource status body) : string * i32 * string -> i32 * string)
 
-///> _
 := main () : i32 =
     export "xc_posts_read" ((\ bundle => posts_read bundle) : string -> i32)
     classified_export ()

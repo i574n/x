@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# world static =
     :< testing
 
@@ -417,10 +415,15 @@
     := w = materialized_for a alive
     world_json (posting_of a r w) a::account, expected_json alive w
 
+:= stamp_at (at : string) (seconds : i32) : string = stamped (moment_of at) seconds
+
+:= stamp_pair (base : string) : string * string = stamp_at base 45i32, stamp_at "2026-08-01T08:00:00Z" 1i32
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# stamps_carry_into_the_next_day =
-    := ~base = moment_of "2026-12-31T23:59:30Z"
-    stamped base 45i32 |> _assert_eq "2027-01-01T00:00:15.000Z"
-    stamped (moment_of "2026-08-01T08:00:00Z") 1i32 |> _assert_eq "2026-08-01T08:00:01.000Z"
+    := ~base = "2026-12-31T23:59:30Z"
+    stamp_pair base |> _assert_eq ("2027-01-01T00:00:15.000Z", "2026-08-01T08:00:01.000Z")
 
 := two_cells () : live =
     [
@@ -431,13 +434,14 @@
 := frame_summary (f : posted_frame) : string =
     post_text f::original ++# ":" ++# sm'::obj_to_string (listm::length f::versions : i32)
 
+:= frames_text (cells : live) : string =
+    materialized split_named cells 100i32 { lost = 0i32; lost_cells = 0i32 } |> ordered_frames |> each frame_summary |> delimited ","
+
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# edits_add_versions_to_their_frames =
     := ~cells = two_cells ()
-    materialized split_named cells 100i32 { lost = 0i32; lost_cells = 0i32 }
-    |> ordered_frames
-    |> each frame_summary
-    |> delimited ","
-    |> _assert_eq "101:1,102:2"
+    frames_text cells |> _assert_eq "101:1,102:2"
 
 := child_cell (name : string) (parent : string) (revision : string) : live_cell =
     { cell = cell_id name; parent = Some (cell_id parent); revisions = [ revision ] }
@@ -457,6 +461,8 @@
     ++# "|"
     ++# program cells w
 
+///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
+///> gleam
 :# a_cell_lost_with_all_its_posts_leaves_a_gap =
     := ~cells = chained_cells ()
     lost_cell_view cells |> _assert_eq "b|c|inl a = 1\n\ninl c = b"

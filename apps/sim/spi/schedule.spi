@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
-///> gleam
 :# schedule static =
     :< testing
 
@@ -155,6 +153,8 @@
 
 := small_flow () : flow = [ Revision (Deleted "a"); Revision (Deleted "b") ]
 
+///> rust
+///> gleam
 :# deliveries_keep_every_event_at_least_once =
     := ~seed = 1i32
     := l = deliveries (small_flow ()) seed { permille = 1000i32; window = 6i32 }
@@ -162,10 +162,10 @@
 
 := keyed_at (time : i32) (index : i32) : keyed = { time index event = Revision (Deleted (sm'::obj_to_string index)) }
 
+:= indexes_text (xs : list keyed) : string = xs |> each (\ (k : keyed) => k::index) |> each sm'::obj_to_string |> delimited ","
+
+///> rust
+///> gleam
 :# deliveries_sort_by_time_then_index =
     := ~late = keyed_at 5i32 1i32
-    sorted_keyed [ late; keyed_at 2i32 3i32; keyed_at 2i32 0i32 ]
-    |> each \ (k : keyed) => k::index
-    |> each sm'::obj_to_string
-    |> delimited ","
-    |> _assert_eq "0,3,1"
+    sorted_keyed [ late; keyed_at 2i32 3i32; keyed_at 2i32 0i32 ] |> indexes_text |> _assert_eq "0,3,1"

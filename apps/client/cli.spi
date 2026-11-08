@@ -59,7 +59,7 @@
     | Depth
 
 :| switch =
-    | NoReplies
+    | AllPosts
     | NoReposts
     | Originals
     | Hints
@@ -96,10 +96,14 @@
     ++# "       --limit N         timeline entries shown (default 20)\n"
     ++# "       --per-author N    entries shown per author (default all)\n"
 
-:= usage_filters () : string =
+:= usage_dates () : string =
     "       --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)\n"
     ++# "       --end-time DATE   posts before DATE\n"
-    ++# "       --no-replies, --no-reposts, --originals (both)\n"
+
+:= usage_filters () : string =
+    usage_dates ()
+    ++# "       --all            replies too (hidden by default, like a profile's Posts tab)\n"
+    ++# "       --no-reposts      hide reposts; --originals hides replies and reposts\n"
 
 := usage_views () : string =
     "       --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)\n"
@@ -143,7 +147,7 @@
     |: flag_of text
 
 := kind_of (text : string) : arg_kind =
-    ? text = "--no-replies" ?> Switched NoReplies
+    ? text = "--all" ?> Switched AllPosts
     |? text = "--no-reposts" ?> Switched NoReposts
     |? text = "--originals" ?> Switched Originals
     |: output_kind text
@@ -240,7 +244,7 @@
 
 := switched (s : switch) (f : filters) : filters =
     ?= s ?|
-    | NoReplies => { f ?| no_replies = !+ }
+    | AllPosts => { f ?| no_replies = !-; no_reposts = !- }
     | NoReposts => { f ?| no_reposts = !+ }
     | _ => { f ?| no_replies = !+; no_reposts = !+ }
 
@@ -306,9 +310,13 @@
 
 := no_filters () : filters = { start_time = ""; end_time = ""; no_replies = !-; no_reposts = !- }
 
+:= default_filters () : filters =
+    := f = no_filters ()
+    { f ?| no_replies = !+ }
+
 := initial_draft () : draft =
     { usernames = []; following = None; per_account = 5i32; limit = 20i32; per_author = 0i32;
-        cap = AtMost 20i32; filters = no_filters (); depth = 0i32; hints = !-; json = !- }
+        cap = AtMost 20i32; filters = default_filters (); depth = 0i32; hints = !-; json = !- }
 
 := unknown_command (arg : string) : string = "unknown command " ++# arg ++# "; try: xc timeline"
 
@@ -393,7 +401,7 @@
     ++# (? f::end_time = "" ?> "" |: " end_time=" ++# f::end_time)
 
 := flags_text (f : filters) : string =
-    dates_text f ++# (? f::no_replies ?> " no-replies" |: "") ++# (? f::no_reposts ?> " no-reposts" |: "")
+    dates_text f ++# (? f::no_replies ?> "" |: " replies") ++# (? f::no_reposts ?> " no-reposts" |: "")
 
 := counts_text (r : request) : string =
     " per=" ++# sm'::obj_to_string r::per_account ++# " limit=" ++# sm'::obj_to_string r::limit
@@ -467,7 +475,17 @@
     := ~day = "2026-10-15"
     parsed [ "timeline"; "--start-time"; day; "--originals"; "a" ]
     |> _assert_eq
-        "accounts a per=5 limit=20 author=0 depth=0 cap=20 start_time=2026-10-15T00:00:00Z no-replies no-reposts"
+        "accounts a per=5 limit=20 author=0 depth=0 cap=20 start_time=2026-10-15T00:00:00Z no-reposts"
+
+///> zig
+:# all_shows_replies_and_reposts =
+    := ~flag = "--all"
+    parsed [ "timeline"; "--originals"; flag; "a" ] |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 replies"
+
+///> zig
+:# no_replies_is_the_default_not_a_flag =
+    := ~flag = "--no-replies"
+    parsed [ "timeline"; flag; "a" ] |> _assert_eq "rejected: unknown option --no-replies"
 
 ///> zig
 :# views_are_collected =

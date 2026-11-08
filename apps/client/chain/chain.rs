@@ -1,6 +1,16 @@
 #![allow(unused_mut, unused_variables, unused_imports, unused_parens, unused_braces, unused_assignments, dead_code, non_snake_case, non_camel_case_types, unreachable_code, while_true)]
 use std::cell::RefCell;
 use std::rc::Rc;
+fn string_concat(parts: &[&str]) -> Rc<str> {
+    let mut joined = Rc::<[u8]>::new_uninit_slice(parts.iter().map(|part| part.len()).sum());
+    let bytes = Rc::get_mut(&mut joined).unwrap().as_mut_ptr() as *mut u8;
+    let mut at = 0;
+    for part in parts {
+        unsafe { std::ptr::copy_nonoverlapping(part.as_ptr(), bytes.add(at), part.len()) };
+        at += part.len();
+    }
+    unsafe { Rc::from_raw(Rc::into_raw(joined.assume_init()) as *const str) }
+}
 #[derive(Clone)]
 enum UH0 {
     UH0_Nil,
@@ -474,11 +484,9 @@ fn method18(mut v0: Rc<UH1>, mut v1: Rc<UH4>) -> Rc<UH4> {
             let mut v6: US0 = v6;
             let mut v7: Rc<UH1> = v7;
             let v8: Rc<UH4> = method18(v7, v1);
-            let v9: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) }, v2));
-            let v10: Rc<str> = Rc::<str>::from(format!("{}{}", v9, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\""); } LIT.with(|lit| lit.clone()) }));
-            let v11: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"id\":"); } LIT.with(|lit| lit.clone()) }, v10));
+            let v11: Rc<str> = string_concat(&["\"id\":\"", &*v2, "\""]);
             let v12: Rc<str> = Rc::<str>::from(serde_json::Value::from(&*v3).to_string());
-            let v13: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("\"text\":"); } LIT.with(|lit| lit.clone()) }, v12));
+            let v13: Rc<str> = string_concat(&["\"text\":", &*v12]);
             let mut v14: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new(Vec::new()));
             v14.borrow_mut().push(v11);
             v14.borrow_mut().push(v13);
@@ -486,8 +494,7 @@ fn method18(mut v0: Rc<UH1>, mut v1: Rc<UH4>) -> Rc<UH4> {
             let v16: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v15).as_ref().clone()));
             let v17: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
             let v18: Rc<str> = Rc::<str>::from((*v16.borrow()).join(&*v17));
-            let v19: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("{"); } LIT.with(|lit| lit.clone()) }, v18));
-            let v20: Rc<str> = Rc::<str>::from(format!("{}{}", v19, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("}"); } LIT.with(|lit| lit.clone()) }));
+            let v20: Rc<str> = string_concat(&["{", &*v18, "}"]);
             Rc::new(UH4::UH4_Cons(v20, v8))
         }
         UH1::UH1_Nil => {
@@ -587,8 +594,7 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>, Rc<str>)
                     let v58: Rc<RefCell<Vec<Rc<str>>>> = Rc::new(RefCell::new((v57).as_ref().clone()));
                     let v59: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(","); } LIT.with(|lit| lit.clone()) };
                     let v60: Rc<str> = Rc::<str>::from((*v58.borrow()).join(&*v59));
-                    let v61: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("["); } LIT.with(|lit| lit.clone()) }, v60));
-                    let v62: Rc<str> = Rc::<str>::from(format!("{}{}", v61, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("]"); } LIT.with(|lit| lit.clone()) }));
+                    let v62: Rc<str> = string_concat(&["[", &*v60, "]"]);
                     let v63: Rc<str> = { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(""); } LIT.with(|lit| lit.clone()) };
                     (0i32, v62, v63)
                 }
@@ -596,14 +602,12 @@ fn closure0() -> Rc<dyn Fn(Rc<str>, Rc<str>, Rc<str>) -> (i32, Rc<str>, Rc<str>)
                     let v72: Rc<str> = match v50 {
                         US1::US1_ChainBranches(v64) => {
                             let v64: Rc<str> = v64;
-                            let v65: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("the thread branches after post "); } LIT.with(|lit| lit.clone()) }, v64));
-                            let v66: Rc<str> = Rc::<str>::from(format!("{}{}", v65, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("; --resume needs one chain of replies"); } LIT.with(|lit| lit.clone()) }));
+                            let v66: Rc<str> = string_concat(&["the thread branches after post ", &*v64, "; --resume needs one chain of replies"]);
                             v66
                         }
                         US1::US1_ChainRoots(v67) => {
                             let v67: Rc<str> = v67;
-                            let v68: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("post "); } LIT.with(|lit| lit.clone()) }, v67));
-                            let v69: Rc<str> = Rc::<str>::from(format!("{}{}", v68, { thread_local!{ static LIT: Rc<str> = Rc::<str>::from(" replies to a post outside the thread's chain (an edited or deleted post?); --resume needs one unbroken chain"); } LIT.with(|lit| lit.clone()) }));
+                            let v69: Rc<str> = string_concat(&["post ", &*v67, " replies to a post outside the thread's chain (an edited or deleted post?); --resume needs one unbroken chain"]);
                             v69
                         }
                         _ => {

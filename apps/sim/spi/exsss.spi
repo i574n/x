@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust
-///> gleam
 :# exsss static =
     :< testing
 
@@ -77,17 +75,23 @@
 
 := rolls_text (l : list i32) : string = l |> each sm'::obj_to_string |> delimited ","
 
+///> rust
+///> gleam
 :# splitmix_matches_erlang =
     := ~x = 0u64
     := z, next = splitmix x
     sm'::obj_to_string z ++# " " ++# sm'::obj_to_string next |> _assert_eq "16294208416658607535 11400714819323198485"
 
+///> rust
+///> gleam
 :# seeds_match_erlang =
     := ~a = 1i32
     := st = seeded_i32 a 8i32 16i32
     sm'::obj_to_string st::head ++# "|" ++# sm'::obj_to_string st::tail
     |> _assert_eq "12818512559991394|13862513069590033"
 
+///> rust
+///> gleam
 :# rolls_match_erlang =
     := ~a = 1i32
     := l, _ = rolls 8i32 10i32 (seeded_i32 a 8i32 16i32) []
@@ -101,10 +105,14 @@
     := c, _ = uniform 2u64 st
     sm'::obj_to_string a ++# " " ++# sm'::obj_to_string b ++# " " ++# sm'::obj_to_string c
 
+///> rust
+///> gleam
 :# wide_ranges_match_erlang =
     := ~range = 1000u64
     wide_draws range |> _assert_eq "868 1069216062450 2"
 
+///> rust
+///> gleam
 :# another_seed_matches_erlang =
     := ~a = 1i32
     := e, st = rolled 6i32 (seeded_i32 a 36i32 28i32)

@@ -64,7 +64,8 @@ env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-author N    entries shown per author (default all)
        --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)
        --end-time DATE   posts before DATE
-       --no-replies, --no-reposts, --originals (both)
+       --all             replies too (hidden by default, like a profile's Posts tab)
+       --no-reposts      hide reposts; --originals hides replies and reposts
        --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)
        --hints           media alt text and url titles under each post
        --json            one JSON object per entry (JSON Lines) instead of text
@@ -101,6 +102,16 @@ xc: 3 API requests, 7 posts read, 7 shown
 2026-10-15 05:45  @bob  shipped v2 release notes soon  [4 replies, 7 reposts, 31 likes]
 2026-10-15 04:00  @alice  morning run done  [0 replies, 0 reposts, 0 likes]
 2026-10-14 17:10  @alice  reading about typed effects https://example.org/effects  [0 replies, 0 reposts, 0 likes]
+```
+
+Replies are hidden by default, as on a profile's Posts tab: the API is asked to leave them out, so they are never read or billed. `--all` brings them back:
+
+```powershell
+xc timeline --all alice '@bob'
+```
+
+```text
+pending
 ```
 
 `--per-account 1` shows only each account's newest post (X still sends at least 5 per account, so this trims what is shown, not what is read):
@@ -196,7 +207,7 @@ xc: 2 API requests, 2 posts read, 2 shown
 2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
 ```
 
-`--originals` (or `--no-replies`, `--no-reposts`) keeps the authors' own text; `--hints` adds media alt text and url titles:
+`--originals` (the same as `--no-reposts`, since replies are already hidden) keeps the authors' own text; `--hints` adds media alt text and url titles:
 
 ```powershell
 xc timeline --originals --hints alice bob
@@ -690,7 +701,8 @@ env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-author N    entries shown per author (default all)
        --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)
        --end-time DATE   posts before DATE
-       --no-replies, --no-reposts, --originals (both)
+       --all             replies too (hidden by default, like a profile's Posts tab)
+       --no-reposts      hide reposts; --originals hides replies and reposts
        --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)
        --hints           media alt text and url titles under each post
        --json            one JSON object per entry (JSON Lines) instead of text
@@ -817,4 +829,4 @@ Each entry is one Rust crate, and every generated file stays reviewable: `script
 | `xc_token` | `token/token.spi` | OAuth 2.0 token renewal and the in-place env file rewrite (`xc refresh`) |
 | `xc` | `xc/xc.spi` | entry: environment, credentials, the order of calls, exit codes, output |
 
-Every crate entry is a Cells notebook too: `///- --package ..` puts them in this package, `///> _` skips the export cell, and their tests cover the pure functions; `build.ps1` runs them with the shared modules. Tests: the test blocks of `paging`, `glyphs`, `protocol`, `splitter` and `reading` run on both Rust (with the `unicode-segmentation` and `unicode-normalization` crates) and Gleam, and must print the same, which is how the splitter is kept ready for the simulator's BEAM port; `reading`'s post a file with CJK, a link-like dot and a long cell, read the posts back and must get exactly the file's cells, and a dropped post must leave its cell `Holed`; those of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, the app token cannot write, and an app context cannot be signed with OAuth 1.0a keys. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Accept` rewrites its outputs after an intended change; review the diff), whose world includes four threads the simulator posted (complete, edited three times, missing one post, missing a whole cell) (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`); `xc post-thread` must write exactly the posts the simulator makes of `oauth1.spi` (`e2e/thread-oauth1.expected.json`, from `scripts/sim-run.ps1 frames`); the simulator splits with the same `splitter.spi` compiled to Gleam (`apps/sim/spi/simframes/simframes.spi`, built by `apps/sim/build.ps1` into `apps/sim/frames`, then split by `scripts/gleam-modules.ps1` into modules of at most 1,000 lines), so this checks that the Rust and BEAM builds of one splitter agree, each replying to the one before, `xc thread` must read the file back, and `xc delete-thread` must remove every one of those posts. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>` HTML-escaped.
+Every crate entry is a Cells notebook too: `///- --package ..` puts them in this package, Cells skips the export cell by its shape (an entry that only registers exports), and their tests cover the pure functions; `build.ps1` runs them with the shared modules. Tests: the test blocks of `paging`, `glyphs`, `protocol`, `splitter` and `reading` run on both Rust (with the `unicode-segmentation` and `unicode-normalization` crates) and Gleam, and must print the same, which is how the splitter is kept ready for the simulator's BEAM port; `reading`'s post a file with CJK, a link-like dot and a long cell, read the posts back and must get exactly the file's cells, and a dropped post must leave its cell `Holed`; those of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, the app token cannot write, and an app context cannot be signed with OAuth 1.0a keys. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Accept` rewrites its outputs after an intended change; review the diff), whose world includes four threads the simulator posted (complete, edited three times, missing one post, missing a whole cell) (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`); `xc post-thread` must write exactly the posts the simulator makes of `oauth1.spi` (`e2e/thread-oauth1.expected.json`, from `scripts/sim-run.ps1 frames`); the simulator splits with the same `splitter.spi` compiled to Gleam (`apps/sim/spi/simframes/simframes.spi`, built by `apps/sim/build.ps1` into `apps/sim/frames`, then split by `scripts/gleam-modules.ps1` into modules of at most 1,000 lines), so this checks that the Rust and BEAM builds of one splitter agree, each replying to the one before, `xc thread` must read the file back, and `xc delete-thread` must remove every one of those posts. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>` HTML-escaped.

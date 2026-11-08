@@ -1,6 +1,4 @@
 ///- --package . --timeout 600000
-///> rust -d sha2
-///> gleam
 :# sim_report static =
     :< testing
 
@@ -38,7 +36,7 @@
 := start_fields (s : scheduler) : list string =
     [
         field_text "starts" (summed s::run_counts::starts)
-        field_text "prefixes" (dict::size s::task_work::results)
+        field_text "prefixes" (dict::count s::task_work::results)
         field_text "peak_results" s::run_counts::peak_results
     ]
 
@@ -52,7 +50,7 @@
 := view_fields (s : scheduler) : list string =
     [
         field_text "cancels" s::run_counts::cancels
-        field_text "visible" (dict::size s::visible_map)
+        field_text "visible" (dict::count s::visible_map)
         field_text "peak_inflight" s::run_counts::peak_inflight
     ]
 
@@ -129,11 +127,15 @@
     "peak_inflight=1 peak_beam_mb=0 ms=7 sequential_equivalence=ok no_stale_results=ok "
     ++# "one_compile_per_prefix=ok withdrawn_demand_hidden=ok"
 
+///> rust -d sha2
+///> gleam
 :# the_summary_line_has_the_elixir_field_order =
     := ~seed = 1i32
     := s = one_post_run seed
     summary_line (shape_of 2i32) s (runner_checks s fake_baseline) |> _assert_eq (expected_head () ++# expected_tail ())
 
+///> rust
+///> gleam
 :# a_run_reports_its_milliseconds_and_deliveries_as_exact_rows =
     metric_rows (shape_of 2i32)
     |> _assert_eq "x_sim_run_ms{seed=\"1\",schedule=\"1\"} 7\nx_sim_deliveries_total{seed=\"1\",schedule=\"1\"} 2"
@@ -142,6 +144,8 @@
     := ok = runner_checks a fake_baseline
     verdict_line [ a; a ] [ ok; ok ], verdict_line [ a; a ] [ ok; runner_checks a wrong_baseline ]
 
+///> rust -d sha2
+///> gleam
 :# equal_runs_pass_and_a_failed_finding_fails =
     := ~seed = 1i32
     one_post_run seed |> pass_then_fail |> _assert_eq ("XSIM commute=ok result=pass", "XSIM commute=ok result=fail")

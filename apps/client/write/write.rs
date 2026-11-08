@@ -405,59 +405,61 @@ fn resume_written_4(mut v0: Rc<dyn Fn(i32) -> Rc<str>>, mut v1: Rc<str>, mut v2:
     }
 }
 fn method12(mut v0: Rc<dyn Fn(i32) -> Rc<str>>, mut v1: Rc<UH0>, mut v2: Rc<UH0>, mut v3: bool) -> (Rc<UH0>, bool) {
-    let (mut v34, mut v35): (Rc<UH0>, bool) = match &*v1 {
-        UH0::UH0_Cons(v4, v5) => {
-            let v4: Rc<str> = v4.clone();
-            let v5: Rc<UH0> = v5.clone();
-            let mut v6: i32 = 0i32;
-            let mut v7: i32 = method6(v2.clone(), v6);
-            let v8: i32 = v7.wrapping_add(1i32);
-            let mut v9: Rc<str> = v0(v8);
-            let v10: Rc<str> = Rc::<str>::from(serde_json::json!({"kind": "removal", "text": &*v4}).to_string());
-            let (mut v11, mut v12, mut v13): (i32, bool, Rc<str>) = xc_requests::xc_delete(&*v9, &*v10);
-            let v14: bool = v11 != 0i32;
-            let v21: US4 = if v14 {
-                US4::US4_Error(v13)
-            } else {
-                if v12 {
-                    let v16: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deleted "); } LIT.with(|lit| lit.clone()) }, v4));
-                    US4::US4_Ok(v16)
+    loop {
+        match &*v1 {
+            UH0::UH0_Cons(v4, v5) => {
+                let v4: Rc<str> = v4.clone();
+                let v5: Rc<UH0> = v5.clone();
+                let mut v6: i32 = 0i32;
+                let mut v7: i32 = method6(v2.clone(), v6);
+                let v8: i32 = v7.wrapping_add(1i32);
+                let mut v9: Rc<str> = v0(v8);
+                let v10: Rc<str> = Rc::<str>::from(serde_json::json!({"kind": "removal", "text": &*v4}).to_string());
+                let (mut v11, mut v12, mut v13): (i32, bool, Rc<str>) = xc_requests::xc_delete(&*v9, &*v10);
+                let v14: bool = v11 != 0i32;
+                let v21: US4 = if v14 {
+                    US4::US4_Error(v13)
                 } else {
-                    let v18: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not deleted "); } LIT.with(|lit| lit.clone()) }, v4));
-                    US4::US4_Error(v18)
-                }
-            };
-            let (mut v28, mut v29): (Rc<UH0>, bool) = match &v21 {
-                US4::US4_Ok(v22) => {
-                    let v22: Rc<str> = v22.clone();
-                    let v23: Rc<UH0> = Rc::new(UH0::UH0_Cons(v22, v2));
-                    (v23, v3)
-                }
-                _ => {
-                    let (mut v26, mut v27): (Rc<UH0>, bool) = match v21 {
-                        US4::US4_Error(v24) => {
-                            let mut v24: Rc<str> = v24;
-                            let v25: Rc<UH0> = Rc::new(UH0::UH0_Cons(v24, v2));
-                            (v25, true)
-                        }
-                        _ => unreachable!(),
-                    };
-                    (v26, v27)
-                }
-            };
-            method12(v0, v5, v28, v29)
+                    if v12 {
+                        let v16: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("deleted "); } LIT.with(|lit| lit.clone()) }, v4));
+                        US4::US4_Ok(v16)
+                    } else {
+                        let v18: Rc<str> = Rc::<str>::from(format!("{}{}", { thread_local!{ static LIT: Rc<str> = Rc::<str>::from("not deleted "); } LIT.with(|lit| lit.clone()) }, v4));
+                        US4::US4_Error(v18)
+                    }
+                };
+                let (mut v28, mut v29): (Rc<UH0>, bool) = match &v21 {
+                    US4::US4_Ok(v22) => {
+                        let v22: Rc<str> = v22.clone();
+                        let v23: Rc<UH0> = Rc::new(UH0::UH0_Cons(v22, v2));
+                        (v23, v3)
+                    }
+                    _ => {
+                        let (mut v26, mut v27): (Rc<UH0>, bool) = match v21 {
+                            US4::US4_Error(v24) => {
+                                let mut v24: Rc<str> = v24;
+                                let v25: Rc<UH0> = Rc::new(UH0::UH0_Cons(v24, v2));
+                                (v25, true)
+                            }
+                            _ => unreachable!(),
+                        };
+                        (v26, v27)
+                    }
+                };
+                (v1, v2, v3) = (v5, v28, v29);
+                continue;
+            }
+            _ => {
+                let (mut v32, mut v33): (Rc<UH0>, bool) = match Rc::unwrap_or_clone(v1) {
+                    UH0::UH0_Nil => {
+                        (v2, v3)
+                    }
+                    _ => unreachable!(),
+                };
+                return (v32, v33);
+            }
         }
-        _ => {
-            let (mut v32, mut v33): (Rc<UH0>, bool) = match Rc::unwrap_or_clone(v1) {
-                UH0::UH0_Nil => {
-                    (v2, v3)
-                }
-                _ => unreachable!(),
-            };
-            (v32, v33)
-        }
-    };
-    (v34, v35)
+    }
 }
 fn removed_all_11(mut v0: Rc<dyn Fn(i32) -> Rc<str>>, mut v1: Rc<UH0>) -> (i32, Rc<str>) {
     let mut v2: Rc<UH0> = { thread_local!{ static CASE: Rc<UH0> = Rc::new(UH0::UH0_Nil); } CASE.with(|case| case.clone()) };

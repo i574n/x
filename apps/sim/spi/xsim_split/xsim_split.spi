@@ -1,5 +1,4 @@
 ///- --package .. --timeout 600000
-///> gleam
 :# xsim_split static =
     :< testing
 
@@ -12,6 +11,7 @@
 := split_joined (label : string) (limit : i32) (source : string) : string =
     split_cell (cell_id label) limit source |> delimited (char_of 0i32)
 
+///> gleam
 :# joined_chunks_split_back_into_the_same_cells =
     := ~source = "go x.com now"
     split_joined "c1" 280i32 source |> split_all (char_of 0i32) |> _assert_eq (split_cell (cell_id "c1") 280i32 source)
@@ -26,7 +26,6 @@
         "split_cell_joined"
         ((\ (label, limit, source) => split_joined label limit source) : string * i32 * string -> string)
 
-///> _
 := main () : i32 =
     list_export ()
     joined_export ()

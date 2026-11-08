@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# requests static =
     :< testing
 
@@ -88,6 +87,7 @@
     ?= anonymous_api base ?|
     | api e => raw_reply e (Write (session_body id pw)) "/xrpc/com.atproto.server.createSession" |> session_out_of
 
+///> rust
 :# bluesky_times_are_utc_rfc3339 =
     := ~s = 0i32
     (iso_of s, iso_of 1792999879i32, iso_of 951782400i32)
@@ -128,7 +128,6 @@
     export "xc_create" ((\ (site, ask) => created site ask) : string * string -> created_out)
     export "xc_delete" ((\ (site, ask) => deleted site ask) : string * string -> deleted_out)
 
-///> _
 := main () : i32 =
     write_exports ()
     export "xc_session" ((\ (base, id, pw) => session_opened base id pw) : string * string * string -> session_out)

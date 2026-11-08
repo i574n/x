@@ -1,5 +1,4 @@
 ///- --package ..
-///> rust -d serde_json
 :# fetch static =
     :< testing
 
@@ -110,10 +109,12 @@
         member "errors" (items [ object [ member "detail" (quoted_text "suspended") ] ])
     ]
 
+///> rust -d serde_json
 :# references_feed_the_next_lookup =
     := ~body = object [ member "data" (items [ post_json () ]) ]
     gathered_from body |> ref_ids |> _assert_eq "2"
 
+///> rust -d serde_json
 :# an_account_without_posts_is_noted =
     := ~body = suspended_doc ()
     (gathered_from body)::notes |> delimited "|" |> _assert_eq ("skipped @" ++# "erin: suspended")
@@ -127,7 +128,6 @@
     := base, bearer, lines, max_results, start_time, end_time, nr, np, depth, hints = x
     fetched base bearer lines { max_results filters = fetch_filters start_time end_time nr np; depth hints }
 
-///> _
 := main () : i32 =
     export "xc_fetch" ((\ x => fetched_of x) : fetch_args -> fetch_reply)
     0i32

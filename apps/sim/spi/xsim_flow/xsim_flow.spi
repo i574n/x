@@ -1,5 +1,4 @@
 ///- --package .. --timeout 600000
-///> gleam
 :# xsim_flow static =
     :< testing
 
@@ -68,7 +67,6 @@
     export "corpus_raw" ((\ x => corpus_raw x) : run_cells -> string * string)
     export "cells_raw" ((\ x => cells_raw x) : run_cells -> string * string)
 
-///> _
 := main () : i32 =
     stream_exports ()
     run_export ()
