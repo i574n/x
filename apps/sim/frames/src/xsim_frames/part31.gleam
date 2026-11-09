@@ -1,0 +1,940 @@
+import gleam/dict
+import gleam/dynamic.{type Dynamic}
+import gleam/erlang/atom
+import gleam/string
+import xsim_frames/types.{type Uh3, type Uh29, type Uh37, type Uh36, Uh29Cons, Uh29Nil, Uh36Cons, Uh36Nil, Uh37Cons, Uh37Nil, Uh38Nil, Uh3Cons, Uh3Nil}
+import xsim_frames/part1.{erlang_term_apply, erlang_term_coerce, erlang_term_tuple}
+import xsim_frames/part12.{items_from_301, method300}
+import xsim_frames/part28.{method542, method543}
+import xsim_frames/part30.{deduped_597, included_authors_585, method588, method589, method590, method591, method595, method608, simple_pairs_600}
+
+pub fn method609(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
+    case v1  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = v0(v2)
+            case v4 {
+                True -> True
+                False -> {
+                    let v5 = method608()
+                    method609(v5, v3)
+                }
+            }
+        }
+        Uh3Nil -> False
+    }
+}
+
+pub fn closure167(capt: Nil) -> fn(String) -> Bool {
+    fn (v0) {
+        v0 == "public_metrics"
+    }
+}
+
+pub fn method611() -> fn(String) -> Bool {
+    closure167(Nil)
+}
+
+pub fn method612(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
+    case v1  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = v0(v2)
+            case v4 {
+                True -> True
+                False -> {
+                    let v5 = method611()
+                    method612(v5, v3)
+                }
+            }
+        }
+        Uh3Nil -> False
+    }
+}
+
+pub fn counted_pairs_610(v0: Dynamic, v1: Uh3) -> Uh37 {
+    let v2 = method589()
+    let v3 = method590(v2, v1)
+    let v29 =
+        case v3 {
+            True -> {
+                let v4 = []
+                let v5 = erlang_term_coerce(v4)
+                let v7 = erlang_term_coerce("refs")
+                let v8 = erlang_term_coerce(v5)
+                let v10 = atom.create("maps")
+                let v12 = atom.create("get")
+                let v13 = []
+                let v14 = [v8, ..v13]
+                let v15 = [v0, ..v14]
+                let v16 = [v7, ..v15]
+                let v17 = erlang_term_apply(v10, v12, v16)
+                let v18 = erlang_term_coerce(v17)
+                let v20 = atom.create("lists")
+                let v22 = atom.create("reverse")
+                let v23 = []
+                let v24 = [v18, ..v23]
+                let v25 = erlang_term_apply(v20, v22, v24)
+                let v27 = items_from_301(v25, Uh29Nil)
+                case v27  {
+                    Uh29Nil -> False
+                    _ -> True
+                }
+            }
+            False -> False
+        }
+    let v30 = []
+    let v31 = erlang_term_coerce(v30)
+    let v33 = erlang_term_coerce("refs")
+    let v34 = erlang_term_coerce(v31)
+    let v35 = "maps"
+    let v36 = atom.create(v35)
+    let v37 = "get"
+    let v38 = atom.create(v37)
+    let v39 = []
+    let v40 = [v34, ..v39]
+    let v41 = [v0, ..v40]
+    let v42 = [v33, ..v41]
+    let v43 = erlang_term_apply(v36, v38, v42)
+    let v44 = erlang_term_coerce(v43)
+    let v49 =
+        case v29 {
+            True -> {
+                Uh37Cons("referenced_posts", v44, Uh37Nil)
+            }
+            False -> Uh37Nil
+        }
+    let v50 = []
+    let v51 = erlang_term_coerce(v50)
+    let v52 = atom.create(v35)
+    let v53 = "from_list"
+    let v54 = atom.create(v53)
+    let v55 = []
+    let v56 = [v51, ..v55]
+    let v57 = erlang_term_apply(v52, v54, v56)
+    let v59 = erlang_term_coerce("metrics")
+    let v60 = erlang_term_coerce(v57)
+    let v61 = atom.create(v35)
+    let v62 = atom.create(v37)
+    let v63 = []
+    let v64 = [v60, ..v63]
+    let v65 = [v0, ..v64]
+    let v66 = [v59, ..v65]
+    let v67 = erlang_term_apply(v61, v62, v66)
+    let v68 = erlang_term_coerce(v67)
+    let v69 = erlang_term_coerce(0)
+    let v70 = "repost_count"
+    let v71 = erlang_term_coerce(v70)
+    let v72 = erlang_term_coerce(v69)
+    let v73 = atom.create(v35)
+    let v74 = atom.create(v37)
+    let v75 = []
+    let v76 = [v72, ..v75]
+    let v77 = [v68, ..v76]
+    let v78 = [v71, ..v77]
+    let v79 = erlang_term_apply(v73, v74, v78)
+    let v80 = erlang_term_coerce(v79)
+    let v81 = erlang_term_coerce(0)
+    let v82 = "reply_count"
+    let v83 = erlang_term_coerce(v82)
+    let v84 = erlang_term_coerce(v81)
+    let v85 = atom.create(v35)
+    let v86 = atom.create(v37)
+    let v87 = []
+    let v88 = [v84, ..v87]
+    let v89 = [v68, ..v88]
+    let v90 = [v83, ..v89]
+    let v91 = erlang_term_apply(v85, v86, v90)
+    let v92 = erlang_term_coerce(v91)
+    let v93 = erlang_term_coerce(0)
+    let v94 = "quote_count"
+    let v95 = erlang_term_coerce(v94)
+    let v96 = erlang_term_coerce(v93)
+    let v97 = atom.create(v35)
+    let v98 = atom.create(v37)
+    let v99 = []
+    let v100 = [v96, ..v99]
+    let v101 = [v68, ..v100]
+    let v102 = [v95, ..v101]
+    let v103 = erlang_term_apply(v97, v98, v102)
+    let v104 = erlang_term_coerce(v103)
+    let v105 = erlang_term_coerce(0)
+    let v106 = "like_count"
+    let v107 = erlang_term_coerce(v106)
+    let v108 = erlang_term_coerce(v105)
+    let v109 = atom.create(v35)
+    let v110 = atom.create(v37)
+    let v111 = []
+    let v112 = [v108, ..v111]
+    let v113 = [v68, ..v112]
+    let v114 = [v107, ..v113]
+    let v115 = erlang_term_apply(v109, v110, v114)
+    let v116 = erlang_term_coerce(v115)
+    let v117 = erlang_term_coerce(0)
+    let v118 = "impression_count"
+    let v119 = erlang_term_coerce(v118)
+    let v120 = erlang_term_coerce(v117)
+    let v121 = atom.create(v35)
+    let v122 = atom.create(v37)
+    let v123 = []
+    let v124 = [v120, ..v123]
+    let v125 = [v68, ..v124]
+    let v126 = [v119, ..v125]
+    let v127 = erlang_term_apply(v121, v122, v126)
+    let v128 = erlang_term_coerce(v127)
+    let v129 = erlang_term_coerce(0)
+    let v130 = "bookmark_count"
+    let v131 = erlang_term_coerce(v130)
+    let v132 = erlang_term_coerce(v129)
+    let v133 = atom.create(v35)
+    let v134 = atom.create(v37)
+    let v135 = []
+    let v136 = [v132, ..v135]
+    let v137 = [v68, ..v136]
+    let v138 = [v131, ..v137]
+    let v139 = erlang_term_apply(v133, v134, v138)
+    let v140 = erlang_term_coerce(v139)
+    let v141 = atom.create(v70)
+    let v142 = erlang_term_coerce(v141)
+    let v143 = []
+    let v144 = [v80, ..v143]
+    let v145 = [v142, ..v144]
+    let v146 = erlang_term_tuple(v145)
+    let v147 = atom.create(v82)
+    let v148 = erlang_term_coerce(v147)
+    let v149 = []
+    let v150 = [v92, ..v149]
+    let v151 = [v148, ..v150]
+    let v152 = erlang_term_tuple(v151)
+    let v153 = atom.create(v94)
+    let v154 = erlang_term_coerce(v153)
+    let v155 = []
+    let v156 = [v104, ..v155]
+    let v157 = [v154, ..v156]
+    let v158 = erlang_term_tuple(v157)
+    let v159 = atom.create(v106)
+    let v160 = erlang_term_coerce(v159)
+    let v161 = []
+    let v162 = [v116, ..v161]
+    let v163 = [v160, ..v162]
+    let v164 = erlang_term_tuple(v163)
+    let v165 = atom.create(v118)
+    let v166 = erlang_term_coerce(v165)
+    let v167 = []
+    let v168 = [v128, ..v167]
+    let v169 = [v166, ..v168]
+    let v170 = erlang_term_tuple(v169)
+    let v171 = atom.create(v130)
+    let v172 = erlang_term_coerce(v171)
+    let v173 = []
+    let v174 = [v140, ..v173]
+    let v175 = [v172, ..v174]
+    let v176 = erlang_term_tuple(v175)
+    let v177 = []
+    let v178 = [v146, ..v177]
+    let v179 = [v152, ..v178]
+    let v180 = [v158, ..v179]
+    let v181 = [v164, ..v180]
+    let v182 = [v170, ..v181]
+    let v183 = [v176, ..v182]
+    let v184 = erlang_term_coerce(v183)
+    let v185 = atom.create(v35)
+    let v186 = atom.create(v53)
+    let v187 = []
+    let v188 = [v184, ..v187]
+    let v189 = erlang_term_apply(v185, v186, v188)
+    let v190 = method611()
+    let v191 = method612(v190, v1)
+    let v196 =
+        case v191 {
+            True -> {
+                Uh37Cons("public_metrics", v189, Uh37Nil)
+            }
+            False -> Uh37Nil
+        }
+    method542(v196, v49)
+}
+
+pub fn closure168(capt: Nil) -> fn(String) -> Bool {
+    fn (v0) {
+        v0 == "attachments"
+    }
+}
+
+pub fn method613() -> fn(String) -> Bool {
+    closure168(Nil)
+}
+
+pub fn method614(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
+    case v1  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = v0(v2)
+            case v4 {
+                True -> True
+                False -> {
+                    let v5 = method613()
+                    method614(v5, v3)
+                }
+            }
+        }
+        Uh3Nil -> False
+    }
+}
+
+pub fn method615(v0: Uh29, v1: Uh29) -> Uh29 {
+    case v0  {
+        Uh29Cons(v2, v3) -> {
+            let v4 = method615(v3, v1)
+            let v6 = erlang_term_coerce("")
+            let v8 = erlang_term_coerce("media_key")
+            let v9 = erlang_term_coerce(v6)
+            let v11 = atom.create("maps")
+            let v13 = atom.create("get")
+            let v14 = []
+            let v15 = [v9, ..v14]
+            let v16 = [v2, ..v15]
+            let v17 = [v8, ..v16]
+            let v18 = erlang_term_apply(v11, v13, v17)
+            let v19 = erlang_term_coerce(v18)
+            Uh29Cons(v19, v4)
+        }
+        Uh29Nil -> v1
+    }
+}
+
+pub fn nested_pairs_607(v0: Dynamic, v1: Uh3) -> Uh37 {
+    let v2 = method608()
+    let v3 = method609(v2, v1)
+    let v29 =
+        case v3 {
+            True -> {
+                let v4 = []
+                let v5 = erlang_term_coerce(v4)
+                let v7 = erlang_term_coerce("urls")
+                let v8 = erlang_term_coerce(v5)
+                let v10 = atom.create("maps")
+                let v12 = atom.create("get")
+                let v13 = []
+                let v14 = [v8, ..v13]
+                let v15 = [v0, ..v14]
+                let v16 = [v7, ..v15]
+                let v17 = erlang_term_apply(v10, v12, v16)
+                let v18 = erlang_term_coerce(v17)
+                let v20 = atom.create("lists")
+                let v22 = atom.create("reverse")
+                let v23 = []
+                let v24 = [v18, ..v23]
+                let v25 = erlang_term_apply(v20, v22, v24)
+                let v27 = items_from_301(v25, Uh29Nil)
+                case v27  {
+                    Uh29Nil -> False
+                    _ -> True
+                }
+            }
+            False -> False
+        }
+    let v30 = []
+    let v31 = erlang_term_coerce(v30)
+    let v32 = "urls"
+    let v33 = erlang_term_coerce(v32)
+    let v34 = erlang_term_coerce(v31)
+    let v35 = "maps"
+    let v36 = atom.create(v35)
+    let v37 = "get"
+    let v38 = atom.create(v37)
+    let v39 = []
+    let v40 = [v34, ..v39]
+    let v41 = [v0, ..v40]
+    let v42 = [v33, ..v41]
+    let v43 = erlang_term_apply(v36, v38, v42)
+    let v44 = erlang_term_coerce(v43)
+    let v45 = atom.create(v32)
+    let v46 = erlang_term_coerce(v45)
+    let v47 = []
+    let v48 = [v44, ..v47]
+    let v49 = [v46, ..v48]
+    let v50 = erlang_term_tuple(v49)
+    let v51 = []
+    let v52 = [v50, ..v51]
+    let v53 = erlang_term_coerce(v52)
+    let v54 = atom.create(v35)
+    let v55 = "from_list"
+    let v56 = atom.create(v55)
+    let v57 = []
+    let v58 = [v53, ..v57]
+    let v59 = erlang_term_apply(v54, v56, v58)
+    let v64 =
+        case v29 {
+            True -> {
+                Uh37Cons("entities", v59, Uh37Nil)
+            }
+            False -> Uh37Nil
+        }
+    let v65 = counted_pairs_610(v0, v1)
+    let v66 = method613()
+    let v67 = method614(v66, v1)
+    let v91 =
+        case v67 {
+            True -> {
+                let v68 = []
+                let v69 = erlang_term_coerce(v68)
+                let v71 = erlang_term_coerce("media")
+                let v72 = erlang_term_coerce(v69)
+                let v73 = atom.create(v35)
+                let v74 = atom.create(v37)
+                let v75 = []
+                let v76 = [v72, ..v75]
+                let v77 = [v0, ..v76]
+                let v78 = [v71, ..v77]
+                let v79 = erlang_term_apply(v73, v74, v78)
+                let v80 = erlang_term_coerce(v79)
+                let v82 = atom.create("lists")
+                let v84 = atom.create("reverse")
+                let v85 = []
+                let v86 = [v80, ..v85]
+                let v87 = erlang_term_apply(v82, v84, v86)
+                let v89 = items_from_301(v87, Uh29Nil)
+                case v89  {
+                    Uh29Nil -> False
+                    _ -> True
+                }
+            }
+            False -> False
+        }
+    let v92 = []
+    let v93 = erlang_term_coerce(v92)
+    let v95 = erlang_term_coerce("media")
+    let v96 = erlang_term_coerce(v93)
+    let v97 = atom.create(v35)
+    let v98 = atom.create(v37)
+    let v99 = []
+    let v100 = [v96, ..v99]
+    let v101 = [v0, ..v100]
+    let v102 = [v95, ..v101]
+    let v103 = erlang_term_apply(v97, v98, v102)
+    let v104 = erlang_term_coerce(v103)
+    let v106 = atom.create("lists")
+    let v108 = atom.create("reverse")
+    let v109 = []
+    let v110 = [v104, ..v109]
+    let v111 = erlang_term_apply(v106, v108, v110)
+    let v113 = items_from_301(v111, Uh29Nil)
+    let v115 = method615(v113, Uh29Nil)
+    let v116 = []
+    let v117 = method300(v115, v116)
+    let v118 = erlang_term_coerce(v117)
+    let v120 = atom.create("media_keys")
+    let v121 = erlang_term_coerce(v120)
+    let v122 = []
+    let v123 = [v118, ..v122]
+    let v124 = [v121, ..v123]
+    let v125 = erlang_term_tuple(v124)
+    let v126 = []
+    let v127 = [v125, ..v126]
+    let v128 = erlang_term_coerce(v127)
+    let v129 = atom.create(v35)
+    let v130 = atom.create(v55)
+    let v131 = []
+    let v132 = [v128, ..v131]
+    let v133 = erlang_term_apply(v129, v130, v132)
+    let v138 =
+        case v91 {
+            True -> {
+                Uh37Cons("attachments", v133, Uh37Nil)
+            }
+            False -> Uh37Nil
+        }
+    let v140 = method542(v138, Uh37Nil)
+    let v141 = method542(v64, v140)
+    method542(v65, v141)
+}
+
+pub fn rendered_599(v0: Dynamic, v1: Uh3) -> Dynamic {
+    let v2 = ""
+    let v3 = erlang_term_coerce(v2)
+    let v4 = "id"
+    let v5 = erlang_term_coerce(v4)
+    let v6 = erlang_term_coerce(v3)
+    let v7 = "maps"
+    let v8 = atom.create(v7)
+    let v9 = "get"
+    let v10 = atom.create(v9)
+    let v11 = []
+    let v12 = [v6, ..v11]
+    let v13 = [v0, ..v12]
+    let v14 = [v5, ..v13]
+    let v15 = erlang_term_apply(v8, v10, v14)
+    let v16 = erlang_term_coerce(v15)
+    let v17 = erlang_term_coerce(v2)
+    let v18 = "text"
+    let v19 = erlang_term_coerce(v18)
+    let v20 = erlang_term_coerce(v17)
+    let v21 = atom.create(v7)
+    let v22 = atom.create(v9)
+    let v23 = []
+    let v24 = [v20, ..v23]
+    let v25 = [v0, ..v24]
+    let v26 = [v19, ..v25]
+    let v27 = erlang_term_apply(v21, v22, v26)
+    let v28 = erlang_term_coerce(v27)
+    let v29 = erlang_term_coerce(v28)
+    let v32 = v29 |> string.replace("&", "&amp;")
+    let v35 = v32 |> string.replace("<", "&lt;")
+    let v38 = v35 |> string.replace(">", "&gt;")
+    let v39 = erlang_term_coerce(v38)
+    let v40 = erlang_term_coerce(v2)
+    let v41 = erlang_term_coerce(v4)
+    let v42 = erlang_term_coerce(v40)
+    let v43 = atom.create(v7)
+    let v44 = atom.create(v9)
+    let v45 = []
+    let v46 = [v42, ..v45]
+    let v47 = [v0, ..v46]
+    let v48 = [v41, ..v47]
+    let v49 = erlang_term_apply(v43, v44, v48)
+    let v50 = erlang_term_coerce(v49)
+    let v51 = []
+    let v52 = [v50, ..v51]
+    let v53 = erlang_term_coerce(v52)
+    let v55 = erlang_term_coerce("edit_history")
+    let v56 = erlang_term_coerce(v53)
+    let v57 = atom.create(v7)
+    let v58 = atom.create(v9)
+    let v59 = []
+    let v60 = [v56, ..v59]
+    let v61 = [v0, ..v60]
+    let v62 = [v55, ..v61]
+    let v63 = erlang_term_apply(v57, v58, v62)
+    let v64 = erlang_term_coerce(v63)
+    let v65 = simple_pairs_600(v0, v1)
+    let v66 = nested_pairs_607(v0, v1)
+    let v68 = method542(v66, Uh37Nil)
+    let v69 = method542(v65, v68)
+    let v71 = method543(v69, Uh29Nil)
+    let v73 = atom.create("edit_history_post_ids")
+    let v74 = erlang_term_coerce(v73)
+    let v75 = []
+    let v76 = [v64, ..v75]
+    let v77 = [v74, ..v76]
+    let v78 = erlang_term_tuple(v77)
+    let v79 = atom.create(v18)
+    let v80 = erlang_term_coerce(v79)
+    let v81 = []
+    let v82 = [v39, ..v81]
+    let v83 = [v80, ..v82]
+    let v84 = erlang_term_tuple(v83)
+    let v85 = atom.create(v4)
+    let v86 = erlang_term_coerce(v85)
+    let v87 = []
+    let v88 = [v16, ..v87]
+    let v89 = [v86, ..v88]
+    let v90 = erlang_term_tuple(v89)
+    let v91 = []
+    let v92 = method300(v71, v91)
+    let v93 = [v78, ..v92]
+    let v94 = [v84, ..v93]
+    let v95 = [v90, ..v94]
+    let v96 = erlang_term_coerce(v95)
+    let v97 = atom.create(v7)
+    let v99 = atom.create("from_list")
+    let v100 = []
+    let v101 = [v96, ..v100]
+    erlang_term_apply(v97, v99, v101)
+}
+
+pub fn method598(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29, v4: Uh37) -> Uh37 {
+    case v3  {
+        Uh29Cons(v5, v6) -> {
+            let v7 = method598(v0, v1, v2, v6, v4)
+            let v9 = erlang_term_coerce("")
+            let v11 = erlang_term_coerce("id")
+            let v12 = erlang_term_coerce(v9)
+            let v14 = atom.create("maps")
+            let v16 = atom.create("get")
+            let v17 = []
+            let v18 = [v12, ..v17]
+            let v19 = [v5, ..v18]
+            let v20 = [v11, ..v19]
+            let v21 = erlang_term_apply(v14, v16, v20)
+            let v22 = erlang_term_coerce(v21)
+            let v23 = "erlang"
+            let v24 = atom.create(v23)
+            let v26 = atom.create("is_binary")
+            let v27 = []
+            let v28 = [v22, ..v27]
+            let v29 = erlang_term_apply(v24, v26, v28)
+            let v30 = erlang_term_coerce(v29)
+            let v39 =
+                case v30 {
+                    True -> {
+                        erlang_term_coerce(v22)
+                    }
+                    False -> {
+                        let v32 = atom.create(v23)
+                        let v34 = atom.create("integer_to_binary")
+                        let v35 = []
+                        let v36 = [v22, ..v35]
+                        let v37 = erlang_term_apply(v32, v34, v36)
+                        erlang_term_coerce(v37)
+                    }
+                }
+            let v40 = rendered_599(v5, v0)
+            Uh37Cons(v39, v40, v7)
+        }
+        Uh29Nil -> v4
+    }
+}
+
+pub fn closure169(capt: Nil) -> fn(String) -> Bool {
+    fn (v0) {
+        v0 == "attachments.media_keys"
+    }
+}
+
+pub fn method617() -> fn(String) -> Bool {
+    closure169(Nil)
+}
+
+pub fn method618(v0: fn(String) -> Bool, v1: Uh3) -> Bool {
+    case v1  {
+        Uh3Cons(v2, v3) -> {
+            let v4 = v0(v2)
+            case v4 {
+                True -> True
+                False -> {
+                    let v5 = method617()
+                    method618(v5, v3)
+                }
+            }
+        }
+        Uh3Nil -> False
+    }
+}
+
+pub fn method621(v0: Uh29, v1: Uh3) -> Uh3 {
+    case v0  {
+        Uh29Cons(v2, v3) -> {
+            let v4 = method621(v3, v1)
+            let v5 = erlang_term_coerce(v2)
+            Uh3Cons(v5, v4)
+        }
+        Uh29Nil -> v1
+    }
+}
+
+pub fn closure170(capt: #(String)) -> fn(String) -> Bool {
+    fn (v1) {
+        let #(v0) = capt
+        v1 == v0
+    }
+}
+
+pub fn method623(v0: String) -> fn(String) -> Bool {
+    closure170(#(v0))
+}
+
+pub fn method624(v0: String, v1: fn(String) -> Bool, v2: Uh3) -> Bool {
+    case v2  {
+        Uh3Cons(v3, v4) -> {
+            let v5 = v1(v3)
+            case v5 {
+                True -> True
+                False -> {
+                    let v6 = method623(v0)
+                    method624(v0, v6, v4)
+                }
+            }
+        }
+        Uh3Nil -> False
+    }
+}
+
+pub fn method622(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh3, v4: Uh3) -> Uh3 {
+    case v3  {
+        Uh3Cons(v5, v6) -> {
+            let v7 = method622(v0, v1, v2, v6, v4)
+            let v8 = v5 == "media_key"
+            let v11 =
+                case v8 {
+                    True -> True
+                    False -> {
+                        let v9 = method623(v5)
+                        method624(v5, v9, v2)
+                    }
+                }
+            case v11 {
+                True -> Uh3Cons(v5, v7)
+                False -> v7
+            }
+        }
+        Uh3Nil -> v4
+    }
+}
+
+pub fn method625(v0: Dynamic, v1: Uh3, v2: Uh37) -> Uh37 {
+    case v1  {
+        Uh3Cons(v3, v4) -> {
+            let v5 = method625(v0, v4, v2)
+            let v7 = erlang_term_coerce("")
+            let v8 = erlang_term_coerce(v3)
+            let v9 = erlang_term_coerce(v7)
+            let v11 = atom.create("maps")
+            let v13 = atom.create("get")
+            let v14 = []
+            let v15 = [v9, ..v14]
+            let v16 = [v0, ..v15]
+            let v17 = [v8, ..v16]
+            let v18 = erlang_term_apply(v11, v13, v17)
+            let v19 = erlang_term_coerce(v18)
+            Uh37Cons(v3, v19, v5)
+        }
+        Uh3Nil -> v2
+    }
+}
+
+pub fn method620(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29, v4: Uh37) -> Uh37 {
+    case v3  {
+        Uh29Cons(v5, v6) -> {
+            let v7 = method620(v0, v1, v2, v6, v4)
+            let v9 = erlang_term_coerce("")
+            let v11 = erlang_term_coerce("media_key")
+            let v12 = erlang_term_coerce(v9)
+            let v13 = "maps"
+            let v14 = atom.create(v13)
+            let v16 = atom.create("get")
+            let v17 = []
+            let v18 = [v12, ..v17]
+            let v19 = [v5, ..v18]
+            let v20 = [v11, ..v19]
+            let v21 = erlang_term_apply(v14, v16, v20)
+            let v22 = erlang_term_coerce(v21)
+            let v23 = erlang_term_coerce(v22)
+            let v24 = atom.create(v13)
+            let v26 = atom.create("keys")
+            let v27 = []
+            let v28 = [v5, ..v27]
+            let v29 = erlang_term_apply(v24, v26, v28)
+            let v31 = atom.create("lists")
+            let v33 = atom.create("reverse")
+            let v34 = []
+            let v35 = [v29, ..v34]
+            let v36 = erlang_term_apply(v31, v33, v35)
+            let v38 = items_from_301(v36, Uh29Nil)
+            let v40 = method621(v38, Uh3Nil)
+            let v42 = method622(v0, v1, v2, v40, Uh3Nil)
+            let v44 = method625(v5, v42, Uh37Nil)
+            let v46 = method543(v44, Uh29Nil)
+            let v47 = []
+            let v48 = method300(v46, v47)
+            let v49 = erlang_term_coerce(v48)
+            let v50 = atom.create(v13)
+            let v52 = atom.create("from_list")
+            let v53 = []
+            let v54 = [v49, ..v53]
+            let v55 = erlang_term_apply(v50, v52, v54)
+            Uh37Cons(v23, v55, v7)
+        }
+        Uh29Nil -> v4
+    }
+}
+
+pub fn method619(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29, v4: Uh36) -> Uh36 {
+    case v3  {
+        Uh29Cons(v5, v6) -> {
+            let v7 = method619(v0, v1, v2, v6, v4)
+            let v8 = []
+            let v9 = erlang_term_coerce(v8)
+            let v11 = erlang_term_coerce("media")
+            let v12 = erlang_term_coerce(v9)
+            let v14 = atom.create("maps")
+            let v16 = atom.create("get")
+            let v17 = []
+            let v18 = [v12, ..v17]
+            let v19 = [v5, ..v18]
+            let v20 = [v11, ..v19]
+            let v21 = erlang_term_apply(v14, v16, v20)
+            let v22 = erlang_term_coerce(v21)
+            let v24 = atom.create("lists")
+            let v26 = atom.create("reverse")
+            let v27 = []
+            let v28 = [v22, ..v27]
+            let v29 = erlang_term_apply(v24, v26, v28)
+            let v31 = items_from_301(v29, Uh29Nil)
+            let v33 = method620(v0, v1, v2, v31, Uh37Nil)
+            Uh36Cons(v33, v7)
+        }
+        Uh29Nil -> v4
+    }
+}
+
+pub fn method626(v0: Uh36, v1: Uh37) -> Uh37 {
+    case v0  {
+        Uh36Cons(v2, v3) -> {
+            let v4 = method626(v3, v1)
+            method542(v2, v4)
+        }
+        Uh36Nil -> v1
+    }
+}
+
+pub fn included_media_616(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29) -> Uh37 {
+    let v4 = method617()
+    let v5 = method618(v4, v1)
+    case v5 {
+        True -> {
+            let v7 = method619(v0, v1, v2, v3, Uh36Nil)
+            method626(v7, Uh37Nil)
+        }
+        False -> Uh37Nil
+    }
+}
+
+pub fn includes_pairs_584(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh36, v13: String, v14: Uh3, v15: Uh3, v16: Uh3, v17: Uh29) -> Uh37 {
+    let v18 = included_authors_585(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
+    let v19 = dict.new()
+    let v20 = deduped_597(v19, v18)
+    let v28 =
+        case v20  {
+            Uh29Nil -> Uh37Nil
+            _ -> {
+                let v22 = []
+                let v23 = method300(v20, v22)
+                let v24 = erlang_term_coerce(v23)
+                Uh37Cons("users", v24, Uh37Nil)
+            }
+        }
+    let v30 = method588(v14, v15, v16, v17, Uh29Nil)
+    let v32 = method591(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v30, Uh38Nil)
+    let v34 = method595(v32, Uh29Nil)
+    let v36 = method598(v14, v15, v16, v34, Uh37Nil)
+    let v37 = dict.new()
+    let v38 = deduped_597(v37, v36)
+    let v46 =
+        case v38  {
+            Uh29Nil -> Uh37Nil
+            _ -> {
+                let v40 = []
+                let v41 = method300(v38, v40)
+                let v42 = erlang_term_coerce(v41)
+                Uh37Cons("posts", v42, Uh37Nil)
+            }
+        }
+    let v47 = included_media_616(v14, v15, v16, v17)
+    let v48 = dict.new()
+    let v49 = deduped_597(v48, v47)
+    let v57 =
+        case v49  {
+            Uh29Nil -> Uh37Nil
+            _ -> {
+                let v51 = []
+                let v52 = method300(v49, v51)
+                let v53 = erlang_term_coerce(v52)
+                Uh37Cons("media", v53, Uh37Nil)
+            }
+        }
+    let v59 = method542(v57, Uh37Nil)
+    let v60 = method542(v28, v59)
+    method542(v46, v60)
+}
+
+pub fn data_item_628(v0: Uh3, v1: Uh3, _v2: Uh3, v3: Dynamic) -> Dynamic {
+    let v4 = rendered_599(v3, v0)
+    let v5 = method589()
+    let v6 = method590(v5, v1)
+    let v32 =
+        case v6 {
+            True -> {
+                let v7 = []
+                let v8 = erlang_term_coerce(v7)
+                let v10 = erlang_term_coerce("refs")
+                let v11 = erlang_term_coerce(v8)
+                let v13 = atom.create("maps")
+                let v15 = atom.create("get")
+                let v16 = []
+                let v17 = [v11, ..v16]
+                let v18 = [v3, ..v17]
+                let v19 = [v10, ..v18]
+                let v20 = erlang_term_apply(v13, v15, v19)
+                let v21 = erlang_term_coerce(v20)
+                let v23 = atom.create("lists")
+                let v25 = atom.create("reverse")
+                let v26 = []
+                let v27 = [v21, ..v26]
+                let v28 = erlang_term_apply(v23, v25, v27)
+                let v30 = items_from_301(v28, Uh29Nil)
+                case v30  {
+                    Uh29Nil -> False
+                    _ -> True
+                }
+            }
+            False -> False
+        }
+    case v32 {
+        True -> {
+            let v33 = []
+            let v34 = erlang_term_coerce(v33)
+            let v36 = erlang_term_coerce("refs")
+            let v37 = erlang_term_coerce(v34)
+            let v38 = "maps"
+            let v39 = atom.create(v38)
+            let v41 = atom.create("get")
+            let v42 = []
+            let v43 = [v37, ..v42]
+            let v44 = [v3, ..v43]
+            let v45 = [v36, ..v44]
+            let v46 = erlang_term_apply(v39, v41, v45)
+            let v47 = erlang_term_coerce(v46)
+            let v49 = erlang_term_coerce("referenced_posts")
+            let v50 = erlang_term_coerce(v47)
+            let v51 = atom.create(v38)
+            let v53 = atom.create("put")
+            let v54 = []
+            let v55 = [v4, ..v54]
+            let v56 = [v50, ..v55]
+            let v57 = [v49, ..v56]
+            erlang_term_apply(v51, v53, v57)
+        }
+        False -> v4
+    }
+}
+
+pub fn method627(v0: Uh3, v1: Uh3, v2: Uh3, v3: Uh29, v4: Uh29) -> Uh29 {
+    case v3  {
+        Uh29Cons(v5, v6) -> {
+            let v7 = method627(v0, v1, v2, v6, v4)
+            let v8 = data_item_628(v0, v1, v2, v5)
+            Uh29Cons(v8, v7)
+        }
+        Uh29Nil -> v4
+    }
+}
+
+pub fn expanded_583(v0: String, v1: String, v2: dict.Dict(String, Dynamic), v3: dict.Dict(String, Dynamic), v4: Int, v5: dict.Dict(String, Dynamic), v6: String, v7: Dynamic, v8: Uh3, v9: Dynamic, v10: dict.Dict(String, Nil), v11: Int, v12: Uh36, v13: String, v14: Uh3, v15: Uh3, v16: Uh3, v17: Uh29) -> Uh37 {
+    let v18 = includes_pairs_584(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17)
+    let v35 =
+        case v18  {
+            Uh37Nil -> Uh37Nil
+            _ -> {
+                let v21 = method543(v18, Uh29Nil)
+                let v22 = []
+                let v23 = method300(v21, v22)
+                let v24 = erlang_term_coerce(v23)
+                let v26 = atom.create("maps")
+                let v28 = atom.create("from_list")
+                let v29 = []
+                let v30 = [v24, ..v29]
+                let v31 = erlang_term_apply(v26, v28, v30)
+                Uh37Cons("includes", v31, Uh37Nil)
+            }
+        }
+    let v37 = method627(v14, v15, v16, v17, Uh29Nil)
+    let v45 =
+        case v37  {
+            Uh29Nil -> Uh37Nil
+            _ -> {
+                let v39 = []
+                let v40 = method300(v37, v39)
+                let v41 = erlang_term_coerce(v40)
+                Uh37Cons("data", v41, Uh37Nil)
+            }
+        }
+    method542(v45, v35)
+}

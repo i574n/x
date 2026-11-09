@@ -1,0 +1,37 @@
+///- --package . --timeout 900000
+:# typed_codec static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< protocol
+:< posts
+
+:= row_of
+    (sources : list string) (capture : string) (inferred : bool) (kind : string) (lost : string) (removed : string)
+    (has_content : bool)
+    : raw_row
+    =
+    { sources; capture; inferred; kind; lost; removed; has_content }
+
+:= archival_from (id : string) (utc_s : i64) (r : raw_row) : archival = archival_of (post_id id) r utc_s
+
+:= has_content_of (text : string) (media_count : i32) : bool = text <> "" || media_count > 0i32
+
+:= lost_row () : raw_row =
+    row_of [ "wayback" ] "20240508" !- "lost" "archive returned HTTP 404" "" (has_content_of "" 0i32)
+
+///> zig
+:# a_live_tweet_with_text_is_standing_and_observed =
+    := a = archival_from "1" 100i64 (row_of [ "live" ] "" !- "tweet" "" "" (has_content_of "hi" 0i32))
+    (surviving a, a::observed) |> _assert_eq (!+, Observed)
+
+///> zig
+:# a_contentless_404_row_is_lost_and_filtered =
+    := a = archival_from "2" 200i64 (lost_row ())
+    (surviving a, a::fate) |> _assert_eq (!-, Lost "archive returned HTTP 404")
+
+///> zig
+:# media_only_tweet_survives =
+    := a = archival_from "3" 300i64 (row_of [ "live" ] "" !- "tweet" "" "" (has_content_of "" 2i32))
+    surviving a |> _assert_eq !+

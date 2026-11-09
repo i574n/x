@@ -1,0 +1,8 @@
+/target/
+_build/
+/apps/sim/deps/
+/apps/sim/mix.lock
+erl_crash.dump
+*.etf
+__pycache__/
+/dist/

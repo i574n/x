@@ -1,0 +1,363 @@
+///- --package . --timeout 900000
+:# timeline_page static =
+    :< testing
+
+:< sm'_operators
+:< markup
+:< doc_blocks
+:< doc_render
+:< protocol
+
+:= byline (e : posts::entry) : block =
+    Paragraph [ Strong [ Text ("@" ++# e::username) ]; Text (" · " ++# e::created_at ++# " · " ++# post_text e::id) ]
+
+:= entry_blocks (e : posts::entry) : list block = [ byline e; Paragraph [ Text e::text ]; Rule ]
+
+:= page_blocks (title : string) (entries : list posts::entry) : list block =
+    Heading (H1, [ Text title ]) :: listm::fold (\ acc e => listm::append acc (entry_blocks e)) [] entries
+
+:= timeline_html (title : string) (entries : list posts::entry) : string =
+    blocks_html (page_blocks title entries) |> markup_text
+
+:= merged (budget : i32) (feeds : list (list posts::entry)) : list posts::entry * feed_merge::feed_cursor posts::entry =
+    feed_merge::merged_page posts::newer budget (feed_merge::cursor_of feeds)
+
+:= joined_page (title : string) (budget : i32) (feeds : list (list posts::entry)) : string =
+    merged budget feeds |> fst |> timeline_html title
+
+:= plain_entry id username created_at text : posts::entry =
+    := reply_count, repost_count, like_count, hints, refs = "0", "0", "0", [], []
+    heap { id username created_at text reply_count repost_count like_count hints refs }
+
+:= sample_entry username created_at text : posts::entry = plain_entry (post_id created_at) username created_at text
+
+:| post_kind =
+    | Original
+    | ReplyTo : string
+    | RepostOf : string
+    | QuoteOf : string * string
+
+:== media_item = { path : string; kind : string; alt : string }
+
+:= media_item_of (path : string) (kind : string) (alt : string) : media_item = { path; kind; alt }
+
+:== post_meta = { likes : i32; replies : i32; lang : string }
+
+:= meta_of (likes : i32) (replies : i32) : post_meta = { likes; replies; lang = "" }
+
+:= with_lang (lang : string) (m : post_meta) : post_meta = { m ?| lang }
+
+:= no_meta () : post_meta = meta_of 0i32 0i32
+
+:== labeled =
+    { entry : posts::entry; kind : post_kind; media : list media_item; quote_media : list media_item; meta : post_meta }
+
+:= original () : post_kind = Original
+
+:= reply_to (handle : string) : post_kind = ReplyTo handle
+
+:= repost_of (handle : string) : post_kind = RepostOf handle
+
+:= quote_of (author : string) (text : string) : post_kind = QuoteOf (author, text)
+
+:= labeled_of (entry : posts::entry) (kind : post_kind) (media : list media_item) (qm : list media_item) : labeled =
+    { entry; kind; media; quote_media = qm; meta = no_meta () }
+
+:= with_meta (meta : post_meta) (l : labeled) : labeled = { l ?| meta }
+
+:= kind_class (k : post_kind) : string =
+    ?= k ?| Original => "post" | ReplyTo _ => "post reply" | RepostOf _ => "post repost" | QuoteOf _ => "post quote"
+
+:= naming (lead : string) (handle : string) : string = ? handle = "" ?> lead |: lead ++# " @" ++# handle
+
+:= label_of (k : post_kind) : string =
+    ?= k ?|
+    | Original => ""
+    | ReplyTo _ => ""
+    | RepostOf h => naming "Repost of" h
+    | QuoteOf (a, _) => naming "Quoting" a
+
+:= label_blocks (k : post_kind) : list block =
+    := label = label_of k
+    ? label = "" ?> [] |: [ Paragraph [ Strong [ Text label ] ] ]
+
+:= media_src (path : string) : string = "/media/" ++# path
+
+:= img_markup (m : media_item) : markup =
+    element "img" [ ("loading", "lazy"); ("src", media_src m::path); ("alt", m::alt) ] (trusted "")
+
+:= video_markup (m : media_item) : markup =
+    := attrs =
+        [ ("class", "vid"); ("muted", ""); ("loop", ""); ("playsinline", ""); ("preload", "metadata");
+            ("controls", ""); ("src", media_src m::path) ]
+    element "video" attrs (trusted "")
+
+:= media_markup (m : media_item) : markup = ? m::kind = "video" ?> video_markup m |: img_markup m
+
+:= media_block (items : list media_item) : markup = concat (listm::map media_markup items)
+
+:= counts_text (m : post_meta) : string =
+    sm'::obj_to_string m::likes ++# " likes · " ++# sm'::obj_to_string m::replies ++# " replies"
+
+:= counts_markup (m : post_meta) : markup =
+    ? m::likes = 0i32 && m::replies = 0i32
+    ?> trusted ""
+    |: element "p" [ ("class", "counts") ] (trusted (counts_text m))
+
+:= lang_badge (m : post_meta) : markup =
+    ? m::lang = ""
+    ?> trusted "" |? m::lang = "en" ?> trusted ""
+    |: element "span" [ ("class", "lang") ] (escape m::lang)
+
+:= decode_entities (s : string) : string =
+    s
+    |> sm'::replace "&lt;" "<"
+    |> sm'::replace "&gt;" ">"
+    |> sm'::replace "&quot;" "\""
+    |> sm'::replace "&#39;" "'"
+    |> sm'::replace "&amp;" "&"
+
+:= quoted_block (a : string) (quoted : string) (qmedia : list media_item) : markup =
+    := line = Paragraph [ Text ("@" ++# a ++# ": " ++# decode_entities quoted) ]
+    element "blockquote" [ ("class", "quoted") ] (joined (blocks_html [ line ]) (media_block qmedia))
+
+:= quoted_markup (k : post_kind) (qmedia : list media_item) : markup =
+    ?= k ?| QuoteOf (a, quoted) => quoted_block a quoted qmedia | _ => trusted ""
+
+:= entry_head (l : labeled) : markup = blocks_html (byline l::entry :: label_blocks l::kind)
+
+:= entry_tail (l : labeled) : list markup =
+    [ counts_markup l::meta; lang_badge l::meta; quoted_markup l::kind l::quote_media; blocks_html [ Rule ] ]
+
+:= entry_parts (l : labeled) : list markup =
+    entry_head l
+    :: blocks_html [ Paragraph [ Text (decode_entities l::entry::text) ] ]
+    :: media_block l::media
+    :: entry_tail l
+
+:= avatar_div () : markup = element "div" [ ("class", "avatar") ] (trusted "")
+
+:= content_div (l : labeled) : markup = element "div" [ ("class", "content") ] (concat (entry_parts l))
+
+:= labeled_markup (l : labeled) : markup =
+    element "article" [ ("class", kind_class l::kind) ] (element "div" [ ("class", "row") ] (joined (avatar_div ()) (
+        content_div l)))
+
+:= body_css () : string =
+    "body{background:#000;color:rgb(231,233,234);-webkit-font-smoothing:antialiased;"
+    ++# "font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;"
+
+:= body_metrics_css () : string =
+    "font-size:15px;line-height:20px;max-width:600px;margin:0 auto;padding:0}"
+
+:= media_css () : string =
+    "img,video{max-width:100%;height:auto;border-radius:16px;margin:8px 0;display:block}"
+    ++# "video.vid{width:100%;max-height:600px;background:#000;object-fit:contain}"
+
+:= article_css () : string =
+    "article{border-bottom:1px solid rgb(47,51,54)}"
+    ++# "article:hover{background:rgba(255,255,255,.03)}"
+    ++# ".row{display:flex;gap:12px;padding:12px 16px}"
+
+:= layout_css () : string =
+    ".avatar{width:40px;height:40px;border-radius:9999px;background:rgb(47,51,54);flex:0 0 40px}"
+    ++# ".content{flex:1 1 auto;min-width:0}"
+    ++# "article p{margin:2px 0;white-space:pre-wrap;overflow-wrap:anywhere}"
+
+:= article_text_css () : string =
+    ".content>p:first-child{color:rgb(113,118,123);font-size:14px}"
+    ++# "article strong{color:rgb(231,233,234);font-weight:700;font-size:15px}"
+
+:= counts_css () : string =
+    "p.counts{color:rgb(113,118,123);font-size:13px;margin:4px 0 0}"
+    ++# "blockquote.quoted{color:rgb(139,152,165);font-size:14px}"
+
+:= dark_css () : string =
+    body_css ()
+    ++# body_metrics_css ()
+    ++# media_css ()
+    ++# article_css ()
+    ++# layout_css ()
+    ++# article_text_css ()
+    ++# counts_css ()
+
+:= muted_css () : string = ".repost{opacity:.6;border-left:3px solid #999;padding-left:.6em}"
+
+:= quote_css () : string = ".quoted{border-left:3px solid #48c;margin:.3em 0 .3em .6em;padding-left:.6em}"
+
+:= nav_css () : string =
+    ".nav{position:sticky;top:0;z-index:9;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);padding:10px "
+    ^^ "16px;border-bottom:1px solid rgb(47,51,54);font-size:14px}"
+
+:= chrome_css () : string =
+    "h1{font-size:20px;font-weight:800;padding:8px 16px;margin:0}"
+    ++# "a.dir{color:rgb(29,155,240);text-decoration:none;margin-right:1em}"
+
+:= font_import () : string =
+    "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');"
+
+:= page_style () : markup =
+    element
+        "style"
+        []
+        (trusted (font_import () ++# dark_css () ++# muted_css () ++# quote_css () ++# nav_css () ++# chrome_css ()))
+
+:= ap_init () : string =
+    "(function(){var io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;"
+
+:= ap_toggle () : string =
+    "if(e.isIntersecting&&e.intersectionRatio>=.5){v.play().catch(function(){})}else{v.pause()}})},{threshold:[0,.5"
+    ^^ ",1]});"
+
+:= ap_scan () : string =
+    "function scan(){document.querySelectorAll('video.vid').forEach(function(v){if(!v.dataset.io){v.dataset.io='1';"
+    ^^ "io.observe(v)}})}scan();"
+
+:= ap_watch () : string =
+    "new MutationObserver(scan).observe(document.body,{childList:!0,subtree:!0})})()"
+
+:= autoplay_js () : string = ap_init () ++# ap_toggle () ++# ap_scan () ++# ap_watch ()
+
+:= autoplay_script () : markup = element "script" [] (trusted (autoplay_js ()))
+
+:= date_input () : markup = element "input" [ ("type", "date"); ("name", "from") ] (trusted "")
+
+:= date_submit () : markup = element "button" [ ("type", "submit") ] (escape "Go to date")
+
+:= nav_from () : markup =
+    element
+        "form"
+        [ ("class", "nav"); ("method", "get"); ("action", "/timeline") ]
+        (joined (date_input ()) (date_submit ()))
+
+:= dir_link (href : string) (label : string) : markup = element "a" [ ("class", "dir"); ("href", href) ] (escape label)
+
+:= nav_dir () : markup =
+    element
+        "nav"
+        [ ("class", "nav") ]
+        (joined (dir_link "/timeline" "Newest first") (dir_link "/timeline?d=up" "Oldest first"))
+
+:= page_tail (items : list labeled) : list markup =
+    listm::append (listm::map labeled_markup items) [ autoplay_script () ]
+
+:= page_parts (title : string) (items : list labeled) : list markup =
+    := heading = blocks_html [ Heading (H1, [ Text title ]) ]
+    page_style ()
+    :: nav_from ()
+    :: nav_dir ()
+    :: heading
+    :: page_tail items
+
+:= labeled_html (title : string) (items : list labeled) : string = concat (page_parts title items) |> markup_text
+
+:= stamp (second : string) : string = "2026-11-03T10:00:0" ++# second ++# "Z"
+
+:= shown (html : string) (texts : list string) : list bool = listm::map (\ s => sm'::contains s html) texts
+
+///> rust
+:# a_page_shows_each_entry_by_line_and_rule =
+    shown (timeline_html "joined" [ sample_entry "alice" (stamp "0") "hi" ]) [ "<strong>@alice</strong>"; "<hr" ]
+    |> _assert_eq [ !+; !+ ]
+
+///> rust
+:# entry_text_is_escaped =
+    shown (timeline_html "j" [ sample_entry "a" (stamp "0") "a <b> & c" ]) [ "a &lt;b&gt; &amp; c" ]
+    |> _assert_eq [ !+ ]
+
+///> rust
+:# stored_entities_decode_before_escape =
+    := html = labeled_html "t" [ labeled_of (sample_entry "a" (stamp "0") "x |&gt; y & z") (original ()) [] [] ]
+    shown html [ "x |&gt; y &amp; z"; "|&amp;gt;" ] |> _assert_eq [ !+; !- ]
+
+///> rust
+:# a_joined_page_takes_the_newest =
+    := a = [ sample_entry "a" (stamp "3") "a3"; sample_entry "a" (stamp "1") "a1" ]
+    shown (joined_page "t" 2i32 [ a; [ sample_entry "b" (stamp "2") "b2" ] ]) [ "a3"; "b2"; "a1" ]
+    |> _assert_eq [ !+; !+; !- ]
+
+:= one_of (k : post_kind) : string =
+    labeled_html "t" [ labeled_of (sample_entry "fc1943s" (stamp "0") "hello") k [] [] ]
+
+///> rust
+:# a_repost_is_labeled_repost_of_without_the_disclaimer =
+    shown (one_of (repost_of "gfixler")) [ "class=\"post repost\""; "Repost of @gfixler"; ", not this account" ]
+    |> _assert_eq [ !+; !+; !- ]
+
+///> rust
+:# a_quote_shows_the_comment_and_the_quoted_post =
+    := wanted = [ "Quoting @matthen2"; "hello"; "<blockquote class=\"quoted\">"; "chaos" ]
+    shown (one_of (quote_of "matthen2" "chaos")) wanted
+    |> _assert_eq [ !+; !+; !+; !+ ]
+
+///> rust
+:# a_reply_has_the_reply_class_but_no_label =
+    shown (one_of (reply_to "dsymetweets")) [ "class=\"post reply\""; "Reply to" ] |> _assert_eq [ !+; !- ]
+
+///> rust
+:# an_original_post_has_no_label =
+    shown (one_of (original ())) [ "class=\"post\""; "Repost of"; "Reply to" ] |> _assert_eq [ !+; !-; !- ]
+
+:= media_sample (items : list media_item) : string =
+    labeled_html "t" [ labeled_of (sample_entry "fc1943s" (stamp "0") "hello") (original ()) items [] ]
+
+:= quote_sample (qm : list media_item) : string =
+    labeled_html "t" [ labeled_of (sample_entry "fc1943s" (stamp "0") "hi") (quote_of "m" "q") [] qm ]
+
+///> rust
+:# a_quoted_post_renders_its_media =
+    shown (quote_sample [ media_item_of "accounts/fc1943s/media/9_0.jpg" "photo" "qpic" ])
+        [ "<blockquote class=\"quoted\">"; "<img"; "src=\"/media/accounts/fc1943s/media/9_0.jpg\"" ]
+    |> _assert_eq [ !+; !+; !+ ]
+
+:= lazy_img_parts () : list string =
+    [ "<img"; "src=\"/media/accounts/fc1943s/media/1_0.jpg\""; "alt=\"a cat\""; "loading=\"lazy\"" ]
+
+///> rust
+:# a_photo_renders_a_lazy_img =
+    shown (media_sample [ media_item_of "accounts/fc1943s/media/1_0.jpg" "photo" "a cat" ]) (lazy_img_parts ())
+    |> _assert_eq [ !+; !+; !+; !+ ]
+
+///> rust
+:# a_video_renders_a_controls_tag =
+    shown (media_sample [ media_item_of "accounts/fc1943s/media/2_0.mp4" "video" "" ])
+        [ "<video"; "src=\"/media/accounts/fc1943s/media/2_0.mp4\""; "controls" ]
+    |> _assert_eq [ !+; !+; !+ ]
+
+:= meta_sample (m : post_meta) : string =
+    labeled_html "t" [ with_meta m (labeled_of (sample_entry "fc1943s" (stamp "0") "hi") (original ()) [] []) ]
+
+///> rust
+:# engagement_counts_render_when_nonzero =
+    shown (meta_sample (meta_of 1596i32 18i32)) [ "class=\"counts\""; "1596 likes"; "18 replies" ]
+    |> _assert_eq [ !+; !+; !+ ]
+
+///> rust
+:# engagement_counts_hidden_when_zero =
+    shown (meta_sample (meta_of 0i32 0i32)) [ "class=\"counts\"" ] |> _assert_eq [ !- ]
+
+///> rust
+:# a_non_english_lang_renders_a_badge =
+    shown (meta_sample (with_lang "pt" (meta_of 0i32 0i32))) [ "class=\"lang\""; ">pt<" ] |> _assert_eq [ !+; !+ ]
+
+///> rust
+:# english_lang_renders_no_badge =
+    shown (meta_sample (with_lang "en" (meta_of 0i32 0i32))) [ "class=\"lang\"" ] |> _assert_eq [ !- ]
+
+///> rust -d serde_json
+:# a_video_carries_autoplay_attributes =
+    shown (media_sample [ media_item_of "accounts/fc1943s/media/2_0.mp4" "video" "" ])
+        [ "<video"; "class=\"vid\""; "muted"; "loop"; "playsinline" ]
+    |> _assert_eq [ !+; !+; !+; !+; !+ ]
+
+:= plain_page () : string = labeled_html "t" [ labeled_of (sample_entry "a" (stamp "0") "hi") (original ()) [] [] ]
+
+///> rust -d serde_json
+:# the_page_emits_the_autoplay_script =
+    shown (plain_page ()) [ "<script>"; "IntersectionObserver"; "video.vid" ]
+    |> _assert_eq [ !+; !+; !+ ]
+
+///> rust -d serde_json
+:# the_page_shows_date_and_direction_nav =
+    shown (plain_page ()) [ "type=\"date\""; "name=\"from\""; "/timeline?d=up"; "Oldest first" ]
+    |> _assert_eq [ !+; !+; !+; !+ ]

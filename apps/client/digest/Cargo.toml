@@ -1,0 +1,16 @@
+[package]
+name = "xc_digest"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "digest.spi"
+output = "digest.rs"
+
+[lib]
+name = "xc_digest"
+path = "digest.rs"
+
+[dependencies]
+serde_json = { workspace = true }

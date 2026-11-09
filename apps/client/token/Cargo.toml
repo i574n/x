@@ -1,0 +1,17 @@
+[package]
+name = "xc_token"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "token.spi"
+output = "token.rs"
+
+[lib]
+name = "xc_token"
+path = "token.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+xc_net = { path = "../net" }

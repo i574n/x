@@ -1,0 +1,13 @@
+[package]
+name = "xc_domains"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[package.metadata.spiral]
+entry = "domains.spi"
+output = "domains.rs"
+
+[lib]
+name = "xc_domains"
+path = "domains.rs"

@@ -1,0 +1,136 @@
+///- --package ..
+:# census static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< protocol
+
+:== file_census = { path : string; cells : i32; spilled : i32; posts : i32 }
+
+:= blank_census (path : string) : file_census = { path = path; cells = 0i32; spilled = 0i32; posts = 0i32 }
+
+:= one_if (b : bool) : i32 = ? b ?> 1i32 |: 0i32
+
+:= with_header (c : file_census) (h : protocol::frame_header) : file_census =
+    := first = h::part = 1i32
+    := spills = one_if (first && h::part_count > 1i32)
+    { c ?| posts = c::posts + 1i32; cells = c::cells + one_if first; spilled = c::spilled + spills }
+
+:= counted_line (c : file_census) (line : string) : file_census =
+    ?= protocol::parsed line ?| Ok h => with_header c h | Error _ => c
+
+:= census_of (path : string) (preview : string) : file_census =
+    pieces "\n" preview |> listm::fold counted_line (blank_census path)
+
+:= count_field (name : string) (n : i32) : string = " " ++# name ++# "=" ++# sm'::obj_to_string n
+
+:| file_class =
+    | Hand
+    | Generated
+    | Data
+
+:= in_data (p : string) : bool = sm'::contains "/state/" p || sm'::contains "/tmp/" p || sm'::contains "/results/" p
+
+:= class_named (path : string) : file_class =
+    := p = "/" ++# sm'::replace "\\" "/" path
+    ? sm'::contains "/generated/" p ?> Generated |? in_data p ?> Data |: Hand
+
+:= class_text (c : file_class) : string = ?= c ?| Hand => "hand" | Generated => "generated" | Data => "data"
+
+:= census_row (c : file_census) : string =
+    := counts = count_field "cells" c::cells ++# count_field "spilled" c::spilled ++# count_field "posts" c::posts
+    c::path ++# " class=" ++# class_text (class_named c::path) ++# counts
+
+:== repo_census = { repo : string; files : i32; clean : i32; cells : i32; spilled : i32; posts : i32 }
+
+:= added_counts (r : repo_census) (c : file_census) : repo_census =
+    { r ?| cells = r::cells + c::cells; spilled = r::spilled + c::spilled; posts = r::posts + c::posts }
+
+:= added (r : repo_census) (c : file_census) : repo_census =
+    := base = added_counts r c
+    { base ?| files = r::files + 1i32; clean = r::clean + one_if (c::spilled = 0i32) }
+
+:= repo_total (repo : string) (files : list file_census) : repo_census =
+    listm::fold added { repo = repo; files = 0i32; clean = 0i32; cells = 0i32; spilled = 0i32; posts = 0i32 } files
+
+:= count_text (label : string) (n : i32) : string = label ++# " " ++# sm'::obj_to_string n
+
+:= head_counts (r : repo_census) : list string =
+    [ count_text "files" r::files; count_text "files with every cell in one post" r::clean ]
+
+:= tail_counts (r : repo_census) : list string =
+    [ count_text "cells" r::cells; count_text "cells over one post" r::spilled; count_text "posts" r::posts ]
+
+:= repo_line (r : repo_census) : string =
+    r::repo ++# ": " ++# sm'::concat_list ", " (listm::append (head_counts r) (tail_counts r))
+
+:= sample_line () : string = "x: files 2, files with every cell in one post 1, cells 3, cells over one post 1, posts 4"
+
+:= value_of (word : string) : i32 =
+    ?= split_on "=" word ?|
+    | _ :: digits_text :: [] =>
+        ?= count_of_text digits_text ?|
+        | Some n => n
+        | None => 0i32
+    | _ => 0i32
+
+:= row_back (row : string) : file_census =
+    ?= listm::rev (split_on " " row) ?|
+    | posts :: spilled :: cells :: _ =>
+        { path = row; cells = value_of cells; spilled = value_of spilled; posts = value_of posts }
+    | _ => blank_census row
+
+:= rows_back (rows : string) : list file_census = pieces "\n" rows |> listm::map row_back
+
+:= total_of (rows : string) : string = repo_line (repo_total "total" (rows_back rows))
+
+///> rust
+:# a_preview_counts_cells_spills_and_posts =
+    census_of "a.spi" "c1 1/1\nbody\nc2 1/2\nmore\nc2 2/2\nend" |> census_row
+    |> _assert_eq "a.spi class=hand cells=2 spilled=1 posts=3"
+
+///> rust
+:# a_repo_total_reads_like_the_report_line =
+    := a = census_of "a.spi" "c1 1/1\nbody\nc2 1/2\nmore\nc2 2/2\nend"
+    repo_total "x" [ a; census_of "b.spi" "c1 1/1\nx" ] |> repo_line |> _assert_eq (sample_line ())
+
+///> rust
+:# paths_sort_into_hand_generated_and_data =
+    listm::map (\ p => class_text (class_named p)) [
+        "a\\b.spi"
+        "f\\generated\\g.spi"
+        "kit/state/agile.spi"
+        "s/tmp/x.spi"
+    ]
+    |> _assert_eq [ "hand"; "generated"; "data"; "data" ]
+
+///> rust
+:# rows_read_back_into_the_same_total =
+    := rows = "a.spi cells=2 spilled=1 posts=3\nb c.spi cells=1 spilled=0 posts=1"
+    total_of rows
+    |> _assert_eq "total: files 2, files with every cell in one post 1, cells 3, cells over one post 1, posts 4"
+
+:= preview_of (site : string) (text : string) : string = $'xc_preview::xc_preview(&*!site, &*!text)'
+
+:= row_of_file (site : string) (path : string) : string =
+    census_row (census_of path (preview_of site (file_system::read_all_text path)))
+
+:= rows_into (site : string) (acc : list string) (path : string) : list string =
+    ? file_system::file_exists path ?> row_of_file site path :: acc |: acc
+
+:= class_line (rows : list string) (name : string) : string =
+    repo_line (repo_total name (listm::map row_back (keep (\ r => sm'::contains (" class=" ++# name ++# " ") r) rows)))
+
+:= class_lines (rows : list string) : list string = listm::map (class_line rows) [ "hand"; "generated"; "data" ]
+
+:= report_tail (rows : list string) : list string =
+    listm::append (class_lines rows) [ total_of (sm'::concat_list "\n" rows) ]
+
+:= files_report (site : string) (payload : string) : string =
+    := rows = pieces "\n" payload |> listm::fold (rows_into site) [] |> listm::rev
+    sm'::concat_list "\n" (listm::append rows (report_tail rows))
+
+:= main () : i32 =
+    export "xc_census_files" ((\ (site, payload) => files_report site payload) : string * string -> string)
+    0i32

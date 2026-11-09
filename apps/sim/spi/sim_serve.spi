@@ -1,0 +1,1037 @@
+///- --package . --timeout 900000
+:# sim_serve static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+
+:== term = erlang_term::term
+
+:= call (m : string) (f : string) (args : list term) : term = erlang_term::apply m f args
+
+:= str (s : string) : term = erlang_term::of s
+
+:= int (n : i32) : term = erlang_term::of n
+
+:= text (t : term) : string = erlang_term::cast t
+
+:= atom (a : string) : term = erlang_term::atom a
+
+:= second (t : term) : term = erlang_term::element_at 2i32 t
+
+:= truth (t : term) : bool = erlang_term::cast t
+
+:= tag_of (t : term) : term = erlang_term::element_at 1i32 t
+
+:= pair (k : string) (v : term) : term = erlang_term::tuple [ atom k; v ]
+
+:= byte_count (s : string) : i32 = erlang_term::byte_size_of s
+
+:= port_from (text : string) : i32 = ?= count_of_text (sm'::trim text) ?| Some n => n | None => 0i32
+
+:= wanted_port () : i32 = port_from (env::get_environment_variable "SIM_PORT")
+
+:= refused_port (port : i32) : i32 =
+    erlang_file::put_error_text ("xsim serve / cannot listen on port " ++# sm'::obj_to_string port ++# "\n")
+    4i32
+
+:= port_of (l : erlang_tcp::listener) : i32 = erlang_tcp::listener_port l
+
+:= count_or_zero (s : string) : i32 = ?= count_of_text s ?| Some n => n | None => 0i32
+
+:= chunk_or_empty (sock : erlang_tcp::socket) : string =
+    ?= erlang_tcp::receive_chunk_within sock 10000i32 ?| Ok chunk => chunk | Error _ => ""
+
+:~ ^ received (sock : erlang_tcp::socket) (acc : string) : string =
+    := chunk = ? erlang_http_server::complete acc ?> "" |: chunk_or_empty sock
+    ? chunk = "" ?> acc |: received sock (acc ++# chunk)
+
+:== request = erlang_http_server::request
+
+:= split_once (sep : string) (s : string) : string * string =
+    := i = sm'::index_of sep s
+    := rest = i + sm'::length sep
+    ? i < 0i32 ?> s, "" |: cut 0i32 i s, sm'::substring rest (sm'::length s - rest) s
+
+:= gated (cond : bool) (pairs : list (string * term)) : list (string * term) = ? cond ?> pairs |: []
+
+:== index = dict::dict string term
+
+:== write_state = { me : term; created : dict::dict string (); next_id : i32 }
+
+:== api_world =
+    { token : string; user_token : string; by_handle : index; by_id : index; page_size : i32; by_post : index;
+        now : string; raw : term; issued : list string; writes : write_state; feeds : list (list (string * term));
+        media_root : string }
+
+:= writes_of (me : term) (created : dict::dict string ()) (next_id : i32) : write_state = { me; created; next_id }
+
+:= no_writes () : write_state = writes_of (erlang_term::of "") (dict::empty ()) 9001i32
+
+:== fields = erlang_map::erl_map string term
+
+:= fields_of (m : term) : fields = erlang_map::map_view m
+
+:== numbers = erlang_map::erl_map string i32
+
+:= numbers_of (m : term) : numbers = erlang_map::map_view m
+
+:= has_key (key : string) (m : term) : bool = fields_of m |> erlang_map::map_has key
+
+:= field_or (key : string) (fallback : term) (m : term) : term = fields_of m |> erlang_map::map_get_or key fallback
+
+:= field (key : string) (m : term) : term = field_or key (str "") m
+
+:= items_at (key : string) (m : term) : term = field_or key (erlang_term::list_term []) m
+
+:= with_field (key : string) (value : term) (m : term) : term =
+    fields_of m |> erlang_map::map_put key value |> erlang_map::map_term
+
+:= terms_of (items : term) : list term = erlang_term::items_of items
+
+:= id_text (id : term) : string =
+    ? erlang_term::is_binary id ?> text id |: erlang_term::integer_text id
+
+:= etf_of (path : string) : string = path ++# ".etf"
+
+:= modified_at (path : string) : term = call "filelib" "last_modified" [ str path ]
+
+:= cache_fresh (path : string) : bool =
+    call "erlang" ">" [ modified_at (etf_of path); modified_at path ] |> erlang_term::cast
+
+:= etf_written (path : string) (w : term) : () =
+    call "file" "write_file" [ str (etf_of path); call "erlang" "term_to_binary" [ w ] ] |> ignore
+
+:= etf_read (path : string) : option term =
+    := r = call "file" "read_file" [ str (etf_of path) ]
+    ? erlang_term::equal (tag_of r) (atom "ok") ?> Some (call "erlang" "binary_to_term" [ second r ]) |: None
+
+:= decoded (path : string) : term =
+    := w = erlang_term::json_decoded (file_system::read_all_text path)
+    etf_written path w
+    w
+
+:= cached_or_decoded (path : string) : term =
+    ?= etf_read path ?| Some w => w | None => decoded path
+
+:= json_file (path : string) : term = ? cache_fresh path ?> cached_or_decoded path |: decoded path
+
+:= dir_of (path : string) : string = erlang_file::dir_name path
+
+:= sibling (path : string) (name : term) : string = dir_of path ++# "/" ++# text name
+
+:= users_in (w : term) : list term = terms_of (items_at "users" w)
+
+:~ included_users (path : string) (w : term) : list term =
+    := extras = terms_of (items_at "include" w) |> each \ t => users_in (json_file (sibling path t))
+    listm::append (users_in w) (listm::concat extras)
+
+:= with_author (u : term) (p : term) : term = with_field "author_id" (field "id" u) p
+
+:= post_key (p : term) : string = id_text (field "id" p)
+
+:= handle_of (u : term) : string = sm'::to_lower (text (field "username" u))
+
+:~ with_posts (u : term) (posts : dict::dict string term) : dict::dict string term =
+    terms_of (items_at "posts" u) |> listm::fold (\ d p => dict::insert (post_key p) (with_author u p) d) posts
+
+:= created_of (p : term) : string = cut 0i32 19i32 (text (field "created_at" p))
+
+:= later_of (a : string) (b : string) : string = ? erlang_term::text_at_least a b ?> a |: b
+
+:= newest_of (u : term) : string = terms_of (items_at "posts" u) |> each created_of |> listm::fold later_of ""
+
+:= keeps_handle (w : api_world) (u : term) : bool =
+    ?= dict::find (handle_of u) w::by_handle ?|
+    | Some held => erlang_term::text_at_least (newest_of u) (newest_of held)
+    | None => !+
+
+:= with_user (w : api_world) (u : term) : api_world =
+    := handles = ? keeps_handle w u ?> dict::insert (handle_of u) u w::by_handle |: w::by_handle
+    { w ?| by_handle = handles; by_id = dict::insert (post_key u) u w::by_id; by_post = with_posts u w::by_post }
+
+:= page_size_of (w : term) : i32 = numbers_of w |> erlang_map::map_get_or "following_page_size" 100i32
+
+:= fresh () : dict::dict string term = dict::empty ()
+
+:= blank_world (t : string) (u : string) (now : string) =
+    := e = fresh ()
+    { token = t; user_token = u; by_handle = e; by_id = e; page_size = 100i32; by_post = e;
+        now; raw = str ""; issued = []; writes = no_writes (); feeds = []; media_root = "" }
+
+:= no_fields () : term = (erlang_map::map_new () : fields) |> erlang_map::map_term
+
+:= section (key : string) (w : term) : term = field_or key (no_fields ()) w
+
+:= first_refresh (w : term) : list string = [ text (field "refresh_token" (section "oauth2" w)) ]
+
+:= world_auth (w : term) (b : api_world) : api_world =
+    := writes = writes_of (field "me" w) b::writes::created b::writes::next_id
+    { b ?| raw = w; issued = first_refresh w; writes = writes; page_size = page_size_of w }
+
+:= empty_world (w : term) : api_world =
+    blank_world (text (field "token" w)) (text (field "user_token" w)) (text (field "now" w)) |> world_auth w
+
+:~ world_of (path : string) : api_world =
+    := w = json_file path
+    := loaded = included_users path w |> listm::fold with_user (empty_world w)
+    { loaded ?| media_root = dir_of path ++# "/media" }
+
+:= pct (s : string) : string = erlang_text::percent_encoded s
+
+:= unescaped (s : string) : string = erlang_text::percent_decoded s
+
+:= hmac_sha1 (key : string) (base : string) : string = crypto::hmac_sha1_base64 key base
+
+:= pair_text (t : term) : string = text (tag_of t) ++# "=" ++# text (second t)
+
+:= encoded_pair (kv : string * string) : term = kv |> \ (k, v) => erlang_term::tuple [ str (pct k); str (pct v) ]
+
+:~ signed_params (params : list (string * string)) : string =
+    := tuples = params |> each encoded_pair |> erlang_term::list_term
+    call "lists" "sort" [ tuples ] |> terms_of |> each pair_text |> delimited "&"
+
+:== signing = { method : string; url : string; params : list (string * string); consumer : string; token : string }
+
+:~ oauth1_signature (s : signing) : string =
+    := base = s::method ++# "&" ++# pct s::url ++# "&" ++# pct (signed_params s::params)
+    hmac_sha1 (pct s::consumer ++# "&" ++# pct s::token) base
+
+:= example_oauth () : list (string * string) =
+    [ ("oauth_consumer_key", "xvz1evFS4wEEPTGEFPHBog"); ("oauth_nonce", "kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg");
+        ("oauth_signature_method", "HMAC-SHA1"); ("oauth_timestamp", "1318622958") ]
+
+:= example_rest () : list (string * string) =
+    [ ("include_entities", "true"); ("status", "Hello Ladies + Gentlemen, a signed OAuth request!");
+        ("oauth_token", "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb"); ("oauth_version", "1.0") ]
+
+:= example_secrets () : string * string =
+    "kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw", "LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE"
+
+:= example_signing () : signing =
+    := params = listm::append (example_rest ()) (example_oauth ())
+    := consumer, token = example_secrets ()
+    { method = "POST"; url = "https://api.x.com/1.1/statuses/update.json"; params; consumer; token }
+
+:= oauth1_self_test () : bool = oauth1_signature (example_signing ()) = "Ls93hJiZbQ3akF3HF3x1Bz8/zU4="
+
+:= header_field (part : string) : string * string =
+    split_once "=" (sm'::trim part) |> \ (k, v) => (unescaped k, unescaped (sm'::replace "\"" "" v))
+
+:= oauth_fields (auth : string) : list (string * string) =
+    pieces "," (sm'::substring 6i32 (sm'::length auth - 6i32) auth) |> each header_field
+
+:= fields_value (key : string) (fields : list (string * string)) : string =
+    ?= fields |> keep (\ (k, _) => k = key) ?| (_, v) :: _ => v | [] => ""
+
+:= oauth1_secret (w : api_world) (key : string) : string = text (field key (field "oauth1" w::raw))
+
+:= owned_by (w : api_world) (fields : list (string * string)) : bool =
+    := consumer = fields_value "oauth_consumer_key" fields = oauth1_secret w "consumer_key"
+    consumer && fields_value "oauth_token" fields = oauth1_secret w "token"
+
+:= signing_url (r : request) : string = "http://" ++# erlang_http_server::header_value "host" r::head ++# r::path
+
+:= oauth1_secrets (w : api_world) : string * string = oauth1_secret w "consumer_secret", oauth1_secret w "token_secret"
+
+:= unsigned (fields : list (string * string)) : list (string * string) =
+    fields |> keep (\ (k, _) => k <> "oauth_signature")
+
+:= request_signing (w : api_world) (r : request) (fields : list (string * string)) : signing =
+    := consumer, token = oauth1_secrets w
+    { method = r::method; url = signing_url r; params = unsigned fields; consumer; token }
+
+:~ oauth1_valid (w : api_world) (r : request) (auth : string) : bool =
+    := fields = oauth_fields auth
+    owned_by w fields && fields_value "oauth_signature" fields = oauth1_signature (request_signing w r fields)
+
+:= client_basic (w : api_world) : string =
+    := o = field "oauth2" w::raw
+    "Basic " ++# erlang_text::base64_encoded (text (field "client_id" o) ++# ":" ++# text (field "client_secret" o))
+
+:= is_client (w : api_world) (r : request) (auth : string) : bool =
+    auth = client_basic w && r::path = "/2/oauth2/token"
+
+:= is_oauth1 (w : api_world) (r : request) (auth : string) : bool =
+    sm'::starts_with "OAuth " auth && oauth1_valid w r auth
+
+:! client_context = ()
+
+:! no_context = ()
+
+:| caller c =
+    | AppBearer :: caller wire::app_context
+    | UserBearer :: caller wire::user_context
+    | OAuth1User :: caller wire::user_context
+    | ClientBasic :: caller client_context
+    | Unauthenticated :: caller no_context
+
+:= caller_word \* c. (who : caller c) : string =
+    ?= who ?|
+    | AppBearer => "app"
+    | UserBearer => "user"
+    | OAuth1User => "oauth1"
+    | ClientBasic => "client"
+    | Unauthenticated => ""
+
+
+:= map_of (pairs : list (string * term)) : term =
+    call "maps" "from_list" [ pairs |> each (\ (k, v) => pair k v) |> erlang_term::list_term ]
+
+:= copied (keys : list string) (u : term) : term = map_of (keys |> each (\ k => (k, field k u)))
+
+:= public (u : term) : term = copied [ "id"; "name"; "username" ] u
+
+:= missing_detail (handle : string) : string = "Could not find user with usernames: [" ++# handle ++# "]."
+
+:= problem_kind () : term = str "https://api.x.com/2/problems/resource-not-found"
+
+:= missing_about (handle : string) : list (string * term) =
+    [ ("value", str handle); ("detail", str (missing_detail handle)); ("title", str "Not Found Error") ]
+
+:~ not_found (handle : string) : term =
+    := resource = [ ("resource_type", str "user"); ("parameter", str "usernames"); ("type", problem_kind ()) ]
+    map_of (listm::append (missing_about handle) resource)
+
+:= known (h : string) (w : api_world) : bool = dict::has (sm'::to_lower h) w::by_handle
+
+:= user_of (h : string) (w : api_world) : term = dict::present (sm'::to_lower h) w::by_handle |> public
+
+:= listed_field (key : string) (items : list term) : list (string * term) =
+    ?= items ?| [] => [] | _ => [ (key, erlang_term::list_term items) ]
+
+:= found_users (w : api_world) (handles : list string) : list term =
+    handles |> keep (\ h => known h w) |> each \ h => user_of h w
+
+:= missing_users (w : api_world) (handles : list string) : list term =
+    handles |> keep (\ h => not (known h w)) |> each not_found
+
+:~ users_by (w : api_world) (query : string) : term =
+    := handles = erlang_http_server::query_list "usernames" query
+    := errors = listed_field "errors" (missing_users w handles)
+    map_of (listm::append (listed_field "data" (found_users w handles)) errors)
+
+:~ users_by_ids (w : api_world) (query : string) : term =
+    := ids = erlang_http_server::query_list "ids" query |> keep \ i => dict::has i w::by_id
+    map_of [ ("data", ids |> each (\ i => dict::present i w::by_id |> public) |> erlang_term::list_term) ]
+
+:= problem (status : i32) (title : string) (detail : string) : term =
+    := words = [ ("title", str title); ("detail", str detail) ]
+    map_of (listm::append words [ ("type", str "about:blank"); ("status", int status) ])
+
+:= unauthorized () : term = problem 401i32 "Unauthorized" "Unauthorized"
+
+:= query_first (name : string) (fallback : string) (query : string) : string =
+    := v = erlang_http_server::query_value name query
+    ? v = "" ?> fallback |: v
+
+:= in_range (low : i32) (high : i32) (s : string) : bool =
+    ?= count_of_text s ?| Some n => n >= low && n <= high | None => !-
+
+:~ ^ sliced (start : i32) (count : i32) (l : list term) : list term =
+    ?= l ?|
+    | x :: rest ?& start > 0i32 => sliced (start - 1i32) count rest
+    | x :: rest ?& count > 0i32 => x :: sliced 0i32 (count - 1i32) rest
+    | _ => []
+
+:~ followed (w : api_world) (u : term) : list term =
+    := ids = terms_of (items_at "following" u) |> each id_text |> keep \ i => dict::has i w::by_id
+    ids |> each \ i => dict::present i w::by_id
+
+:= following_meta (shown : i32) (next : i32) (more : bool) : term =
+    := token = ? more ?> [ ("next_token", str ("p" ++# sm'::obj_to_string next)) ] |: []
+    map_of (("result_count", int shown) :: token)
+
+:= page_body (page : list term) (meta : term) : term =
+    map_of (listm::append (listed_field "data" (page |> each public)) [ ("meta", meta) ])
+
+:~ following_body (w : api_world) (u : term) (start : i32) (count : i32) : term =
+    := all = followed w u
+    := page = sliced start count all
+    page_body page (following_meta (listm::length page) (start + count) (start + count < listm::length all))
+
+:= page_start (token : string) : i32 = count_or_zero (sm'::substring 1i32 (sm'::length token - 1i32) token)
+
+:= bad_size (size : string) : i32 * term =
+    400i32, problem 400i32 "Invalid Request" ("max_results must be 1..1000, got " ++# size)
+
+:= page_count (w : api_world) (size : string) : i32 =
+    := asked = count_or_zero size
+    ? asked < w::page_size ?> asked |: w::page_size
+
+:= page_asked (query : string) : i32 = page_start (query_first "pagination_token" "p0" query)
+
+:~ following (w : api_world) (u : term) (query : string) : i32 * term =
+    := size = query_first "max_results" "100" query
+    ? in_range 1i32 1000i32 size ?> (200i32, following_body w u (page_asked query) (page_count w size)) |: bad_size size
+
+:= encoded (t : term) : string = erlang_term::json_encoded t
+
+:= asked_fields (r : request) : list (string * term) =
+    [ ("method", str r::method); ("path", str r::path); ("query", str r::query) ]
+
+:= context_of (kind : string) : term = ? kind = "" ?> atom "null" |: str kind
+
+:= posted_body (r : request) : list (string * term) =
+    gated (r::method = "POST") [ ("body", str (erlang_http_server::body_of r)) ]
+
+:~ log_row (r : request) (kind : string) : term =
+    := body = posted_body r
+    := auth = [ ("authorized", erlang_term::of (kind <> "")); ("context", context_of kind) ]
+    map_of (listm::concat [ asked_fields r; auth; body ])
+
+:~ logged (log : string) (r : request) (kind : string) : () =
+    erlang_file::file_appended log (encoded (log_row r kind) ++# "\n") |> ignore
+
+:| api_route =
+    | UsersBy
+    | UsersByIds
+    | Following : term
+    | Timeline : term
+    | Lookup
+    | Single : string
+    | SearchRecent
+    | SearchAll
+    | Elsewhere
+
+:= user_route (w : api_world) (id : string) (rest : string) : api_route =
+    ? not (dict::has id w::by_id)
+    ?> Elsewhere
+    |? rest = "following"
+    ?> Following (dict::present id w::by_id)
+    |? rest = "tweets" ?> Timeline (dict::present id w::by_id) |: Elsewhere
+
+:= users_route (w : api_world) (parts : list string) : api_route =
+    ?= parts ?| "by" :: [] => UsersBy | [] => UsersByIds | id :: rest :: [] => user_route w id rest | _ => Elsewhere
+
+:= search_route (kind : string) : api_route =
+    ? kind = "recent" ?> SearchRecent |? kind = "all" ?> SearchAll |: Elsewhere
+
+:= tweets_route (parts : list string) : api_route =
+    ?= parts ?| [] => Lookup | id :: [] => Single id | "search" :: kind :: [] => search_route kind | _ => Elsewhere
+
+:~ route_of (w : api_world) (path : string) : api_route =
+    ?= pieces "/" path ?|
+    | "" :: "2" :: "users" :: parts => users_route w parts
+    | "" :: "2" :: "tweets" :: parts => tweets_route parts
+    | _ => Elsewhere
+
+:= json_reply (status : i32) (body : term) : string = erlang_http_server::json_response status (encoded body)
+
+:= escaped (s : string) : string = xml::escape_text_xml s
+
+:= asked (fields : list string) (name : string) : bool = has (\ f => f = name) fields
+
+:= nonempty (key : string) (p : term) : bool = ?= terms_of (items_at key p) ?| [] => !- | _ => !+
+
+:= metric_names () : list string =
+    [ "bookmark_count"; "impression_count"; "like_count"; "quote_count"; "reply_count"; "repost_count" ]
+
+:= metrics_of (p : term) : term =
+    := counts = field_or "metrics" (map_of []) p
+    map_of (metric_names () |> each (\ k => (k, field_or k (int 0i32) counts)))
+
+:= history_of (p : term) : term = field_or "edit_history" (erlang_term::list_term [ field "id" p ]) p
+
+:= base_pairs (p : term) : list (string * term) =
+    [ ("id", field "id" p); ("text", str (escaped (text (field "text" p)))); ("edit_history_post_ids", history_of p) ]
+
+:= media_keys (p : term) : term = terms_of (items_at "media" p) |> each (field "media_key") |> erlang_term::list_term
+
+:= conversation (p : term) : term = field_or "conversation_id" (field "id" p) p
+
+:= field_pair (fields : list string) (name : string) (value : term) : list (string * term) =
+    gated (asked fields name) [ (name, value) ]
+
+:~ simple_pairs (p : term) (fields : list string) : list (string * term) =
+    := pick = field_pair fields
+    := made = pick "created_at" (field "created_at" p)
+    listm::concat [ pick "conversation_id" (conversation p); made; pick "author_id" (field "author_id" p) ]
+
+:= urls_pair (p : term) : list (string * term) = [ ("entities", map_of [ ("urls", items_at "urls" p) ]) ]
+
+:= media_pair (p : term) : list (string * term) = [ ("attachments", map_of [ ("media_keys", media_keys p) ]) ]
+
+:= present_pair (fields : list string) (name : string) (key : string) (p : term) : bool =
+    asked fields name && nonempty key p
+
+:~ counted_pairs (p : term) (fields : list string) : list (string * term) =
+    := refs = gated (present_pair fields "referenced_posts" "refs" p) [ ("referenced_posts", items_at "refs" p) ]
+    listm::append (field_pair fields "public_metrics" (metrics_of p)) refs
+
+:~ nested_pairs (p : term) (fields : list string) : list (string * term) =
+    := urls = gated (present_pair fields "entities" "urls" p) (urls_pair p)
+    listm::concat [ counted_pairs p fields; urls; gated (present_pair fields "attachments" "media" p) (media_pair p) ]
+
+:~ rendered (p : term) (fields : list string) : term =
+    map_of (listm::concat [ base_pairs p; simple_pairs p fields; nested_pairs p fields ])
+
+:~ ^ deduped (seen : dict::dict string ()) (items : list (string * term)) : list term =
+    ?= items ?|
+    | (k, v) :: rest ?& dict::has k seen => deduped seen rest
+    | (k, v) :: rest => v :: deduped (dict::insert k () seen) rest
+    | [] => []
+
+:= unique (items : list (string * term)) : list term = deduped (dict::empty ()) items
+
+:== expansion_ask = { fields : list string; expansions : list string; media_fields : list string }
+
+:= ask_of (query : string) : expansion_ask =
+    := asked (name : string) : list string = erlang_http_server::query_list name query
+    { fields = asked "post.fields"; expansions = asked "expansions"; media_fields = asked "media.fields" }
+
+:= post_of (w : api_world) (i : string) : term = dict::present i w::by_post
+
+:= posts_of (w : api_world) (ids : list string) : list term =
+    ids |> keep (\ i => dict::has i w::by_post) |> each (post_of w)
+
+:= ref_targets (w : api_world) (p : term) : list term = terms_of (items_at "refs" p) |> each post_key |> posts_of w
+
+:= expands_refs (a : expansion_ask) (p : term) : bool = asked a::expansions "referenced_posts" && nonempty "refs" p
+
+:~ data_item (a : expansion_ask) (p : term) : term =
+    := item = rendered p a::fields
+    ? expands_refs a p ?> with_field "referenced_posts" (items_at "refs" p) item |: item
+
+:= targets_of (w : api_world) (a : expansion_ask) (posts : list term) : list term =
+    posts |> keep (expands_refs a) |> each (ref_targets w) |> listm::concat
+
+:= author_entry (t : term) : string * term = id_text (field "author_id" t), map_of [ ("id", field "author_id" t) ]
+
+:~ included_authors (w : api_world) (a : expansion_ask) (posts : list term) : list (string * term) =
+    ? asked a::expansions "referenced_posts.author_id" ?> targets_of w a posts |> each author_entry |: []
+
+:= wanted_key (a : expansion_ask) (k : string) : bool = k = "media_key" || asked a::media_fields k
+
+:= kept_media (a : expansion_ask) (m : term) : term =
+    := keys = fields_of m |> erlang_map::map_keys |> keep (wanted_key a)
+    map_of (keys |> each (\ k => (k, field k m)))
+
+:= media_entries (a : expansion_ask) (p : term) : list (string * term) =
+    terms_of (items_at "media" p) |> each (\ m => (text (field "media_key" m), kept_media a m))
+
+:~ included_media (a : expansion_ask) (posts : list term) : list (string * term) =
+    ? asked a::expansions "attachments.media_keys" ?> posts |> each (media_entries a) |> listm::concat |: []
+
+:= shown_targets (w : api_world) (a : expansion_ask) (posts : list term) : list term =
+    targets_of w a posts |> each (\ t => (post_key t, rendered t a::fields)) |> unique
+
+:= media_listed (a : expansion_ask) (posts : list term) : list (string * term) =
+    listed_field "media" (unique (included_media a posts))
+
+:~ includes_pairs (w : api_world) (a : expansion_ask) (posts : list term) : list (string * term) =
+    := users = listed_field "users" (unique (included_authors w a posts))
+    listm::concat [ listed_field "posts" (shown_targets w a posts); users; media_listed a posts ]
+
+:~ expanded (w : api_world) (a : expansion_ask) (posts : list term) : list (string * term) =
+    := includes = ?= includes_pairs w a posts ?| [] => [] | pairs => [ ("includes", map_of pairs) ]
+    listm::append (listed_field "data" (each (data_item a) posts)) includes
+
+:= not_found_post (detail : string) (id : string) : list (string * term) =
+    [ ("value", str id); ("detail", str (detail ++# id ++# "].")); ("title", str "Not Found Error") ]
+
+:= post_missing (id : string) : term = map_of (not_found_post "Could not find post with ids: [" id)
+
+:= missing_posts (w : api_world) (ids : list string) : list (string * term) =
+    ids |> keep (\ i => not (dict::has i w::by_post)) |> each post_missing |> listed_field "errors"
+
+:~ lookup (w : api_world) (query : string) : term =
+    := ids = erlang_http_server::query_list "ids" query
+    map_of (listm::append (expanded w (ask_of query) (posts_of w ids)) (missing_posts w ids))
+
+:= single_missing (id : string) : term =
+    := about = not_found_post "Could not find post with id: [" id
+    := entry = map_of (listm::append about [ ("resource_type", str "post"); ("parameter", str "id") ])
+    map_of [ ("errors", erlang_term::list_term [ entry ]) ]
+
+:~ single (w : api_world) (id : string) (query : string) : term =
+    := found = \ () => map_of [ ("data", rendered (post_of w id) (erlang_http_server::query_list "post.fields" query)) ]
+    ? dict::has id w::by_post ?> found () |: single_missing id
+
+:= stamp (p : term) : string = cut 0i32 19i32 (text (field "created_at" p))
+
+:= not_before (a : string) (b : string) : bool = erlang_term::text_at_least a b
+
+:= id_at_least (a : string) (b : string) : bool =
+    := longer = sm'::length a - sm'::length b
+    ? longer = 0i32 ?> not_before a b |: longer > 0i32
+
+:= newer_or_same (a : term) (b : term) : bool =
+    ? stamp a = stamp b ?> id_at_least (post_key a) (post_key b) |: not_before (stamp a) (stamp b)
+
+:= newest_first (posts : list term) : list term = list_sort::sorted_by (\ a b => not (newer_or_same b a)) posts
+
+:= ref_kinds (p : term) : list string = terms_of (items_at "refs" p) |> each (\ r => text (field "type" r))
+
+:= drops (excluded : list string) (word : string) (kind : string) (p : term) : bool =
+    asked excluded word && asked (ref_kinds p) kind
+
+:= excluded_by (excluded : list string) (p : term) : bool =
+    drops excluded "replies" "replied_to" p || drops excluded "retweets" "reposted" p
+
+:= after_start (since : string) (p : term) : bool = since = "" || not_before (stamp p) (cut 0i32 19i32 since)
+
+:= before_end (until : string) (p : term) : bool = until = "" || not (not_before (stamp p) (cut 0i32 19i32 until))
+
+:= windowed (query : string) (posts : list term) : list term =
+    := started = posts |> keep (after_start (query_first "start_time" "" query))
+    started |> keep (before_end (query_first "end_time" "" query))
+
+:= is_lost (p : term) : bool = erlang_term::equal (field "lost" p) (erlang_term::atom "true")
+
+:= standing_in (w : api_world) (p : term) : bool = dict::has (post_key p) w::by_post && not (is_lost p)
+
+:= user_posts (w : api_world) (u : term) : list term =
+    terms_of (items_at "posts" u) |> keep (standing_in w) |> each (with_author u)
+
+:~ timeline_posts (w : api_world) (u : term) (query : string) : list term =
+    := excluded = erlang_http_server::query_list "exclude" query
+    user_posts w u |> keep (\ p => not (excluded_by excluded p)) |> windowed query
+
+:= count_meta (n : i32) : list (string * term) = [ ("meta", map_of [ ("result_count", int n) ]) ]
+
+:~ timeline_body (w : api_world) (u : term) (query : string) (size : i32) : term =
+    := newest = sliced 0i32 size (newest_first (timeline_posts w u query))
+    map_of (listm::append (expanded w (ask_of query) newest) (count_meta (listm::length newest)))
+
+:= protected_detail (u : term) : string =
+    "Sorry, you are not authorized to see the posts of @" ++# text (field "username" u) ++# "."
+
+:= protected_entry (u : term) : term =
+    := kind = str "https://api.x.com/2/problems/not-authorized-for-resource"
+    map_of [ ("title", str "Authorization Error"); ("detail", str (protected_detail u)); ("type", kind) ]
+
+:= protected_body (u : term) : term = map_of [ ("errors", erlang_term::list_term [ protected_entry u ]) ]
+
+:= status_of (key : string) (u : term) : i32 = numbers_of u |> erlang_map::map_get_or key 0i32
+
+:= user_problem (u : term) : term =
+    problem (status_of "status" u) (text (field "problem_title" u)) (text (field "problem_detail" u))
+
+:= bad_timeline_size (size : string) : string =
+    json_reply 400i32 (problem 400i32 "Invalid Request" ("max_results must be 5..100, got " ++# size))
+
+:= is_protected (u : term) : bool = truth (field_or "protected" (erlang_term::of !-) u)
+
+:= plain_fault (u : term) : string =
+    erlang_http_server::json_response (status_of "plain_status" u) (text (field "plain_body" u))
+
+:= protected_fault (u : term) : option string =
+    ? is_protected u
+    ?> Some (json_reply 200i32 (protected_body u))
+    |: None
+
+:~ timeline_fault (u : term) : option string =
+    ? has_key "plain_status" u
+    ?> Some (plain_fault u)
+    |? has_key "status" u
+    ?> Some (json_reply (status_of "status" u) (user_problem u))
+    |: protected_fault u
+
+:~ timeline_reply (w : api_world) (u : term) (query : string) (size : string) : string =
+    := body = \ () => json_reply 200i32 (timeline_body w u query (count_or_zero size))
+    ?= timeline_fault u ?| Some reply => reply | None => body ()
+
+:~ timeline (w : api_world) (u : term) (query : string) : string =
+    := size = query_first "max_results" "10" query
+    ? in_range 5i32 100i32 size ?> timeline_reply w u query size |: bad_timeline_size size
+
+:= seconds_of (stamp : string) : i64 = erlang_term::rfc3339_seconds stamp
+
+:= rfc3339_of (seconds : i64) : string = erlang_term::rfc3339_text seconds
+
+:~ window_start (w : api_world) (days : i32) : string =
+    cut 0i32 19i32 (rfc3339_of (seconds_of w::now - conv (days * 86400i32)))
+
+:= oldest_of (w : api_world) (days : i32) (all : bool) (query : string) : string =
+    := oldest = window_start w days
+    := since = cut 0i32 19i32 (query_first "start_time" "" query)
+    ? since <> "" && (all || not (not_before oldest since)) ?> since |: oldest
+
+:= spaced (q : string) : string = q |> sm'::replace "\t" " " |> sm'::replace "\r" " " |> sm'::replace "\n" " "
+
+:= with_term (d : dict::dict string string) (token : string) : dict::dict string string =
+    split_once ":" token |> \ (k, v) => dict::insert k v d
+
+:~ search_terms (query : string) : dict::dict string string =
+    := tokens = pieces " " (spaced (query_first "query" "" query)) |> keep (\ s => sm'::index_of ":" s >= 0)
+    tokens |> listm::fold with_term (dict::empty ())
+
+:= term_or (key : string) (terms : dict::dict string string) : string =
+    ? dict::has key terms ?> dict::present key terms |: ""
+
+:= author_id_of (w : api_world) (author : string) : string =
+    ? known author w ?> post_key (dict::present (sm'::to_lower author) w::by_handle) |: author
+
+:== search_ask = { conversation : string; author : string; oldest : string }
+
+:= matches (s : search_ask) (p : term) : bool =
+    := mine = s::author = "" || id_text (field "author_id" p) = s::author
+    id_text (conversation p) = s::conversation && mine && not_before (stamp p) s::oldest
+
+:= zero_padded (digits : string) : string = erlang_text::padded_leading 10i32 "0" digits
+
+:= id_order (p : term) : string =
+    := id = post_key p
+    zero_padded (sm'::obj_to_string (sm'::length id : i32)) ++# "|" ++# id
+
+:~ found_posts (w : api_world) (s : search_ask) : list term =
+    := all = w::by_post |> dict::fold (\ acc _ p => p :: acc) []
+    all |> keep (matches s) |> list_sort::sorted_by \ a b => not (not_before (id_order b) (id_order a))
+
+:= edge_meta (page : list term) : list (string * term) =
+    ?= page ?|
+    | first :: _ => [ ("newest_id", field "id" first); ("oldest_id", field "id" (listm::fold (\ _ x => x) first page)) ]
+    | [] => []
+
+:~ search_meta (page : list term) (next : i32) (more : bool) : term =
+    := token = gated more [ ("next_token", str (sm'::obj_to_string next)) ]
+    map_of (listm::concat [ [ ("result_count", int (listm::length page)) ]; edge_meta page; token ])
+
+:= search_data (page : list term) (query : string) : list (string * term) =
+    listed_field "data" (page |> each (\ p => rendered p (erlang_http_server::query_list "post.fields" query)))
+
+:= meta_after (page : list term) (next : i32) (found : list term) : list (string * term) =
+    [ ("meta", search_meta page next (next < listm::length found)) ]
+
+:= page_window (query : string) : i32 * i32 =
+    count_or_zero (query_first "next_token" "0" query), count_or_zero (query_first "max_results" "10" query)
+
+:~ search_body (found : list term) (query : string) : term =
+    := start, size = page_window query
+    := page = sliced start size found
+    map_of (listm::append (search_data page query) (meta_after page (start + size) found))
+
+:= author_of (w : api_world) (terms : dict::dict string string) : string = author_id_of w (term_or "from" terms)
+
+:= search_ask_of (w : api_world) (all : bool) (query : string) : search_ask =
+    := terms = search_terms query
+    := oldest = oldest_of w (? all ?> 30i32 |: 7i32) all query
+    { conversation = term_or "conversation_id" terms; author = author_of w terms; oldest }
+
+:~ search (w : api_world) (all : bool) (query : string) : term =
+    := ask = search_ask_of w all query
+    ? ask::conversation = "" ?> search_body [] query |: search_body (found_posts w ask) query
+
+:~ users_reply (w : api_world) (r : request) : string =
+    json_reply 200i32 (? r::path = "/2/users/by" ?> users_by w r::query |: users_by_ids w r::query)
+
+:= ok_json (body : term) : string = json_reply 200i32 body
+
+:= search_all (route : api_route) : bool = ?= route ?| SearchAll => !+ | _ => !-
+
+:~ post_reply (w : api_world) (r : request) (route : api_route) : string =
+    ?= route ?|
+    | Single id => single w id r::query |> ok_json
+    | Lookup => lookup w r::query |> ok_json
+    | _ => search w (search_all route) r::query |> ok_json
+
+:= following_reply (w : api_world) (u : term) (r : request) : string =
+    following w u r::query |> \ (status, body) => json_reply status body
+
+:~ other_reply (w : api_world) (r : request) (route : api_route) : string =
+    ?= route ?| UsersBy => users_reply w r | UsersByIds => users_reply w r | _ => post_reply w r route
+
+:= no_route (path : string) : term = problem 404i32 "Not Found Error" ("no route " ++# path)
+
+:~ routed (w : api_world) (r : request) : string =
+    ?= route_of w r::path ?|
+    | Following u => following_reply w u r
+    | Timeline u => timeline w u r::query
+    | Elsewhere => json_reply 404i32 (no_route r::path)
+    | route => other_reply w r route
+
+:~ answer \* c. (w : api_world) (r : request) (who : caller c) : string =
+    ?= who ?| Unauthenticated => json_reply 401i32 (unauthorized ()) | _ => routed w r
+
+:= unsupported_detail () : string =
+    "Authenticating with OAuth 2.0 Application-Only is forbidden for this endpoint.  "
+    ++# "Supported authentication types are [OAuth 1.0a User Context, OAuth 2.0 User Context]."
+
+:= unsupported_kind () : term = str "https://api.x.com/2/problems/unsupported-authentication"
+
+:= user_context_only () : term =
+    := about = [ ("title", str "Unsupported Authentication"); ("detail", str (unsupported_detail ())) ]
+    map_of (listm::append about [ ("type", unsupported_kind ()); ("status", int 403i32) ])
+
+:= renewal_error () : term =
+    map_of [ ("error", str "invalid_request"); ("error_description", str "Value passed for the token was invalid.") ]
+
+:= token_head (access : string) : list (string * term) =
+    [ ("token_type", str "bearer"); ("expires_in", int 7200i32); ("access_token", str access) ]
+
+:= renewed_body (access : string) (refresh : string) : term =
+    := tail = [ ("scope", str "tweet.read tweet.write users.read offline.access"); ("refresh_token", str refresh) ]
+    map_of (listm::append (token_head access) tail)
+
+:= last_issued (w : api_world) : string = ?= w::issued ?| t :: _ => t | [] => ""
+
+:= renewal_ok (w : api_world) (form : string) : bool =
+    query_first "grant_type" "" form = "refresh_token" && query_first "refresh_token" "" form = last_issued w
+
+:= turned (key : string) (w : api_world) : string =
+    text (field key (field "oauth2" w::raw)) ++# "-" ++# sm'::obj_to_string (listm::length w::issued : i32)
+
+:~ issued_next (w : api_world) : string * api_world =
+    := refresh = turned "refresh_token" w
+    json_reply 200i32 (renewed_body (turned "access_token" w) refresh), { w ?| issued = refresh :: w::issued }
+
+:~ renewed (w : api_world) (r : request) : string * api_world =
+    ? renewal_ok w (erlang_http_server::body_of r) ?> issued_next w |: (json_reply 400i32 (renewal_error ()), w)
+
+:= kept (w : api_world) (status : i32) (body : term) : string * api_world = json_reply status body, w
+
+:= empty_map () : term = (erlang_map::map_new () : fields) |> erlang_map::map_term
+
+:= json_body (r : request) : term =
+    ? erlang_http_server::body_of r = "" ?> empty_map () |: erlang_term::json_decoded (erlang_http_server::body_of r)
+
+:= trimmed_end (s : string) : string = erlang_text::trimmed_trailing s
+
+:= sent_text (b : term) : string = trimmed_end (text (field_or "text" (str "") b))
+
+:= sent_parent (b : term) : string =
+    := reply = field_or "reply" (empty_map ()) b
+    ? has_key "in_reply_to_tweet_id" reply ?> id_text (field "in_reply_to_tweet_id" reply) |: ""
+
+:= stamp_after (w : api_world) (n : i32) : string =
+    cut 0i32 19i32 (rfc3339_of (seconds_of w::now + conv n)) ++# ".000Z"
+
+:= stored_map (pairs : list (string * term)) : term = erlang_map::map_of_pairs pairs |> erlang_map::map_term
+
+:= replied_ref (parent : string) : term = stored_map [ ("type", str "replied_to"); ("id", str parent) ]
+
+:= reply_refs (parent : string) : term = erlang_term::list_term (? parent = "" ?> [] |: [ replied_ref parent ])
+
+:= conversation_for (w : api_world) (id : string) (parent : string) : term =
+    ? parent = "" ?> str id |: field_or "conversation_id" (str parent) (post_of w parent)
+
+:= created_head (w : api_world) (id : string) (t : string) : list (string * term) =
+    := made = str (stamp_after w (dict::count w::writes::created))
+    [ ("id", str id); ("text", str t); ("author_id", w::writes::me); ("created_at", made) ]
+
+:~ created_post (w : api_world) (id : string) (t : string) (parent : string) : term =
+    := tail = [ ("conversation_id", conversation_for w id parent); ("refs", reply_refs parent) ]
+    stored_map (listm::append (created_head w id t) tail)
+
+:= history_one (id : string) : term = erlang_term::list_term [ str id ]
+
+:= created_body (id : string) (t : string) : term =
+    map_of [ ("data", map_of [ ("id", str id); ("text", str (escaped t)); ("edit_history_post_ids", history_one id) ]) ]
+
+:= counted (w : api_world) (id : string) : api_world =
+    := ws = w::writes
+    { w ?| writes = writes_of ws::me (dict::insert id () ws::created) (ws::next_id + 1i32) }
+
+:= with_created (w : api_world) (id : string) (t : string) (parent : string) : api_world =
+    := w' = counted w id
+    { w' ?| by_post = dict::insert id (created_post w' id t parent) w'::by_post }
+
+:~ posted (w : api_world) (t : string) (parent : string) : string * api_world =
+    := id = sm'::obj_to_string w::writes::next_id
+    json_reply 201i32 (created_body id t), with_created w id t parent
+
+:= bad_text () : term = problem 400i32 "Invalid Request" "text must be 1 to 280 characters"
+
+:= bad_parent (parent : string) : term =
+    problem 400i32 "Invalid Request" ("in_reply_to_tweet_id " ++# parent ++# " does not exist")
+
+:= orphan (w : api_world) (parent : string) : bool = parent <> "" && not (dict::has parent w::by_post)
+
+:= too_heavy (t : string) : bool = t = "" || splitter::x_weight t > splitter::post_limit ()
+
+:~ new_post (w : api_world) (r : request) : string * api_world =
+    := b = json_body r
+    := t, parent = sent_text b, sent_parent b
+    ? too_heavy t
+    ?> kept w 400i32 (bad_text ())
+    |? orphan w parent ?> kept w 400i32 (bad_parent parent) |: posted w t parent
+
+:= deleted_body () : term = map_of [ ("data", map_of [ ("deleted", erlang_term::of !+) ]) ]
+
+:= missing_created (id : string) : term =
+    problem 404i32 "Not Found Error" ("Could not find post with id: [" ++# id ++# "].")
+
+:= dropped (w : api_world) (id : string) : api_world =
+    := writes = writes_of w::writes::me (dict::remove id w::writes::created) w::writes::next_id
+    { w ?| writes = writes; by_post = dict::remove id w::by_post }
+
+:~ removed (w : api_world) (id : string) : string * api_world =
+    := deleted = \ () => (json_reply 200i32 (deleted_body ()), dropped w id)
+    ? dict::has id w::writes::created ?> deleted () |: kept w 404i32 (missing_created id)
+
+:= delete_target (r : request) : option string =
+    ?= pieces "/" r::path ?| "" :: "2" :: "tweets" :: id :: [] ?& r::method = "DELETE" => Some id | _ => None
+
+:~ post_or_delete (w : api_world) (r : request) (_ : caller wire::user_context) : string * api_world =
+    ? r::method = "POST" && r::path = "/2/tweets"
+    ?> new_post w r
+    |: ?= delete_target r ?| Some id => removed w id | None => kept w 404i32 (no_route r::path)
+
+:~ user_write \* c. (w : api_world) (r : request) (who : caller c) : string * api_world =
+    ?= who ?|
+    | UserBearer => post_or_delete w r UserBearer
+    | OAuth1User => post_or_delete w r OAuth1User
+    | _ => kept w 403i32 (user_context_only ())
+
+:~ change_reply \* c. (w : api_world) (r : request) (who : caller c) : string * api_world =
+    ?= who ?|
+    | Unauthenticated => kept w 401i32 (unauthorized ())
+    | ClientBasic ?& r::method = "POST" => renewed w r
+    | _ => user_write w r who
+
+:= noted (r : request) : () =
+    erlang_file::put_error_text ("xsim serve / answered " ++# r::method ++# " " ++# r::path ++# "\n")
+
+:~ reply_as \* c. (w : api_world) (log : string) (r : request) (who : caller c) : string * api_world =
+    logged log r (caller_word who)
+    noted r
+    ? r::method = "GET" ?> (answer w r who, w) |: change_reply w r who
+
+:~ signed_reply (w : api_world) (log : string) (r : request) (auth : string) : string * api_world =
+    ? is_oauth1 w r auth ?> reply_as w log r OAuth1User |: reply_as w log r Unauthenticated
+
+:~ keyed_reply (w : api_world) (log : string) (r : request) (auth : string) : string * api_world =
+    ? is_client w r auth ?> reply_as w log r ClientBasic |: signed_reply w log r auth
+
+:= bearer (token : string) (auth : string) : bool = auth = "Bearer " ++# token
+
+:~ bearer_reply (w : api_world) (log : string) (r : request) (auth : string) : string * api_world =
+    ? bearer w::token auth
+    ?> reply_as w log r AppBearer
+    |? bearer w::user_token auth ?> reply_as w log r UserBearer |: keyed_reply w log r auth
+
+:~ replied (w : api_world) (log : string) (raw : string) : string * api_world =
+    := r = erlang_http_server::request_of raw
+    bearer_reply w log r (erlang_http_server::header_value "authorization" r::head)
+
+:== replier = api_world -> string -> string -> string * api_world
+
+:= crash_reply (why : string) : string =
+    erlang_file::put_error_text ("xsim serve / a request crashed: " ++# why ++# "\n")
+    erlang_http_server::response_text 500i32 "text/plain; charset=utf-8" ("request failed: " ++# why)
+
+:= contained (w : api_world) (outcome : result (string * api_world) string) : string * api_world =
+    ?= outcome ?| Ok answered => answered | Error why => crash_reply why, w
+
+:= answered (answer : replier) (w : api_world) (log : string) (sock : erlang_tcp::socket) (raw : string) : api_world =
+    := reply, next = resultm::caught (\ () => answer w log raw) |> contained w
+    erlang_tcp::send_text sock reply |> ignore
+    next
+
+:~ handled (answer : replier) (w : api_world) (log : string) (sock : erlang_tcp::socket) : api_world =
+    := raw = received sock ""
+    := next = ? erlang_http_server::complete raw ?> answered answer w log sock raw |: w
+    erlang_tcp::close sock
+    next
+
+:~ ^ served (answer : replier) (w : api_world) (log : string) (listener : erlang_tcp::listener) : i32 =
+    ?= erlang_tcp::accept_forever listener ?|
+    | Ok sock => served answer (handled answer w log sock) log listener
+    | Error _ => 1i32
+
+:= port_text (listener : erlang_tcp::listener) : string = sm'::obj_to_string (port_of listener)
+
+:== serve_setup = { answer : replier; world_path : string; port_file : string; log : string }
+
+:~ opened (s : serve_setup) (listener : erlang_tcp::listener) : i32 =
+    file_system::write_all_text s::port_file (port_text listener)
+    served s::answer (world_of s::world_path) s::log listener
+
+:~ listening (s : serve_setup) : i32 =
+    := port = wanted_port ()
+    ?= erlang_tcp::listen_raw_local_on port ?|
+    | Ok listener => opened s listener
+    | Error _ => refused_port port
+
+:~ started (s : serve_setup) : i32 = ? oauth1_self_test () ?> listening s |: 3i32
+
+:= serve_with (answer : replier) (args : list string) : i32 =
+    ?= args ?|
+    | world_path :: port_file :: log :: _ => started { answer world_path port_file log }
+    | _ => 2i32
+
+:= serve (args : list string) : i32 = serve_with replied args
+
+:= reposter (id : string) : string =
+    := post = "[{\"id\":\"9\",\"created_at\":\"2026-10-18T10:00:00Z\",\"text\":\"r\"}]"
+    "{\"id\":\"" ++# id ++# "\",\"username\":\"u" ++# id ++# "\",\"posts\":" ++# post ++# "}"
+
+:= two_reposters () : api_world =
+    := w = erlang_term::json_decoded ("{\"oauth2\":{},\"users\":[" ++# reposter "1" ++# "," ++# reposter "2" ++# "]}")
+    users_in w |> listm::fold with_user (empty_world w)
+
+:= authors_of (w : api_world) (id : string) : list string =
+    user_posts w (dict::present id w::by_id) |> each (\ p => text (field "author_id" p))
+
+///> gleam
+:# a_repost_shared_by_two_accounts_stays_on_both =
+    := w = two_reposters ()
+    (authors_of w "1", authors_of w "2") |> _assert_eq ([ "1" ], [ "2" ])
+
+:= stamped (id : string) (at : string) : term =
+    erlang_term::json_decoded ("{\"id\":\"" ++# id ++# "\",\"created_at\":\"2026-10-18T10:00:0" ++# at ++# "Z\"}")
+
+///> gleam
+:# newest_first_orders_by_time_then_longer_id =
+    [ stamped "5" "1"; stamped "10" "2"; stamped "9" "2"; stamped "7" "3" ] |> newest_first |> each post_key
+    |> _assert_eq [ "7"; "10"; "9"; "5" ]
+
+///> gleam
+:# found_ids_sort_longer_then_greater_first =
+    [ stamped "9" "1"; stamped "10" "1"; stamped "8" "1" ]
+    |> list_sort::sorted_by \ a b => not (not_before (id_order b) (id_order a))
+    |> each post_key
+    |> _assert_eq [ "10"; "9"; "8" ]
+
+///> gleam
+:# a_world_without_oauth2_loads =
+    := w = erlang_term::json_decoded "{\"users\":[]}" |> empty_world
+    w::issued |> _assert_eq [ "" ]
+
+///> gleam
+:# a_closed_preconnect_is_not_a_request =
+    [ ""; "GET /timeline HTTP/1.1\r\nHost: h"; "GET / HTTP/1.1\r\nHost: h\r\n\r\n" ]
+    |> each erlang_http_server::complete
+    |> _assert_eq [ !-; !-; !+ ]
+
+///> gleam
+:# a_port_setting_reads_as_a_number_or_ephemeral =
+    [ "8787"; " 8787 "; ""; "x" ] |> each port_from |> _assert_eq [ 8787i32; 8787i32; 0i32; 0i32 ]
+
+:= issued_count (w : api_world) : i32 = listm::length w::issued
+
+///> gleam
+:# a_crashing_handler_answers_500_and_keeps_the_world =
+    := w = two_reposters ()
+    := reply, kept = contained w (Error "badarg")
+    (sm'::starts_with "HTTP/1.1 500" reply, issued_count kept = issued_count w) |> _assert_eq (!+, !+)
+
+:= triple (a : i32) (b : i32) (c : i32) : term = erlang_term::tuple [ int a; int b; int c ]
+
+:= stamped (path : string) (year : i32) : () =
+    := moment = erlang_term::tuple [ triple year 1i32 1i32; triple 0i32 0i32 0i32 ]
+    call "file" "change_time" [ str path; moment ] |> ignore
+
+:= a_of (w : term) : i32 = numbers_of w |> erlang_map::map_get_or "a" 0i32
+
+:= cached_a (path : string) : i32 = ?= etf_read path ?| Some w => a_of w | None => 0i32
+
+:= cache_fixture (name : string) : string =
+    := path = erlang_file::test_cache_file name
+    erlang_file::file_written path "{\"a\":1}" |> ignore
+    etf_written path (erlang_term::json_decoded "{\"a\":2}")
+    path
+
+///> gleam
+:# a_newer_etf_answers_for_its_json =
+    := path = cache_fixture "world-cache-newer.json"
+    stamped (etf_of path) 2099i32
+    a_of (json_file path) |> _assert_eq 2i32
+
+///> gleam
+:# a_newer_json_wins_and_recaches =
+    := path = cache_fixture "world-cache-older.json"
+    stamped (etf_of path) 2000i32
+    := fresh = a_of (json_file path)
+    (fresh, cached_a path) |> _assert_eq (1i32, 1i32)

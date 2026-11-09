@@ -1,0 +1,58 @@
+///- --package .
+:# sim_publish static =
+    :< testing
+
+:< sm'_operators
+:< prelude
+:< run_signals
+
+:== iggy = { base : string; auth : string; ca : string }
+
+:= env_text (name : string) : string = env::get_environment_variable name |> sm'::trim
+
+:= login_body () : string =
+    := user = json::quote (env_text "IGGY_USERNAME")
+    "{\"username\":" ++# user ++# ",\"password\":" ++# json::quote (env_text "IGGY_PASSWORD") ++# "}"
+
+:= token_in (body : string) : string =
+    := v = erlang_term::json_decoded body
+    sim_serve::text (sim_serve::field "token" (sim_serve::field "access_token" v))
+
+:= session_of (base : string) (ca : string) (status : i32) (body : string) : option iggy =
+    ? status = 200i32 ?> Some { base; auth = "Bearer " ++# token_in body; ca } |: None
+
+:= logged_in (base : string) (ca : string) (o : erlang_http::http_outcome) : option iggy =
+    session_of base ca (erlang_http::replied_status o) (erlang_http::replied_body o)
+
+:= signed_in () : option iggy =
+    := base = env_text "IGGY_URL"
+    := ca = env_text "IGGY_CA_FILE"
+    ? base = "" ?> None |: erlang_http::posted_json (base ++# "/users/login") [] (login_body ()) ca |> logged_in base ca
+
+:= topic_url (s : iggy) : string = s::base ++# "/streams/x/topics/run-progress/messages"
+
+:= iggy_body (run : string) (signal : run_signal) : string =
+    message_body (erlang_text::base64_encoded (payload_of run signal))
+
+:= posted (s : iggy) (run : string) (signal : run_signal) : i32 =
+    := auth = [ erlang_http::header "authorization" s::auth ]
+    erlang_http::posted_json (topic_url s) auth (iggy_body run signal) s::ca |> erlang_http::replied_status
+
+///> gleam
+:# a_login_reply_yields_its_token =
+    token_in "{\"user_id\":1,\"access_token\":{\"token\":\"t0k\",\"expiry\":9}}" |> _assert_eq "t0k"
+
+///> gleam
+:# a_200_login_opens_a_session =
+    := ok = session_of "u" "c" 200i32 "{\"access_token\":{\"token\":\"t\"}}"
+    ok |> optionm::map (\ s => s::auth) |> _assert_eq (Some "Bearer t")
+
+///> gleam
+:# a_401_login_opens_no_session =
+    := no = session_of "u" "c" 401i32 ""
+    no |> optionm::map (\ s => s::auth) |> _assert_eq None
+
+///> gleam
+:# a_step_body_carries_the_shared_payload_base64 =
+    := encoded = erlang_text::base64_encoded (payload_of "r1" (Step "a"))
+    sm'::contains encoded (iggy_body "r1" (Step "a")) |> _assert_eq !+
