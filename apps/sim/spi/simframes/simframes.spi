@@ -131,7 +131,8 @@
 := plain_args () : list string = erlang_process::plain_arguments ()
 
 := spi_files (c : sim_args::corpus_options) : list string =
-    ? c::spi_file = "" ?> c::spi
+    ? c::spi_file = ""
+    ?> c::spi
     |: file_system::read_all_text c::spi_file |> sm'::replace "\r\n" "\n" |> pieces "\n" |> keep (\ l => l <> "")
 
 := limited (limit : i32) (l : list string) : list string = ? limit < 0i32 ?> l |: take_first limit l

@@ -46,7 +46,8 @@
     "0123456789" |> sm'::index_of (sm'::slice i i text)
 
 :~ ^ digits (text : string) (i : i32) (n : i32) : option i32 =
-    ? i >= sm'::length text ?> Some n
+    ? i >= sm'::length text
+    ?> Some n
     |:
         := d = digit_at i text
         ? d < 0 || n > 100000000 ?> None |: digits text (i + 1) (n * 10 + d)

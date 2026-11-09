@@ -435,7 +435,10 @@
     post_text f::original ++# ":" ++# sm'::obj_to_string (listm::length f::versions : i32)
 
 := frames_text (cells : live) : string =
-    materialized split_named cells 100i32 { lost = 0i32; lost_cells = 0i32 } |> ordered_frames |> each frame_summary |> delimited ","
+    materialized split_named cells 100i32 { lost = 0i32; lost_cells = 0i32 }
+    |> ordered_frames
+    |> each frame_summary
+    |> delimited ","
 
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam

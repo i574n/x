@@ -24,7 +24,8 @@
 := site_known () : bool = platform_name () = "x" || platform_name () = "mastodon" || platform_name () = "bluesky"
 
 := write_base () : string =
-    ? platform_name () = "mastodon" ?> env_of "MASTODON_BASE_URL"
+    ? platform_name () = "mastodon"
+    ?> env_of "MASTODON_BASE_URL"
     |? platform_name () = "bluesky" ?> env_or "BLUESKY_BASE_URL" "https://bsky.social"
     |: base_url ()
 
@@ -122,8 +123,10 @@
 
 :~ account_plan (s : site) (hs : string) : plan =
     := code, found, unknown, failure = users_named s hs
-    ? code <> 0i32 ?> failed_plan failure
-    |? found = "" ?> failed_plan (no_account unknown)
+    ? code <> 0i32
+    ?> failed_plan failure
+    |? found = ""
+    ?> failed_plan (no_account unknown)
     |: found_plan found unknown
 
 := home_note (username : string) (followed : string) : string =
@@ -135,7 +138,8 @@
 
 := with_followed (w : account) (found : string) (r : i32 * string * string) : plan =
     := code, followed, failure = r
-    ? code <> 0i32 ?> failed_plan failure
+    ? code <> 0i32
+    ?> failed_plan failure
     |: { lines = lines_with found followed; notes = home_note w::username followed; failure = "" }
 
 := followed_plan (s : site) (found : string) (cap : i32) : plan =
@@ -144,8 +148,10 @@
 
 :~ home_plan (s : site) (h : string) (cap : i32) : plan =
     := code, found, _, failure = users_named s h
-    ? code <> 0i32 ?> failed_plan failure
-    |? found = "" ?> failed_plan (no_account h)
+    ? code <> 0i32
+    ?> failed_plan failure
+    |? found = ""
+    ?> failed_plan (no_account h)
     |: followed_plan s found cap
 
 := users_entry (body : string) : string = ",{\"role\":\"users\",\"author\":\"\",\"doc\":" ++# body ++# "}"
@@ -184,8 +190,10 @@
 := cost_noted (what : string) : () = write_error ("xc: " ++# requests_counted (api_requests_so_far ()) ++# what)
 
 := closing (failure : string) (shown : i32) : i32 =
-    ? failure = "" ?> 0i32
-    |? shown = 0i32 ?> failed failure
+    ? failure = ""
+    ?> 0i32
+    |? shown = 0i32
+    ?> failed failure
     |: failed ("stopped early, showing what was read before: " ++# failure)
 
 := nothing_note (failure : string) (shown : i32) : () =
@@ -230,7 +238,8 @@
 
 :~ run_timeline (p : parsed) : i32 =
     := s = { base = base_url (); bearer = env_of "X_BEARER_TOKEN" }
-    ? s::bearer = "" ?> missing_bearer ()
+    ? s::bearer = ""
+    ?> missing_bearer ()
     |:
         := pl = site_plan s p
         ? pl::failure <> "" ?> failed pl::failure |: shown_timeline s pl p
@@ -283,8 +292,10 @@
 
 :~ run_write (kind : i32) (payload : string) : i32 =
     := k = user_keys () |> with_oauth2_token
-    ? not (site_known ()) ?> unknown_site ()
-    |? unusable k ?> no_user ()
+    ? not (site_known ())
+    ?> unknown_site ()
+    |? unusable k
+    ?> no_user ()
     |: remote_write k (order_of kind payload) |> reported
 
 := refresh (path : string) : i32 * string =
@@ -344,7 +355,8 @@
     $'xc_preview::xc_preview(&*!site, &*!text)'
 
 :~ run_post_thread (dry : bool) (path : string) : i32 =
-    ? not (is_file path) ?> failed ("no such file " ++# path)
+    ? not (is_file path)
+    ?> failed ("no such file " ++# path)
     |? dry ?>
         write_line (preview (file_text path))
         0i32
@@ -398,8 +410,10 @@
     cut 0i32 at payload, rest_from (at + 1i32) payload
 
 := resume_checked (s : site) (root : string) (path : string) : i32 =
-    ? not (is_file path) ?> failed ("no such file " ++# path)
-    |? s::bearer = "" ?> missing_bearer ()
+    ? not (is_file path)
+    ?> failed ("no such file " ++# path)
+    |? s::bearer = ""
+    ?> missing_bearer ()
     |: thread_chain s root |> resumed_from path
 
 :~ run_resume_thread (payload : string) : i32 =
@@ -407,9 +421,12 @@
     resume_checked { base = base_url (); bearer = env_of "X_BEARER_TOKEN" } root path
 
 := run_thread_more (kind : i32) (payload : string) : i32 =
-    ? kind = 10i32 ?> run_resume_thread payload
-    |? kind = 11i32 ?> run_preview_threads payload
-    |? kind = 12i32 ?> run_census payload
+    ? kind = 10i32
+    ?> run_resume_thread payload
+    |? kind = 11i32
+    ?> run_preview_threads payload
+    |? kind = 12i32
+    ?> run_census payload
     |: run_post_or_events kind payload
 
 := x_only (site : string) : i32 =
@@ -420,9 +437,12 @@
 
 := run_thread_kind (kind : i32) (payload : string) : i32 =
     := site = platform_name ()
-    ? needs_x_site kind site ?> x_only site
-    |? kind = 6i32 ?> run_thread payload
-    |? kind = 9i32 ?> run_delete_thread payload
+    ? needs_x_site kind site
+    ?> x_only site
+    |? kind = 6i32
+    ?> run_thread payload
+    |? kind = 9i32
+    ?> run_delete_thread payload
     |: run_thread_more kind payload
 
 := run_user (kind : i32) (payload : string) : i32 =
@@ -444,11 +464,17 @@
 
 := allocator () : () = global "#[global_allocator] static XC_ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;"
 
+:= other_kind (kind : i32) (payload : string) : i32 =
+    ? kind = 3i32
+    ?> helped ()
+    |? kind = 4i32
+    ?> rejected payload
+    |: run_user kind payload
+
 := main () : i32 =
     allocator ()
     := p = parsed_args ()
     := kind, payload, _, _, _, _, _, _, _, _, _, _, _, _, _ = p
-    ? kind = 0i32 ?> run_timeline p
-    |? kind = 3i32 ?> helped ()
-    |? kind = 4i32 ?> rejected payload
-    |: run_user kind payload
+    ? kind = 0i32
+    ?> run_timeline p
+    |: other_kind kind payload

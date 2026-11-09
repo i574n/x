@@ -209,8 +209,10 @@
 := starts_cell (c : cutting) (line : string) : bool = c::blanks > 0i32 && c::seen && not (indented line)
 
 :~ step (c : cutting) (line : string) : cutting =
-    ? line = "" ?> { c ?| blanks = c::blanks + 1i32 }
-    |? starts_cell c line ?> opened c line
+    ? line = ""
+    ?> { c ?| blanks = c::blanks + 1i32 }
+    |? starts_cell c line
+    ?> opened c line
     |: continued c line
 
 := without_final_newline (t : string) : string = ? sm'::ends_with "\n" t ?> cut 0i32 (sm'::length t - 1i32) t |: t
@@ -287,7 +289,8 @@
 
 := long_dotted_cell () : string = "go x.io " ++# repeated 300i32 "b" ""
 
-:= dotted (posts : list string) : i32 * bool = (listm::length posts, sm'::contains (defused_dot ()) (sm'::concat_list "" posts))
+:= dotted (posts : list string) : i32 * bool =
+    listm::length posts, sm'::contains (defused_dot ()) (sm'::concat_list "" posts)
 
 ///> rust -d unicode-segmentation=1.13 unicode-normalization=0.1
 ///> gleam

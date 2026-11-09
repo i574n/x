@@ -89,7 +89,7 @@
 := video_markup (m : media_item) : markup =
     := attrs =
         [ ("class", "vid"); ("muted", ""); ("loop", ""); ("playsinline", ""); ("preload", "metadata");
-          ("controls", ""); ("src", media_src m::path) ]
+            ("controls", ""); ("src", media_src m::path) ]
     element "video" attrs (trusted "")
 
 := media_markup (m : media_item) : markup = ? m::kind = "video" ?> video_markup m |: img_markup m
@@ -100,11 +100,13 @@
     sm'::obj_to_string m::likes ++# " likes · " ++# sm'::obj_to_string m::replies ++# " replies"
 
 := counts_markup (m : post_meta) : markup =
-    ? m::likes = 0i32 && m::replies = 0i32 ?> trusted ""
+    ? m::likes = 0i32 && m::replies = 0i32
+    ?> trusted ""
     |: element "p" [ ("class", "counts") ] (trusted (counts_text m))
 
 := lang_badge (m : post_meta) : markup =
-    ? m::lang = "" ?> trusted "" |? m::lang = "en" ?> trusted ""
+    ? m::lang = ""
+    ?> trusted "" |? m::lang = "en" ?> trusted ""
     |: element "span" [ ("class", "lang") ] (escape m::lang)
 
 := decode_entities (s : string) : string =
@@ -128,14 +130,18 @@
     [ counts_markup l::meta; lang_badge l::meta; quoted_markup l::kind l::quote_media; blocks_html [ Rule ] ]
 
 := entry_parts (l : labeled) : list markup =
-    entry_head l :: blocks_html [ Paragraph [ Text (decode_entities l::entry::text) ] ] :: media_block l::media :: entry_tail l
+    entry_head l
+    :: blocks_html [ Paragraph [ Text (decode_entities l::entry::text) ] ]
+    :: media_block l::media
+    :: entry_tail l
 
 := avatar_div () : markup = element "div" [ ("class", "avatar") ] (trusted "")
 
 := content_div (l : labeled) : markup = element "div" [ ("class", "content") ] (concat (entry_parts l))
 
 := labeled_markup (l : labeled) : markup =
-    element "article" [ ("class", kind_class l::kind) ] (element "div" [ ("class", "row") ] (joined (avatar_div ()) (content_div l)))
+    element "article" [ ("class", kind_class l::kind) ] (element "div" [ ("class", "row") ] (joined (avatar_div ()) (
+        content_div l)))
 
 := body_css () : string =
     "body{background:#000;color:rgb(231,233,234);-webkit-font-smoothing:antialiased;"
@@ -166,31 +172,46 @@
     "p.counts{color:rgb(113,118,123);font-size:13px;margin:4px 0 0}"
     ++# "blockquote.quoted{color:rgb(139,152,165);font-size:14px}"
 
-:= dark_css () : string = body_css () ++# body_metrics_css () ++# media_css () ++# article_css () ++# layout_css () ++# article_text_css () ++# counts_css ()
+:= dark_css () : string =
+    body_css ()
+    ++# body_metrics_css ()
+    ++# media_css ()
+    ++# article_css ()
+    ++# layout_css ()
+    ++# article_text_css ()
+    ++# counts_css ()
 
 := muted_css () : string = ".repost{opacity:.6;border-left:3px solid #999;padding-left:.6em}"
 
 := quote_css () : string = ".quoted{border-left:3px solid #48c;margin:.3em 0 .3em .6em;padding-left:.6em}"
 
 := nav_css () : string =
-    ".nav{position:sticky;top:0;z-index:9;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);padding:10px 16px;border-bottom:1px solid rgb(47,51,54);font-size:14px}"
+    ".nav{position:sticky;top:0;z-index:9;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);padding:10px "
+    ^^ "16px;border-bottom:1px solid rgb(47,51,54);font-size:14px}"
 
 := chrome_css () : string =
     "h1{font-size:20px;font-weight:800;padding:8px 16px;margin:0}"
     ++# "a.dir{color:rgb(29,155,240);text-decoration:none;margin-right:1em}"
 
-:= font_import () : string = "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');"
+:= font_import () : string =
+    "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');"
 
-:= page_style () : markup = element "style" [] (trusted (font_import () ++# dark_css () ++# muted_css () ++# quote_css () ++# nav_css () ++# chrome_css ()))
+:= page_style () : markup =
+    element
+        "style"
+        []
+        (trusted (font_import () ++# dark_css () ++# muted_css () ++# quote_css () ++# nav_css () ++# chrome_css ()))
 
 := ap_init () : string =
     "(function(){var io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;"
 
 := ap_toggle () : string =
-    "if(e.isIntersecting&&e.intersectionRatio>=.5){v.play().catch(function(){})}else{v.pause()}})},{threshold:[0,.5,1]});"
+    "if(e.isIntersecting&&e.intersectionRatio>=.5){v.play().catch(function(){})}else{v.pause()}})},{threshold:[0,.5"
+    ^^ ",1]});"
 
 := ap_scan () : string =
-    "function scan(){document.querySelectorAll('video.vid').forEach(function(v){if(!v.dataset.io){v.dataset.io='1';io.observe(v)}})}scan();"
+    "function scan(){document.querySelectorAll('video.vid').forEach(function(v){if(!v.dataset.io){v.dataset.io='1';"
+    ^^ "io.observe(v)}})}scan();"
 
 := ap_watch () : string =
     "new MutationObserver(scan).observe(document.body,{childList:!0,subtree:!0})})()"
@@ -204,16 +225,29 @@
 := date_submit () : markup = element "button" [ ("type", "submit") ] (escape "Go to date")
 
 := nav_from () : markup =
-    element "form" [ ("class", "nav"); ("method", "get"); ("action", "/timeline") ] (joined (date_input ()) (date_submit ()))
+    element
+        "form"
+        [ ("class", "nav"); ("method", "get"); ("action", "/timeline") ]
+        (joined (date_input ()) (date_submit ()))
 
 := dir_link (href : string) (label : string) : markup = element "a" [ ("class", "dir"); ("href", href) ] (escape label)
 
 := nav_dir () : markup =
-    element "nav" [ ("class", "nav") ] (joined (dir_link "/timeline" "Newest first") (dir_link "/timeline?d=up" "Oldest first"))
+    element
+        "nav"
+        [ ("class", "nav") ]
+        (joined (dir_link "/timeline" "Newest first") (dir_link "/timeline?d=up" "Oldest first"))
+
+:= page_tail (items : list labeled) : list markup =
+    listm::append (listm::map labeled_markup items) [ autoplay_script () ]
 
 := page_parts (title : string) (items : list labeled) : list markup =
     := heading = blocks_html [ Heading (H1, [ Text title ]) ]
-    page_style () :: nav_from () :: nav_dir () :: heading :: listm::append (listm::map labeled_markup items) [ autoplay_script () ]
+    page_style ()
+    :: nav_from ()
+    :: nav_dir ()
+    :: heading
+    :: page_tail items
 
 := labeled_html (title : string) (items : list labeled) : string = concat (page_parts title items) |> markup_text
 
@@ -276,7 +310,8 @@
         [ "<blockquote class=\"quoted\">"; "<img"; "src=\"/media/accounts/fc1943s/media/9_0.jpg\"" ]
     |> _assert_eq [ !+; !+; !+ ]
 
-:= lazy_img_parts () : list string = [ "<img"; "src=\"/media/accounts/fc1943s/media/1_0.jpg\""; "alt=\"a cat\""; "loading=\"lazy\"" ]
+:= lazy_img_parts () : list string =
+    [ "<img"; "src=\"/media/accounts/fc1943s/media/1_0.jpg\""; "alt=\"a cat\""; "loading=\"lazy\"" ]
 
 ///> rust
 :# a_photo_renders_a_lazy_img =

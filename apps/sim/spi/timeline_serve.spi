@@ -70,7 +70,8 @@
 :== page = list labeled * list i32
 
 := quote_kind (q : erlang_term::term) : kind =
-    ? erlang_term::is_map q ?> timeline_page::quote_of (field_text "author" q) (field_text "text" q)
+    ? erlang_term::is_map q
+    ?> timeline_page::quote_of (field_text "author" q) (field_text "text" q)
     |: timeline_page::quote_of "" ""
 
 := repost_kind (p : erlang_term::term) : kind = timeline_page::repost_of (field_text "retweet_author" p)
@@ -79,7 +80,8 @@
 
 := kind_of (p : erlang_term::term) : kind =
     := k = field_text "kind" p
-    ? k = "retweet" ?> repost_kind p |? k = "reply" ?> reply_kind p
+    ? k = "retweet"
+    ?> repost_kind p |? k = "reply" ?> reply_kind p
     |? k = "quote" ?> quote_kind (sim_serve::field "quote" p) |: timeline_page::original ()
 
 := plain_of (username : string) (p : erlang_term::term) : posts::entry =
@@ -90,7 +92,9 @@
     timeline_page::media_item_of (field_text "path" m) (field_text "type" m) (field_text "alt_text" m)
 
 := media_terms (x : erlang_term::term) : list timeline_page::media_item =
-    sim_serve::terms_of (sim_serve::items_at "media" x) |> keep (\ m => erlang_term::is_map m) |> each media_item_of_term
+    sim_serve::terms_of (sim_serve::items_at "media" x)
+    |> keep (\ m => erlang_term::is_map m)
+    |> each media_item_of_term
 
 := media_of (p : erlang_term::term) : list timeline_page::media_item = media_terms p
 
@@ -213,7 +217,8 @@
     := c = cursor_of_query query
     ? c::feeds = ids ?> c |: { feeds = ids; offsets = [] }
 
-:= more_anchor (c : string) (d : string) : string = "\n<a class=\"more\" href=\"/timeline?" ++# c ++# d ++# "\">next</a>"
+:= more_anchor (c : string) (d : string) : string =
+    "\n<a class=\"more\" href=\"/timeline?" ++# c ++# d ++# "\">next</a>"
 
 := next_link (ids : list string) (next : list i32) (dir : string) (entries : list labeled) : string =
     := c = cursor_query { feeds = ids; offsets = next }
@@ -255,7 +260,15 @@
     ++# "addEventListener('scroll',function(){check();track()},{passive:!0});check()})()</script>"
 
 := scroll_script () : string =
-    "\n" ++# scroll_find () ++# scroll_fetch () ++# scroll_append () ++# scroll_advance () ++# scroll_track () ++# scroll_track_scan () ++# scroll_track_apply () ++# scroll_watch ()
+    "\n"
+    ++# scroll_find ()
+    ++# scroll_fetch ()
+    ++# scroll_append ()
+    ++# scroll_advance ()
+    ++# scroll_track ()
+    ++# scroll_track_scan ()
+    ++# scroll_track_apply ()
+    ++# scroll_watch ()
 
 := page_html (ids : list string) (dir : string) ((entries, next) : page) : string =
     timeline_page::labeled_html "Following" entries ++# next_link ids next dir entries ++# scroll_script ()
@@ -288,8 +301,17 @@
 := media_ext (rel : string) : string = ?= listm::rev (pieces "." rel) ?| e :: _ => sm'::to_lower e | [] => ""
 
 := motion_type (e : string) : string =
-    ? e = "gif" ?> "image/gif" |? e = "webp" ?> "image/webp"
-    |? e = "mp4" ?> "video/mp4" |? e = "webm" ?> "video/webm" |? e = "woff2" ?> "font/woff2" |: "application/octet-stream"
+    ? e = "gif"
+    ?> "image/gif"
+    |? e = "webp"
+    ?> "image/webp"
+    |? e = "mp4"
+    ?> "video/mp4"
+    |? e = "webm"
+    ?> "video/webm"
+    |? e = "woff2"
+    ?> "font/woff2"
+    |: "application/octet-stream"
 
 := media_type (rel : string) : string =
     := e = media_ext rel
@@ -323,17 +345,22 @@
     | Some a => ?= count_of_text e ?| Some b => ? a <= b && b < total ?> Some (a, b) |: None | None => None
 
 := range_bounds (s : string) (e : string) (total : i32) : option (i32 * i32) =
-    ? s = "" && e = "" ?> None
-    |? s = "" ?> suffix_bounds e total
-    |? e = "" ?> open_bounds s total
+    ? s = "" && e = ""
+    ?> None
+    |? s = ""
+    ?> suffix_bounds e total
+    |? e = ""
+    ?> open_bounds s total
     |: closed_bounds s e total
 
 := range_body (body : string) (total : i32) : option (i32 * i32) =
     ? sm'::contains "," body ?> None |: ?= pieces "-" body ?| s :: e :: [] => range_bounds s e total | _ => None
 
 := range_spec (header : string) (total : i32) : option (i32 * i32) =
-    ? header = "" ?> None
-    |? not (sm'::starts_with "bytes=" header) ?> None
+    ? header = ""
+    ?> None
+    |? not (sm'::starts_with "bytes=" header)
+    ?> None
     |: range_body (sm'::substring 6i32 (sm'::length header - 6i32) header) total
 
 := file_mode () : erlang_term::term =
@@ -475,7 +502,8 @@
 ///> gleam
 :# media_skips_bare_url_strings_and_reads_maps =
     := n (extra : string) : i32 = listm::length (media_of (kinded "tweet" extra))
-    (n ",\"media\":[\"https://pbs.twimg.com/media/x.jpg\"]", n (",\"media\":" ++# one_photo ())) |> _assert_eq (0i32, 1i32)
+    (n ",\"media\":[\"https://pbs.twimg.com/media/x.jpg\"]", n (",\"media\":" ++# one_photo ()))
+    |> _assert_eq (0i32, 1i32)
 
 ///> gleam
 :# an_original_post_has_no_label =

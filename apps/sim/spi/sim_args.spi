@@ -61,9 +61,12 @@
     | _ => None
 
 := executor_of (name : string) : option executor_kind =
-    ? name = "fake" ?> Some FakeExecutor
-    |? name = "fake-leak" ?> Some LeakingExecutor
-    |? name = "cells" ?> Some CellsExecutor
+    ? name = "fake"
+    ?> Some FakeExecutor
+    |? name = "fake-leak"
+    ?> Some LeakingExecutor
+    |? name = "cells"
+    ?> Some CellsExecutor
     |: None
 
 := first_some \* t. (a : option t) (b : option t) : option t = ?= a ?| Some _ => a | None => b
@@ -86,7 +89,8 @@
     | CorpusChurn
 
 := corpus_flag_of (name : string) : option corpus_flag =
-    ? name = "cells" ?> Some CorpusCells |? name = "breaking" ?> Some CorpusBreaking
+    ? name = "cells"
+    ?> Some CorpusCells |? name = "breaking" ?> Some CorpusBreaking
     |? name = "churn" ?> Some CorpusChurn |: None
 
 := corpus_set (f : corpus_flag) (n : i32) (c : corpus_options) : corpus_options =
@@ -122,7 +126,8 @@
     | ScheduleRounds
 
 := schedule_flag_of (name : string) : option schedule_flag =
-    ? name = "seed" ?> Some ScheduleSeed |? name = "users" ?> Some ScheduleUsers
+    ? name = "seed"
+    ?> Some ScheduleSeed |? name = "users" ?> Some ScheduleUsers
     |? name = "edits" ?> Some ScheduleEdits |? name = "schedules" ?> Some ScheduleRounds |: None
 
 := schedule_set (f : schedule_flag) (n : i32) (s : schedule_options) : schedule_options =
@@ -160,7 +165,8 @@
     | RunnerGrace
 
 := runner_flag_of (name : string) : option runner_flag =
-    ? name = "max-concurrency" ?> Some RunnerConcurrency |? name = "pace-ms" ?> Some RunnerPace
+    ? name = "max-concurrency"
+    ?> Some RunnerConcurrency |? name = "pace-ms" ?> Some RunnerPace
     |? name = "evict-grace" ?> Some RunnerGrace |: None
 
 := runner_set (f : runner_flag) (n : i32) (r : runner_options) : runner_options =
@@ -186,9 +192,12 @@
     { r ?| eviction = ?= r::eviction ?| EvictAfter n => EvictAfter n | _ => EvictNow }
 
 := runner_switch (name : string) (r : runner_options) : option runner_options =
-    ? name = "memo" ?> Some { r ?| memo = !+ }
-    |? name = "daemon-memory" ?> Some { r ?| daemon_memory = !+ }
-    |? name = "evict" ?> Some (evicting_runner r)
+    ? name = "memo"
+    ?> Some { r ?| memo = !+ }
+    |? name = "daemon-memory"
+    ?> Some { r ?| daemon_memory = !+ }
+    |? name = "evict"
+    ?> Some (evicting_runner r)
     |: None
 
 := runner_switched (o : run_options) (name : string) : option run_options =
@@ -270,7 +279,8 @@
     | EventsEdits
 
 := events_flag_of (name : string) : option events_flag =
-    ? name = "cells" ?> Some EventsCells |? name = "seed" ?> Some EventsSeed
+    ? name = "cells"
+    ?> Some EventsCells |? name = "seed" ?> Some EventsSeed
     |? name = "users" ?> Some EventsUsers |? name = "edits" ?> Some EventsEdits |: None
 
 := events_set (f : events_flag) (n : i32) (o : events_options) : events_options =
@@ -300,7 +310,8 @@
     first_some (events_source_set name value o) (events_file_set name value o)
 
 := events_valued (o : events_options) (name : string) (value : string) : result events_options string =
-    ? name = "duplicates" ?> events_duplicates o value
+    ? name = "duplicates"
+    ?> events_duplicates o value
     |: ?= events_text_set name value o ?| Some next => Ok next | None => events_counted o name value
 
 := events_switched (o : events_options) (name : string) : option events_options =
@@ -322,11 +333,13 @@
     { w ?| id_base = 3000000i32; user_id = "500"; username = "spiralposts"; base_time = "2026-10-18T08:00:00Z" }
 
 := world_run_number (o : world_options) (name : string) (n : i32) : option world_options =
-    ? name = "cells" ?> Some { o ?| cells = n } |? name = "seed" ?> Some { o ?| seed = n }
+    ? name = "cells"
+    ?> Some { o ?| cells = n } |? name = "seed" ?> Some { o ?| seed = n }
     |? name = "edits" ?> Some { o ?| edits = n } |: None
 
 := world_loss_number (o : world_options) (name : string) (n : i32) : option world_options =
-    ? name = "id-base" ?> Some { o ?| id_base = n } |? name = "lost" ?> Some { o ?| lost = n }
+    ? name = "id-base"
+    ?> Some { o ?| id_base = n } |? name = "lost" ?> Some { o ?| lost = n }
     |? name = "lost-cells" ?> Some { o ?| lost_cells = n } |: None
 
 := world_number (o : world_options) (name : string) (n : i32) : option world_options =
@@ -375,8 +388,10 @@
 :== frames_options = { file : string; out : string }
 
 := frames_valued (o : frames_options) (name : string) (value : string) : result frames_options string =
-    ? name = "file" ?> Ok { o ?| file = value }
-    |? name = "out" ?> Ok { o ?| out = value }
+    ? name = "file"
+    ?> Ok { o ?| file = value }
+    |? name = "out"
+    ?> Ok { o ?| out = value }
     |: Error ("unknown option --" ++# name)
 
 := frames_missing (o : frames_options) : string =
@@ -420,8 +435,10 @@
     | None => Error ("--cells takes a whole number, got '" ++# value ++# "'")
 
 := diff_valued (o : diff_options) (name : string) (value : string) : result diff_options string =
-    ? name = "spi" ?> Ok { o ?| spi = value }
-    |? name = "cells" ?> diff_cells o value
+    ? name = "spi"
+    ?> Ok { o ?| spi = value }
+    |? name = "cells"
+    ?> diff_cells o value
     |: Error ("unknown option --" ++# name)
 
 := diff_rules () : flag_rules diff_options = { switched = \ _ _ => None; valued = diff_valued }

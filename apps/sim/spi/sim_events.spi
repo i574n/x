@@ -148,7 +148,8 @@
 :== scanned = { text : string; resume_at : i32 }
 
 := escaped_char (c : string) : string =
-    ? c = "n" ?> "\n" |? c = "t" ?> "\t" |? c = "r" ?> "\r"
+    ? c = "n"
+    ?> "\n" |? c = "t" ?> "\t" |? c = "r" ?> "\r"
     |? c = "b" ?> char_of 8i32 |? c = "f" ?> char_of 12i32 |: c
 
 :~ hex_at (s : string) (i : i32) : i32 =
@@ -175,7 +176,8 @@
 
 :~ ^ string_from (s : string) (i : i32) (acc : string) : scanned =
     := q, b = marks s i
-    ? not (escape_first q b) ?> closed_at s i q acc
+    ? not (escape_first q b)
+    ?> closed_at s i q acc
     |: escaped_on s i b acc |> \ (kept, next) => string_from s next kept
 
 := number_from (s : string) (i : i32) : json_value * i32 =
@@ -187,9 +189,12 @@
 := text_value (r : scanned) : json_value * i32 = Text r::text, r::resume_at
 
 := value_from (s : string) (i : i32) : json_value * i32 =
-    ? starts_at "\"" s i ?> text_value (string_from s (i + 1i32) "")
-    |? starts_at "null" s i ?> Null, i + 4i32
-    |? i >= 0i32 && i < sm'::length s ?> number_from s i
+    ? starts_at "\"" s i
+    ?> text_value (string_from s (i + 1i32) "")
+    |? starts_at "null" s i
+    ?> Null, i + 4i32
+    |? i >= 0i32 && i < sm'::length s
+    ?> number_from s i
     |: Null, -1i32
 
 := field_from (s : string) (i : i32) : json_field * i32 =
@@ -205,8 +210,10 @@
 
 :~ ^ fields_from (s : string) (i : i32) (acc : fields) : option fields =
     := f, next = field_at s i
-    ? starts_at "," s next ?> fields_from s (next + 1i32) (f :: acc)
-    |? closes s next ?> Some (listm::rev ((f :: acc)))
+    ? starts_at "," s next
+    ?> fields_from s (next + 1i32) (f :: acc)
+    |? closes s next
+    ?> Some (listm::rev ((f :: acc)))
     |: None
 
 := fields_of_line (line : string) : option fields = ? starts_at "{" line 0i32 ?> fields_from line 1i32 [] |: None
@@ -236,8 +243,10 @@
 := social_at (l : fields) : social = { post_id = text_at "post" l; user = text_at "user" l }
 
 := reaction_at (kind : string) (l : fields) : option event =
-    ? kind = "like" ?> Some (Reaction (Liked (social_at l)))
-    |? kind = "unlike" ?> Some (Reaction (Unliked (social_at l)))
+    ? kind = "like"
+    ?> Some (Reaction (Liked (social_at l)))
+    |? kind = "unlike"
+    ?> Some (Reaction (Unliked (social_at l)))
     |: None
 
 := revised_at (l : fields) : revised = { post_id = text_at "post" l; rev = count_at "rev" l; part = part_at l }
@@ -250,8 +259,10 @@
     ? kind = "delete" ?> revised (Deleted (text_at "post" l)) |: reaction_at kind l
 
 := revision_at (kind : string) (l : fields) : option event =
-    ? kind = "edit" ?> revised (Edited (sourced_at l))
-    |? kind = "edit_frame" ?> revised (FrameEdited (revised_at l))
+    ? kind = "edit"
+    ?> revised (Edited (sourced_at l))
+    |? kind = "edit_frame"
+    ?> revised (FrameEdited (revised_at l))
     |: removal_at kind l
 
 := rooted_at (l : fields) : rooted = { post_id = text_at "post" l; parent = parent_at l; source = text_at "source" l }
@@ -259,8 +270,10 @@
 := placed_at (l : fields) : placed = { post_id = text_at "post" l; parent = parent_at l; part = part_at l }
 
 := event_at (kind : string) (l : fields) : option event =
-    ? kind = "post" ?> Some (Content (Posted (rooted_at l)))
-    |? kind = "frame" ?> Some (Content (Framed (placed_at l)))
+    ? kind = "post"
+    ?> Some (Content (Posted (rooted_at l)))
+    |? kind = "frame"
+    ?> Some (Content (Framed (placed_at l)))
     |: revision_at kind l
 
 := delivery_of (l : fields) : result delivery string =

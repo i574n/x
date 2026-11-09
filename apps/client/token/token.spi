@@ -36,8 +36,7 @@
 
 := synced_write (path : string) (text : string) : bool =
     := r = file_created path
-    ? creation_ok r
-    ?>
+    ? creation_ok r ?>
         := f = created_handle r
         io_ok (text_written f text) && io_ok (disk_synced f)
     |: !-
@@ -118,8 +117,10 @@
     4i32, (? synced_write (aside_of path) text ?> set_aside path |: token_lost path)
 
 := saved (path : string) (text : string) (t : tokens) : i32 * string =
-    ? t::access_token = "" || t::refresh_token = "" ?> 4i32, no_tokens ()
-    |? file_replaced path (rewritten text t) ?> 0i32, renewed path t
+    ? t::access_token = "" || t::refresh_token = ""
+    ?> 4i32, no_tokens ()
+    |? file_replaced path (rewritten text t)
+    ?> 0i32, renewed path t
     |: kept_aside path (rewritten text t)
 
 :== refresh_args = string * string * string * string * string
@@ -144,7 +145,8 @@
 :~ refreshed (x : refresh_args) : i32 * string =
     := base, client_id, client_secret, refresh_token, path = x
     := file = read_text path
-    ? text_read file ?> exchanged { base client_id client_secret } refresh_token path (text_of_file file)
+    ? text_read file
+    ?> exchanged { base client_id client_secret } refresh_token path (text_of_file file)
     |: unread path
 
 := renewed_tokens () : tokens = { access_token = "new"; refresh_token = "r2"; expires_in = "7200" }

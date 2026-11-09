@@ -22,7 +22,8 @@
     | Breaker => "breaker"
 
 := persona_of (name : string) : option persona =
-    ? name = "lurker" ?> Some Lurker |? name = "fickle" ?> Some Fickle
+    ? name = "lurker"
+    ?> Some Lurker |? name = "fickle" ?> Some Fickle
     |? name = "editor" ?> Some Editor |? name = "breaker" ?> Some Breaker |: None
 
 := repeated_persona (p : persona) (count : i32) : list persona = listm::init count \ _ => p
@@ -61,8 +62,10 @@
 
 :~ ^ plus_one (d : string) : string =
     := last = last_digit d
-    ? last < 0i32 ?> "1"
-    |? last = 9i32 ?> plus_one (all_but_last d) ++# "0"
+    ? last < 0i32
+    ?> "1"
+    |? last = 9i32
+    ?> plus_one (all_but_last d) ++# "0"
     |: all_but_last d ++# sm'::obj_to_string (last + 1i32)
 
 := bumped_at (s : string) (start : i32) (stop : i32) : string =

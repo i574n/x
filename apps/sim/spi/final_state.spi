@@ -32,7 +32,8 @@
 := counted_for (post_id : string) (r : replay) : bool = has (\ (t : tally) => t::post_id = post_id) r::tallies
 
 := tallied (post_id : string) (f : user_change) (r : replay) : replay =
-    ? counted_for post_id r ?> { r ?| tallies = r::tallies |> each (retallied post_id f) }
+    ? counted_for post_id r
+    ?> { r ?| tallies = r::tallies |> each (retallied post_id f) }
     |: { r ?| tallies = listm::append r::tallies [ { post_id users = f [] } ] }
 
 := joined_user (user : string) (l : list string) : list string = ? has ((=) user) l ?> l |: listm::append l [ user ]

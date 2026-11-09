@@ -19,8 +19,10 @@
     ? sm'::length created_at < 19i32 ?> created_at |: cut 0i32 19i32 created_at ++# "Z"
 
 := two_pages (token : string) : result page string =
-    ? token = "" ?> Ok { next_token = "t2"; body = "a" }
-    |? token = "t2" ?> Ok { next_token = ""; body = "b" }
+    ? token = ""
+    ?> Ok { next_token = "t2"; body = "a" }
+    |? token = "t2"
+    ?> Ok { next_token = ""; body = "b" }
     |: Error token
 
 := walked (r : result (list string) string) : string =

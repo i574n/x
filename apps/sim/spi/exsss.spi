@@ -58,8 +58,10 @@
 :~ ^ uniform (range : u64) (st : exsss) : u64 * exsss =
     := v, next = stepped st
     := i = v % range
-    ? v < range ?> v + 1u64, next
-    |? v - i <= two_58 () - range ?> i + 1u64, next
+    ? v < range
+    ?> v + 1u64, next
+    |? v - i <= two_58 () - range
+    ?> i + 1u64, next
     |: uniform range next
 
 := rolled (range : i32) (st : exsss) : i32 * exsss =
@@ -70,7 +72,8 @@
     seeded (conv a1 : u64) (conv a2 : u64) (conv a3 : u64)
 
 :~ ^ rolls (range : i32) (n : i32) (st : exsss) (acc : list i32) : list i32 * exsss =
-    ? n <= 0i32 ?> listm::rev acc, st
+    ? n <= 0i32
+    ?> listm::rev acc, st
     |: rolled range st |> \ (v, next) => rolls range (n - 1i32) next (v :: acc)
 
 := rolls_text (l : list i32) : string = l |> each sm'::obj_to_string |> delimited ","

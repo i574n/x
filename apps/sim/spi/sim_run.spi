@@ -229,7 +229,8 @@
 
 :~ ^ outcomes_from
     (x : executor_pair) (o : run_options) (s : scenario) (f : flow) (k : i32) (acc : run_outcomes) : run_outcomes =
-    ? k > o::schedule::schedules ?> listm::rev acc
+    ? k > o::schedule::schedules
+    ?> listm::rev acc
     |: outcomes_from x o s f (k + 1i32) (schedule_run_of x o s f k :: acc)
 
 := closing_line (outcomes : list schedule_outcome) : string =

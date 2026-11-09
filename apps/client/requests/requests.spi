@@ -50,8 +50,10 @@
 
 := outgoing_in (ask : json) : outgoing =
     := kind, text = at_key "kind" ask, at_key "text" ask
-    ? kind = "removal" ?> Removal (post_id text)
-    |? kind = "answer" ?> Answer (text, ref_in (field "root" ask), ref_in (field "parent" ask))
+    ? kind = "removal"
+    ?> Removal (post_id text)
+    |? kind = "answer"
+    ?> Answer (text, ref_in (field "root" ask), ref_in (field "parent" ask))
     |: Fresh text
 
 :~ answered_on (site : string) (ask : string) : platform * got fetched =

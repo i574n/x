@@ -395,8 +395,10 @@
     | Elsewhere
 
 := user_route (w : api_world) (id : string) (rest : string) : api_route =
-    ? not (dict::has id w::by_id) ?> Elsewhere
-    |? rest = "following" ?> Following (dict::present id w::by_id)
+    ? not (dict::has id w::by_id)
+    ?> Elsewhere
+    |? rest = "following"
+    ?> Following (dict::present id w::by_id)
     |? rest = "tweets" ?> Timeline (dict::present id w::by_id) |: Elsewhere
 
 := users_route (w : api_world) (parts : list string) : api_route =
@@ -614,10 +616,17 @@
 := plain_fault (u : term) : string =
     erlang_http_server::json_response (status_of "plain_status" u) (text (field "plain_body" u))
 
+:= protected_fault (u : term) : option string =
+    ? is_protected u
+    ?> Some (json_reply 200i32 (protected_body u))
+    |: None
+
 :~ timeline_fault (u : term) : option string =
-    ? has_key "plain_status" u ?> Some (plain_fault u)
-    |? has_key "status" u ?> Some (json_reply (status_of "status" u) (user_problem u))
-    |? is_protected u ?> Some (json_reply 200i32 (protected_body u)) |: None
+    ? has_key "plain_status" u
+    ?> Some (plain_fault u)
+    |? has_key "status" u
+    ?> Some (json_reply (status_of "status" u) (user_problem u))
+    |: protected_fault u
 
 :~ timeline_reply (w : api_world) (u : term) (query : string) (size : string) : string =
     := body = \ () => json_reply 200i32 (timeline_body w u query (count_or_zero size))
@@ -834,7 +843,8 @@
 :~ new_post (w : api_world) (r : request) : string * api_world =
     := b = json_body r
     := t, parent = sent_text b, sent_parent b
-    ? too_heavy t ?> kept w 400i32 (bad_text ())
+    ? too_heavy t
+    ?> kept w 400i32 (bad_text ())
     |? orphan w parent ?> kept w 400i32 (bad_parent parent) |: posted w t parent
 
 := deleted_body () : term = map_of [ ("data", map_of [ ("deleted", erlang_term::of !+) ]) ]
@@ -854,7 +864,8 @@
     ?= pieces "/" r::path ?| "" :: "2" :: "tweets" :: id :: [] ?& r::method = "DELETE" => Some id | _ => None
 
 :~ post_or_delete (w : api_world) (r : request) (_ : caller wire::user_context) : string * api_world =
-    ? r::method = "POST" && r::path = "/2/tweets" ?> new_post w r
+    ? r::method = "POST" && r::path = "/2/tweets"
+    ?> new_post w r
     |: ?= delete_target r ?| Some id => removed w id | None => kept w 404i32 (no_route r::path)
 
 :~ user_write \* c. (w : api_world) (r : request) (who : caller c) : string * api_world =
@@ -886,7 +897,8 @@
 := bearer (token : string) (auth : string) : bool = auth = "Bearer " ++# token
 
 :~ bearer_reply (w : api_world) (log : string) (r : request) (auth : string) : string * api_world =
-    ? bearer w::token auth ?> reply_as w log r AppBearer
+    ? bearer w::token auth
+    ?> reply_as w log r AppBearer
     |? bearer w::user_token auth ?> reply_as w log r UserBearer |: keyed_reply w log r auth
 
 :~ replied (w : api_world) (log : string) (raw : string) : string * api_world =

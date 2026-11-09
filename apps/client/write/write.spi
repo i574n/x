@@ -90,7 +90,8 @@
     | Error text => 4i32, text
 
 :~ write (s : side) (kind : i32) (payload : string) : i32 * string =
-    ? kind = 1i32 ?> remote_create (s 0i32) (fresh_ask payload) |> created_of_out |> posted
+    ? kind = 1i32
+    ?> remote_create (s 0i32) (fresh_ask payload) |> created_of_out |> posted
     |: remote_delete (s 0i32) (removal_ask payload) |> removed payload
 
 :| chain =
@@ -204,8 +205,10 @@
 := found_last (text : string) : string = parse_json text |> field "found" |> last_id_in
 
 :~ thread_mode (s : side) (kind : i32) (text : string) : i32 * string =
-    ? kind = 10i32 ?> resume_written s (found_last text) text
-    |? kind = 9i32 ?> removed_all s (pieces "\n" text)
+    ? kind = 10i32
+    ?> resume_written s (found_last text) text
+    |? kind = 9i32
+    ?> removed_all s (pieces "\n" text)
     |: chained s (texts_of text) (first_posting ())
 
 := run_mode (s : side) (kind : i32) (text : string) : i32 * string =

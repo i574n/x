@@ -104,9 +104,12 @@
     }
 
 := removal_named (text : string) : removal =
-    ? sm'::contains "suspended" text ?> Suspended
-    |? sm'::contains "deleted by" text ?> DeletedByAuthor
-    |? sm'::contains "no longer exists" text ?> AccountGone
+    ? sm'::contains "suspended" text
+    ?> Suspended
+    |? sm'::contains "deleted by" text
+    ?> DeletedByAuthor
+    |? sm'::contains "no longer exists" text
+    ?> AccountGone
     |: OtherRemoval text
 
 := removal_of (text : string) : removal =
@@ -133,8 +136,10 @@
 := observation_of (inferred : bool) : observation = ? inferred ?> Inferred |: Observed
 
 := fate_of (kind : string) (lost : string) (removed : string) (has_content : bool) : fate =
-    ? has_content && removed <> "" ?> Removed (removal_of removed)
-    |? has_content ?> Standing
+    ? has_content && removed <> ""
+    ?> Removed (removal_of removed)
+    |? has_content
+    ?> Standing
     |: Lost (? lost <> "" ?> lost |: removed)
 
 :== raw_row =
@@ -204,11 +209,17 @@
         users = listm::append a::users b::users
     }
 
-:= reference_as (text : string) (id : post_id) : list reference =
-    ? text = "quoted" ?> [ { kind = Quoted; id } ]
-    |? text = "replied_to" ?> [ { kind = RepliedTo; id } ]
-    |? text = "reposted" || text = "retweeted" ?> [ { kind = Reposted; id } ]
+:= reposted_as (text : string) (id : post_id) : list reference =
+    ? text = "reposted" || text = "retweeted"
+    ?> [ { kind = Reposted; id } ]
     |: []
+
+:= reference_as (text : string) (id : post_id) : list reference =
+    ? text = "quoted"
+    ?> [ { kind = Quoted; id } ]
+    |? text = "replied_to"
+    ?> [ { kind = RepliedTo; id } ]
+    |: reposted_as text id
 
 := ref_label (k : ref_kind) : string =
     ?= k ?|
@@ -382,11 +393,13 @@
     (author, count_of_author author seen + 1) :: keep (\ (a, _) => a <> author) seen
 
 := tally_step (cap : i32) (t : tally) (e : entry) : tally =
-    ? count_of_author e::username t::seen >= cap ?> t
+    ? count_of_author e::username t::seen >= cap
+    ?> t
     |: { seen = counted e::username t::seen; kept = e :: t::kept }
 
 := per_author (cap : i32) (l : list entry) : list entry =
-    ? cap <= 0 ?> l
+    ? cap <= 0
+    ?> l
     |: listm::fold (tally_step cap) { seen = []; kept = [] } l |> \ t => listm::rev t::kept
 
 :== selection = { limit : i32; per_author : i32 }
@@ -395,7 +408,8 @@
     l |> newest_first |> per_author s::per_author |> take_first s::limit
 
 := utc_minute (at : string) : string =
-    ? sm'::length at < 16i32 ?> at
+    ? sm'::length at < 16i32
+    ?> at
     |: sm'::substring 0i32 10i32 at ++# " " ++# sm'::substring 11i32 5i32 at
 
 :~ quantity (n : string) (one : string) (many : string) : string = n ++# " " ++# (? n = "1" ?> one |: many)

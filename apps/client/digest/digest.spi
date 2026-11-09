@@ -30,8 +30,10 @@
 :~ absorb_entry (r : rebuilt) (e : json) : rebuilt =
     := role = at_key "role" e
     := doc = e |> field "doc"
-    ? role = "primary" ?> primary_of e doc r
-    |? role = "lookup" ?> lookup_entry doc r
+    ? role = "primary"
+    ?> primary_of e doc r
+    |? role = "lookup"
+    ?> lookup_entry doc r
     |: users_entry doc r
 
 := rebuilt_of (bundle : string) : rebuilt =

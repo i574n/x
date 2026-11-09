@@ -197,7 +197,8 @@
     (broken : dict::set string) (events : flow) (schedule : i32) (acc : list scheduler)
     : list scheduler
     =
-    ? schedule > 4i32 ?> listm::rev acc
+    ? schedule > 4i32
+    ?> listm::rev acc
     |: persona_runs broken events (schedule + 1i32) (persona_run broken events schedule :: acc)
 
 :~ ^ neighbours_commute (l : list scheduler) : bool =

@@ -162,7 +162,11 @@
 
 := keyed_at (time : i32) (index : i32) : keyed = { time index event = Revision (Deleted (sm'::obj_to_string index)) }
 
-:= indexes_text (xs : list keyed) : string = xs |> each (\ (k : keyed) => k::index) |> each sm'::obj_to_string |> delimited ","
+:= indexes_text (xs : list keyed) : string =
+    xs
+    |> each (\ (k : keyed) => k::index)
+    |> each sm'::obj_to_string
+    |> delimited ","
 
 ///> rust
 ///> gleam

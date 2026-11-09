@@ -142,7 +142,8 @@
     | None => !-
 
 := reacted (s : social) (at : i32) (liked : bool) (w : inbox) : inbox_step =
-    ? dict::has s::post_id w::graph::posts |> not ?> Waiting
+    ? dict::has s::post_id w::graph::posts |> not
+    ?> Waiting
     |: ? stale_reaction s at w ?> Applied w |: Applied (reacted_now s at liked w)
 
 := fresh_key (id : string) : string = "post\n" ++# id

@@ -128,28 +128,41 @@
     | Plain
 
 := value_flag_of (text : string) : arg_kind =
-    ? text = "--max-following" ?> Valued MaxFollowing
-    |? text = "--following" ?> Valued Following
-    |? text = "--start-time" ?> Valued StartTime
-    |? text = "--end-time" ?> Valued EndTime
+    ? text = "--max-following"
+    ?> Valued MaxFollowing
+    |? text = "--following"
+    ?> Valued Following
+    |? text = "--start-time"
+    ?> Valued StartTime
+    |? text = "--end-time"
+    ?> Valued EndTime
     |: Plain
 
 := flag_of (text : string) : arg_kind =
-    ? text = "--per-account" ?> Valued PerAccount
-    |? text = "--limit" ?> Valued Limit
-    |? text = "--per-author" ?> Valued PerAuthor
-    |? text = "--depth" ?> Valued Depth
+    ? text = "--per-account"
+    ?> Valued PerAccount
+    |? text = "--limit"
+    ?> Valued Limit
+    |? text = "--per-author"
+    ?> Valued PerAuthor
+    |? text = "--depth"
+    ?> Valued Depth
     |: value_flag_of text
 
 := output_kind (text : string) : arg_kind =
-    ? text = "--json" ?> Switched Json
-    |? text = "--hints" ?> Switched Hints
+    ? text = "--json"
+    ?> Switched Json
+    |? text = "--hints"
+    ?> Switched Hints
     |: flag_of text
 
 := kind_of (text : string) : arg_kind =
-    ? text = "--all" ?> Switched AllPosts
-    |? text = "--no-reposts" ?> Switched NoReposts
-    |? text = "--originals" ?> Switched Originals
+    ? text = "--all"
+    ?> Switched AllPosts
+    |? text = "--no-reposts"
+    ?> Switched NoReposts
+    |? text = "--originals"
+    ?> Switched Originals
     |: output_kind text
 
 := char_at (i : i32) (text : string) : string = sm'::slice i i text
@@ -163,8 +176,10 @@
     sm'::length text = n && go 0
 
 := date_of_text (text : string) : option string =
-    ? shaped "9999-99-99" text ?> Some (text ++# "T00:00:00Z")
-    |? shaped "9999-99-99T99:99:99Z" text ?> Some text
+    ? shaped "9999-99-99" text
+    ?> Some (text ++# "T00:00:00Z")
+    |? shaped "9999-99-99T99:99:99Z" text
+    ?> Some text
     |: None
 
 := username_alphabet () : string =
@@ -356,19 +371,29 @@
     ? sub = "events" ?> events_command rest |: Rejected (unknown_command sub)
 
 :~ thread_command (sub : string) (rest : args) : command =
-    ? sub = "post-thread" ?> thread_post_command rest
-    |? sub = "delete-thread" ?> one_value sub rest (DeleteThread >> OnThread)
+    ? sub = "post-thread"
+    ?> thread_post_command rest
+    |? sub = "delete-thread"
+    ?> one_value sub rest (DeleteThread >> OnThread)
     |: events_or_unknown sub rest
 
-:~ other_command (sub : string) (rest : args) : command =
-    ? sub = "refresh" ?> one_value sub rest RefreshToken
-    |? sub = "thread" ?> one_value sub rest (ReadThread >> OnThread)
-    |? sub = "postable" ?> postable_command rest
+:~ thread_or_postable (sub : string) (rest : args) : command =
+    ? sub = "thread"
+    ?> one_value sub rest (ReadThread >> OnThread)
+    |? sub = "postable"
+    ?> postable_command rest
     |: thread_command sub rest
 
+:~ other_command (sub : string) (rest : args) : command =
+    ? sub = "refresh"
+    ?> one_value sub rest RefreshToken
+    |: thread_or_postable sub rest
+
 :~ write_command (sub : string) (rest : args) : command =
-    ? sub = "post" ?> one_value sub rest PublishPost
-    |? sub = "delete" ?> one_value sub rest RemovePost
+    ? sub = "post"
+    ?> one_value sub rest PublishPost
+    |? sub = "delete"
+    ?> one_value sub rest RemovePost
     |: other_command sub rest
 
 := subcommand (c : checks) (start : draft) (sub : string) (rest : args) : command =
@@ -480,7 +505,8 @@
 ///> zig
 :# all_shows_replies_and_reposts =
     := ~flag = "--all"
-    parsed [ "timeline"; "--originals"; flag; "a" ] |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 replies"
+    parsed [ "timeline"; "--originals"; flag; "a" ]
+    |> _assert_eq "accounts a per=5 limit=20 author=0 depth=0 cap=20 replies"
 
 ///> zig
 :# no_replies_is_the_default_not_a_flag =

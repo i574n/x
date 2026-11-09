@@ -56,7 +56,8 @@
 
 :~ ^ masked_cells (s : string) (from : i32) (acc : string) : string =
     := at = marker_end "spiral_cells" s from
-    ? at < 0i32 ?> acc ++# rest_from from s
+    ? at < 0i32
+    ?> acc ++# rest_from from s
     |: dir_step s from at acc |> \ (kept, next) => masked_cells s next kept
 
 := panic_end (s : string) (q : i32) : i32 =
@@ -67,7 +68,8 @@
 
 := thread_step (s : string) (from : i32) (open_end : i32) (q : i32) (acc : string) : string * i32 =
     := e = panic_end s q
-    ? e < 0i32 ?> acc ++# cut from (open_end - from) s, open_end
+    ? e < 0i32
+    ?> acc ++# cut from (open_end - from) s, open_end
     |: acc ++# cut from (q - from) s ++# " (_) panicked", e
 
 := thread_quotes (s : string) (from : i32) : i32 * i32 =
@@ -76,7 +78,8 @@
 
 :~ ^ masked_threads (s : string) (from : i32) (acc : string) : string =
     := open_end, q = thread_quotes s from
-    ? q < 0i32 ?> acc ++# rest_from from s
+    ? q < 0i32
+    ?> acc ++# rest_from from s
     |: thread_step s from open_end q acc |> \ (kept, next) => masked_threads s next kept
 
 := comparable (o : outcome) : outcome = { o ?| out = masked_threads (masked_cells o::out 0i32 "") 0i32 "" }
@@ -316,7 +319,14 @@
     ^^ "unwanted_results_freed=ok"
 
 := every_rule () : list rule =
-    [ SequentialEquivalence; NoStaleResults; OneCompilePerPrefix; WithdrawnDemandHidden; UnwantedResultsFreed; BreakingEditsFail ]
+    [
+        SequentialEquivalence
+        NoStaleResults
+        OneCompilePerPrefix
+        WithdrawnDemandHidden
+        UnwantedResultsFreed
+        BreakingEditsFail
+    ]
 
 := rule_names () : string =
     "sequential_equivalence no_stale_results one_compile_per_prefix withdrawn_demand_hidden "

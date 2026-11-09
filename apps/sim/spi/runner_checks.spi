@@ -149,7 +149,8 @@
     =
     rule_under wanted (run (naive_faults ())) l, rule_under wanted (run (plain_faults ())) l
 
-:= liked_then (id : string) (last : delivery) : list delivery = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u1"; last ]
+:= liked_then (id : string) (last : delivery) : list delivery =
+    [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u1"; last ]
 
 ///> rust -d sha2
 ///> gleam

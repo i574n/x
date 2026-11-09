@@ -340,8 +340,10 @@
 := page_of_doc (doc : json) : page_reply = page_reply { page = accounts_in doc; next_token = next_token_in doc }
 
 :~ ^ first_reply_from (i : i32) (refs : json) : string =
-    ? i >= count_of refs ?> ""
-    |? at_key "type" (item i refs) = "replied_to" ?> at_key "id" (item i refs)
+    ? i >= count_of refs
+    ?> ""
+    |? at_key "type" (item i refs) = "replied_to"
+    ?> at_key "id" (item i refs)
     |: first_reply_from (i + 1i32) refs
 
 := replied_to_in (v : json) : string = v |> field "referenced_posts" |> first_reply_from 0i32
@@ -498,9 +500,12 @@
 := distinct_parts (title : string) (detail : string) : bool = title <> "" && detail <> "" && title <> detail
 
 := title_and_detail (title : string) (detail : string) (body : string) : string =
-    ? distinct_parts title detail ?> title ++# ": " ++# detail
-    |? detail <> "" ?> detail
-    |? title <> "" ?> title
+    ? distinct_parts title detail
+    ?> title ++# ": " ++# detail
+    |? detail <> ""
+    ?> detail
+    |? title <> ""
+    ?> title
     |: clipped 300i32 (single_line body)
 
 := problem_detail (body : string) : string =

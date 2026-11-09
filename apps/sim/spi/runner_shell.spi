@@ -56,7 +56,8 @@
     { st ?| early_cancels = dict::set_drop key st::early_cancels }
 
 := adopted (st : shell_state) (key : string) (own : handle) : shell_state =
-    ? dict::set_has key st::early_cancels ?> cancelled_early st key own
+    ? dict::set_has key st::early_cancels
+    ?> cancelled_early st key own
     |: { st ?| guards = dict::insert key own st::guards }
 
 := released (st : shell_state) (key : string) : shell_state = { st ?| guards = dict::remove key st::guards }

@@ -7,14 +7,19 @@
 :< protocol
 :< posts
 
-:= row_of (sources : list string) (capture : string) (inferred : bool) (kind : string) (lost : string) (removed : string) (has_content : bool) : raw_row =
+:= row_of
+    (sources : list string) (capture : string) (inferred : bool) (kind : string) (lost : string) (removed : string)
+    (has_content : bool)
+    : raw_row
+    =
     { sources; capture; inferred; kind; lost; removed; has_content }
 
 := archival_from (id : string) (utc_s : i64) (r : raw_row) : archival = archival_of (post_id id) r utc_s
 
 := has_content_of (text : string) (media_count : i32) : bool = text <> "" || media_count > 0i32
 
-:= lost_row () : raw_row = row_of [ "wayback" ] "20240508" !- "lost" "archive returned HTTP 404" "" (has_content_of "" 0i32)
+:= lost_row () : raw_row =
+    row_of [ "wayback" ] "20240508" !- "lost" "archive returned HTTP 404" "" (has_content_of "" 0i32)
 
 ///> zig
 :# a_live_tweet_with_text_is_standing_and_observed =

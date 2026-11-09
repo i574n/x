@@ -108,8 +108,10 @@
 := ok_tagged (t : term) : bool = erlang_term::equal (erlang_term::element_at 1i32 t) (erlang_term::atom "ok")
 
 := ok_value (t : term) : option term =
-    ? not (erlang_term::is_tuple t) ?> None
-    |? ok_tagged t ?> Some (erlang_term::element_at 2i32 t)
+    ? not (erlang_term::is_tuple t)
+    ?> None
+    |? ok_tagged t
+    ?> Some (erlang_term::element_at 2i32 t)
     |: None
 
 := hello_on (s : erlang_tcp::socket) : string =
@@ -229,7 +231,8 @@
     | None => !-
 
 := finished_in (a : async_state) (key : string) (p : erlang_process::pid) (r : task_result) : async_state =
-    ? not (current_run a key p) ?> a
+    ? not (current_run a key p)
+    ?> a
     |:
         { a ?| sched = finished_task key r a::sched; pids = dict::remove key a::pids }
 
@@ -247,7 +250,8 @@
     conv (? left > 0i64 ?> left |: 0i64)
 
 := next_reply (reply : reply_to) (deadline : deadline_ms) (a : async_state) : option task_reply =
-    ? dict::count a::pids = 0i32 ?> None
+    ? dict::count a::pids = 0i32
+    ?> None
     |: erlang_process::receive_within reply (left_until deadline) |> erlang_process::receipt_value
 
 :~ ^ harvested (reply : reply_to) (deadline : deadline_ms) (a : async_state) : async_state =
@@ -259,7 +263,10 @@
     := mb = erlang_process::beam_memory_mb ()
     { a ?| peak_mb = ? mb > a::peak_mb ?> mb |: a::peak_mb }
 
-:= stepped (exec : executor) (reply : reply_to) (pace : i32) (a : async_state) (d : sim_events::delivery) : async_state =
+:= stepped
+    (exec : executor) (reply : reply_to) (pace : i32) (a : async_state) (d : sim_events::delivery)
+    : async_state
+    =
     := b = { a ?| sched = delivered_to d a::sched }
     b |> launched exec reply |> sampled |> harvested reply (deadline_after pace)
 
@@ -275,7 +282,8 @@
 
 :~ ^ settled_runs (exec : executor) (reply : reply_to) (a : async_state) : async_state =
     := b = launched exec reply { a ?| sched = drained a::sched }
-    ? dict::count b::pids = 0i32 ?> b
+    ? dict::count b::pids = 0i32
+    ?> b
     |: waited reply b |> settled_runs exec reply
 
 := async_start (f : fault_set) : async_state = { sched = new_scheduler f; pids = dict::empty (); peak_mb = 0i32 }

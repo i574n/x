@@ -109,7 +109,8 @@
     ? dict::has key s::task_work::results ?> s |> counted_with (\ c => { c ?| rescues = c::rescues + 1i32 }) |: s
 
 := rescued (key : string) (s : scheduler) : scheduler =
-    ? dict::has key s::life_cycle::doomed |> not ?> s
+    ? dict::has key s::life_cycle::doomed |> not
+    ?> s
     |: s |> with_life (\ l => { l ?| doomed = dict::remove key l::doomed }) |> rescue_counted key
 
 := cancelled_task (key : string) (s : scheduler) : scheduler =
@@ -136,7 +137,8 @@
 
 := enqueued (key : string) (s : scheduler) : scheduler =
     := s = s |> with_work \ w => { w ?| queue = listm::append w::queue [ key ] }
-    ? dict::has key s::run_counts::evicted ?> s |> counted_with \ c => { c ?| recomputes = c::recomputes + 1i32 }
+    ? dict::has key s::run_counts::evicted
+    ?> s |> counted_with \ c => { c ?| recomputes = c::recomputes + 1i32 }
     |: s
 
 := ref_count (key : string) (s : scheduler) : i32 = ?= dict::find key s::owner_map::refs ?| Some x => x | None => 0i32
@@ -242,7 +244,8 @@
     | None => v
 
 := settled_view (s : scheduler) : scheduler =
-    ? dict::count s::visible_map > 0i32 ?> s
+    ? dict::count s::visible_map > 0i32
+    ?> s
     |: { s ?| visible_map = wanted_keys s::in_box |> dict::fold (result_shown s) (dict::empty ()) }
 
 := commands_taken (s : scheduler) : list task_command * scheduler =
@@ -303,7 +306,8 @@
     sync_run (plain_faults ()) (liked_post id) |> computed_once_shape id
     |> _assert_eq (1i32, fake_out [ "inl a = 1" ], 12i32)
 
-:= withdrawn_like (id : string) : list delivery = [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u" ]
+:= withdrawn_like (id : string) : list delivery =
+    [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u" ]
 
 ///> rust -d sha2
 ///> gleam
