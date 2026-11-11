@@ -839,7 +839,7 @@ pub type Us104 {
     Us104Paragraph(f1i0 : Uh45)
     Us104Bullets(f2i0 : Uh46)
     Us104Numbered(f3i0 : Int, f3i1 : Uh46)
-    Us104CodeBlock(f4i0 : Uh3)
+    Us104CodeBlock(f4i0 : String, f4i1 : Uh3)
     Us104Rule
     Us104Table(f6i0 : Uh47, f6i1 : Uh46, f6i2 : Uh48)
 }
@@ -918,6 +918,6 @@ pub type Us115 {
 }
 
 pub type Us116 {
-    Us116Ok(f0i0 : String, f0i1 : String, f0i2 : String, f0i3 : dict.Dict(String, Dynamic), f0i4 : dict.Dict(String, Dynamic), f0i5 : Int, f0i6 : dict.Dict(String, Dynamic), f0i7 : String, f0i8 : Dynamic, f0i9 : Uh3, f0i10 : Dynamic, f0i11 : dict.Dict(String, Nil), f0i12 : Int, f0i13 : Uh36, f0i14 : String)
+    Us116Ok(f0i0 : String, f0i1 : String, f0i2 : String, f0i3 : dict.Dict(String, Dynamic), f0i4 : dict.Dict(String, Dynamic), f0i5 : Int, f0i6 : dict.Dict(String, Dynamic), f0i7 : String, f0i8 : Dynamic, f0i9 : Uh3, f0i10 : Dynamic, f0i11 : dict.Dict(String, Nil), f0i12 : Int, f0i13 : Uh36, f0i14 : String, f0i15 : String)
     Us116Error(f1i0 : String)
 }

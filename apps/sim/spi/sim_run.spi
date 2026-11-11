@@ -34,7 +34,7 @@
 :== schedule_outcome = { line : string; sched : scheduler; found : list finding }
 
 := shape_for (o : run_options) (round : i32) (posts : i32) (events : i32) (deliveries : i32) : run_shape =
-    { seed = o::schedule::seed; schedule = round; posts; events; deliveries; ms = 0i32; beam_mb = 0i32 }
+    { seed = o::schedule::seed; schedule = round; posts; events; deliveries; ms = 0; beam_mb = 0 }
 
 := saved_path (pattern : string) (round : i32) : string = sm'::replace "{schedule}" (sm'::obj_to_string round) pattern
 
@@ -47,7 +47,7 @@
     ? pattern <> "" ?> file_system::write_all_text (saved_path pattern round) (stream l)
 
 := generated_for (o : run_options) (f : flow) (round : i32) : list delivery =
-    deliveries f round { permille = o::schedule::duplicates_permille; window = 6i32 }
+    deliveries f round { permille = o::schedule::duplicates_permille; window = 6 }
 
 := deliveries_for (o : run_options) (f : flow) (round : i32) : list delivery =
     := l = ? o::schedule::replay <> "" ?> replayed_from o::schedule::replay |: generated_for o f round
@@ -59,7 +59,7 @@
 :== schedule_fn = i32 -> cells_run -> fault_set -> list delivery -> scheduler * i32
 
 := unmeasured (pace : i32) (e : cells_run) (f : fault_set) (l : list delivery) : scheduler * i32 =
-    sync_run_with e f l, 0i32
+    sync_run_with e f l, 0
 
 :== beam_executors =
     { cells : bool -> cells_run; cells_baseline : cells_run; leak : string -> cells_run; memo_counts : () -> i32 * i32;
@@ -87,9 +87,9 @@
     := leak_run, leak_base = b::leak "xsim_leak_run", b::leak "xsim_leak_baseline"
     { p ?| run = leak_run; baseline = leak_base; scheduled_by = b::async_run }
 
-:= no_reading () : i32 = 0i32
+:= no_reading () : i32 = 0
 
-:= no_counts () : i32 * i32 = 0i32, 0i32
+:= no_counts () : i32 * i32 = 0, 0
 
 := unwatched () (_ : i32) : list string = []
 
@@ -231,7 +231,7 @@
     (x : executor_pair) (o : run_options) (s : scenario) (f : flow) (k : i32) (acc : run_outcomes) : run_outcomes =
     ? k > o::schedule::schedules
     ?> listm::rev acc
-    |: outcomes_from x o s f (k + 1i32) (schedule_run_of x o s f k :: acc)
+    |: outcomes_from x o s f (k + 1) (schedule_run_of x o s f k :: acc)
 
 := closing_line (outcomes : list schedule_outcome) : string =
     := scheds = each (\ (r : schedule_outcome) => r::sched) outcomes
@@ -242,7 +242,7 @@
 
 :~ simulated_by (x : executor_pair) (o : run_options) (threads : list (list string)) : list string =
     := s = from_corpus (casting_for o) threads
-    outcomes_from x o s (flow_for o s) 1i32 [] |> with_closing
+    outcomes_from x o s (flow_for o s) 1 [] |> with_closing
 
 := simulated (o : run_options) (threads : list (list string)) : list string = simulated_by (fake_pair ()) o threads
 
@@ -259,7 +259,7 @@
 := small_options () : run_options =
     := d = default_run ()
     := plan = d::schedule
-    { d ?| schedule = { plan ?| schedules = 2i32; users = 3i32 } }
+    { d ?| schedule = { plan ?| schedules = 2; users = 3 } }
 
 := run_summary (lines : list string) : i32 * bool * bool =
     := commuted = has ((=) "XSIM commute=ok result=pass") lines
@@ -292,7 +292,7 @@
 
 := marked_beam () : beam_executors =
     := b = idle_beam () |> marked_runs
-    { b ?| memo_counts = \ () => (2i32, 1i32); beam_mb = \ () => 7i32; daemon_watch = marked_daemon }
+    { b ?| memo_counts = \ () => (2, 1); beam_mb = \ () => 7; daemon_watch = marked_daemon }
 
 := with_memo (memo : bool) (o : run_options) : run_options =
     := r = o::runner

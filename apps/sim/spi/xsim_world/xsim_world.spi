@@ -22,8 +22,8 @@
 
 := staged_world (x : world_cells) : string * string =
     := cells, _, _, _, _, _, _, _, _, _ = x
-    world_files (ask_of x) (split_all (char_of 0i32) cells)
+    world_files (ask_of x) (split_all (char_of 0) cells)
 
 := main () : i32 =
     export "world_files" ((\ x => staged_world x) : world_cells -> string * string)
-    0i32
+    0

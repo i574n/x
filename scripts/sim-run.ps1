@@ -26,9 +26,9 @@ if ($entry -ne 'cli_serve') {
         }
     } finally { Pop-Location; Remove-Item Env:MIX_BUILD_PATH }
     New-Item -ItemType Directory -Force $build | Out-Null
-    $probe = Join-Path $build 'elixir-lib.exs'
-    [IO.File]::WriteAllText($probe, "IO.write(:code.lib_dir(:elixir))`n")
-    $elixirLib = Split-Path (elixir $probe)
+    $preflight = Join-Path $build 'elixir-lib.exs'
+    [IO.File]::WriteAllText($preflight, "IO.write(:code.lib_dir(:elixir))`n")
+    $elixirLib = Split-Path (elixir $preflight)
     if (!$elixirLib) { throw "xsim / elixir did not report its lib dir" }
     $paths = @(Join-Path $build 'consolidated') + @(Get-ChildItem (Join-Path $elixirLib '*/ebin'), (Join-Path $build 'lib/*/ebin') -Directory).FullName + $paths
 }

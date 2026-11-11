@@ -92,13 +92,13 @@
     "sequential_equivalence=ok no_stale_results=ok one_compile_per_prefix=ok withdrawn_demand_hidden=ok"
 
 := liked_pair (id : string) : list delivery =
-    [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u"
-      post_at 2i32 "p1" (Some id) "inl b = 2"; like_at 3i32 "p1" "u" ]
+    [ post_at 0 id None "inl a = 1"; like_at 1 id "u"
+      post_at 2 "p1" (Some id) "inl b = 2"; like_at 3 "p1" "u" ]
 
 := two_thread (id : string) : list delivery =
-    [ post_at 0i32 id None "x"; like_at 1i32 id "u"; post_at 2i32 "p1" (Some id) "y"; like_at 3i32 "p1" "v" ]
+    [ post_at 0 id None "x"; like_at 1 id "u"; post_at 2 "p1" (Some id) "y"; like_at 3 "p1" "v" ]
 
-:= liked_once (id : string) : list delivery = [ post_at 0i32 id None "x"; like_at 1i32 id "u" ]
+:= liked_once (id : string) : list delivery = [ post_at 0 id None "x"; like_at 1 id "u" ]
 
 ///> rust -d sha2
 ///> gleam
@@ -150,7 +150,7 @@
     rule_under wanted (run (naive_faults ())) l, rule_under wanted (run (plain_faults ())) l
 
 := liked_then (id : string) (last : delivery) : list delivery =
-    [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u1"; last ]
+    [ post_at 0 id None "inl a = 1"; like_at 1 id "u1"; last ]
 
 ///> rust -d sha2
 ///> gleam
@@ -170,21 +170,21 @@
     := plain = plain_faults ()
     { plain ?| eviction = EvictAfter n }
 
-:= lapse_of (id : string) : list delivery = [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u" ]
+:= lapse_of (id : string) : list delivery = [ post_at 0 id None "x"; like_at 1 id "u"; unlike_at 2 id "u" ]
 
-:= relapsed (f : fault_set) (id : string) : scheduler = sync_run f (listm::append (lapse_of id) [ like_at 3i32 id "u" ])
+:= relapsed (f : fault_set) (id : string) : scheduler = sync_run f (listm::append (lapse_of id) [ like_at 3 id "u" ])
 
 := long_lapse (id : string) : scheduler =
-    := more = [ post_at 3i32 "p1" None "y"; like_at 4i32 "p1" "v"; like_at 5i32 "p1" "w" ]
-    sync_run (graced 1i32) (listm::append (lapse_of id) more)
+    := more = [ post_at 3 "p1" None "y"; like_at 4 "p1" "v"; like_at 5 "p1" "w" ]
+    sync_run (graced 1) (listm::append (lapse_of id) more)
 
 := lapse_shape (s : scheduler) : i32 * i32 * i32 =
     s::run_counts::rescues, s::run_counts::recomputes, dict::count s::life_cycle::doomed
 
 := grace_shape (id : string) : (i32 * i32 * i32) * string * bool =
-    := short = relapsed (graced 12i32) id
+    := short = relapsed (graced 12) id
     lapse_shape short, runs_commute short (relapsed (plain_faults ()) id)
-    |> verdict_text, dict::count (long_lapse id)::run_counts::evicted > 0i32
+    |> verdict_text, dict::count (long_lapse id)::run_counts::evicted > 0
 
 ///> rust -d sha2
 ///> gleam

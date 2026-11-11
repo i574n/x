@@ -114,10 +114,10 @@
 
 := one_post_run (seed : i32) : scheduler =
     := id = "p0"
-    sync_run (plain_faults ()) [ post_at 0i32 id None "x"; like_at 1i32 id "u" ]
+    sync_run (plain_faults ()) [ post_at 0 id None "x"; like_at 1 id "u" ]
 
 := shape_of (deliveries : i32) : run_shape =
-    { seed = 1i32; schedule = 1i32; posts = 1i32; events = 2i32; deliveries; ms = 7i32; beam_mb = 0i32 }
+    { seed = 1; schedule = 1; posts = 1; events = 2; deliveries; ms = 7; beam_mb = 0 }
 
 := expected_head () : string =
     "XSIM seed=1 schedule=1 posts=1 events=2 deliveries=2 duplicates=0 buffered=0 framed=0 framed_edits=0 "

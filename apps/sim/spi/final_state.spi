@@ -68,7 +68,7 @@
 
 :~ final_replay (l : list event) : replay = l |> listm::fold replayed { cells = []; tallies = [] }
 
-:= opened_levels () : i32 = 4i32
+:= opened_levels () : i32 = 4
 
 := indent (level : i32) : string = sm'::replicate (4i32 * level) " "
 
@@ -79,7 +79,7 @@
 := square () : brackets = { opening = "["; closing = "]" }
 
 := opened (items : list string) (b : brackets) (level : i32) : string =
-    := inner = "\n" ++# indent (level + 1i32)
+    := inner = "\n" ++# indent (level + 1)
     b::opening ++# inner ++# delimited ("," ++# inner) items ++# "\n" ++# indent level ++# b::closing
 
 :~ shared_layout (items : list string) (b : brackets) (level : i32) : string =
@@ -112,8 +112,8 @@
 := live_cells (r : replay) : list cell_state = r::cells |> keep \ (c : cell_state) => not c::deleted
 
 :~ final_json (r : replay) : string =
-    := cells = laid_out (live_cells r |> each (cell_json 2i32)) (square ()) 1i32
-    laid_out [ pair "cells" cells; pair "likes" (tallies_json 1i32 r::tallies) ] (braces ()) 0i32 ++# "\n"
+    := cells = laid_out (live_cells r |> each (cell_json 2)) (square ()) 1
+    laid_out [ pair "cells" cells; pair "likes" (tallies_json 1 r::tallies) ] (braces ()) 0 ++# "\n"
 
 := liked_twice () : list event =
     [

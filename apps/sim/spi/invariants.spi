@@ -34,41 +34,41 @@
 
 := counted_run (s : string) (i : i32) (lead : string) : i32 =
     := start = i + sm'::length lead
-    := e = ? sm'::starts_with lead (rest_from i s) ?> digits_end s start |: -1i32
-    ? e > start ?> e |: -1i32
+    := e = ? sm'::starts_with lead (rest_from i s) ?> digits_end s start |: -1
+    ? e > start ?> e |: -1
 
 := slashed_run (s : string) (i : i32) : i32 =
     := back = counted_run s i "\\"
-    ? back >= 0i32 ?> back |: counted_run s i "/"
+    ? back >= 0 ?> back |: counted_run s i "/"
 
 := cell_dir_end (s : string) (at : i32) : i32 =
     := first = slashed_run s at
-    ? first < 0i32 ?> -1i32 |: counted_run s first "-"
+    ? first < 0 ?> -1 |: counted_run s first "-"
 
 := marker_end (marker : string) (s : string) (from : i32) : i32 =
     := i = sm'::index_of marker (rest_from from s)
-    ? i < 0i32 ?> -1i32 |: from + i + sm'::length marker
+    ? i < 0 ?> -1 |: from + i + sm'::length marker
 
 := dir_step (s : string) (from : i32) (at : i32) (acc : string) : string * i32 =
     := past = cell_dir_end s at
     := kept = acc ++# cut from (at - from) s
-    ? past < 0i32 ?> kept, at |: kept ++# "/_", past
+    ? past < 0 ?> kept, at |: kept ++# "/_", past
 
 :~ ^ masked_cells (s : string) (from : i32) (acc : string) : string =
     := at = marker_end "spiral_cells" s from
-    ? at < 0i32
+    ? at < 0
     ?> acc ++# rest_from from s
     |: dir_step s from at acc |> \ (kept, next) => masked_cells s next kept
 
 := panic_end (s : string) (q : i32) : i32 =
     := e = counted_run s q " ("
-    ? e >= 0i32 && sm'::starts_with ") panicked" (rest_from e s) ?> e + 10i32 |: -1i32
+    ? e >= 0 && sm'::starts_with ") panicked" (rest_from e s) ?> e + 10 |: -1
 
-:= quote_after (s : string) (open_end : i32) : i32 = ? open_end < 0i32 ?> -1i32 |: marker_end "'" s open_end
+:= quote_after (s : string) (open_end : i32) : i32 = ? open_end < 0 ?> -1 |: marker_end "'" s open_end
 
 := thread_step (s : string) (from : i32) (open_end : i32) (q : i32) (acc : string) : string * i32 =
     := e = panic_end s q
-    ? e < 0i32
+    ? e < 0
     ?> acc ++# cut from (open_end - from) s, open_end
     |: acc ++# cut from (q - from) s ++# " (_) panicked", e
 
@@ -78,11 +78,11 @@
 
 :~ ^ masked_threads (s : string) (from : i32) (acc : string) : string =
     := open_end, q = thread_quotes s from
-    ? q < 0i32
+    ? q < 0
     ?> acc ++# rest_from from s
     |: thread_step s from open_end q acc |> \ (kept, next) => masked_threads s next kept
 
-:= comparable (o : outcome) : outcome = { o ?| out = masked_threads (masked_cells o::out 0i32 "") 0i32 "" }
+:= comparable (o : outcome) : outcome = { o ?| out = masked_threads (masked_cells o::out 0 "") 0 "" }
 
 := same_outcome (a : outcome) (b : outcome) : bool =
     := x, y = comparable a, comparable b
@@ -91,7 +91,7 @@
 := verdict_of (bad : list string) : verdict =
     ?= bad ?|
     | [] => Held
-    | _ => Broken (take_first 5i32 bad)
+    | _ => Broken (take_first 5 bad)
 
 := wants (s : snapshot) (v : shown) : bool = has (\ (d : demand) => d::id = v::id && d::key = v::key) s::wanted
 
@@ -111,12 +111,12 @@
 := withdrawn_hidden (s : snapshot) : verdict = s |> ids_where \ v => not (demanded s v)
 
 := count_in (l : list tally) (key : string) : i32 =
-    l |> keep (\ (t : tally) => t::key = key) |> listm::fold (\ n (t : tally) => n + t::count) 0i32
+    l |> keep (\ (t : tally) => t::key = key) |> listm::fold (\ n (t : tally) => n + t::count) 0
 
 := live_compiles (s : snapshot) (t : tally) : i32 = t::count - count_in s::cancelled t::key - count_in s::evicted t::key
 
 := one_compile (s : snapshot) : verdict =
-    s::starts |> keep (\ t => live_compiles s t > 1i32) |> each (\ (t : tally) => t::key) |> verdict_of
+    s::starts |> keep (\ t => live_compiles s t > 1) |> each (\ (t : tally) => t::key) |> verdict_of
 
 := unwanted_freed (s : snapshot) : verdict =
     s::results |> keep (\ key => not (has (\ (d : demand) => d::key = key) s::wanted)) |> verdict_of
@@ -171,7 +171,7 @@
     { q ?|
         visible = [ one_shown "1" "k1" "a" ]
         wanted = [ { id = "1"; key = "k1" } ]
-        starts = [ { key = "k1"; count = 1i32 } ]
+        starts = [ { key = "k1"; count = 1 } ]
         results = [ "k1" ]
     }
 
@@ -218,7 +218,7 @@
 :== reading = { snap : snapshot; baselines : list (string * outcome); broken_ids : list string; strays : list string }
 
 := outcome_at (prefix : string) (l : fields) : outcome =
-    { ok = count_at (prefix ++# "ok") l = 1i32; out = text_at (prefix ++# "out") l }
+    { ok = count_at (prefix ++# "ok") l = 1; out = text_at (prefix ++# "out") l }
 
 := tally_at (l : fields) : tally = { key = text_at "key" l; count = count_at "count" l }
 
@@ -241,7 +241,7 @@
 := shown_at (l : fields) : shown = { id = text_at "id" l; key = text_at "key" l; result = outcome_at "" l }
 
 := based (r : reading) (l : fields) (v : shown) : reading =
-    ? count_at "based" l = 1i32 ?> { r ?| baselines = (v::id, outcome_at "base_" l) :: r::baselines } |: r
+    ? count_at "based" l = 1 ?> { r ?| baselines = (v::id, outcome_at "base_" l) :: r::baselines } |: r
 
 := visible_row (r : reading) (l : fields) : reading =
     := v = shown_at l
@@ -360,7 +360,7 @@
 
 := restarted (cancelled : i32) (evicted : i32) : snapshot =
     := s = settled ()
-    { s ?| starts = k1_count 3i32; cancelled = k1_count cancelled; evicted = k1_count evicted }
+    { s ?| starts = k1_count 3; cancelled = k1_count cancelled; evicted = k1_count evicted }
 
 ///> rust
 ///> gleam

@@ -35,7 +35,7 @@
     | Applied : inbox
     | Waiting
 
-:= no_tallies () : tallies = { framed = 0i32; framed_edits = 0i32; duplicates = 0i32; buffered = 0i32 }
+:= no_tallies () : tallies = { framed = 0; framed_edits = 0; duplicates = 0; buffered = 0 }
 
 := empty_intake () : intake = { seen = dict::set_empty (); pending = []; frames = dict::empty () }
 
@@ -57,19 +57,19 @@
 := parked (d : delivery) (w : inbox) : inbox =
     := i = w::intake
     { w ?| intake = { i ?| pending = d :: i::pending } }
-    |> counted_as \ t => { t ?| buffered = t::buffered + 1i32 }
+    |> counted_as \ t => { t ?| buffered = t::buffered + 1 }
 
 := unparked (at : i32) (w : inbox) : inbox =
     := i = w::intake
     { w ?| intake = { i ?| pending = i::pending |> keep (\ (d : delivery) => d::at <> at) } }
 
 := latest_at (p : post_state) : i32 =
-    p::revisions |> dict::fold (\ best at _ => ? at > best ?> at |: best) (-1i32)
+    p::revisions |> dict::fold (\ best at _ => ? at > best ?> at |: best) (-1)
 
 := latest_source (p : post_state) : string = dict::present (latest_at p) p::revisions
 
 := key_of (parent_key : string) (source : string) : string =
-    cut 0i32 16i32 (crypto::hash_text (parent_key ++# char_of 0i32 ++# source))
+    cut 0 16 (crypto::hash_text (parent_key ++# char_of 0 ++# source))
 
 := parent_key_of (g : graph) (p : post_state) : string =
     ?= p::parent ?|
@@ -151,7 +151,7 @@
 := edit_key (id : string) (rev : i32) : string = "edit\n" ++# id ++# "\n" ++# sm'::obj_to_string rev
 
 := rebuilt_parts (frame_parts : dict::dict i32 frame_part) : string =
-    listm::init (dict::count frame_parts) \ i => (dict::present (i + 1i32) frame_parts)::body
+    listm::init (dict::count frame_parts) \ i => (dict::present (i + 1) frame_parts)::body
     |> delimited ""
     |> restored_text
 
@@ -173,9 +173,9 @@
 
 := edit_made (r : revised) (source : string) : event = Revision (Edited { post_id = r::post_id; source })
 
-:= framed_once (t : tallies) : tallies = { t ?| framed = t::framed + 1i32 }
+:= framed_once (t : tallies) : tallies = { t ?| framed = t::framed + 1 }
 
-:= edit_framed_once (t : tallies) : tallies = { t ?| framed_edits = t::framed_edits + 1i32 }
+:= edit_framed_once (t : tallies) : tallies = { t ?| framed_edits = t::framed_edits + 1 }
 
 := joined_gathering (part : frame_part) (at : i32) (g : gathering) : gathering =
     { frame_parts = dict::insert part::k part g::frame_parts; first = ? at < g::first ?> at |: g::first }
@@ -242,7 +242,7 @@
     := i = w::intake
     { w ?| intake = { i ?| seen = dict::set_add at i::seen } }
 
-:= duplicate_counted (w : inbox) : inbox = w |> counted_as \ t => { t ?| duplicates = t::duplicates + 1i32 }
+:= duplicate_counted (w : inbox) : inbox = w |> counted_as \ t => { t ?| duplicates = t::duplicates + 1 }
 
 := first_seen (d : delivery) (w : inbox) : inbox =
     := w = marked_seen d::at w
@@ -264,7 +264,7 @@
 
 := wanted_key (w : inbox) (id : string) : option string =
     ?= dict::find id w::reactions::demand, dict::find id w::graph::posts ?|
-    | Some users, Some p ?& dict::set_count users > 0i32 && not p::deleted => dict::find id w::graph::keys
+    | Some users, Some p ?& dict::set_count users > 0 && not p::deleted => dict::find id w::graph::keys
     | _ => None
 
 := wanted_keys (w : inbox) : dict::dict string string =
@@ -297,7 +297,7 @@
 
 := run (l : list delivery) : inbox = l |> listm::fold delivered (new_inbox ())
 
-:= parent_and_child (id : string) : inbox = run [ post_at 0i32 id None "a"; post_at 1i32 "c" (Some id) "b" ]
+:= parent_and_child (id : string) : inbox = run [ post_at 0 id None "a"; post_at 1 "c" (Some id) "b" ]
 
 ///> rust -d sha2
 ///> gleam
@@ -335,7 +335,7 @@
 := child_key (w : inbox) : string = dict::present "c" w::graph::keys
 
 := edited_to (id : string) (source : string) : delivery =
-    { at = 2i32; event = Revision (Edited { post_id = id; source }) }
+    { at = 2; event = Revision (Edited { post_id = id; source }) }
 
 ///> rust -d sha2
 ///> gleam

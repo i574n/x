@@ -36,7 +36,7 @@ $spilledFiles = @($postable | Where-Object { $_.Spilled.Count }).Count
 if ($spilledFiles -gt 0) { throw "POSTABLE x/apps/client / $spilledFiles file(s) with cells over one post, see the lines above" }
 
 if (!$fast) {
-    Invoke-SpiralTests $PSScriptRoot @("prelude", "paging", "glyphs", "tlds", "defuse", "protocol", "splitter", "posts", "reading", "cli", "fields", "oauth1", "wire", "transport", "locate/locate", "assemble/assemble", "domains/domains", "entities/entities", "posted/posted", "weights/weights", "chunks/chunks", "frames/frames", "jsonl/jsonl", "digest/digest", "view/view", "token/token", "args/args", "checks/checks", "thread/thread", "requests/requests", "write/write", "refs/refs", "users/users", "fetch/fetch", "net/net", "api/api", "chain/chain", "cells/cells", "preview/preview", "select/select", "timeline/timeline", "resume/resume", "feed_merge", "run_signals", "timeline_page", "typed_codec", "census/census", "xc/xc")
+    Invoke-SpiralTests $PSScriptRoot @("prelude", "paging", "glyphs", "defuse", "protocol", "splitter", "posts", "reading", "cli", "fields", "oauth1", "wire", "transport", "locate/locate", "assemble/assemble", "domains/domains", "entities/entities", "posted/posted", "weights/weights", "chunks/chunks", "frames/frames", "jsonl/jsonl", "digest/digest", "view/view", "token/token", "args/args", "checks/checks", "thread/thread", "requests/requests", "write/write", "refs/refs", "users/users", "fetch/fetch", "net/net", "api/api", "chain/chain", "cells/cells", "preview/preview", "select/select", "timeline/timeline", "resume/resume", "feed_merge", "run_signals", "timeline_page", "typed_codec", "census/census", "xc/xc")
 }
 
 Write-Output "RUST-OK x/apps/client / $exe"

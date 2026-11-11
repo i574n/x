@@ -103,12 +103,13 @@ if ($Notebooks) {
 $withClient = $Part -ne 'sim'
 $withSim = $Part -ne 'client'
 if (!$withClient -and !$withSim) { throw "x verify / part '$Part' selects nothing to build" }
-if ($Accept -and $withSim) { $null = Invoke-Step 'sim accept' { pwsh -NoProfile -File (Join-Path $sim 'build.ps1') -Accept -fast 1 } }
+$acceptCode = 0
+if ($Accept -and $withSim) { $acceptCode = Invoke-Step 'sim accept' { pwsh -NoProfile -File (Join-Path $sim 'build.ps1') -Accept -fast 1 } }
 if ($Accept -and $withClient) {
     $null = Invoke-Step 'client build before accepting' { pwsh -NoProfile -File (Join-Path $client 'build.ps1') -fast 1 }
     $exe = Join-Path (Get-XCargoTargetDir) "release/xc$(_exe)"
     if (!(Test-Path $exe)) { throw "x verify / no xc binary at $exe to accept the e2e tutorial with" }
-    $null = Invoke-Step 'e2e accept' { pwsh -NoProfile -File (Join-Path $client 'e2e/e2e.ps1') -Exe $exe -WorkDir (Join-Path (Get-XTargetDir client) 'e2e-accept') -Accept }
+    $acceptCode = [Math]::Max($acceptCode, (Invoke-Step 'e2e accept' { pwsh -NoProfile -File (Join-Path $client 'e2e/e2e.ps1') -Exe $exe -WorkDir (Join-Path (Get-XTargetDir client) 'e2e-accept') -Accept }))
 }
 $simCode = if ($withSim) { Invoke-Step 'sim build' { pwsh -NoProfile -File (Join-Path $sim 'build.ps1') } } else { 0 }
 $clientFast = if ($ParallelNotebooks -gt 0) { @('-fast', '1') } else { @() }
@@ -122,4 +123,4 @@ if ($Out) {
     Copy-Item (Join-Path $XRoot 'Cargo.lock') $Out
     "x verify / outputs saved to ${Out}: $(@(Get-ChildItem $Out -Recurse -File).Count) files"
 }
-exit [Math]::Max($clientCode, $simCode)
+exit [Math]::Max($acceptCode, [Math]::Max($clientCode, $simCode))

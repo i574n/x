@@ -12,7 +12,7 @@
 := cursor_query (c : page_cursor) : string =
     "f=" ++# dotted c::feeds ++# "&c=" ++# dotted (c::offsets |> each (\ n => sm'::obj_to_string n))
 
-:= offset_of (s : string) : i32 = ?= count_of_text s ?| Some n => n | None => 0i32
+:= offset_of (s : string) : i32 = ?= count_of_text s ?| Some n => n | None => 0
 
 := dotted_in (name : string) (query : string) : list string =
     pieces "." (sim_serve::query_first name "" query) |> keep (\ s => s <> "")
@@ -20,7 +20,7 @@
 := cursor_of_query (query : string) : page_cursor =
     { feeds = dotted_in "f" query; offsets = dotted_in "c" query |> each offset_of }
 
-:= sample_cursor () : page_cursor = { feeds = [ "72784485"; "1637273636049498112" ]; offsets = [ 20i32; 0i32 ] }
+:= sample_cursor () : page_cursor = { feeds = [ "72784485"; "1637273636049498112" ]; offsets = [ 20; 0 ] }
 
 ///> gleam
 :# a_cursor_prints_feeds_then_offsets =
@@ -106,7 +106,7 @@
 
 := int_field (key : string) (p : erlang_term::term) : i32 =
     := v = sim_serve::field key p
-    ? erlang_term::is_binary v || int_term v ?> offset_of (sim_serve::id_text v) |: 0i32
+    ? erlang_term::is_binary v || int_term v ?> offset_of (sim_serve::id_text v) |: 0
 
 := post_meta_of (p : erlang_term::term) : timeline_page::post_meta =
     := base = timeline_page::meta_of (int_field "favorite_count" p) (int_field "conversation_count" p)
@@ -126,11 +126,11 @@
 := handle (u : erlang_term::term) : string = sm'::to_lower (field_text "username" u)
 
 := holders (users : list erlang_term::term) (u : erlang_term::term) : i32 =
-    users |> listm::fold (\ n v => ? handle v = handle u ?> n + 1i32 |: n) 0i32
+    users |> listm::fold (\ n v => ? handle v = handle u ?> n + 1i32 |: n) 0
 
 := label_of (users : list erlang_term::term) (u : erlang_term::term) : string =
     := name = field_text "username" u
-    ? holders users u > 1i32 ?> name ++# " · " ++# sim_serve::id_text (sim_serve::field "id" u) |: name
+    ? holders users u > 1 ?> name ++# " · " ++# sim_serve::id_text (sim_serve::field "id" u) |: name
 
 := authored (u : erlang_term::term) : list erlang_term::term =
     sim_serve::terms_of (sim_serve::items_at "posts" u) |> each (sim_serve::with_author u)
@@ -238,8 +238,12 @@
     "function more(){var a=last();if(!a||busy)return;busy=!0;fetch(a.getAttribute('href'))"
     ++# ".then(function(r){return r.text()}).then(function(h){var d=new DOMParser().parseFromString(h,'text/html');"
 
+:= scroll_import () : string =
+    "var fa=1;d.querySelectorAll('article.post').forEach(function(x){var y=document.importNode(x,!0);"
+
 := scroll_append () : string =
-    "var fa=1;d.querySelectorAll('article.post').forEach(function(x){var y=document.importNode(x,!0);if(fa){y.dataset.c=a.getAttribute('href');fa=0}a.parentNode.insertBefore(y,a)});"
+    scroll_import ()
+    ++# "if(fa){y.dataset.c=a.getAttribute('href');fa=0}a.parentNode.insertBefore(y,a)});"
     ++# "var n=d.querySelector('a.more');"
 
 := scroll_advance () : string =
@@ -247,7 +251,8 @@
     ++# ".catch(function(){busy=!1})}"
 
 := scroll_track () : string =
-    "var base=location.pathname+location.search;function track(){var q=document.querySelectorAll('article.post[data-c]'),c=base;"
+    "var base=location.pathname+location.search;function track(){var "
+    ^^ "q=document.querySelectorAll('article.post[data-c]'),c=base;"
 
 := scroll_track_scan () : string =
     "for(var i=0;i<q.length;i++){if(q[i].getBoundingClientRect().top>80)break;c=q[i].dataset.c}"
@@ -278,7 +283,7 @@
 := from_of (query : string) : string = ?= dotted_in "from" query ?| v :: _ => v | [] => ""
 
 := seek_feed (bound : string) (feed : list feed_item) : i32 =
-    listm::fold (\ acc fi => ? erlang_term::text_at_least (post_stamp fi) bound ?> acc + 1i32 |: acc) 0i32 feed
+    listm::fold (\ acc fi => ? erlang_term::text_at_least (post_stamp fi) bound ?> acc + 1i32 |: acc) 0 feed
 
 := seek_offsets (bound : string) (feeds : list (list feed_item)) : list i32 = feeds |> each (seek_feed bound)
 
@@ -293,10 +298,10 @@
 := feed_page (w : sim_serve::api_world) (query : string) : string =
     := ids = cursor_ids (following w)
     := dir = dir_of query
-    page_dir dir w::feeds (seeded dir ids query w::feeds) 50i32 |> page_html ids dir
+    page_dir dir w::feeds (seeded dir ids query w::feeds) 50 |> page_html ids dir
 
 := feed_reply (w : sim_serve::api_world) (r : sim_serve::request) : string =
-    erlang_http_server::response_text 200i32 "text/html; charset=utf-8" (feed_page w r::query)
+    erlang_http_server::response_text 200 "text/html; charset=utf-8" (feed_page w r::query)
 
 := media_ext (rel : string) : string = ?= listm::rev (pieces "." rel) ?| e :: _ => sm'::to_lower e | [] => ""
 
@@ -321,23 +326,23 @@
     rel <> "" && not (sm'::contains ".." rel) && not (sm'::starts_with "/" rel)
         && not (sm'::starts_with "\\" rel) && not (sm'::contains ":" rel)
 
-:= ok_tag (t : erlang_term::term) : bool = erlang_term::equal (erlang_term::element_at 1i32 t) (erlang_term::atom "ok")
+:= ok_tag (t : erlang_term::term) : bool = erlang_term::equal (erlang_term::element_at 1 t) (erlang_term::atom "ok")
 
 := ok_text (r : erlang_term::term) : option string =
-    ? ok_tag r ?> Some (sim_serve::text (erlang_term::element_at 2i32 r)) |: None
+    ? ok_tag r ?> Some (sim_serve::text (erlang_term::element_at 2 r)) |: None
 
 := media_read (full : string) : option string =
     ok_text (erlang_term::apply "file" "read_file" [ erlang_term::charlist full ])
 
-:= media_404 () : string = erlang_http_server::response_text 404i32 "text/plain; charset=utf-8" "not found"
+:= media_404 () : string = erlang_http_server::response_text 404 "text/plain; charset=utf-8" "not found"
 
-:= clamp0 (n : i32) : i32 = ? n < 0i32 ?> 0i32 |: n
+:= clamp0 (n : i32) : i32 = ? n < 0 ?> 0 |: n
 
 := suffix_bounds (e : string) (total : i32) : option (i32 * i32) =
-    ?= count_of_text e ?| Some n => Some (clamp0 (total - n), total - 1i32) | None => None
+    ?= count_of_text e ?| Some n => Some (clamp0 (total - n), total - 1) | None => None
 
 := open_bounds (s : string) (total : i32) : option (i32 * i32) =
-    ?= count_of_text s ?| Some a => ? a < total ?> Some (a, total - 1i32) |: None | None => None
+    ?= count_of_text s ?| Some a => ? a < total ?> Some (a, total - 1) |: None | None => None
 
 := closed_bounds (s : string) (e : string) (total : i32) : option (i32 * i32) =
     ?= count_of_text s ?|
@@ -361,14 +366,14 @@
     ?> None
     |? not (sm'::starts_with "bytes=" header)
     ?> None
-    |: range_body (sm'::substring 6i32 (sm'::length header - 6i32) header) total
+    |: range_body (sm'::substring 6 (sm'::length header - 6) header) total
 
 := file_mode () : erlang_term::term =
     erlang_term::list_term [ erlang_term::atom "read"; erlang_term::atom "binary"; erlang_term::atom "raw" ]
 
 := opened_fd (full : string) : option erlang_term::term =
     := opened = erlang_term::apply "file" "open" [ erlang_term::charlist full; file_mode () ]
-    ? ok_tag opened ?> Some (erlang_term::element_at 2i32 opened) |: None
+    ? ok_tag opened ?> Some (erlang_term::element_at 2 opened) |: None
 
 := pread_fd (fd : erlang_term::term) (offset : i32) (len : i32) : option string =
     := r = erlang_term::apply "file" "pread" [ fd; erlang_term::of offset; erlang_term::of len ]
@@ -382,20 +387,20 @@
     offset_of (sim_serve::id_text (erlang_term::apply "filelib" "file_size" [ erlang_term::charlist full ]))
 
 := ok_response (ctype : string) (bin : string) : string =
-    erlang_http_server::response_ranged 200i32 ctype "\r\nAccept-Ranges: bytes" bin
+    erlang_http_server::response_ranged 200 ctype "\r\nAccept-Ranges: bytes" bin
 
 := content_range (lo : i32) (hi : i32) (total : i32) : string =
     := n = \ (x : i32) => sm'::obj_to_string x
     "\r\nAccept-Ranges: bytes\r\nContent-Range: bytes " ++# n lo ++# "-" ++# n hi ++# "/" ++# n total
 
 := range_response (ctype : string) (data : string) (lo : i32) (hi : i32) (total : i32) : string =
-    erlang_http_server::response_ranged 206i32 ctype (content_range lo hi total) data
+    erlang_http_server::response_ranged 206 ctype (content_range lo hi total) data
 
 := full_response (ctype : string) (full : string) : string =
     ?= media_read full ?| Some bin => ok_response ctype bin | None => media_404 ()
 
 := slice_response (ctype : string) (full : string) (lo : i32) (hi : i32) (total : i32) : string =
-    ?= pread_slice full lo (hi - lo + 1i32) ?| Some d => range_response ctype d lo hi total | None => media_404 ()
+    ?= pread_slice full lo (hi - lo + 1) ?| Some d => range_response ctype d lo hi total | None => media_404 ()
 
 := ranged_hit (ctype : string) (full : string) (range : string) (total : i32) : string =
     ?= range_spec range total ?|
@@ -404,10 +409,10 @@
 
 := media_hit (ctype : string) (full : string) (range : string) : string =
     := total = file_size full
-    ? total <= 0i32 ?> media_404 () |: ranged_hit ctype full range total
+    ? total <= 0 ?> media_404 () |: ranged_hit ctype full range total
 
 := media_reply (w : sim_serve::api_world) (path : string) (range : string) : string =
-    := rel = sm'::substring 7i32 (sm'::length path - 7i32) path
+    := rel = sm'::substring 7 (sm'::length path - 7) path
     ? safe_rel rel ?> media_hit (media_type rel) (w::media_root ++# "/" ++# rel) range |: media_404 ()
 
 := media_route (w : sim_serve::api_world) (r : sim_serve::request) : string =
@@ -415,15 +420,38 @@
 
 :== routed = string * sim_serve::api_world
 
+:= default_request (r : sim_serve::request) : bool = r::query = ""
+
+:= remembered (w : sim_serve::api_world) (r : sim_serve::request) (reply : string) : routed =
+    ? default_request r ?> (reply, { w ?| front = reply }) |: (reply, w)
+
 := timeline_reply (w : sim_serve::api_world) (r : sim_serve::request) : routed =
-    (\ fed => (feed_reply fed r, fed)) (with_feeds w)
+    ? default_request r && w::front <> ""
+    ?> (w::front, w)
+    |: (\ fed => remembered fed r (feed_reply fed r)) (with_feeds w)
+
+:= now_ms () : i64 =
+    erlang_term::apply "erlang" "monotonic_time" [ erlang_term::atom "millisecond" ] |> erlang_term::cast
+
+:= timing_row (cached : bool) (ms : i64) : string =
+    := kind = ? cached ?> "cached" |: "rendered"
+    "timeline " ++# kind ++# " " ++# erlang_term::integer_text (erlang_term::of ms) ++# "\n"
+
+:= logged_timing (log : string) (cached : bool) (started : i64) : () =
+    erlang_file::file_appended log (timing_row cached (now_ms () - started)) |> ignore
+
+:= timed_timeline (w : sim_serve::api_world) (r : sim_serve::request) (log : string) : routed =
+    := cached, started = default_request r && w::front <> "", now_ms ()
+    := reply, next = timeline_reply w r
+    logged_timing log cached started
+    (reply, next)
 
 := media_or_api (w : sim_serve::api_world) (r : sim_serve::request) (log : string) (raw : string) : routed =
     ? sm'::starts_with "/media/" r::path ?> (media_route w r, w) |: sim_serve::replied w log raw
 
 :~ feed_or_api (w : sim_serve::api_world) (log : string) (raw : string) : routed =
     := r = erlang_http_server::request_of raw
-    ? r::path = "/timeline" ?> timeline_reply w r |: media_or_api w r log raw
+    ? r::path = "/timeline" ?> timed_timeline w r log |: media_or_api w r log raw
 
 := serve (args : list string) : i32 = sim_serve::serve_with feed_or_api args
 
@@ -443,6 +471,24 @@
 :# the_timeline_path_serves_an_html_page =
     := r = erlang_http_server::request_of "GET /timeline HTTP/1.1\r\n\r\n"
     feed_reply (sample_world ()) r |> sm'::starts_with "HTTP/1.1 200 OK\r\nContent-Type: text/html" |> _assert_eq !+
+
+:= default_get () : sim_serve::request = erlang_http_server::request_of "GET /timeline HTTP/1.1\r\n\r\n"
+
+///> gleam
+:# the_default_page_is_rendered_once_and_served_from_the_world_after =
+    := first, w = timeline_reply (sample_world ()) (default_get ())
+    := again, _ = timeline_reply w (default_get ())
+    (again = first, w::front = first) |> _assert_eq (!+, !+)
+
+///> gleam
+:# a_timing_row_names_the_kind_and_the_milliseconds =
+    (timing_row !+ 12i64, timing_row !- 3400i64) |> _assert_eq ("timeline cached 12\n", "timeline rendered 3400\n")
+
+///> gleam
+:# a_timeline_query_renders_live_and_is_not_remembered =
+    := r = erlang_http_server::request_of "GET /timeline?d=up HTTP/1.1\r\n\r\n"
+    := _, w = timeline_reply (sample_world ()) r
+    w::front |> _assert_eq ""
 
 ///> gleam
 :# the_feeds_are_built_once_per_world =

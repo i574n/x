@@ -53,7 +53,7 @@
 := unexpected (result : term) : task_result = { status = Erred; out = "unexpected " ++# erlang_term::inspect result }
 
 := counted_or_unexpected (count : term -> ()) (sources : list string) (result : term) : task_result =
-    ? erlang_term::is_map result ?> counted_result count result (listm::length sources - 1i32) |: unexpected result
+    ? erlang_term::is_map result ?> counted_result count result (listm::length sources - 1) |: unexpected result
 
 := cells_ran_with (memo : bool) (count : term -> ()) (sources : list string) (root : string) : task_result =
     counted_or_unexpected count sources (evaluated sources root memo)
@@ -67,7 +67,7 @@
     erlang_term::apply "counters" "new" [ erlang_term::of 2i32; atomics ]
 
 := flag_count (flags : list term) (flag : string) : i32 =
-    listm::fold (\ n f => ? erlang_term::equal f (erlang_term::atom flag) ?> n + 1i32 |: n) 0i32 flags
+    listm::fold (\ n f => ? erlang_term::equal f (erlang_term::atom flag) ?> n + 1i32 |: n) 0 flags
 
 := counter_added (tally : term) (slot : i32) (n : i32) : () =
     erlang_term::apply "counters" "add" [ tally; erlang_term::of slot; erlang_term::of n ] |> ignore
@@ -78,15 +78,15 @@
 
 := memo_counted (tally : term) (result : term) : () =
     := flags = memo_flags result
-    counter_added tally 1i32 (flag_count flags "hit")
-    counter_added tally 2i32 (flag_count flags "miss")
+    counter_added tally 1 (flag_count flags "hit")
+    counter_added tally 2 (flag_count flags "miss")
 
 := counter_at (tally : term) (slot : i32) : i32 =
     erlang_term::apply "counters" "get" [ tally; erlang_term::of slot ] |> erlang_term::cast
 
 := clock_ms () : i32 = conv (date_time::monotonic_milliseconds ())
 
-:= memo_counts (tally : term) : i32 * i32 = counter_at tally 1i32, counter_at tally 2i32
+:= memo_counts (tally : term) : i32 * i32 = counter_at tally 1, counter_at tally 2
 
 := cells_counted (root : string) (memo : bool) (tally : term) : executor =
     \ sources => cells_ran_with memo (memo_counted tally) sources root
@@ -105,18 +105,18 @@
     | Some leak => leaking_executor leak
     | None => \ _ => { status = Crashed; out = "leak cell did not start for " ++# key }
 
-:= ok_tagged (t : term) : bool = erlang_term::equal (erlang_term::element_at 1i32 t) (erlang_term::atom "ok")
+:= ok_tagged (t : term) : bool = erlang_term::equal (erlang_term::element_at 1 t) (erlang_term::atom "ok")
 
 := ok_value (t : term) : option term =
     ? not (erlang_term::is_tuple t)
     ?> None
     |? ok_tagged t
-    ?> Some (erlang_term::element_at 2i32 t)
+    ?> Some (erlang_term::element_at 2 t)
     |: None
 
 := hello_on (s : erlang_tcp::socket) : string =
     erlang_tcp::send_line s "hello" |> ignore
-    := got = erlang_tcp::receive_line_within s 2000i32
+    := got = erlang_tcp::receive_line_within s 2000
     erlang_tcp::close s
     ?= got ?| Ok line => line | Error _ => ""
 
@@ -125,7 +125,7 @@
 := daemon_port_number () : i32 = daemon_port () |> erlang_term::cast
 
 := daemon_hello () : string =
-    ?= erlang_tcp::connect_local (daemon_port_number ()) 1000i32 ?|
+    ?= erlang_tcp::connect_local (daemon_port_number ()) 1000 ?|
     | Ok s => hello_on s
     | Error _ => ""
 
@@ -186,7 +186,7 @@
     [ daemon_line (daemon_pid_text ()) (memory_watch::peak_of w) round ]
 
 := daemon_watch () : i32 -> list string =
-    ?= memory_watch::ticking 1000i32 (daemon_read (written_script ())) ?|
+    ?= memory_watch::ticking 1000 (daemon_read (written_script ())) ?|
     | Some w => watched_notes w
     | None => \ _ => [ "  daemon watch did not start" ]
 
@@ -238,7 +238,7 @@
 
 :~ ^ collected (reply : reply_to) (wait_ms : i32) (a : async_state) : async_state =
     ?= erlang_process::receive_within reply wait_ms |> erlang_process::receipt_value ?|
-    | Some (key, from, r) => collected reply 0i32 (finished_in a key from r)
+    | Some (key, from, r) => collected reply 0 (finished_in a key from r)
     | None => a
 
 :! deadline_ms = i64
@@ -247,10 +247,10 @@
 
 := left_until ((deadline_ms at) : deadline_ms) : i32 =
     := left = at - date_time::monotonic_milliseconds ()
-    conv (? left > 0i64 ?> left |: 0i64)
+    conv (? left > 0 ?> left |: 0)
 
 := next_reply (reply : reply_to) (deadline : deadline_ms) (a : async_state) : option task_reply =
-    ? dict::count a::pids = 0i32
+    ? dict::count a::pids = 0
     ?> None
     |: erlang_process::receive_within reply (left_until deadline) |> erlang_process::receipt_value
 
@@ -277,16 +277,16 @@
 := timed_out (a : async_state) : async_state = a::pids |> dict::fold abandoned a
 
 := waited (reply : reply_to) (b : async_state) : async_state =
-    := c = collected reply 600000i32 b
+    := c = collected reply 600000 b
     ? dict::count c::pids = dict::count b::pids ?> timed_out c |: c
 
 :~ ^ settled_runs (exec : executor) (reply : reply_to) (a : async_state) : async_state =
     := b = launched exec reply { a ?| sched = drained a::sched }
-    ? dict::count b::pids = 0i32
+    ? dict::count b::pids = 0
     ?> b
     |: waited reply b |> settled_runs exec reply
 
-:= async_start (f : fault_set) : async_state = { sched = new_scheduler f; pids = dict::empty (); peak_mb = 0i32 }
+:= async_start (f : fault_set) : async_state = { sched = new_scheduler f; pids = dict::empty (); peak_mb = 0 }
 
 := finished_view (a : async_state) : scheduler = a::sched |> expired !+ |> settled_view
 
@@ -303,7 +303,7 @@
 
 := started_ok (started : term) : bool =
     erlang_term::equal
-        (erlang_term::element_at 1i32 started)
+        (erlang_term::element_at 1 started)
         (erlang_term::atom "ok")
 
 := cells_vm_started (build_lib : string) (elixir_lib : string) : bool =
@@ -329,7 +329,7 @@
     erlang_term::items_of cells |> keep spiral_kind |> each cell_source
 
 := real_spir (spi : string) : string =
-    := stem = ? sm'::ends_with ".spi" spi ?> cut 0i32 (sm'::length spi - 4i32) spi |: spi
+    := stem = ? sm'::ends_with ".spi" spi ?> cut 0 (sm'::length spi - 4) spi |: spi
     := spir = stem ++# "_real.spir"
     ? file_system::file_exists spir ?> file_system::read_all_text spir |: ""
 
@@ -430,7 +430,7 @@
     (inspected ok, inspected (erlang_term::atom "error")) |> _assert_eq (Some "7", None)
 
 := script_shape (script : string) : bool * bool * i32 =
-    sm'::starts_with "param([int]" script, sm'::index_of "%" script >= 0i32, listm::length (pieces "\n" script)
+    sm'::starts_with "param([int]" script, sm'::index_of "%" script >= 0, listm::length (pieces "\n" script)
 
 ///> gleam
 :# the_sampler_script_takes_a_root_and_prints_one_line =

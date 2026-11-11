@@ -1,6 +1,8 @@
 # apps/sim/spi
 
-The simulator in Spiral (it replaced the Elixir `lib/xsim`, now gone), one module per piece, over the client's shared modules (`prelude`, `events`, `invariants`, `splitter` and the scenario ones), which this package imports through `../../client`. `build.ps1` in `apps/sim` runs their tests.
+The simulator in Spiral (it replaced the Elixir `lib/xsim`, now gone), one module per piece, over the client's shared
+modules (`prelude`, `events`, `invariants`, `splitter` and the scenario ones), which this package imports through
+`../../client`. `build.ps1` in `apps/sim` runs their tests.
 
 | Module | What it holds |
 | --- | --- |
@@ -28,6 +30,16 @@ The simulator in Spiral (it replaced the Elixir `lib/xsim`, now gone), one modul
 | `memory_watch.spi` | an actor that samples a process tree on a timer and answers peak calls |
 | `xsim_shell_entry.spi` | `xsim-shell --replay STREAM [--max-concurrency N]`: a stream settled through the shell |
 
-Two entries are Gleam packages instead of crates, each kept under the 1,000-line limit by its own build. `xsim_split/xsim_split.spi` (package `apps/sim/split`) exports the splitter (`split_cell`, `file_cells`, `thread_posts`) to the simulator, plus `split_cell_joined`, the chunks as one text joined with character 0, for the other package, since each Gleam package has its own list type. `simframes/simframes.spi` (package `apps/sim/frames`, which depends on `xsim_split`; still a Cells notebook, with a Gleam test of how threads and cells are separated) exports the scenario's event stream and final state (`scenario_stream`, `scenario_final`) and the e2e worlds (`world_files`). `schedule` and `world` take the splitter as a `cell_chunker` argument, so `simframes` passes the `xsim_split` call and the notebook tests pass `splitter`'s own. The simulator has no Elixir of its own: `scripts/sim-run.ps1` builds Cells (an Elixir app in `spiral/apps/cells`) under x's target dir, starts a bare `erl` with Elixir's, Cells' and the frames build's ebins on the code path, and calls one `simframes` export per subcommand: `cli_run` (no subcommand: the engine run), `cli_events`, `cli_world`, `cli_frames`, `cli_thread_run`, `cli_diff` and `cli_serve`. One export each, because Spiral inlines a function into the exported closure, and a single dispatcher grew one generated function past the 1,000-line limit. Cells is reached only through host calls (`Spiral.Cells.Document.parse_spi`, `Spiral.Cells.Notebook.evaluate`, the compiler daemon). `build.ps1` checks the event, final-state, world and thread fixtures byte for byte (`Confirm-Fixture`).
+Two entries are Gleam packages instead of crates, each kept under the 1,000-line limit by its own build.
+`xsim_split/xsim_split.spi` (package `apps/sim/split`) exports the splitter (`split_cell`, `file_cells`, `thread_posts`)
+to the simulator, plus `split_cell_joined`, the chunks as one text joined with character 0, for the other package, since
+each Gleam package has its own list type. `simframes/simframes.spi`
+(package `apps/sim/frames`, which depends on `xsim_split`; still a Cells notebook, with a Gleam test of how threads and cells are separated) exports the scenario's event stream and final state (`scenario_stream`, `scenario_final`) and the e2e worlds (`world_files`). `schedule` and `world` take the splitter as a `cell_chunker` argument, so `simframes` passes the `xsim_split` call and the notebook tests pass `splitter`'s own. The simulator has no Elixir of its own: `scripts/sim-run.ps1` builds Cells (an Elixir app in `spiral/apps/cells`) under x's target dir, starts a bare `erl` with Elixir's, Cells' and the frames build's ebins on the code path, and calls one `simframes` export per subcommand: `cli_run` (no subcommand: the engine run), `cli_events`, `cli_world`, `cli_frames`, `cli_thread_run`, `cli_diff` and `cli_serve`. One export each, because Spiral inlines a function into the exported closure, and a single dispatcher grew one generated function past the 1,000-line limit. Cells is reached only through host calls (`Spiral.Cells.Document.parse_spi`, `Spiral.Cells.Notebook.evaluate`, the compiler daemon). `build.ps1` checks the event, final-state, world and thread fixtures byte for byte (`Confirm-Fixture`).
 
-The client e2e runs against the simulator: `apps/client/e2e/e2e.ps1` starts `scripts/sim-run.ps1 serve WORLD PORTFILE LOG`, which skips the Cells mix build that `serve` does not need, and the simulator answers every request of the 37-step tutorial itself, writing one request-log row per request; an unknown route gets a 404. Each answered request prints `xsim serve / answered METHOD PATH` on stderr. Callers are typed by the client's own auth contexts: `caller c` is indexed by `wire::app_context` or `wire::user_context` (plus client Basic and unauthenticated), so post writes take a `caller wire::user_context` and an app bearer can't reach them.
+The client e2e runs against the simulator: `apps/client/e2e/e2e.ps1` starts
+`scripts/sim-run.ps1 serve WORLD PORTFILE LOG`, which skips the Cells mix build that `serve` does not need, and the
+simulator answers every request of the 37-step tutorial itself, writing one request-log row per request; an unknown
+route gets a 404. Each answered request prints `xsim serve / answered METHOD PATH` on stderr. Callers are typed by the
+client's own auth contexts: `caller c` is indexed by `wire::app_context` or `wire::user_context`
+(plus client Basic and unauthenticated), so post writes take a `caller wire::user_context` and an app bearer can't reach
+them.

@@ -8,7 +8,7 @@
 
 := schedule_lines (text : string) : list string = pieces "\n" text |> keep (\ l => sm'::starts_with "XSIM seed=" l)
 
-:= verdict_failed (text : string) : i32 = ? sm'::contains " result=pass" text ?> 0i32 |: 1i32
+:= verdict_failed (text : string) : i32 = ? sm'::contains " result=pass" text ?> 0 |: 1
 
 := run_id () : string =
     := named = sim_publish::env_text "XSIM_RUN_ID"

@@ -25,7 +25,7 @@
 := leaking_executor (leak : erlang_process::subject leak_message) : executor =
     \ sources =>
         := digest = fake_out sources
-        { status = Done; out = digest ++# otp_actor::call leak 10000i32 (\ reply => Swap (digest, reply)) }
+        { status = Done; out = digest ++# otp_actor::call leak 10000 (\ reply => Swap (digest, reply)) }
 
 := two_leaking_runs (leak : erlang_process::subject leak_message) (sources : list string) : string * string =
     := run = leaking_executor leak

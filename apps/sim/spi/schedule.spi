@@ -18,19 +18,19 @@
 := revision_of (revs : revisions) (post_id : string) : i32 =
     ?= first_where (\ (k, _) => k = post_id) revs ?|
     | Some (_, n) => n
-    | None => 0i32
+    | None => 0
 
 := numbered_part (n : i32) (acc : list frame_part * i32) (body : string) : list frame_part * i32 =
     := l, k = acc
-    listm::append l [ { k n body } ], k + 1i32
+    listm::append l [ { k n body } ], k + 1
 
 := numbered_parts (chunks : list string) : list frame_part =
-    := parts, _ = chunks |> listm::fold (numbered_part (listm::length chunks)) ([], 1i32)
+    := parts, _ = chunks |> listm::fold (numbered_part (listm::length chunks)) ([], 1)
     parts
 
 := parts_of (chunking : cell_chunker) (limit : i32) (post_id : string) (source : string) : list frame_part =
     ?= chunking post_id limit source ?|
-    | [] => [ { k = 1i32; n = 1i32; body = "" } ]
+    | [] => [ { k = 1; n = 1; body = "" } ]
     | chunks => numbered_parts chunks
 
 := framed_post (chunking : cell_chunker) (limit : i32) (r : rooted) : flow =
@@ -46,7 +46,7 @@
 := appended (x : exploding) (l : flow) : exploding = { x ?| out = l |> listm::fold (\ acc e => e :: acc) x::out }
 
 := revised_in (chunking : cell_chunker) (limit : i32) (x : exploding) (s : sourced) : exploding =
-    := rev = revision_of x::revs s::post_id + 1i32
+    := rev = revision_of x::revs s::post_id + 1
     appended { x ?| revs = (s::post_id, rev) :: x::revs } (framed_edit chunking limit rev s)
 
 := exploded_one (chunking : cell_chunker) (limit : i32) (x : exploding) (e : event) : exploding =
@@ -82,23 +82,23 @@
 :== scheduling = { keyed : list keyed; rng : exsss; i : i32 }
 
 := copies_of (i : i32) (jitter : i32) (copies : i32) (e : event) : list keyed =
-    listm::init copies \ c => { time = i + jitter + c + 1i32; index = i; event = e }
+    listm::init copies \ c => { time = i + jitter + c + 1; index = i; event = e }
 
 :== pacing = { permille : i32; window : i32 }
 
 := drawn_copies (p : pacing) (st : exsss) : i32 * i32 * exsss =
     := jitter, st = rolled p::window st
-    := roll, rng = rolled 1000i32 st
-    jitter, (? roll <= p::permille ?> 2i32 |: 1i32), rng
+    := roll, rng = rolled 1000 st
+    jitter, (? roll <= p::permille ?> 2 |: 1), rng
 
 := scheduled (p : pacing) (s : scheduling) (e : event) : scheduling =
     := jitter, copies, rng = drawn_copies p s::rng
-    { keyed = listm::append (copies_of s::i jitter copies e) s::keyed; rng; i = s::i + 1i32 }
+    { keyed = listm::append (copies_of s::i jitter copies e) s::keyed; rng; i = s::i + 1 }
 
-:= schedule_seed (seed : i32) : exsss = seeded_i32 seed (seed * 31i32 + 5i32) (seed * 17i32 + 11i32)
+:= schedule_seed (seed : i32) : exsss = seeded_i32 seed (seed * 31 + 5) (seed * 17 + 11)
 
 :~ deliveries (l : flow) (seed : i32) (p : pacing) : list delivery =
-    := s = l |> listm::fold (scheduled p) { keyed = []; rng = schedule_seed seed; i = 0i32 }
+    := s = l |> listm::fold (scheduled p) { keyed = []; rng = schedule_seed seed; i = 0 }
     sorted_keyed s::keyed |> each \ (k : keyed) => { at = k::index; event = k::event }
 
 :== staging =
@@ -113,7 +113,7 @@
 
 :~ scenario_stream (g : staging) (cells : list string) : string =
     := s = from_cells (casting_of g) "" cells
-    deliveries (staged_flow g s) 1i32 { permille = g::permille; window = 6i32 } |> stream
+    deliveries (staged_flow g s) 1 { permille = g::permille; window = 6 } |> stream
 
 :~ scenario_final (g : staging) (cells : list string) : string =
     := s = from_cells (casting_of g) "" cells
@@ -126,7 +126,7 @@
 
 :== run_reply = string * i32 * i32 * list string
 
-:= corpus_pacing (a : run_ask) : pacing = { permille = a::permille; window = 6i32 }
+:= corpus_pacing (a : run_ask) : pacing = { permille = a::permille; window = 6 }
 
 :~ corpus_run (a : run_ask) (threads : list (list string)) : run_reply =
     := s = from_corpus a::cast threads
@@ -138,10 +138,10 @@
 
 := numbered_one (acc : list delivery * i32) (e : event) : list delivery * i32 =
     := l, i = acc
-    { at = i; event = e } :: l, i + 1i32
+    { at = i; event = e } :: l, i + 1
 
 := numbered_flow (l : flow) : list delivery =
-    := numbered, _ = l |> listm::fold numbered_one ([], 0i32)
+    := numbered, _ = l |> listm::fold numbered_one ([], 0)
     listm::rev numbered
 
 :~ rescheduled (text : string) (seed : i32) (p : pacing) : string =

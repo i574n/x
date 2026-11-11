@@ -2,7 +2,8 @@
 
 [![깃허브 코드스페이스](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=1421538869)
 
-Typed apps for X, built on a sibling clone of [spiral](https://github.com/i574n/spiral) (`scripts/init.ps1` clones it beside this repo).
+Typed apps for X, built on a sibling clone of [spiral](https://github.com/i574n/spiral)
+(`scripts/init.ps1` clones it beside this repo).
 
 | Path | What it is |
 |---|---|
@@ -19,7 +20,13 @@ pwsh apps/sim/build.ps1 -Ladder 6:8:3,10:8:4   # real-Cells scale ladder, notebo
 
 ## Starting another Spiral repo from x
 
-- Copy `scripts/` as is; only `build.ps1` names the apps. `init.ps1` clones spiral beside the repo from the same owner as the repo's remote, unpinned: a red run after a spiral change is fixed in spiral, then CI is rerun.
-- Copy `.github/workflows/gh-pages.yml` with its `actions.lock`. Any new or bumped `uses:` needs `gh actions-lock` in the same commit (GitHub fails the run at startup otherwise; `scripts/actions-lock.ps1` catches it locally).
-- Copy the root `Cargo.toml` (workspace over `apps/<app>/*`), `rust-toolchain.toml`, `.cargo/config.toml` (static CRT on Windows), `.gitattributes` (LF everywhere, `Cargo.lock merge=ours`) and `.gitignore` (`target/`, `_build/`, `dist/`).
-- Give each Spiral package a `spiral.toml` with `packageDir = '../../../spiral/lib'` (no dialect key: the i574n dialect is the default), and each Rust entry its own `apps/<app>/<crate>/Cargo.toml` with `[package.metadata.spiral]` `entry`/`output`; `apps/client/build.ps1` shows the build loop that reads them.
+- Copy `scripts/` as is; only `build.ps1` names the apps. `init.ps1` clones spiral beside the repo from the same owner
+  as the repo's remote, unpinned: a red run after a spiral change is fixed in spiral, then CI is rerun.
+- Copy `.github/workflows/gh-pages.yml` with its `actions.lock`. Any new or bumped `uses:` needs `gh actions-lock` in
+  the same commit (GitHub fails the run at startup otherwise; `scripts/actions-lock.ps1` catches it locally).
+- Copy the root `Cargo.toml` (workspace over `apps/<app>/*`), `rust-toolchain.toml`, `.cargo/config.toml`
+  (static CRT on Windows), `.gitattributes` (LF everywhere, `Cargo.lock merge=ours`) and `.gitignore`
+  (`target/`, `_build/`, `dist/`).
+- Give each Spiral package a `spiral.toml` with `packageDir = '../../../spiral/lib'`
+  (no dialect key: the i574n dialect is the default), and each Rust entry its own `apps/<app>/<crate>/Cargo.toml` with
+  `[package.metadata.spiral]` `entry`/`output`; `apps/client/build.ps1` shows the build loop that reads them.

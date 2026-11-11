@@ -51,14 +51,14 @@
         visible_map : dict::dict string visible_entry; faults : fault_set; out_commands : list task_command }
 
 := no_counts () : run_counts =
-    { starts = dict::empty (); cancelled = dict::empty (); evicted = dict::empty (); cancels = 0i32; rescues = 0i32
-        recomputes = 0i32; peak_inflight = 0i32; peak_results = 0i32 }
+    { starts = dict::empty (); cancelled = dict::empty (); evicted = dict::empty (); cancels = 0; rescues = 0
+        recomputes = 0; peak_inflight = 0; peak_results = 0 }
 
 := no_work () : task_work = { running = dict::empty (); queue = []; results = dict::empty () }
 
 := no_owners () : owner_map = { refs = dict::empty (); post_key = dict::empty (); owner = dict::empty () }
 
-:= no_life () : life_cycle = { doomed = dict::empty (); clock = 0i32 }
+:= no_life () : life_cycle = { doomed = dict::empty (); clock = 0 }
 
 := new_scheduler (f : fault_set) : scheduler =
     { in_box = new_inbox (); task_work = no_work (); owner_map = no_owners (); life_cycle = no_life ()
@@ -68,7 +68,7 @@
     { s ?| run_counts = bump s::run_counts }
 
 := bumped (key : string) (d : dict::dict string i32) : dict::dict string i32 =
-    dict::updated key 0i32 (\ n => n + 1i32) d
+    dict::updated key 0i32 (\ n => n + 1) d
 
 := with_work (g : task_work -> task_work) (s : scheduler) : scheduler = { s ?| task_work = g s::task_work }
 
@@ -106,7 +106,7 @@
     due |> listm::fold evicted_unless_held (s |> with_life (undoomed due))
 
 := rescue_counted (key : string) (s : scheduler) : scheduler =
-    ? dict::has key s::task_work::results ?> s |> counted_with (\ c => { c ?| rescues = c::rescues + 1i32 }) |: s
+    ? dict::has key s::task_work::results ?> s |> counted_with (\ c => { c ?| rescues = c::rescues + 1 }) |: s
 
 := rescued (key : string) (s : scheduler) : scheduler =
     ? dict::has key s::life_cycle::doomed |> not
@@ -115,7 +115,7 @@
 
 := cancelled_task (key : string) (s : scheduler) : scheduler =
     s |> with_work (\ w => { w ?| running = dict::remove key w::running }) |> emitted (CancelTask key)
-    |> counted_with \ c => { c ?| cancels = c::cancels + 1i32; cancelled = bumped key c::cancelled }
+    |> counted_with \ c => { c ?| cancels = c::cancels + 1; cancelled = bumped key c::cancelled }
 
 := dropped_ref (key : string) (s : scheduler) : scheduler =
     s
@@ -127,8 +127,8 @@
     ? s::faults::cancel && dict::has key s::task_work::running ?> cancelled_task key s |: s
 
 := released_key (key : string) (s : scheduler) : scheduler =
-    := n = dict::present key s::owner_map::refs - 1i32
-    ? n > 0i32 ?> s |> with_owners (\ o => { o ?| refs = dict::insert key n o::refs }) |: unreferenced key s
+    := n = dict::present key s::owner_map::refs - 1
+    ? n > 0 ?> s |> with_owners (\ o => { o ?| refs = dict::insert key n o::refs }) |: unreferenced key s
 
 := queued_has (key : string) (s : scheduler) : bool = has (\ q => q = key) s::task_work::queue
 
@@ -138,18 +138,18 @@
 := enqueued (key : string) (s : scheduler) : scheduler =
     := s = s |> with_work \ w => { w ?| queue = listm::append w::queue [ key ] }
     ? dict::has key s::run_counts::evicted
-    ?> s |> counted_with \ c => { c ?| recomputes = c::recomputes + 1i32 }
+    ?> s |> counted_with \ c => { c ?| recomputes = c::recomputes + 1 }
     |: s
 
-:= ref_count (key : string) (s : scheduler) : i32 = ?= dict::find key s::owner_map::refs ?| Some x => x | None => 0i32
+:= ref_count (key : string) (s : scheduler) : i32 = ?= dict::find key s::owner_map::refs ?| Some x => x | None => 0
 
 := owned_by (key : string) (id : string) (n : i32) (o : owner_map) : owner_map =
     { o ?| refs = dict::insert key n o::refs; owner = dict::insert key id o::owner }
 
 := acquired_key (key : string) (id : string) (s : scheduler) : scheduler =
-    := n = ref_count key s + 1i32
+    := n = ref_count key s + 1
     := s = rescued key s |> with_owners (owned_by key id n)
-    ? n = 1i32 && idle_key key s ?> enqueued key s |: s
+    ? n = 1 && idle_key key s ?> enqueued key s |: s
 
 := same_key (a : option string) (b : option string) : bool =
     ?= a, b ?|
@@ -234,7 +234,7 @@
 
 := delivered_to (d : delivery) (s : scheduler) : scheduler =
     { s ?| in_box = delivered s::in_box d }
-    |> with_life \ l => { l ?| clock = l::clock + 1i32 }
+    |> with_life \ l => { l ?| clock = l::clock + 1 }
     |> expired !-
     |> reconciled
 
@@ -244,14 +244,14 @@
     | None => v
 
 := settled_view (s : scheduler) : scheduler =
-    ? dict::count s::visible_map > 0i32
+    ? dict::count s::visible_map > 0
     ?> s
     |: { s ?| visible_map = wanted_keys s::in_box |> dict::fold (result_shown s) (dict::empty ()) }
 
 := commands_taken (s : scheduler) : list task_command * scheduler =
     listm::rev s::out_commands, { s ?| out_commands = [] }
 
-:= fake_out (l : list string) : string = cut 0i32 12i32 (crypto::hash_text (delimited (char_of 0i32) l))
+:= fake_out (l : list string) : string = cut 0 12 (crypto::hash_text (delimited (char_of 0) l))
 
 := fake_result (l : list string) : task_result = { status = Done; out = fake_out l }
 
@@ -270,7 +270,7 @@
 
 := executed_all (s : scheduler) : scheduler = executed_all_by fake_result s
 
-:= plain_faults () : fault_set = { cancel = !+; rerun = !-; eviction = NoEviction; naive = !-; limit = 4i32 }
+:= plain_faults () : fault_set = { cancel = !+; rerun = !-; eviction = NoEviction; naive = !-; limit = 4 }
 
 := sync_run_with (exec : list string -> task_result) (f : fault_set) (l : list delivery) : scheduler =
     := ~deliveries = l
@@ -294,7 +294,7 @@
     | Some e => e::result::out
     | None => "-"
 
-:= liked_post (id : string) : list delivery = [ post_at 0i32 id None "inl a = 1"; like_at 1i32 id "u" ]
+:= liked_post (id : string) : list delivery = [ post_at 0 id None "inl a = 1"; like_at 1 id "u" ]
 
 := computed_once_shape (id : string) (s : scheduler) : i32 * string * i32 =
     dict::count s::run_counts::starts, visible_out s id, sm'::length (visible_out s id)
@@ -307,7 +307,7 @@
     |> _assert_eq (1i32, fake_out [ "inl a = 1" ], 12i32)
 
 := withdrawn_like (id : string) : list delivery =
-    [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u" ]
+    [ post_at 0 id None "x"; like_at 1 id "u"; unlike_at 2 id "u" ]
 
 ///> rust -d sha2
 ///> gleam
@@ -317,7 +317,7 @@
     (s::run_counts::cancels, dict::count s::visible_map) |> _assert_eq (1i32, 0i32)
 
 := same_source_roots (a : string) : list delivery =
-    [ post_at 0i32 a None "x"; post_at 1i32 "b" None "x"; like_at 2i32 a "u"; like_at 3i32 "b" "u" ]
+    [ post_at 0 a None "x"; post_at 1 "b" None "x"; like_at 2 a "u"; like_at 3 "b" "u" ]
 
 ///> rust -d sha2
 ///> gleam
@@ -331,7 +331,7 @@
     { plain ?| eviction = EvictNow }
 
 := relike_stream (id : string) : list delivery =
-    [ post_at 0i32 id None "x"; like_at 1i32 id "u"; unlike_at 2i32 id "u"; like_at 3i32 id "u" ]
+    [ post_at 0 id None "x"; like_at 1 id "u"; unlike_at 2 id "u"; like_at 3 id "u" ]
 
 := recompute_shape (id : string) (s : scheduler) : i32 * i32 =
     s::run_counts::recomputes, dict::present (dict::present id s::owner_map::post_key) s::run_counts::evicted
@@ -348,7 +348,7 @@
     | CancelTask _ => s
 
 := liked_once_by (id : string) (s : scheduler) : scheduler =
-    s |> delivered_to (post_at 0i32 id None "x") |> delivered_to (like_at 1i32 id "u")
+    s |> delivered_to (post_at 0 id None "x") |> delivered_to (like_at 1 id "u")
 
 := crashed_run (id : string) : scheduler =
     := cmds, s = commands_taken (new_scheduler (plain_faults ()) |> liked_once_by id)

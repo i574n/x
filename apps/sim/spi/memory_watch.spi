@@ -19,9 +19,9 @@
         me : erlang_process::subject watch_message }
 
 := complete_lines (fresh : string) : string =
-    sm'::substring 0i32 (sm'::last_index_of "\n" fresh + 1i32) fresh
+    sm'::substring 0 (sm'::last_index_of "\n" fresh + 1) fresh
 
-:= fresh_base (st : watch_state) (text : string) : i32 = ? sm'::length text >= st::consumed ?> st::consumed |: 0i32
+:= fresh_base (st : watch_state) (text : string) : i32 = ? sm'::length text >= st::consumed ?> st::consumed |: 0
 
 := complete_after (base : i32) (text : string) : string =
     complete_lines (sm'::substring base (sm'::length text - base) text)
@@ -45,15 +45,15 @@
         otp_actor::continue st
 
 := watch_initial (every_ms : i32) (source : sample_source) (me : erlang_process::subject watch_message) : watch_state =
-    { reading = no_reading (); consumed = 0i32; source; every_ms; me }
+    { reading = no_reading (); consumed = 0; source; every_ms; me }
 
 := watch_started (every_ms : i32) (source : sample_source) : option (erlang_process::subject watch_message) =
-    otp_actor::new_with_self 10000i32 (watch_initial every_ms source)
+    otp_actor::new_with_self 10000 (watch_initial every_ms source)
     |> otp_actor::on_message watched
     |> otp_actor::start
     |> otp_actor::started_data
 
-:= peak_of (w : erlang_process::subject watch_message) : memory_reading = otp_actor::call w 10000i32 Peak
+:= peak_of (w : erlang_process::subject watch_message) : memory_reading = otp_actor::call w 10000 Peak
 
 := ticked_once (w : erlang_process::subject watch_message) : erlang_process::subject watch_message =
     otp_actor::send w Tick
@@ -72,10 +72,10 @@
 := two_ticks_peak (w : erlang_process::subject watch_message) : string =
     otp_actor::send w Tick
     otp_actor::send w Tick
-    otp_actor::call w 10000i32 Peak |> reading_text
+    otp_actor::call w 10000 Peak |> reading_text
 
 := peak_after_two_ticks (source : sample_source) : string =
-    ?= watch_started 60000i32 source ?|
+    ?= watch_started 60000 source ?|
     | Some w => two_ticks_peak w
     | None => failwith "memory watch did not start"
 

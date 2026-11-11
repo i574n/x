@@ -6,6 +6,7 @@
 :< prelude
 :< posts
 :< transport
+:< fields
 
 := write_line (text : string) : () = console::write_line text
 
@@ -29,10 +30,24 @@
     |? platform_name () = "bluesky" ?> env_or "BLUESKY_BASE_URL" "https://bsky.social"
     |: base_url ()
 
-:== parsed =
+:== parsed_wire =
     i32 * string * bool * string * i32 * i32 * i32 * i32 * string * string * bool * bool * i32 * bool * bool
 
-:= parsed_args () : parsed = $'xc_args::xc_parse_os_args()'
+:= selection_of (w : parsed_wire) : selection_fields =
+    := _, _, following, usernames, max_results, limit, per_author, cap, _, _, _, _, _, _, _ = w
+    { following; usernames; max_results; limit; per_author; cap }
+
+:= window_fields_of (w : parsed_wire) : window_fields =
+    := _, _, _, _, _, _, _, _, since, until, no_replies, no_reposts, depth, hints, json = w
+    { since; until; no_replies; no_reposts; depth; hints; json }
+
+:= parsed_of (w : parsed_wire) : command_fields =
+    := kind, payload, _, _, _, _, _, _, _, _, _, _, _, _, _ = w
+    { kind; payload; selection = selection_of w; window = window_fields_of w }
+
+:= wire_args () : parsed_wire = $'xc_args::xc_parse_os_args()'
+
+:= parsed_args () : command_fields = parsed_of (wire_args ())
 
 := usage () : string = $'xc_args::xc_usage()'
 
@@ -56,9 +71,9 @@
 
 :== window = { max_results : i32; since : string; until : string; nr : bool; np : bool; depth : i32; hints : bool }
 
-:= window_of (p : parsed) : window =
-    := _, _, _, _, max_results, _, _, _, since, until, nr, np, depth, hints, _ = p
-    { max_results since until nr np depth hints }
+:= window_of (p : command_fields) : window =
+    := { since until no_replies no_reposts depth hints } = p::window
+    { max_results = p::selection::max_results; since; until; nr = no_replies; np = no_reposts; depth; hints }
 
 :== fetch_reply = string * string * string * string * string * string
 
@@ -106,8 +121,9 @@
 := json_view (text : string) (limit : i32) (per_author : i32) (depth : i32) : string * i32 =
     $'xc_jsonl::xc_jsonl(&*!text, !limit, !per_author, !depth)'
 
-:= view (text : string) (p : parsed) : string * i32 =
-    := _, _, _, _, _, limit, per_author, _, _, _, _, _, depth, hints, json = p
+:= view (text : string) (p : command_fields) : string * i32 =
+    := { limit per_author } = p::selection
+    := { depth hints json } = p::window
     ? json ?> json_view text limit per_author depth |: text_view text limit per_author depth hints
 
 :== plan = { lines : string; notes : string; failure : string }
@@ -204,7 +220,7 @@
     := docs, failure = referenced_docs s r w
     docs, failure, both_notes pl::notes (fetch_notes r)
 
-:= viewed (docs : string) (p : parsed) : string * i32 = view (digest ("[" ++# docs ++# "]")) p
+:= viewed (docs : string) (p : command_fields) : string * i32 = view (digest ("[" ++# docs ++# "]")) p
 
 := posts_read_in (docs : string) : i32 =
     := bundle = "[" ++# docs ++# "]"
@@ -215,12 +231,12 @@
         ", " ++# sm'::obj_to_string (posts_read_in docs) ++# " posts read, " ++# sm'::obj_to_string shown ++# " shown"
     )
 
-:= costed_view (docs : string) (p : parsed) : string * i32 =
+:= costed_view (docs : string) (p : command_fields) : string * i32 =
     := text, shown = viewed docs p
     timeline_cost docs shown
     text, shown
 
-:~ shown_timeline (s : site) (pl : plan) (p : parsed) : i32 =
+:~ shown_timeline (s : site) (pl : plan) (p : command_fields) : i32 =
     := docs, failure, notes = gathered s pl (window_of p)
     := text, shown = costed_view docs p
     notes_of notes
@@ -232,11 +248,11 @@
     write_error "xc: X_BEARER_TOKEN is not set; generate the app's bearer token at https://console.x.com"
     3i32
 
-:= site_plan (s : site) (p : parsed) : plan =
-    := _, _, following, hs, _, _, _, cap, _, _, _, _, _, _, _ = p
-    ? following ?> home_plan s hs cap |: account_plan s hs
+:= site_plan (s : site) (p : command_fields) : plan =
+    := { following usernames cap } = p::selection
+    ? following ?> home_plan s usernames cap |: account_plan s usernames
 
-:~ run_timeline (p : parsed) : i32 =
+:~ run_timeline (p : command_fields) : i32 =
     := s = { base = base_url (); bearer = env_of "X_BEARER_TOKEN" }
     ? s::bearer = ""
     ?> missing_bearer ()
@@ -474,7 +490,6 @@
 := main () : i32 =
     allocator ()
     := p = parsed_args ()
-    := kind, payload, _, _, _, _, _, _, _, _, _, _, _, _, _ = p
-    ? kind = 0i32
+    ? p::kind = 0i32
     ?> run_timeline p
-    |: other_kind kind payload
+    |: other_kind p::kind p::payload

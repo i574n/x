@@ -19,19 +19,19 @@
 
 := remote_split (label : string) (limit : i32) (source : string) : list string =
     := joined = joined_chunks label limit source
-    ? joined = "" ?> [] |: split_all (char_of 0i32) joined
+    ? joined = "" ?> [] |: split_all (char_of 0) joined
 
 :== staged_cells = string * i32 * i32 * i32 * string * i32 * bool
 
 := staged_stream (x : staged_cells) : string =
     := cells, seed, users, edits, personas, permille, framed = x
     := g = { seed users edits personas permille framed chunking = remote_split }
-    scenario_stream g (split_all (char_of 0i32) cells)
+    scenario_stream g (split_all (char_of 0) cells)
 
 := staged_final (x : staged_cells) : string =
     := cells, seed, users, edits, personas, permille, framed = x
     := g = { seed users edits personas permille framed chunking = remote_split }
-    scenario_final g (split_all (char_of 0i32) cells)
+    scenario_final g (split_all (char_of 0) cells)
 
 := stream_export () : () =
     export "scenario_stream" ((\ x => staged_stream x) : staged_cells -> string)
@@ -50,13 +50,13 @@
 
 := staged_world (x : world_cells) : string * string =
     := cells, _, _, _, _, _, _, _, _, _ = x
-    world_files (ask_of x) (split_all (char_of 0i32) cells)
+    world_files (ask_of x) (split_all (char_of 0) cells)
 
 := world_export () : () = export "world_files" ((\ x => staged_world x) : world_cells -> string * string)
 
 :== run_cells = string * i32 * i32 * i32 * i32 * i32 * string * bool * i32 * i32
 
-:= threads_of (text : string) : list (list string) = split_all (char_of 1i32) text |> each (split_all (char_of 0i32))
+:= threads_of (text : string) : list (list string) = split_all (char_of 1) text |> each (split_all (char_of 0))
 
 ///> gleam
 :# threads_of_splits_threads_then_cells =
@@ -75,13 +75,13 @@
 := staged_run (x : run_cells) : string * i32 * i32 * string =
     := threads, _, _, _, _, _, _, _, _, _ = x
     := text, posts, events, broken = corpus_run (run_ask_of x) (threads_of threads)
-    text, posts, events, delimited (char_of 0i32) broken
+    text, posts, events, delimited (char_of 0) broken
 
 := run_export () : () = export "corpus_run" ((\ x => staged_run x) : run_cells -> string * i32 * i32 * string)
 
 := joined_broken (r : string * list string) : string * string =
     := text, broken = r
-    text, delimited (char_of 0i32) broken
+    text, delimited (char_of 0) broken
 
 := corpus_raw (x : run_cells) : string * string =
     := threads, _, _, _, _, _, _, _, _, _ = x
@@ -89,7 +89,7 @@
 
 := cells_raw (x : run_cells) : string * string =
     := cells, _, _, _, _, _, _, _, _, _ = x
-    from_cells (run_cast x) "" (pieces (char_of 0i32) cells) |> raw_scenario |> joined_broken
+    from_cells (run_cast x) "" (pieces (char_of 0) cells) |> raw_scenario |> joined_broken
 
 :== pacing_cells = string * i32 * i32 * i32
 
@@ -126,7 +126,7 @@
 
 := simulated_lines (x : simulate_cells) : string =
     := args, threads, root = x
-    sim_run::simulated_text (beam_for root) (pieces (char_of 0i32) args) (threads_of threads)
+    sim_run::simulated_text (beam_for root) (pieces (char_of 0) args) (threads_of threads)
 
 := plain_args () : list string = erlang_process::plain_arguments ()
 
@@ -135,7 +135,7 @@
     ?> c::spi
     |: file_system::read_all_text c::spi_file |> sm'::replace "\r\n" "\n" |> pieces "\n" |> keep (\ l => l <> "")
 
-:= limited (limit : i32) (l : list string) : list string = ? limit < 0i32 ?> l |: take_first limit l
+:= limited (limit : i32) (l : list string) : list string = ? limit < 0 ?> l |: take_first limit l
 
 := run_cells (limit : i32) (spi : string) : list string =
     cells_executor::parsed_spi spi |> cells_executor::document_sources |> limited limit
@@ -147,13 +147,13 @@
 
 := byte_count (s : string) : i32 = erlang_term::byte_size_of s
 
-:= joined_cells (cells : list string) : string = delimited (char_of 0i32) cells
+:= joined_cells (cells : list string) : string = delimited (char_of 0) cells
 
 := events_staged (o : sim_args::events_options) : staged_cells =
     := cells = plain_cells o::cells o::spi |> joined_cells
     cells, o::seed, o::users, o::edits, o::personas, o::duplicates_permille, o::frames
 
-:= delivery_count (stream : string) : i32 = (listm::length (pieces "\n" stream |> keep (\ l => l <> "")) : i32) - 1i32
+:= delivery_count (stream : string) : i32 = (listm::length (pieces "\n" stream |> keep (\ l => l <> "")) : i32) - 1
 
 := both_written (out : string) (expected : string) (texts : string * string) : () =
     := a, b = texts
@@ -211,7 +211,7 @@
 
 := printed (text : string) : i32 =
     erlang_file::put_text (text ++# "\n")
-    ? has failed_line (pieces "\n" text) ?> 1i32 |: 0i32
+    ? has failed_line (pieces "\n" text) ?> 1 |: 0
 
 := run_command (argv : list string) : string =
     := threads, root = cli_input argv
@@ -361,7 +361,7 @@
     "XDIFF done identical=" ++# bool_word (erlang_term::equal (outputs_of a) (outputs_of b))
 
 := diff_report (a : erlang_term::term) (b : erlang_term::term) (n : i32) : string =
-    delimited "\n" (diff_head a b (n - 1i32) :: listm::append (cell_diffs a b n) [ diff_done a b ])
+    delimited "\n" (diff_head a b (n - 1) :: listm::append (cell_diffs a b n) [ diff_done a b ])
 
 := diff_ran (o : sim_args::diff_options) : string =
     := sources = plain_cells o::cells o::spi
@@ -439,4 +439,4 @@
     stream_export ()
     simulate_exports ()
     cli_exports ()
-    0i32
+    0

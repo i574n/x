@@ -44,37 +44,37 @@
 := test_cell (source : string) : bool = sm'::contains "///- --test" source
 
 := ends_blank (s : string) : bool =
-    has (\ b => sm'::ends_with b s) [ " "; "\t"; "\n"; "\r"; char_of 11i32; char_of 12i32 ]
+    has (\ b => sm'::ends_with b s) [ " "; "\t"; "\n"; "\r"; char_of 11; char_of 12 ]
 
 := ends_digit (s : string) : bool = has (\ d => sm'::ends_with (sm'::obj_to_string d) s) (listm::init 10i32 id)
 
-:~ ^ blank_start (s : string) (i : i32) : i32 = ? i > 0i32 && ends_blank (cut 0i32 i s) ?> blank_start s (i - 1i32) |: i
+:~ ^ blank_start (s : string) (i : i32) : i32 = ? i > 0 && ends_blank (cut 0 i s) ?> blank_start s (i - 1) |: i
 
 :~ ^ digits_start (s : string) (i : i32) : i32 =
-    ? i > 0i32 && ends_digit (cut 0i32 i s) ?> digits_start s (i - 1i32) |: i
+    ? i > 0 && ends_digit (cut 0 i s) ?> digits_start s (i - 1) |: i
 
 :~ ^ unpadded (d : string) : string =
-    ? sm'::length d > 1i32 && sm'::starts_with "0" d ?> unpadded (rest_from 1i32 d) |: d
+    ? sm'::length d > 1i32 && sm'::starts_with "0" d ?> unpadded (rest_from 1 d) |: d
 
-:= all_but_last (d : string) : string = cut 0i32 (sm'::length d - 1i32) d
+:= all_but_last (d : string) : string = cut 0 (sm'::length d - 1) d
 
-:= last_digit (d : string) : i32 = ? d = "" ?> -1i32 |: digit_at (sm'::length d - 1i32) d
+:= last_digit (d : string) : i32 = ? d = "" ?> -1 |: digit_at (sm'::length d - 1) d
 
 :~ ^ plus_one (d : string) : string =
     := last = last_digit d
-    ? last < 0i32
+    ? last < 0
     ?> "1"
-    |? last = 9i32
+    |? last = 9
     ?> plus_one (all_but_last d) ++# "0"
-    |: all_but_last d ++# sm'::obj_to_string (last + 1i32)
+    |: all_but_last d ++# sm'::obj_to_string (last + 1)
 
 := bumped_at (s : string) (start : i32) (stop : i32) : string =
-    cut 0i32 start s ++# plus_one (unpadded (cut start (stop - start) s)) ++# rest_from stop s
+    cut 0 start s ++# plus_one (unpadded (cut start (stop - start) s)) ++# rest_from stop s
 
-:= ends_dot (s : string) (i : i32) : bool = i > 0i32 && sm'::ends_with "." (cut 0i32 i s)
+:= ends_dot (s : string) (i : i32) : bool = i > 0 && sm'::ends_with "." (cut 0 i s)
 
 := decimal_break (s : string) (fraction : i32) : string =
-    := dot = fraction - 1i32
+    := dot = fraction - 1
     := whole = digits_start s dot
     ? whole = dot || ends_dot s whole ?> s |: bumped_at s whole dot
 
@@ -87,7 +87,7 @@
 
 :~ ^ picked \* t. (i : i32) (l : list t) : option t =
     ?= l ?|
-    | x :: rest => ? i <= 0i32 ?> Some x |: picked (i - 1i32) rest
+    | x :: rest => ? i <= 0 ?> Some x |: picked (i - 1) rest
     | [] => None
 
 := liked_by (user : string) (r : rooted) : event = Reaction (Liked { post_id = r::post_id; user })
@@ -102,18 +102,18 @@
 
 := lurked (user : string) (acc : list event * exsss) (r : rooted) : list event * exsss =
     := l, st = acc
-    := roll, st = rolled 2i32 st
-    (? roll = 1i32 ?> listm::append l [ liked_by user r ] |: l), st
+    := roll, st = rolled 2 st
+    (? roll = 1 ?> listm::append l [ liked_by user r ] |: l), st
 
 := lurker_act (user : string) (posts : list rooted) (st : exsss) : acted =
     := act_events, rng = posts |> listm::fold (lurked user) ([], st)
     { act_events broken = []; rng }
 
-:= toggled (user : string) (r : rooted) (k : i32) : event = ? k % 2i32 = 0i32 ?> liked_by user r |: unliked_by user r
+:= toggled (user : string) (r : rooted) (k : i32) : event = ? k % 2 = 0 ?> liked_by user r |: unliked_by user r
 
 := drawn_from (pool : list rooted) (st : exsss) : option rooted * exsss =
     := i, st = rolled (listm::length pool) st
-    picked (i - 1i32) pool, st
+    picked (i - 1) pool, st
 
 := toggle_drawn (user : string) (posts : list rooted) (st : exsss) : acted =
     ?= drawn_from posts st ?|
@@ -126,7 +126,7 @@
     | _ => toggle_drawn user posts st
 
 := rewritten (user : string) (r : rooted) : list event =
-    := rewrites = listm::init 3i32 (\ k => edited_to (r::source ++# sm'::replicate (k + 1i32) " " ++# "\n") r)
+    := rewrites = listm::init 3i32 (\ k => edited_to (r::source ++# sm'::replicate (k + 1) " " ++# "\n") r)
     liked_by user r :: listm::append rewrites [ edited_to r::source r ]
 
 := rewrite_drawn (user : string) (pool : list rooted) (st : exsss) : acted =
@@ -169,7 +169,7 @@
 :~ ^ round_robin (streams : list (list event)) (acc : list event) : list event =
     ?= live_streams streams ?|
     | [] => acc
-    | live => round_robin (live |> each rest_of) (listm::append acc (live |> spread (take_first 1i32)))
+    | live => round_robin (live |> each rest_of) (listm::append acc (live |> spread (take_first 1)))
 
 :== cast = { streams : list (list event); broken : list string; rng : exsss; n : i32 }
 
@@ -178,9 +178,9 @@
 := acted_in (posts : list rooted) (c : cast) (p : persona) : cast =
     := a = act p (user_of p c::n) posts c::rng
     { streams = listm::append c::streams [ a::act_events ]; broken = listm::append c::broken a::broken; rng = a::rng;
-        n = c::n + 1i32 }
+        n = c::n + 1 }
 
-:= fresh_cast (st : exsss) : cast = { streams = []; broken = []; rng = st; n = 1i32 }
+:= fresh_cast (st : exsss) : cast = { streams = []; broken = []; rng = st; n = 1 }
 
 :~ persona_events (posts : list rooted) (personas : list persona) (st : exsss) : acted =
     := c = personas |> listm::fold (acted_in posts) (fresh_cast st)

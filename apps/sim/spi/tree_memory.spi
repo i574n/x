@@ -9,7 +9,7 @@
 
 :== tree_sample = { tree_procs : i32; tree_mb : i32 }
 
-:= no_reading () : memory_reading = { samples = 0i32; last_mb = 0i32; procs = 0i32; peak_mb = 0i32 }
+:= no_reading () : memory_reading = { samples = 0; last_mb = 0; procs = 0; peak_mb = 0 }
 
 := larger (a : i32) (b : i32) : i32 = ? a > b ?> a |: b
 
@@ -25,7 +25,7 @@
 
 := with_sample (r : memory_reading) (s : tree_sample) : memory_reading =
     {
-        samples = r::samples + 1i32
+        samples = r::samples + 1
         last_mb = s::tree_mb
         procs = larger r::procs s::tree_procs
         peak_mb = larger r::peak_mb s::tree_mb

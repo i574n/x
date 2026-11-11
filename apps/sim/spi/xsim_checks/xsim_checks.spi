@@ -14,4 +14,4 @@
     check_exports ()
     export "breaking_text" ((\ t => breaking_text t) : string -> string)
     export "masked_text" ((\ t => masked_text t) : string -> string)
-    0i32
+    0

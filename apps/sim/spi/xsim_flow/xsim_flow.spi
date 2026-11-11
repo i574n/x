@@ -16,12 +16,12 @@
 := staged_stream (x : staged_cells) : string =
     := cells, seed, users, edits, personas, permille, framed = x
     := g = { seed users edits personas permille framed chunking = remote_split }
-    scenario_stream g (split_all (char_of 0i32) cells)
+    scenario_stream g (split_all (char_of 0) cells)
 
 := staged_final (x : staged_cells) : string =
     := cells, seed, users, edits, personas, permille, framed = x
     := g = { seed users edits personas permille framed chunking = remote_split }
-    scenario_final g (split_all (char_of 0i32) cells)
+    scenario_final g (split_all (char_of 0) cells)
 
 :== run_cells = string * i32 * i32 * i32 * i32 * i32 * string * bool * i32 * i32
 
@@ -37,11 +37,11 @@
 := staged_run (x : run_cells) : string * i32 * i32 * string =
     := threads, _, _, _, _, _, _, _, _, _ = x
     := text, posts, events, broken = corpus_run (run_ask_of x) (threads_of threads)
-    text, posts, events, delimited (char_of 0i32) broken
+    text, posts, events, delimited (char_of 0) broken
 
 := joined_broken (r : string * list string) : string * string =
     := text, broken = r
-    text, delimited (char_of 0i32) broken
+    text, delimited (char_of 0) broken
 
 := corpus_raw (x : run_cells) : string * string =
     := threads, _, _, _, _, _, _, _, _, _ = x
@@ -49,7 +49,7 @@
 
 := cells_raw (x : run_cells) : string * string =
     := cells, _, _, _, _, _, _, _, _, _ = x
-    from_cells (run_cast x) "" (pieces (char_of 0i32) cells) |> raw_scenario |> joined_broken
+    from_cells (run_cast x) "" (pieces (char_of 0) cells) |> raw_scenario |> joined_broken
 
 :== pacing_cells = string * i32 * i32 * i32
 
@@ -73,4 +73,4 @@
     raw_exports ()
     export "rescheduled" ((\ x => paced x) : pacing_cells -> string)
     export "break_source" ((\ s => break_source s) : string -> string)
-    0i32
+    0

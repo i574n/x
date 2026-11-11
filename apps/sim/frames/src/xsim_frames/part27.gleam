@@ -1,6 +1,6 @@
 import gleam/erlang/atom
 import gleam/string
-import xsim_frames/types.{type Uh3, type Uh13, type Uh37, type Uh36, type Uh39, type Heap0, type Uh43, type Uh41, type Us103, type Uh45, type Uh44, type Uh46, type Us105, type Uh47, type Uh48, type Us104, type Uh49, type Us106, type Uh50, type Uh51, Heap0, Uh13Cons, Uh13Nil, Uh29Nil, Uh36Cons, Uh36Nil, Uh37Cons, Uh37Nil, Uh39Cons, Uh39Nil, Uh3Cons, Uh3Nil, Uh40ShownPost, Uh41Cons, Uh42Nil, Uh43Cons, Uh43Nil, Uh44AutoLink, Uh44Code, Uh44Image, Uh44Link, Uh44LinkedImage, Uh44Strong, Uh44Text, Uh45Cons, Uh45Nil, Uh46Cons, Uh46Nil, Uh47Cons, Uh47Nil, Uh48Cons, Uh48Nil, Uh49Cons, Uh49Nil, Uh50Cons, Uh50Nil, Uh51Cons, Uh51Nil, Us102Original, Us102QuoteOf, Us102ReplyTo, Us102RepostOf, Us103H1, Us103H2, Us103H3, Us103H4, Us103H5, Us103H6, Us104Bullets, Us104CodeBlock, Us104Heading, Us104Numbered, Us104Paragraph, Us104Rule, Us104Table, Us105AlignCenter, Us105AlignLeft, Us105AlignNone, Us105AlignRight, Us106Markup, Us3None, Us3Some}
+import xsim_frames/types.{type Uh3, type Uh13, type Uh37, type Uh36, type Uh39, type Heap0, type Uh43, type Uh41, type Us103, type Uh45, type Uh44, type Uh46, type Us105, type Uh47, type Uh48, type Us104, type Uh49, type Us106, type Uh50, type Uh51, Heap0, Uh13Cons, Uh13Nil, Uh29Nil, Uh36Cons, Uh36Nil, Uh37Cons, Uh37Nil, Uh39Cons, Uh39Nil, Uh3Cons, Uh3Nil, Uh40ShownPost, Uh41Cons, Uh42Nil, Uh43Cons, Uh43Nil, Uh44AutoLink, Uh44Code, Uh44Image, Uh44Link, Uh44LinkedImage, Uh44Strong, Uh44Text, Uh45Cons, Uh45Nil, Uh46Cons, Uh46Nil, Uh47Cons, Uh47Nil, Uh48Cons, Uh48Nil, Uh49Cons, Uh49Nil, Uh50Cons, Uh50Nil, Uh51Cons, Us102Original, Us102QuoteOf, Us102ReplyTo, Us102RepostOf, Us103H1, Us103H2, Us103H3, Us103H4, Us103H5, Us103H6, Us104Bullets, Us104CodeBlock, Us104Heading, Us104Numbered, Us104Paragraph, Us104Rule, Us104Table, Us105AlignCenter, Us105AlignLeft, Us105AlignNone, Us105AlignRight, Us106Markup, Us3None, Us3Some}
 import xsim_frames/part1.{count_of_text_10, erlang_term_apply, erlang_term_coerce, spiral_array_from_list, spiral_array_get, spiral_string_index, spiral_string_length, spiral_string_slice, spiral_wrap_signed}
 import xsim_frames/part12.{items_from_301}
 import xsim_frames/part26.{method481, method482}
@@ -680,13 +680,29 @@ pub fn bullets_html_487(v0: Uh46) -> Us106 {
     joined_508(v4, v6)
 }
 
-pub fn code_html_513(v0: Uh3) -> Us106 {
+pub fn code_open_513(v0: String) -> Us106 {
+    let v1 = v0 == ""
+    case v1 {
+        True -> {
+            trusted_488("<pre><code>")
+        }
+        False -> {
+            let v5 = trusted_488("<pre><code class=\"language-")
+            let v6 = escape_493(v0)
+            let v7 = joined_508(v5, v6)
+            let v9 = trusted_488("\">")
+            joined_508(v7, v9)
+        }
+    }
+}
+
+pub fn code_html_514(v0: Uh3) -> Us106 {
     case v0  {
         Uh3Cons(v1, v2) -> {
             let v3 = escape_493(v1)
             let v5 = trusted_488("\n")
             let v6 = joined_508(v3, v5)
-            let v7 = code_html_513(v2)
+            let v7 = code_html_514(v2)
             joined_508(v6, v7)
         }
         Uh3Nil -> {
@@ -695,58 +711,58 @@ pub fn code_html_513(v0: Uh3) -> Us106 {
     }
 }
 
-pub fn pre_html_512(v0: Uh3) -> Us106 {
-    let v2 = trusted_488("<pre><code>")
-    let v3 = code_html_513(v0)
+pub fn pre_html_512(v0: String, v1: Uh3) -> Us106 {
+    let v2 = code_open_513(v0)
+    let v3 = code_html_514(v1)
     let v4 = joined_508(v2, v3)
     let v6 = trusted_488("</code></pre>\n")
     joined_508(v4, v6)
 }
 
-pub fn level_tag_515(v0: Us103) -> String {
+pub fn level_tag_516(v0: Us103) -> String {
     let v7 = spiral_array_from_list([ "H1", "H2", "H3", "H4", "H5", "H6" ])
     let v8 = case v0 { Us103H1 -> 0 Us103H2 -> 1 Us103H3 -> 2 Us103H4 -> 3 Us103H5 -> 4 Us103H6 -> 5 }
     let v9 = spiral_array_get(v7, v8)
     v9 |> string.lowercase
 }
 
-pub fn heading_html_514(v0: Uh45, v1: Us103) -> Us106 {
-    let v2 = level_tag_515(v1)
+pub fn heading_html_515(v0: Uh45, v1: Us103) -> Us106 {
+    let v2 = level_tag_516(v1)
     let v3 = inlines_html_490(v0)
     let v4 = wrap_504(v2, v3)
     let v6 = trusted_488("\n")
     joined_508(v4, v6)
 }
 
-pub fn digit_519(v0: Int) -> String {
+pub fn digit_520(v0: Int) -> String {
     let v1 = spiral_wrap_signed(v0, 32)
     let v3 = spiral_wrap_signed(v1 + 1, 32)
     run_of_495("0123456789", v1, v3)
 }
 
-pub fn show_i64_518(v0: Int) -> String {
+pub fn show_i64_519(v0: Int) -> String {
     let v1 = v0 < 10
     case v1 {
-        True -> digit_519(v0)
+        True -> digit_520(v0)
         False -> {
             let v3 = v0 / 10
-            let v4 = show_i64_518(v3)
+            let v4 = show_i64_519(v3)
             let v5 = v0 % 10
-            let v6 = digit_519(v5)
+            let v6 = digit_520(v5)
             let v7 = { v4 } <> { v6 }
             v7
         }
     }
 }
 
-pub fn ordered_open_517(v0: Int) -> String {
+pub fn ordered_open_518(v0: Int) -> String {
     let v1 = v0 == 1
     case v1 {
         True -> {
             "<ol>\n"
         }
         False -> {
-            let v3 = show_i64_518(v0)
+            let v3 = show_i64_519(v0)
             let v4 = { "<ol start=\"" } <> { v3 }
             let v5 = { v4 } <> { "\">\n" }
             v5
@@ -754,8 +770,8 @@ pub fn ordered_open_517(v0: Int) -> String {
     }
 }
 
-pub fn numbered_html_516(v0: Uh46, v1: Int) -> Us106 {
-    let v2 = ordered_open_517(v1)
+pub fn numbered_html_517(v0: Uh46, v1: Int) -> Us106 {
+    let v2 = ordered_open_518(v1)
     let v3 = trusted_488(v2)
     let v4 = items_html_489(v0)
     let v5 = joined_508(v3, v4)
@@ -763,7 +779,7 @@ pub fn numbered_html_516(v0: Uh46, v1: Int) -> Us106 {
     joined_508(v5, v7)
 }
 
-pub fn para_html_520(v0: Uh45) -> Us106 {
+pub fn para_html_521(v0: Uh45) -> Us106 {
     let v2 = trusted_488("<p>")
     let v3 = inlines_html_490(v0)
     let v4 = joined_508(v2, v3)
@@ -771,11 +787,11 @@ pub fn para_html_520(v0: Uh45) -> Us106 {
     joined_508(v4, v6)
 }
 
-pub fn hr_521() -> Us106 {
+pub fn hr_522() -> Us106 {
     trusted_488("<hr>\n")
 }
 
-pub fn align_head_526(v0: Uh47) -> #(Us105, Uh47) {
+pub fn align_head_527(v0: Uh47) -> #(Us105, Uh47) {
     case v0  {
         Uh47Cons(v1, v2) -> #(v1, v2)
         Uh47Nil -> {
@@ -784,7 +800,7 @@ pub fn align_head_526(v0: Uh47) -> #(Us105, Uh47) {
     }
 }
 
-pub fn align_attr_528(v0: Us105) -> String {
+pub fn align_attr_529(v0: Us105) -> String {
     case v0  {
         Us105AlignCenter -> {
             " style=\"text-align: center\""
@@ -801,9 +817,9 @@ pub fn align_attr_528(v0: Us105) -> String {
     }
 }
 
-pub fn cell_html_527(v0: String, v1: Us105, v2: Uh45) -> Us106 {
+pub fn cell_html_528(v0: String, v1: Us105, v2: Uh45) -> Us106 {
     let v3 = { "<" } <> { v0 }
-    let v4 = align_attr_528(v1)
+    let v4 = align_attr_529(v1)
     let v5 = { v3 } <> { v4 }
     let v6 = { v5 } <> { ">" }
     let v7 = trusted_488(v6)
@@ -815,12 +831,12 @@ pub fn cell_html_527(v0: String, v1: Us105, v2: Uh45) -> Us106 {
     joined_508(v9, v12)
 }
 
-pub fn cells_html_525(v0: String, v1: Uh47, v2: Uh46) -> Us106 {
+pub fn cells_html_526(v0: String, v1: Uh47, v2: Uh46) -> Us106 {
     case v2  {
         Uh46Cons(v5, v6) -> {
-            let #(v7, v8) = align_head_526(v1)
-            let v9 = cell_html_527(v0, v7, v5)
-            let v10 = cells_html_525(v0, v8, v6)
+            let #(v7, v8) = align_head_527(v1)
+            let v9 = cell_html_528(v0, v7, v5)
+            let v10 = cells_html_526(v0, v8, v6)
             joined_508(v9, v10)
         }
         Uh46Nil -> {
@@ -829,19 +845,19 @@ pub fn cells_html_525(v0: String, v1: Uh47, v2: Uh46) -> Us106 {
     }
 }
 
-pub fn row_html_524(v0: String, v1: Uh47, v2: Uh46) -> Us106 {
+pub fn row_html_525(v0: String, v1: Uh47, v2: Uh46) -> Us106 {
     let v4 = trusted_488("<tr>")
-    let v5 = cells_html_525(v0, v1, v2)
+    let v5 = cells_html_526(v0, v1, v2)
     let v6 = joined_508(v4, v5)
     let v8 = trusted_488("</tr>\n")
     joined_508(v6, v8)
 }
 
-pub fn rows_html_529(v0: Uh47, v1: Uh48) -> Us106 {
+pub fn rows_html_530(v0: Uh47, v1: Uh48) -> Us106 {
     case v1  {
         Uh48Cons(v2, v3) -> {
-            let v5 = row_html_524("td", v0, v2)
-            let v6 = rows_html_529(v0, v3)
+            let v5 = row_html_525("td", v0, v2)
+            let v6 = rows_html_530(v0, v3)
             joined_508(v5, v6)
         }
         Uh48Nil -> {
@@ -850,31 +866,31 @@ pub fn rows_html_529(v0: Uh47, v1: Uh48) -> Us106 {
     }
 }
 
-pub fn table_html_523(v0: Uh47, v1: Uh46, v2: Uh48) -> Us106 {
+pub fn table_html_524(v0: Uh47, v1: Uh46, v2: Uh48) -> Us106 {
     let v4 = trusted_488("<table>\n<thead>\n")
-    let v6 = row_html_524("th", v0, v1)
+    let v6 = row_html_525("th", v0, v1)
     let v7 = joined_508(v4, v6)
     let v9 = trusted_488("</thead>\n<tbody>\n")
     let v10 = joined_508(v7, v9)
-    let v11 = rows_html_529(v0, v2)
+    let v11 = rows_html_530(v0, v2)
     let v12 = joined_508(v10, v11)
     let v14 = trusted_488("</tbody>\n</table>\n")
     joined_508(v12, v14)
 }
 
-pub fn table_of_522(v0: Uh48, v1: Uh46, v2: Uh47) -> Us106 {
-    table_html_523(v2, v1, v0)
+pub fn table_of_523(v0: Uh48, v1: Uh46, v2: Uh47) -> Us106 {
+    table_html_524(v2, v1, v0)
 }
 
 pub fn block_html_486(v0: Us104) -> Us106 {
     case v0  {
         Us104Bullets(v6) -> bullets_html_487(v6)
-        Us104CodeBlock(v11) -> pre_html_512(v11)
-        Us104Heading(v1, v2) -> heading_html_514(v2, v1)
-        Us104Numbered(v8, v9) -> numbered_html_516(v9, v8)
-        Us104Paragraph(v4) -> para_html_520(v4)
-        Us104Rule -> hr_521()
-        Us104Table(v14, v15, v16) -> table_of_522(v16, v15, v14)
+        Us104CodeBlock(v11, v12) -> pre_html_512(v11, v12)
+        Us104Heading(v1, v2) -> heading_html_515(v2, v1)
+        Us104Numbered(v8, v9) -> numbered_html_517(v9, v8)
+        Us104Paragraph(v4) -> para_html_521(v4)
+        Us104Rule -> hr_522()
+        Us104Table(v15, v16, v17) -> table_of_523(v17, v16, v15)
     }
 }
 
@@ -891,10 +907,10 @@ pub fn blocks_html_485(v0: Uh49) -> Us106 {
     }
 }
 
-pub fn method531(v0: Uh43, v1: Uh51) -> Uh51 {
+pub fn method532(v0: Uh43, v1: Uh51) -> Uh51 {
     case v0  {
         Uh43Cons(v2, v3, v4, v5) -> {
-            let v6 = method531(v5, v1)
+            let v6 = method532(v5, v1)
             let v7 = v3 == "video"
             let v43 =
                 case v7 {
@@ -923,17 +939,5 @@ pub fn method531(v0: Uh43, v1: Uh51) -> Uh51 {
             Uh51Cons(v43, v6)
         }
         Uh43Nil -> v1
-    }
-}
-
-pub fn concat_532(v0: Uh51) -> Us106 {
-    case v0  {
-        Uh51Cons(v1, v2) -> {
-            let v3 = concat_532(v2)
-            joined_508(v1, v3)
-        }
-        Uh51Nil -> {
-            Us106Markup("")
-        }
     }
 }

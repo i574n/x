@@ -99,10 +99,12 @@
 := counts_text (m : post_meta) : string =
     sm'::obj_to_string m::likes ++# " likes · " ++# sm'::obj_to_string m::replies ++# " replies"
 
-:= counts_markup (m : post_meta) : markup =
+:= counts_line (m : post_meta) : markup =
     ? m::likes = 0i32 && m::replies = 0i32
     ?> trusted ""
     |: element "p" [ ("class", "counts") ] (trusted (counts_text m))
+
+:= counts_markup (m : post_meta) : markup = element "div" [ ("class", "actions") ] (counts_line m)
 
 := lang_badge (m : post_meta) : markup =
     ? m::lang = ""
@@ -124,10 +126,29 @@
 := quoted_markup (k : post_kind) (qmedia : list media_item) : markup =
     ?= k ?| QuoteOf (a, quoted) => quoted_block a quoted qmedia | _ => trusted ""
 
-:= entry_head (l : labeled) : markup = blocks_html (byline l::entry :: label_blocks l::kind)
+:= pt_months () : string = "janfevmarabrmaijunjulagosetoutnovdez"
+
+:= two_digits (s : string) : i32 =
+    sm'::index_of (sm'::substring 0i32 1i32 s) "0123456789" * 10i32 + sm'::index_of (sm'::substring 1i32 1i32 s) "0123456789"
+
+:= iso_shaped (s : string) : bool =
+    sm'::length s >= 10i32 && sm'::substring 4i32 1i32 s = "-" && sm'::substring 7i32 1i32 s = "-"
+
+:= month_day (s : string) (month : i32) (day : i32) : string =
+    ? month < 1i32 || month > 12i32 || day < 1i32
+    ?> s
+    |: sm'::obj_to_string day ++# " de " ++# sm'::substring (3i32 * (month - 1i32)) 3i32 (pt_months ())
+
+:= short_date (s : string) : string =
+    ? iso_shaped s ?> month_day s (two_digits (sm'::substring 5i32 2i32 s)) (two_digits (sm'::substring 8i32 2i32 s)) |: s
+
+:= head_line (e : posts::entry) : block =
+    Paragraph [ Strong [ Text ("@" ++# e::username) ]; Text (" · " ++# short_date e::created_at) ]
+
+:= entry_head (l : labeled) : markup = blocks_html (head_line l::entry :: label_blocks l::kind)
 
 := entry_tail (l : labeled) : list markup =
-    [ counts_markup l::meta; lang_badge l::meta; quoted_markup l::kind l::quote_media; blocks_html [ Rule ] ]
+    [ counts_markup l::meta; lang_badge l::meta; quoted_markup l::kind l::quote_media ]
 
 := entry_parts (l : labeled) : list markup =
     entry_head l
@@ -145,7 +166,7 @@
 
 := body_css () : string =
     "body{background:#000;color:rgb(231,233,234);-webkit-font-smoothing:antialiased;"
-    ++# "font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;"
+    ++# "font-family:'XSans','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;"
 
 := body_metrics_css () : string =
     "font-size:15px;line-height:20px;max-width:600px;margin:0 auto;padding:0}"
@@ -157,19 +178,19 @@
 := article_css () : string =
     "article{border-bottom:1px solid rgb(47,51,54)}"
     ++# "article:hover{background:rgba(255,255,255,.03)}"
-    ++# ".row{display:flex;gap:12px;padding:12px 16px}"
+    ++# ".row{display:flex;gap:8px;padding:12px 16px}"
 
 := layout_css () : string =
     ".avatar{width:40px;height:40px;border-radius:9999px;background:rgb(47,51,54);flex:0 0 40px}"
     ++# ".content{flex:1 1 auto;min-width:0}"
-    ++# "article p{margin:2px 0;white-space:pre-wrap;overflow-wrap:anywhere}"
+    ++# "article p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}"
 
 := article_text_css () : string =
-    ".content>p:first-child{color:rgb(113,118,123);font-size:14px}"
+    ".content>p:first-child{color:rgb(113,118,123);font-size:15px;margin:0 0 4px}"
     ++# "article strong{color:rgb(231,233,234);font-weight:700;font-size:15px}"
 
 := counts_css () : string =
-    "p.counts{color:rgb(113,118,123);font-size:13px;margin:4px 0 0}"
+    ".actions{min-height:20px;margin:12px 0 0}p.counts{color:rgb(113,118,123);font-size:13px;line-height:20px;margin:0}"
     ++# "blockquote.quoted{color:rgb(139,152,165);font-size:14px}"
 
 := dark_css () : string =
@@ -191,16 +212,25 @@
 
 := chrome_css () : string =
     "h1{font-size:20px;font-weight:800;padding:8px 16px;margin:0}"
-    ++# "a.dir{color:rgb(29,155,240);text-decoration:none;margin-right:1em}"
+    ++# "a.dir{color:rgb(65,155,239);text-decoration:none;margin-right:1em}"
 
 := font_import () : string =
     "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');"
 
-:= page_style () : markup =
-    element
-        "style"
-        []
-        (trusted (font_import () ++# dark_css () ++# muted_css () ++# quote_css () ++# nav_css () ++# chrome_css ()))
+:= font_face () : string =
+    "@font-face{font-family:'XSans';src:url(/media/fonts/sans.woff2) format('woff2'),url(/media/fonts/sans.ttf) "
+    ^^ "format('truetype');font-display:swap}"
+
+:= style_text () : string =
+    font_import ()
+    ++# font_face ()
+    ++# dark_css ()
+    ++# muted_css ()
+    ++# quote_css ()
+    ++# nav_css ()
+    ++# chrome_css ()
+
+:= page_style () : markup = element "style" [] (trusted (style_text ()))
 
 := ap_init () : string =
     "(function(){var io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;"
@@ -295,6 +325,15 @@
     shown (one_of (reply_to "dsymetweets")) [ "class=\"post reply\""; "Reply to" ] |> _assert_eq [ !+; !- ]
 
 ///> rust
+:# dates_read_like_the_reference_and_odd_ones_stay_raw =
+    (short_date (stamp "0"), short_date "2026-01-05T00:00:00Z", short_date "yesterday", short_date "2026-13-01")
+    |> _assert_eq ("3 de nov", "5 de jan", "yesterday", "2026-13-01")
+
+///> rust
+:# a_post_row_is_one_head_line_and_no_rule =
+    shown (one_of (original ())) [ "<hr"; " · " ] |> _assert_eq [ !-; !+ ]
+
+///> rust
 :# an_original_post_has_no_label =
     shown (one_of (original ())) [ "class=\"post\""; "Repost of"; "Reply to" ] |> _assert_eq [ !+; !-; !- ]
 
@@ -331,6 +370,10 @@
 :# engagement_counts_render_when_nonzero =
     shown (meta_sample (meta_of 1596i32 18i32)) [ "class=\"counts\""; "1596 likes"; "18 replies" ]
     |> _assert_eq [ !+; !+; !+ ]
+
+///> rust
+:# every_row_keeps_its_action_bar =
+    shown (meta_sample (meta_of 0i32 0i32)) [ "class=\"actions\""; "class=\"counts\"" ] |> _assert_eq [ !+; !- ]
 
 ///> rust
 :# engagement_counts_hidden_when_zero =

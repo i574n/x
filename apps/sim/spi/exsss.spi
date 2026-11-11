@@ -15,22 +15,22 @@
 
 := shr64 (a : u64) (n : i32) : u64 = a >>> n
 
-:= low_bits (bits : i32) : u64 = shl64 1u64 bits - 1u64
+:= low_bits (bits : i32) : u64 = shl64 1 bits - 1
 
-:= word_mask () : u64 = low_bits 58i32
+:= word_mask () : u64 = low_bits 58
 
 := shifted_in (a : u64) (n : i32) : u64 = shl64 (and64 a (low_bits (58i32 - n))) n
 
 := splitmix (x0 : u64) : u64 * u64 =
-    := x = x0 + 11400714819323198485u64
-    := z0 = xor64 x (shr64 x 30i32) * 13787848793156543929u64
-    := z1 = xor64 z0 (shr64 z0 27i32) * 10723151780598845931u64
-    xor64 z1 (shr64 z1 31i32), x
+    := x = x0 + 11400714819323198485
+    := z0 = xor64 x (shr64 x 30) * 13787848793156543929
+    := z1 = xor64 z0 (shr64 z0 27) * 10723151780598845931
+    xor64 z1 (shr64 z1 31), x
 
 :~ ^ word_from (x0 : u64) : u64 * u64 =
     := z0, x = splitmix x0
     := z = and64 z0 (word_mask ())
-    ? z = 0u64 ?> word_from x |: z, x
+    ? z = 0 ?> word_from x |: z, x
 
 :== exsss = { head : u64; tail : u64 }
 
@@ -41,27 +41,27 @@
     { head tail }
 
 := scrambled (s : u64) : u64 =
-    := a = s + shifted_in s 2i32
-    := b = or64 (shifted_in a 7i32) (and64 (shr64 a 51i32) (low_bits 7i32))
-    and64 (b + shifted_in b 3i32) (word_mask ())
+    := a = s + shifted_in s 2
+    := b = or64 (shifted_in a 7) (and64 (shr64 a 51) (low_bits 7))
+    and64 (b + shifted_in b 3) (word_mask ())
 
 := xorshifted (s0 : u64) (s1 : u64) : u64 =
-    := b = xor64 (and64 s1 (word_mask ())) (shifted_in s1 24i32)
-    xor64 (xor64 b s0) (xor64 (shr64 b 11i32) (shr64 s0 41i32))
+    := b = xor64 (and64 s1 (word_mask ())) (shifted_in s1 24)
+    xor64 (xor64 b s0) (xor64 (shr64 b 11) (shr64 s0 41))
 
 :~ stepped (st : exsss) : u64 * exsss =
     := s0 = and64 st::tail (word_mask ())
     scrambled s0, { head = s0; tail = xorshifted s0 st::head }
 
-:= two_58 () : u64 = shl64 1u64 58i32
+:= two_58 () : u64 = shl64 1 58
 
 :~ ^ uniform (range : u64) (st : exsss) : u64 * exsss =
     := v, next = stepped st
     := i = v % range
     ? v < range
-    ?> v + 1u64, next
+    ?> v + 1, next
     |? v - i <= two_58 () - range
-    ?> i + 1u64, next
+    ?> i + 1, next
     |: uniform range next
 
 := rolled (range : i32) (st : exsss) : i32 * exsss =
@@ -72,9 +72,9 @@
     seeded (conv a1 : u64) (conv a2 : u64) (conv a3 : u64)
 
 :~ ^ rolls (range : i32) (n : i32) (st : exsss) (acc : list i32) : list i32 * exsss =
-    ? n <= 0i32
+    ? n <= 0
     ?> listm::rev acc, st
-    |: rolled range st |> \ (v, next) => rolls range (n - 1i32) next (v :: acc)
+    |: rolled range st |> \ (v, next) => rolls range (n - 1) next (v :: acc)
 
 := rolls_text (l : list i32) : string = l |> each sm'::obj_to_string |> delimited ","
 
@@ -100,12 +100,12 @@
     := l, _ = rolls 8i32 10i32 (seeded_i32 a 8i32 16i32) []
     rolls_text l |> _assert_eq "7,2,7,6,2,2,4,2,1,7"
 
-:= after_ten () : exsss = rolls 8i32 10i32 (seeded_i32 1i32 8i32 16i32) [] |> \ (_, st) => st
+:= after_ten () : exsss = rolls 8 10 (seeded_i32 1 8 16) [] |> \ (_, st) => st
 
 := wide_draws (range : u64) : string =
     := a, st = uniform range (after_ten ())
-    := b, st = uniform 1099511627776u64 st
-    := c, _ = uniform 2u64 st
+    := b, st = uniform 1099511627776 st
+    := c, _ = uniform 2 st
     sm'::obj_to_string a ++# " " ++# sm'::obj_to_string b ++# " " ++# sm'::obj_to_string c
 
 ///> rust

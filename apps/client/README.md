@@ -1,15 +1,22 @@
 # xc: an X client
 
-`xc` reads X timelines and posts as you, from a terminal or a script. It is a Spiral program compiled to native Rust (one static `xc.exe` on Windows, no runtime to install), talking to the official X API v2.
+`xc` reads X timelines and posts as you, from a terminal or a script. It is a Spiral program compiled to native Rust
+(one static `xc.exe` on Windows, no runtime to install), talking to the official X API v2.
 
-- **Read:** the latest posts of any accounts as one merged timeline, or the home timeline of an account rebuilt from the accounts it follows.
-- **Save money:** date windows and reply/repost filters are sent to the API, so posts you filter out are never returned or billed.
-- **See more per post:** expanded urls, media alt text, url titles, and the posts it quotes, replies to or reposts, down to three levels.
+- **Read:** the latest posts of any accounts as one merged timeline, or the home timeline of an account rebuilt from the
+  accounts it follows.
+- **Save money:** date windows and reply/repost filters are sent to the API, so posts you filter out are never returned
+  or billed.
+- **See more per post:** expanded urls, media alt text, url titles, and the posts it quotes, replies to or reposts, down
+  to three levels.
 - **Stay fair:** `--per-author` keeps quiet accounts visible next to busy ones.
 - **Write:** `xc post` and `xc delete`, signed with OAuth 1.0a (keys that never expire) or an OAuth 2.0 user token.
-- **Script it:** errors carry the API's own explanation and stable exit codes (0 shown, 2 usage, 3 missing credentials, 4 API failure, with whatever was read before printed first).
+- **Script it:** errors carry the API's own explanation and stable exit codes
+  (0 shown, 2 usage, 3 missing credentials, 4 API failure, with whatever was read before printed first).
 
-Every walkthrough example below is replayed by `e2e/e2e.ps1` against the simulator's X API server (`apps/sim`, `scripts/sim-run.ps1 serve`) and must match character for character, so this page cannot drift from the program. The live samples in section 5 come from the real API.
+Every walkthrough example below is replayed by `e2e/e2e.ps1` against the simulator's X API server
+(`apps/sim`, `scripts/sim-run.ps1 serve`) and must match character for character, so this page cannot drift from the
+program. The live samples in section 5 come from the real API.
 
 ## 1. Get xc
 
@@ -29,9 +36,12 @@ Set-Alias xc "$PWD/target/release/xc.exe"
 | Posting, OAuth 1.0a | `X_CONSUMER_KEY`, `X_CONSUMER_SECRET`, `X_OAUTH1_ACCESS_TOKEN`, `X_OAUTH1_ACCESS_TOKEN_SECRET` | OAuth 1.0 Keys: Consumer Key (API Key and Secret) and Access Token for your account | until regenerated |
 | Posting, OAuth 2.0 | `X_OAUTH2_ACCESS_TOKEN` | OAuth 2.0 Keys, Access Token | 2 hours (a refresh token renews it) |
 
-When all four OAuth 1.0a values are set, `xc` signs writes with them (HMAC-SHA1); otherwise it uses `X_OAUTH2_ACCESS_TOKEN`. The app-only bearer token can never write (the API answers 403). Secrets are only sent as `Authorization` headers to `X_API_BASE_URL` (default `https://api.x.com`) and are never printed.
+When all four OAuth 1.0a values are set, `xc` signs writes with them (HMAC-SHA1); otherwise it uses
+`X_OAUTH2_ACCESS_TOKEN`. The app-only bearer token can never write (the API answers 403). Secrets are only sent as
+`Authorization` headers to `X_API_BASE_URL` (default `https://api.x.com`) and are never printed.
 
-Keep them in an env file outside any repository; the `KEY=value` format is what `kubectl create secret generic --from-env-file` reads:
+Keep them in an env file outside any repository; the `KEY=value` format is what
+`kubectl create secret generic --from-env-file` reads:
 
 ```powershell
 $secrets = Join-Path $HOME '.secrets/x-api.env'
@@ -41,7 +51,8 @@ Add-Content $secrets "X_BEARER_TOKEN=$(Get-Clipboard)"
 
 ## 3. Walkthrough
 
-Each command is followed by its exact output: notes and errors (stderr) first, then the timeline (stdout), with empty lines left out. The accounts are the stub's (`e2e/world.json`).
+Each command is followed by its exact output: notes and errors (stderr) first, then the timeline (stdout), with empty
+lines left out. The accounts are the stub's (`e2e/world.json`).
 
 ```powershell
 xc --help
@@ -64,7 +75,7 @@ env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-author N    entries shown per author (default all)
        --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)
        --end-time DATE   posts before DATE
-       --all             replies too (hidden by default, like a profile's Posts tab)
+       --all            replies too (hidden by default, like a profile's Posts tab)
        --no-reposts      hide reposts; --originals hides replies and reposts
        --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)
        --hints           media alt text and url titles under each post
@@ -74,7 +85,11 @@ env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
 
 ### Timelines of accounts
 
-Several accounts become one timeline, newest first, each post ending with its reply, repost and like counts (the API's `reply_count`, `repost_count`, `like_count`); times are in the time zone of the machine running `xc` (`TZ` overrides it; this walkthrough runs with `TZ=America/Cuiaba`, UTC-4); posts of the same second are ordered by id, the newer first, and `t.co` links are shown expanded. A leading `@` is accepted; quote it in PowerShell, where a bare `@bob` splats the variable `$bob`:
+Several accounts become one timeline, newest first, each post ending with its reply, repost and like counts
+(the API's `reply_count`, `repost_count`, `like_count`); times are in the time zone of the machine running `xc`
+(`TZ` overrides it; this walkthrough runs with `TZ=America/Cuiaba`, UTC-4); posts of the same second are ordered by id,
+the newer first, and `t.co` links are shown expanded. A leading `@` is accepted; quote it in PowerShell, where a bare
+`@bob` splats the variable `$bob`:
 
 ```powershell
 xc timeline hana
@@ -94,6 +109,23 @@ xc timeline alice '@bob'
 ```
 
 ```text
+xc: 3 API requests, 6 posts read, 6 shown
+2026-10-15 09:05  @bob  RT @alice: lunch: ramen  [0 replies, 0 reposts, 0 likes]
+2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
+2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
+2026-10-15 05:45  @bob  shipped v2 release notes soon  [4 replies, 7 reposts, 31 likes]
+2026-10-15 04:00  @alice  morning run done  [0 replies, 0 reposts, 0 likes]
+2026-10-14 17:10  @alice  reading about typed effects https://example.org/effects  [0 replies, 0 reposts, 0 likes]
+```
+
+Replies are hidden by default, as on a profile's Posts tab: the API is asked to leave them out, so they are never read
+or billed. `--all` brings them back:
+
+```powershell
+xc timeline --all alice '@bob'
+```
+
+```text
 xc: 3 API requests, 7 posts read, 7 shown
 2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
 2026-10-15 09:05  @bob  RT @alice: lunch: ramen  [0 replies, 0 reposts, 0 likes]
@@ -104,25 +136,16 @@ xc: 3 API requests, 7 posts read, 7 shown
 2026-10-14 17:10  @alice  reading about typed effects https://example.org/effects  [0 replies, 0 reposts, 0 likes]
 ```
 
-Replies are hidden by default, as on a profile's Posts tab: the API is asked to leave them out, so they are never read or billed. `--all` brings them back:
-
-```powershell
-xc timeline --all alice '@bob'
-```
-
-```text
-pending
-```
-
-`--per-account 1` shows only each account's newest post (X still sends at least 5 per account, so this trims what is shown, not what is read):
+`--per-account 1` shows only each account's newest post
+(X still sends at least 5 per account, so this trims what is shown, not what is read):
 
 ```powershell
 xc timeline --per-account 1 alice '@bob'
 ```
 
 ```text
-xc: 3 API requests, 7 posts read, 2 shown
-2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
+xc: 3 API requests, 6 posts read, 2 shown
+2026-10-15 09:05  @bob  RT @alice: lunch: ramen  [0 replies, 0 reposts, 0 likes]
 2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
 ```
 
@@ -148,10 +171,9 @@ xc timeline --following carol --max-following 2
 ```
 
 ```text
-xc: 5 API requests, 9 posts read, 9 shown
+xc: 5 API requests, 8 posts read, 8 shown
 xc: home timeline of @carol from 2 followed accounts
 2026-10-15 10:00  @carol  worth reading  [0 replies, 2 reposts, 5 likes]
-2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
 2026-10-15 09:05  @bob  RT @alice: lunch: ramen  [0 replies, 0 reposts, 0 likes]
 2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
 2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
@@ -161,19 +183,20 @@ xc: home timeline of @carol from 2 followed accounts
 2026-10-14 17:10  @alice  reading about typed effects https://example.org/effects  [0 replies, 0 reposts, 0 likes]
 ```
 
-`--max-following all` reads the whole following list (paged until it ends); protected accounts are skipped with a note, and `--per-author` caps what each author shows so quieter accounts are not pushed out:
+`--max-following all` reads the whole following list (paged until it ends); protected accounts are skipped with a note,
+and `--per-author` caps what each author shows so quieter accounts are not pushed out:
 
 ```powershell
 xc timeline --following carol --max-following all --per-author 1
 ```
 
 ```text
-xc: 8 API requests, 14 posts read, 4 shown
+xc: 8 API requests, 13 posts read, 4 shown
 xc: home timeline of @carol from 4 followed accounts
 xc: skipped @dave: Sorry, you are not authorized to see the posts of @dave.
 2026-10-15 11:00  @erin  the whole thread  [0 replies, 0 reposts, 1 like]
 2026-10-15 10:00  @carol  worth reading  [0 replies, 2 reposts, 5 likes]
-2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
+2026-10-15 09:05  @bob  RT @alice: lunch: ramen  [0 replies, 0 reposts, 0 likes]
 2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
 ```
 
@@ -184,18 +207,17 @@ xc timeline --following loner --max-following all
 ```
 
 ```text
-xc: 3 API requests, 5 posts read, 5 shown
+xc: 3 API requests, 3 posts read, 3 shown
 xc: home timeline of @loner from 0 followed accounts
-2026-10-17 05:02  @loner  c3 1/1 := count_or_none (t : string) : i32 =     ?= count_of_text t ?|     | Some n => n     | None => -1i32  [0 replies, 0 reposts, 0 likes]
-2026-10-17 05:01  @loner  c2 1/1 :< sm'_operators :< prelude :< cli  [0 replies, 0 reposts, 0 likes]
-2026-10-17 05:00  @loner  c1 1/1 ///- --package .. ///> rust :# checks static =     :< testing  [0 replies, 0 reposts, 0 likes]
-2026-10-16 05:01  @loner  c2 1/1 :< sm'_operators :< prelude :< cli edited  [0 replies, 0 reposts, 0 likes]
-2026-10-16 05:00  @loner  c1 1/1 ///- --package .. ///> rust :# checks static =     :< testing  [0 replies, 0 reposts, 0 likes]
+2026-10-17 05:00  @loner  c1 1/1 ///- --package .. :# checks static =     :< testing  [0 replies, 0 reposts, 0 likes]
+2026-10-16 05:00  @loner  c1 1/1 ///- --package .. :# checks static =     :< testing  [0 replies, 0 reposts, 0 likes]
+2026-10-15 06:00  @loner  nobody to follow yet  [0 replies, 0 reposts, 0 likes]
 ```
 
 ### Filters that lower the bill
 
-`--start-time` and `--end-time` are the API's `start_time` and `end_time`; a bare date means midnight in the local time zone:
+`--start-time` and `--end-time` are the API's `start_time` and `end_time`; a bare date means midnight in the local time
+zone:
 
 ```powershell
 xc timeline --start-time 2026-10-15T12:00:00Z --end-time 2026-10-15T13:06:00Z bob
@@ -207,7 +229,8 @@ xc: 2 API requests, 2 posts read, 2 shown
 2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
 ```
 
-`--originals` (the same as `--no-reposts`, since replies are already hidden) keeps the authors' own text; `--hints` adds media alt text and url titles:
+`--originals` (the same as `--no-reposts`, since replies are already hidden) keeps the authors' own text; `--hints` adds
+media alt text and url titles:
 
 ```powershell
 xc timeline --originals --hints alice bob
@@ -226,7 +249,8 @@ xc: 3 API requests, 5 posts read, 5 shown
 
 ### Reference trees
 
-`--depth` follows quotes, replies and reposts down to three levels; each level past the first is one lookup of those posts, and unknown authors are named with one more lookup:
+`--depth` follows quotes, replies and reposts down to three levels; each level past the first is one lookup of those
+posts, and unknown authors are named with one more lookup:
 
 ```powershell
 xc timeline --depth 3 --limit 1 erin
@@ -247,29 +271,37 @@ xc timeline --depth 1 --limit 2 bob
 ```
 
 ```text
-xc: 3 API requests, 5 posts read, 2 shown
-2026-10-15 09:10  @bob  agreed, ramen wins  [1 reply, 0 reposts, 3 likes]
-  > replied to @alice: lunch: ramen  [2 replies, 1 repost, 14 likes]
+xc: 3 API requests, 4 posts read, 2 shown
 2026-10-15 09:05  @bob  reposted @alice: lunch: ramen  [2 replies, 1 repost, 14 likes]
+2026-10-15 08:30  @bob  same minute as alice, newer id  [0 replies, 0 reposts, 0 likes]
 ```
 
 ### Output for programs
 
-`--json` prints one JSON object per entry (JSON Lines) instead of text, with the counts as numbers, references as `{type, id}` and, with `--depth`, the referenced posts as further objects whose `via` names the post that cites them:
+`--json` prints one JSON object per entry (JSON Lines) instead of text, with the counts as numbers, references as
+`{type, id}` and, with `--depth`, the referenced posts as further objects whose `via` names the post that cites them:
 
 ```powershell
 xc timeline --json --depth 1 --limit 1 bob
 ```
 
 ```text
-xc: 3 API requests, 5 posts read, 1 shown
-{"id":"2004","username":"bob","created_at":"2026-10-15T13:10:00.000Z","text":"agreed, ramen wins","reply_count":1,"repost_count":0,"like_count":3,"refs":[{"type":"replied_to","id":"1002"}],"hints":[],"level":0,"via":""}
-{"id":"1002","username":"alice","created_at":"2026-10-15T12:30:00.000Z","text":"lunch: ramen","reply_count":2,"repost_count":1,"like_count":14,"refs":[],"hints":[],"level":1,"via":"2004"}
+xc: 3 API requests, 4 posts read, 1 shown
+{"id":"2003","username":"bob","created_at":"2026-10-15T13:05:00.000Z","text":"RT @alice: lunch: ramen","reply_count":0,"repost_count":0,"like_count":0,"refs":[{"type":"reposted","id":"1002"}],"hints":[],"level":0,"via":""}
+{"id":"1002","username":"alice","created_at":"2026-10-15T12:30:00.000Z","text":"lunch: ramen","reply_count":2,"repost_count":1,"like_count":14,"refs":[],"hints":[],"level":1,"via":"2003"}
 ```
 
 ### Programs posted as threads
 
-A program can travel as a thread: each cell is split into posts of at most 280 weighted characters, each post starting with a `CELL k/n` line (the cell's name and the post's place in it, such as `p2 1/6`), and each post replies to the one before it. `xc thread ID` reads the author's posts of that conversation (`conversation_id:` and `from:` in one full-archive search from the root post's `created_at`, paged, so a thread of any age is found: `search/recent` only sees 7 days and `search/all` defaults to 30), keeps the latest version of every edited post (the last id in `edit_history_post_ids`), expands `t.co` links back from the entities, undoes the API's HTML escaping (`&amp;`, `&lt;`, `&gt;`), removes the zero-width spaces `xc post-thread` puts before link dots and after sigils and prints the cells in posting order. This thread was posted by the simulator (`apps/sim`, `scripts/sim-run.ps1 world`) from the first cells of `prelude.spi`:
+A program can travel as a thread: each cell is split into posts of at most 280 weighted characters, each post starting
+with a `CELL k/n` line (the cell's name and the post's place in it, such as `p2 1/6`), and each post replies to the one
+before it. `xc thread ID` reads the author's posts of that conversation
+(`conversation_id:` and `from:` in one full-archive search from the root post's `created_at`, paged, so a thread of any
+age is found: `search/recent` only sees 7 days and `search/all` defaults to 30), keeps the latest version of every
+edited post (the last id in `edit_history_post_ids`), expands `t.co` links back from the entities, undoes the API's HTML
+escaping (`&amp;`, `&lt;`, `&gt;`), removes the zero-width spaces `xc post-thread` puts before link dots and after
+sigils and prints the cells in posting order. This thread was posted by the simulator (`apps/sim`,
+`scripts/sim-run.ps1 world`) from the first cells of `prelude.spi`:
 
 ```powershell
 xc thread 3000001
@@ -327,7 +359,11 @@ xc: 1 API request
 4
 ```
 
-A cell with a missing post is left out and named, and the exit code is 4. A cell lost with all its posts cannot be named, but the cell after it replies to a post that is not in the thread, so that cell is named instead (exit 4); a lost cell nothing replies to stays invisible. The e2e also reads back a thread of all of `posts.spi` with 3 rounds of edits and editing personas (one cell spans 48 posts and is rebuilt from its latest versions), and a copy of the thread above with a lost post, and checks each program byte for byte against the simulator's own record of what it posted.
+A cell with a missing post is left out and named, and the exit code is 4. A cell lost with all its posts cannot be
+named, but the cell after it replies to a post that is not in the thread, so that cell is named instead (exit 4); a lost
+cell nothing replies to stays invisible. The e2e also reads back a thread of all of `posts.spi` with 3 rounds of edits
+and editing personas (one cell spans 48 posts and is rebuilt from its latest versions), and a copy of the thread above
+with a lost post, and checks each program byte for byte against the simulator's own record of what it posted.
 
 ### Empty and partial results
 
@@ -342,7 +378,8 @@ xc: 2 API requests, 0 posts read, 0 shown
 xc: no posts matched
 ```
 
-If the API stops answering part way (out of credits, rate limited), what was already read is still shown, then the reason, with exit code 4:
+If the API stops answering part way (out of credits, rate limited), what was already read is still shown, then the
+reason, with exit code 4:
 
 ```powershell
 xc timeline --following mixed --max-following all; $LASTEXITCODE
@@ -351,7 +388,7 @@ xc timeline --following mixed --max-following all; $LASTEXITCODE
 ```text
 xc: 6 API requests, 4 posts read, 4 shown
 xc: home timeline of @mixed from 3 followed accounts
-xc: stopped early, showing what was read before: X API answered 429 for /2/users/107/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments: Too Many Requests
+xc: stopped early, showing what was read before: X API answered 429 for /2/users/107/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments&exclude=replies: Too Many Requests
 2026-10-15 08:30  @alice  lunch: ramen  [2 replies, 1 repost, 14 likes]
 2026-10-15 07:00  @mixed  reading what i can  [0 replies, 0 reposts, 0 likes]
 2026-10-15 04:00  @alice  morning run done  [0 replies, 0 reposts, 0 likes]
@@ -390,7 +427,9 @@ xc delete 9001
 deleted 9001
 ```
 
-With OAuth 1.0a keys, every write is signed (the stub verifies the HMAC-SHA1 signature with Python's own implementation, which first reproduces X's published example):
+With OAuth 1.0a keys, every write is signed
+(the simulator's serve verifies the HMAC-SHA1 signature with lib crypto's own implementation, which first reproduces
+X's published example):
 
 ```powershell
 $env:X_OAUTH2_ACCESS_TOKEN = $null; $env:X_CONSUMER_KEY = 'e2e-consumer-key'; $env:X_CONSUMER_SECRET = 'e2e-consumer-secret'; $env:X_OAUTH1_ACCESS_TOKEN = '110-e2e-access-token'; $env:X_OAUTH1_ACCESS_TOKEN_SECRET = 'e2e-access-token-secret'; xc post "signed: 100% & done"; xc delete 9002
@@ -435,17 +474,26 @@ xc: posting needs user credentials: X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_
 
 ### Posting a program as a thread
 
-`xc post-thread FILE` is the other half of `xc thread`: it cuts FILE into cells at each blank line that comes before a line starting at column 0, splits each cell into `CELL k/n` posts of at most 280 weighted characters (CJK and emoji weigh 2), cuts between words, never ends a post on whitespace (X trims it), and posts them as one reply chain. X turns anything that looks like a domain into a `t.co` link and keeps no trace of how it was written (`listm.map` and `https://listm.map` come back with the same entities), so a dot that would make a link gets a zero-width space (U+200B, weight 1) before it: one whose last label is a known top-level domain (`spiral/apps/cells/data/tlds.txt`, the IANA list; a two-letter one only after a label longer than two letters, so `x.io` stays plain), not right after `@`, `/` or a non-ASCII glyph, plus `t.co`. `listm.map` is defused (`.map` is a top-level domain), `listm.foldBack` is not. An `@`, `#` or `$` that X would turn into a mention, hashtag or cashtag gets the space after the sigil. X links and tags nothing, and `xc thread` removes the spaces. `--dry-run` shows the posts and what creating them costs without sending anything:
+`xc post-thread FILE` is the other half of `xc thread`: it cuts FILE into cells at each blank line that comes before a
+line starting at column 0, splits each cell into `CELL k/n` posts of at most 280 weighted characters
+(CJK and emoji weigh 2), cuts between words, never ends a post on whitespace (X trims it), and posts them as one reply
+chain. X turns anything that looks like a domain into a `t.co` link and keeps no trace of how it was written
+(`listm.map` and `https://listm.map` come back with the same entities), so a dot that would make a link gets a
+zero-width space (U+200B, weight 1) before it: one whose last label is a known top-level domain
+(lib `tlds`, the IANA list; a two-letter one only after a label longer than two letters, so `x.io` stays plain), not
+right after `@`, `/` or a non-ASCII glyph, plus `t.co`. `listm.map` is defused (`.map` is a top-level domain),
+`listm.foldBack` is not. An `@`, `#` or `$` that X would turn into a mention, hashtag or cashtag gets the space after
+the sigil. X links and tags nothing, and `xc thread` removes the spaces. `--dry-run` shows the posts and what creating
+them costs without sending anything:
 
 ```powershell
 xc post-thread --dry-run checks/checks.spi
 ```
 
 ```text
---- post 1 of 9, weight 68
+--- post 1 of 9, weight 58
 c1 1/1
 ///- --package ..
-///> rust
 :# checks static =
     :< testing
 --- post 2 of 9, weight 41
@@ -475,17 +523,17 @@ c6 1/1
 --- post 7 of 9, weight 87
 c7 1/1
 := username_or_empty (t : string) : string = username_of_text t |> text_or_empty
---- post 8 of 9, weight 263
+--- post 8 of 9, weight 273
 c8 1/1
+///> rust
 :# counts_and_usernames_have_empty_answers =
     := ~t = "12"
     count_or_none t |> _assert_eq 12i32
     (count_or_none "1x" < 0i32) |> _assert_eq !+
     username_or_empty ("@" ++# "bob") |> _assert_eq "bob"
     username_or_empty "al-ice" |> _assert_eq ""
---- post 9 of 9, weight 248
+--- post 9 of 9, weight 241
 c9 1/1
-///> _
 := main () : i32 =
     export "xc_count" ((\ t => count_or_none t) : string -> i32)
     export "xc_date" ((\ t => date_or_empty t) : string -> string)
@@ -534,7 +582,6 @@ xc thread 9003
 ```text
 xc: 2 API requests
 ///- --package ..
-///> rust
 :# checks static =
     :< testing
 :< sm'_operators
@@ -552,13 +599,13 @@ xc: 2 API requests
 := date_or_empty (t : string) : string =
     ? shaped "9999-99-99" t ?> local_midnight t |: text_or_empty (date_of_text t)
 := username_or_empty (t : string) : string = username_of_text t |> text_or_empty
+///> rust
 :# counts_and_usernames_have_empty_answers =
     := ~t = "12"
     count_or_none t |> _assert_eq 12i32
     (count_or_none "1x" < 0i32) |> _assert_eq !+
     username_or_empty ("@" ++# "bob") |> _assert_eq "bob"
     username_or_empty "al-ice" |> _assert_eq ""
-///> _
 := main () : i32 =
     export "xc_count" ((\ t => count_or_none t) : string -> i32)
     export "xc_date" ((\ t => date_or_empty t) : string -> string)
@@ -584,7 +631,9 @@ deleted 9004
 deleted 9003
 ```
 
-A thread cut short by an error (for example X's per-user posting limit) resumes from its root. The error already ends with the command to run, `xc post-thread --resume ROOT_ID FILE`, which reads your posts of that thread, checks they are the file's first posts, and posts the rest:
+A thread cut short by an error (for example X's per-user posting limit) resumes from its root. The error already ends
+with the command to run, `xc post-thread --resume ROOT_ID FILE`, which reads your posts of that thread, checks they are
+the file's first posts, and posts the rest:
 
 ```powershell
 xc post-thread --resume 9101 checks/checks.spi
@@ -607,24 +656,33 @@ xc post-thread --resume 9201 checks/checks.spi; $LASTEXITCODE
 ```
 
 ```text
-xc: post 2 of the thread differs from post 2 of the file (found 'c2 1/1', planned 'c2 1/1'); nothing posted
+xc: post 2 of the thread differs from post 2 of the file, line 4 (found ':< cli edited', planned ':< cli'); nothing posted
 4
 ```
 
 ### Posting threads to Mastodon and Bluesky
 
-`xc post-thread` can post the same thread to other sites. `XC_SITE` picks the site (`x` when unset); every other command still talks to X.
+`xc post-thread` can post the same thread to other sites. `XC_SITE` picks the site (`x` when unset); every other command
+still talks to X.
 
-- `XC_SITE=mastodon` posts to `MASTODON_BASE_URL` with `MASTODON_ACCESS_TOKEN`. A post holds up to 500 characters (graphemes), and every `http://` or `https://` link counts as at least 23, as Mastodon counts it. Dots are not defused, since Mastodon only links URLs that start with a scheme.
-- `XC_SITE=bluesky` signs in once per thread with `BLUESKY_IDENTIFIER` and `BLUESKY_APP_PASSWORD` (an app password, not your account password) against `BLUESKY_BASE_URL` (default `https://bsky.social`), then posts each part as an `app.bsky.feed.post` record that replies to the previous part and names the thread root. A post holds up to 300 graphemes and 3,000 bytes.
+- `XC_SITE=mastodon` posts to `MASTODON_BASE_URL` with `MASTODON_ACCESS_TOKEN`. A post holds up to 500 characters
+  (graphemes), and every `http://` or `https://` link counts as at least 23, as Mastodon counts it. Dots are not
+  defused, since Mastodon only links URLs that start with a scheme.
+- `XC_SITE=bluesky` signs in once per thread with `BLUESKY_IDENTIFIER` and `BLUESKY_APP_PASSWORD`
+  (an app password, not your account password) against `BLUESKY_BASE_URL` (default `https://bsky.social`), then posts
+  each part as an `app.bsky.feed.post` record that replies to the previous part and names the thread root. A post holds
+  up to 300 graphemes and 3,000 bytes.
 - `xc post-thread --dry-run` shows the split for the chosen site; only X's split shows a price.
-- `xc delete-thread` and `xc post-thread --resume` find the thread's posts through X's API, so with another `XC_SITE` they exit 2 instead of reading X for posts that live elsewhere; `xc post` and `xc delete` work on every site.
+- `xc delete-thread` and `xc post-thread --resume` find the thread's posts through X's API, so with another `XC_SITE`
+  they exit 2 instead of reading X for posts that live elsewhere; `xc post` and `xc delete` work on every site.
 - Any other `XC_SITE` value exits 2.
 
 The tests post to local stand-ins for both sites (`e2e/social_stub.ps1`), so they cost nothing and need no account.
 ### Renewing the OAuth 2.0 token
 
-An OAuth 2.0 access token lasts 2 hours. `xc refresh FILE` trades `X_OAUTH2_REFRESH_TOKEN` for a new access token and a new refresh token (X accepts each refresh token once) and rewrites those two lines of the env file in place, keeping every other line; nothing secret is printed:
+An OAuth 2.0 access token lasts 2 hours. `xc refresh FILE` trades `X_OAUTH2_REFRESH_TOKEN` for a new access token and a
+new refresh token (X accepts each refresh token once) and rewrites those two lines of the env file in place, keeping
+every other line; nothing secret is printed:
 
 ```powershell
 Push-Location ([IO.Path]::GetTempPath()); Set-Content xc-refresh.env "X_BEARER_TOKEN=kept`nX_OAUTH2_ACCESS_TOKEN=old`nX_OAUTH2_REFRESH_TOKEN=e2e-refresh-token"; $env:X_OAUTH2_CLIENT_ID = 'e2e-client-id'; $env:X_OAUTH2_CLIENT_SECRET = 'e2e-client-secret'; $env:X_OAUTH2_REFRESH_TOKEN = 'e2e-refresh-token'; xc refresh xc-refresh.env; (Get-Content xc-refresh.env) -replace '=.*', '=...'; Pop-Location
@@ -666,7 +724,7 @@ xc timeline broke; $LASTEXITCODE
 
 ```text
 xc: 2 API requests, 0 posts read, 0 shown
-xc: X API answered 402 for /2/users/106/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments: CreditsDepleted: Your enrolled account does not have any credits to fulfill this request.
+xc: X API answered 402 for /2/users/106/tweets?max_results=5&post.fields=created_at,author_id,public_metrics,entities,attachments&exclude=replies: CreditsDepleted: Your enrolled account does not have any credits to fulfill this request.
 4
 ```
 
@@ -701,7 +759,7 @@ env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
        --per-author N    entries shown per author (default all)
        --start-time DATE posts at or after DATE (YYYY-MM-DD, local midnight, or YYYY-MM-DDTHH:MM:SSZ)
        --end-time DATE   posts before DATE
-       --all             replies too (hidden by default, like a profile's Posts tab)
+       --all            replies too (hidden by default, like a profile's Posts tab)
        --no-reposts      hide reposts; --originals hides replies and reposts
        --depth N         referenced posts (quoted, replied to, reposted), 0..3 (default 0)
        --hints           media alt text and url titles under each post
@@ -712,7 +770,9 @@ env:   X_BEARER_TOKEN (required), X_API_BASE_URL (default https://api.x.com)
 
 ## 4. What a run costs
 
-Pay-per-use prices (docs.x.com, October 2026): $0.010 per user returned by a lookup, $0.010 per account returned by a following list, $0.005 per post returned, $0.015 per post created; a resource read again within the same UTC day is billed once.
+Pay-per-use prices (docs.x.com, October 2026): $0.010 per user returned by a lookup, $0.010 per account returned by a
+following list, $0.005 per post returned, $0.015 per post created; a resource read again within the same UTC day is
+billed once.
 
 | Run | Requests | Worst case |
 | --- | --- | --- |
@@ -721,9 +781,13 @@ Pay-per-use prices (docs.x.com, October 2026): $0.010 per user returned by a loo
 | `xc timeline --following h --max-following all` (500 follows) | 1 lookup + 1 following page + 501 post reads | $0.01 + $5.00 + 2,505 posts = $17.535 |
 | `xc thread ID` (a 115-post thread, edit versions included) | 1 post lookup + 2 search pages | 116 posts = $0.58 |
 
-Reply, repost and like counts come with every post read: they are the `public_metrics` field in the `post.fields` the requests already send, so they add no request and no billed resource, only about 120 bytes per post. The API returns six counters (`reply_count`, `repost_count`, `like_count`, `quote_count`, `bookmark_count`, `impression_count`); `xc` shows the first three.
+Reply, repost and like counts come with every post read: they are the `public_metrics` field in the `post.fields` the
+requests already send, so they add no request and no billed resource, only about 120 bytes per post. The API returns six
+counters (`reply_count`, `repost_count`, `like_count`, `quote_count`, `bookmark_count`, `impression_count`); `xc` shows
+the first three.
 
-`--start-time`, `--end-time` and `--originals` lower the post term; `--per-author` and `--limit` only change what is shown. `--depth N` adds up to N-1 lookups of referenced posts and one user lookup.
+`--start-time`, `--end-time` and `--originals` lower the post term; `--per-author` and `--limit` only change what is
+shown. `--depth N` adds up to N-1 lookups of referenced posts and one user lookup.
 
 ## 5. Live samples
 
@@ -768,19 +832,33 @@ Reposts show the original in full, quotes are followed:
 
 What you can build on `xc` today:
 
-- **Watch accounts cheaply:** a scheduled `xc timeline --start-time <yesterday> --originals a b c` only pays for new original posts.
-- **Read someone's home timeline** without their login: `--following h` rebuilds it from the accounts they follow (cap it; follows cost $0.010 each).
+- **Watch accounts cheaply:** a scheduled `xc timeline --start-time <yesterday> --originals a b c` only pays for new
+  original posts.
+- **Read someone's home timeline** without their login: `--following h` rebuilds it from the accounts they follow
+  (cap it; follows cost $0.010 each).
 - **Follow conversations:** `--depth 3` shows what a post quotes, answers or reposts.
-- **Post from scripts or CI:** `xc post` and `xc delete` with OAuth 1.0a keys that never expire, exit codes for every failure; `xc refresh` renews an OAuth 2.0 user token in place.
-- **Publish a program as a thread:** `xc post-thread FILE` (try `--dry-run` first, remove it with `xc delete-thread ID`), and anyone reads it back with `xc thread ID`: any age, latest edits, missing posts and missing cells named. `xc`'s own source travels this way: every top-level definition fits 280 weight (`edition: 3`), and every cell fits one post with its `CELL k/n` header line (`build.ps1` prints the post total for the whole client and names any cell that needs two). To run what a thread carries, save it (`xc thread ID > program.spi`) and, `scripts/sim-run.ps1 thread_run --file apps/client/oauth1.spi --program program.spi` evaluates both under Cells and passes only when the thread has the file's cells and every test verdict matches.
+- **Post from scripts or CI:** `xc post` and `xc delete` with OAuth 1.0a keys that never expire, exit codes for every
+  failure; `xc refresh` renews an OAuth 2.0 user token in place.
+- **Publish a program as a thread:** `xc post-thread FILE`
+  (try `--dry-run` first, remove it with `xc delete-thread ID`), and anyone reads it back with `xc thread ID`: any age,
+  latest edits, missing posts and missing cells named. `xc`'s own source travels this way: every top-level definition
+  fits 280 weight (`edition: 3`), and every cell fits one post with its `CELL k/n` header line
+  (`build.ps1` prints the post total for the whole client and names any cell that needs two). To run what a thread
+  carries, save it (`xc thread ID > program.spi`) and,
+  `scripts/sim-run.ps1 thread_run --file apps/client/oauth1.spi --program program.spi` evaluates both under Cells and
+  passes only when the thread has the file's cells and every test verdict matches.
 - **Agents as users:** `--json` gives one JSON object per entry, so an agent can call `xc` as a tool.
-- **Run anywhere:** one static binary; credentials only from environment variables, so a Kubernetes secret maps onto it directly.
+- **Run anywhere:** one static binary; credentials only from environment variables, so a Kubernetes secret maps onto it
+  directly.
 
 Where it is going (backlog items in i574n.github/docs/backlog):
 
 - **Running what a thread carries** (X-CLIENT-THREADS): hand the rebuilt program to Cells and report its test results.
-- **The simulated world** (`apps/sim`, SIM-IN-SPIRAL): many users posting, editing, liking and breaking Spiral cells, with delayed and duplicated deliveries, recorded as a versioned event stream (`apps/sim/fixtures`); the live client is its real-world counterpart. Rewritten in Spiral alongside Cells.
-- **X as NEAR contracts** (X-ON-NEAR, X-FEDERATION-BRIDGES): the simulator as spec and oracle for a contract rewrite that stays Mastodon and Bluesky compatible.
+- **The simulated world** (`apps/sim`, SIM-IN-SPIRAL): many users posting, editing, liking and breaking Spiral cells,
+  with delayed and duplicated deliveries, recorded as a versioned event stream (`apps/sim/fixtures`); the live client is
+  its real-world counterpart. Rewritten in Spiral alongside Cells.
+- **X as NEAR contracts** (X-ON-NEAR, X-FEDERATION-BRIDGES): the simulator as spec and oracle for a contract rewrite
+  that stays Mastodon and Bluesky compatible.
 
 ## 7. How it is built
 
@@ -792,7 +870,6 @@ Shared modules, compiled into every crate that opens them:
 | `paging.spi` | a `pager e` (a token to a page or an `e`) walked until the last page; `xc_thread` injects its search requests, the tests a fake |
 | `glyphs.spi` | the only per-backend text primitives (graphemes, NFC, X weights, whitespace, code points, `split_all`, which splits a whole stream in one pass) as Rust/Gleam pairs, so everything above them compiles to both |
 | `protocol.spi` | `cell_id`, a nominal string for the cell name that frames, flaws and the sim world are keyed on; `post_id`, a nominal string for an X post id (`post_text` unwraps it at the wire and JSON edges, `same_post` compares, `optional_post` reads an absent parent as `None`); the `cN k/n` frame header, rendered by the writer and parsed by the reader from one definition (`header_rejection` says why a line is no header), and `thread_flaw` (`MissingFrames`, `ReplyGap`) with its notes and exit code |
-| `tlds.spi` | the known top-level domains, in chunks of literals for `is_tld` |
 | `defuse.spi` | links-only defusing: a dot gets a zero-width space only where X would link it, a mention, hashtag or cashtag sigil gets one after it; `restored_text` undoes both |
 | `splitter.spi` | a file to its cells and each cell to posts of at most 280 weight: posted text defused per site (`posted_on`), cuts between words, the `--dry-run` preview and price |
 | `posts.spi` | `user_id`, a nominal string so a user id never mixes with a `post_id`; posts, references, urls and media, framed thread posts and which edit is `latest`; display entries and their one-line form between crates; newest-first merge sort, per-author caps, reference trees and hints |
@@ -802,7 +879,13 @@ Shared modules, compiled into every crate that opens them:
 | `wire.spi` | `reads r` and `writes r`, GADTs indexed by their reply, so a request determines its reply type; one users read keyed by names or ids; `api app_context` and `api user_context`, so a client built from the app token cannot write; JSON (`serde_json`) primitives; typed failures |
 | `transport.spi` | requests through `xc_net`, reply classification, `id:username` account lines |
 
-Each entry is one Rust crate, and every generated file stays reviewable: `scripts/gate.ps1` fails the build on any file over 1,000 lines. A crate that would exceed that is split by hand into sibling crates that call each other's exports: `api` classifies X replies for every crate that fetches, `chain` reads a thread's pages from `thread`, `cells` and `preview` sit beside `frames`, `select` orders entries for `view` and `jsonl`, `timeline` parses what `args` hands it, and `resume` plans what `write` posts. The build also runs Cells' generic budget check (`mix spiral.cell_budget --check` through `Assert-CellBudget` in `scripts/common.ps1`) and requires 0 findings, so every top-level definition fits one 280-weight cell. Crates exchange strings, numbers and tuples:
+Each entry is one Rust crate, and every generated file stays reviewable: `scripts/gate.ps1` fails the build on any file
+over 1,000 lines. A crate that would exceed that is split by hand into sibling crates that call each other's exports:
+`api` classifies X replies for every crate that fetches, `chain` reads a thread's pages from `thread`, `cells` and
+`preview` sit beside `frames`, `select` orders entries for `view` and `jsonl`, `timeline` parses what `args` hands it,
+and `resume` plans what `write` posts. The build also runs Cells' generic budget check
+(`mix spiral.cell_budget --check` through `Assert-CellBudget` in `scripts/common.ps1`) and requires 0 findings, so every
+top-level definition fits one 280-weight cell. Crates exchange strings, numbers and tuples:
 
 | Crate | Entry | Role |
 | --- | --- | --- |
@@ -829,4 +912,26 @@ Each entry is one Rust crate, and every generated file stays reviewable: `script
 | `xc_token` | `token/token.spi` | OAuth 2.0 token renewal and the in-place env file rewrite (`xc refresh`) |
 | `xc` | `xc/xc.spi` | entry: environment, credentials, the order of calls, exit codes, output |
 
-Every crate entry is a Cells notebook too: `///- --package ..` puts them in this package, Cells skips the export cell by its shape (an entry that only registers exports), and their tests cover the pure functions; `build.ps1` runs them with the shared modules. Tests: the test blocks of `paging`, `glyphs`, `protocol`, `splitter` and `reading` run on both Rust (with the `unicode-segmentation` and `unicode-normalization` crates) and Gleam, and must print the same, which is how the splitter is kept ready for the simulator's BEAM port; `reading`'s post a file with CJK, a link-like dot and a long cell, read the posts back and must get exactly the file's cells, and a dropped post must leave its cell `Holed`; those of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`) over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with a created post, the app token cannot write, and an app context cannot be signed with OAuth 1.0a keys. The e2e replays this page against `e2e/stub.py` (`e2e/e2e.ps1 -Accept` rewrites its outputs after an intended change; review the diff), whose world includes four threads the simulator posted (complete, edited three times, missing one post, missing a whole cell) (`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`); `xc post-thread` must write exactly the posts the simulator makes of `oauth1.spi` (`e2e/thread-oauth1.expected.json`, from `scripts/sim-run.ps1 frames`); the simulator splits with the same `splitter.spi` compiled to Gleam (`apps/sim/spi/simframes/simframes.spi`, built by `apps/sim/build.ps1` into `apps/sim/frames`, then split by `scripts/gleam-modules.ps1` into modules of at most 1,000 lines), so this checks that the Rust and BEAM builds of one splitter agree, each replying to the one before, `xc thread` must read the file back, and `xc delete-thread` must remove every one of those posts. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>` HTML-escaped.
+Every crate entry is a Cells notebook too: `///- --package ..` puts them in this package, Cells skips the export cell by
+its shape (an entry that only registers exports), and their tests cover the pure functions; `build.ps1` runs them with
+the shared modules. Tests: the test blocks of `paging`, `glyphs`, `protocol`, `splitter` and `reading` run on both Rust
+(with the `unicode-segmentation` and `unicode-normalization` crates) and Gleam, and must print the same, which is how
+the splitter is kept ready for the simulator's BEAM port; `reading`'s post a file with CJK, a link-like dot and a long
+cell, read the posts back and must get exactly the file's cells, and a dropped post must leave its cell `Holed`; those
+of `prelude`, `posts`, `cli`, `wire` and `transport` run on Zig; `oauth1`'s run on Rust (std only) and check the base
+string against X's published example; `wire`'s decoder tests run on Rust with `serde_json` (`///> rust -d serde_json`)
+over small JSON documents; negative tests prove that a users lookup is not a posts read, a deletion does not reply with
+a created post, the app token cannot write, and an app context cannot be signed with OAuth 1.0a keys. The e2e replays
+this page against the simulator's X API server (`scripts/sim-run.ps1 serve`; `e2e/e2e.ps1 -Accept` rewrites its
+outputs after an intended change; review the diff),
+whose world includes four threads the simulator posted
+(complete, edited three times, missing one post, missing a whole cell)
+(`e2e/sim-*.world.json`, regenerated and compared by `apps/sim/build.ps1`, rewritten by its `-Accept` after the posted
+sources change), and checks `xc thread` against the simulator's record of each program (`e2e/sim-*.expected.json`);
+`xc post-thread` must write exactly the posts the simulator makes of `oauth1.spi` (`e2e/thread-oauth1.expected.json`,
+from `scripts/sim-run.ps1 frames`); the simulator splits with the same `splitter.spi` compiled to Gleam
+(`apps/sim/spi/simframes/simframes.spi`, built by `apps/sim/build.ps1` into `apps/sim/frames`, then split by
+`scripts/gleam-modules.ps1` into modules of at most 1,000 lines), so this checks that the Rust and BEAM builds of one
+splitter agree, each replying to the one before, `xc thread` must read the file back, and `xc delete-thread` must remove
+every one of those posts. Like X, the stub trims trailing whitespace from posts and returns text with `&`, `<` and `>`
+HTML-escaped.

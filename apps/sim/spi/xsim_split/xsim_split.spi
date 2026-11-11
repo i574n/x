@@ -9,7 +9,7 @@
 :< splitter
 
 := split_joined (label : string) (limit : i32) (source : string) : string =
-    split_cell (cell_id label) limit source |> delimited (char_of 0i32)
+    split_cell (cell_id label) limit source |> delimited (char_of 0)
 
 ///> gleam
 :# joined_chunks_split_back_into_the_same_cells =
@@ -31,4 +31,4 @@
     joined_export ()
     export "file_cells" ((\ text => file_cells text) : string -> list string)
     export "thread_posts" ((\ text => posts_of text) : string -> list string)
-    0i32
+    0

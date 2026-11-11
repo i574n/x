@@ -150,27 +150,27 @@
 := escaped_char (c : string) : string =
     ? c = "n"
     ?> "\n" |? c = "t" ?> "\t" |? c = "r" ?> "\r"
-    |? c = "b" ?> char_of 8i32 |? c = "f" ?> char_of 12i32 |: c
+    |? c = "b" ?> char_of 8 |? c = "f" ?> char_of 12 |: c
 
 :~ hex_at (s : string) (i : i32) : i32 =
-    := d = sm'::index_of (cut i 1i32 s) "0123456789abcdefABCDEF"
-    ? d < 16i32 ?> d |: d - 6i32
+    := d = sm'::index_of (cut i 1 s) "0123456789abcdefABCDEF"
+    ? d < 16 ?> d |: d - 6
 
 := code_at (s : string) (i : i32) : i32 =
-    ((hex_at s i * 16i32 + hex_at s (i + 1i32)) * 16i32 + hex_at s (i + 2i32)) * 16i32 + hex_at s (i + 3i32)
+    ((hex_at s i * 16 + hex_at s (i + 1)) * 16 + hex_at s (i + 2)) * 16 + hex_at s (i + 3)
 
 := escape_step (s : string) (i : i32) : string * i32 =
-    := c = cut i 1i32 s
-    ? c = "u" ?> char_of (code_at s (i + 1i32)), i + 5i32 |: escaped_char c, i + 1i32
+    := c = cut i 1 s
+    ? c = "u" ?> char_of (code_at s (i + 1)), i + 5 |: escaped_char c, i + 1
 
-:= escape_first (q : i32) (b : i32) : bool = b >= 0i32 && (q < 0i32 || b < q)
+:= escape_first (q : i32) (b : i32) : bool = b >= 0 && (q < 0 || b < q)
 
 := escaped_on (s : string) (i : i32) (b : i32) (acc : string) : string * i32 =
-    := c, next = escape_step s (i + b + 1i32)
+    := c, next = escape_step s (i + b + 1)
     acc ++# cut i b s ++# c, next
 
 := closed_at (s : string) (i : i32) (q : i32) (acc : string) : scanned =
-    ? q < 0i32 ?> { text = acc; resume_at = -1i32 } |: { text = acc ++# cut i q s; resume_at = i + q + 1i32 }
+    ? q < 0 ?> { text = acc; resume_at = -1 } |: { text = acc ++# cut i q s; resume_at = i + q + 1 }
 
 := marks (s : string) (i : i32) : i32 * i32 = sm'::index_of "\"" (rest_from i s), sm'::index_of "\\" (rest_from i s)
 
@@ -184,39 +184,39 @@
     := e = digits_end s i
     ?= count_of_text (cut i (e - i) s) ?|
     | Some n => Whole n, e
-    | None => Null, -1i32
+    | None => Null, -1
 
 := text_value (r : scanned) : json_value * i32 = Text r::text, r::resume_at
 
 := value_from (s : string) (i : i32) : json_value * i32 =
     ? starts_at "\"" s i
-    ?> text_value (string_from s (i + 1i32) "")
+    ?> text_value (string_from s (i + 1) "")
     |? starts_at "null" s i
-    ?> Null, i + 4i32
-    |? i >= 0i32 && i < sm'::length s
+    ?> Null, i + 4
+    |? i >= 0 && i < sm'::length s
     ?> number_from s i
-    |: Null, -1i32
+    |: Null, -1
 
 := field_from (s : string) (i : i32) : json_field * i32 =
-    := k = string_from s (i + 1i32) ""
-    := v, next = ? starts_at ":" s k::resume_at ?> value_from s (k::resume_at + 1i32) |: Null, -1i32
+    := k = string_from s (i + 1) ""
+    := v, next = ? starts_at ":" s k::resume_at ?> value_from s (k::resume_at + 1) |: Null, -1
     { key = k::text; value = v }, next
 
-:= no_field () : json_field * i32 = { key = ""; value = Null }, -1i32
+:= no_field () : json_field * i32 = { key = ""; value = Null }, -1
 
 := field_at (s : string) (i : i32) : json_field * i32 = ? starts_at "\"" s i ?> field_from s i |: no_field ()
 
-:= closes (s : string) (i : i32) : bool = starts_at "}" s i && i + 1i32 = sm'::length s
+:= closes (s : string) (i : i32) : bool = starts_at "}" s i && i + 1 = sm'::length s
 
 :~ ^ fields_from (s : string) (i : i32) (acc : fields) : option fields =
     := f, next = field_at s i
     ? starts_at "," s next
-    ?> fields_from s (next + 1i32) (f :: acc)
+    ?> fields_from s (next + 1) (f :: acc)
     |? closes s next
     ?> Some (listm::rev ((f :: acc)))
     |: None
 
-:= fields_of_line (line : string) : option fields = ? starts_at "{" line 0i32 ?> fields_from line 1i32 [] |: None
+:= fields_of_line (line : string) : option fields = ? starts_at "{" line 0 ?> fields_from line 1 [] |: None
 
 :~ value_of (key : string) (l : fields) : json_value =
     ?= first_where (\ (f : json_field) => f::key = key) l ?|
@@ -231,7 +231,7 @@
 :~ count_at (key : string) (l : fields) : i32 =
     ?= value_of key l ?|
     | Whole n => n
-    | _ => -1i32
+    | _ => -1
 
 :~ parent_at (l : fields) : option string =
     ?= value_of "parent" l ?|
@@ -288,7 +288,7 @@
 
 := header_ok (line : string) : bool =
     ?= fields_of_line line ?|
-    | Some l => text_at "format" l = "xsim-events" && count_at "version" l = 1i32
+    | Some l => text_at "format" l = "xsim-events" && count_at "version" l = 1
     | None => !-
 
 :~ ^ all_decoded (l : list string) (acc : list delivery) : result (list delivery) string =
@@ -333,27 +333,27 @@
     := ~header = stream_header ()
     stream [] |> _assert_eq (header ++# "\n")
 
-:= posted_one () : delivery = { at = 0i32; event = Content (Posted { post_id = "p0"; parent = None; source = "x" }) }
+:= posted_one () : delivery = { at = 0; event = Content (Posted { post_id = "p0"; parent = None; source = "x" }) }
 
 := framed_one () : delivery =
     {
-        at = 1i32
+        at = 1
         event =
             Content (
-                Framed { post_id = "p1"; parent = Some "p0"; part = { k = 2i32; n = 3i32; body = "a \"q\"\n\tb" } }
+                Framed { post_id = "p1"; parent = Some "p0"; part = { k = 2; n = 3; body = "a \"q\"\n\tb" } }
             )
     }
 
 := revised_one () : delivery =
     {
-        at = 2i32
-        event = Revision (FrameEdited { post_id = "p1"; rev = 1i32; part = { k = 1i32; n = 1i32; body = "é" } })
+        at = 2
+        event = Revision (FrameEdited { post_id = "p1"; rev = 1; part = { k = 1; n = 1; body = "é" } })
     }
 
-:= reacted_one () : delivery = { at = 4i32; event = Reaction (Unliked { post_id = "p1"; user = "u2" }) }
+:= reacted_one () : delivery = { at = 4; event = Reaction (Unliked { post_id = "p1"; user = "u2" }) }
 
 := sample_deliveries () : list delivery =
-    [ posted_one (); framed_one (); revised_one (); { at = 3i32; event = Revision (Deleted "p0") }; reacted_one () ]
+    [ posted_one (); framed_one (); revised_one (); { at = 3; event = Revision (Deleted "p0") }; reacted_one () ]
 
 := reencoded (text : string) : string =
     ?= decoded_stream text ?|

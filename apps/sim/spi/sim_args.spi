@@ -30,28 +30,28 @@
     | RunRejected : string
 
 := default_corpus () : corpus_options =
-    { spi = []; spi_file = ""; cells = -1i32; breaking = 0i32; churn = 0i32; personas = ""; frames = !- }
+    { spi = []; spi_file = ""; cells = -1; breaking = 0; churn = 0; personas = ""; frames = !- }
 
 := default_schedule () : schedule_options =
-    { seed = 1i32; users = 8i32; edits = 3i32; schedules = 2i32; duplicates_permille = 100i32; replay = ""; save = "" }
+    { seed = 1; users = 8; edits = 3; schedules = 2; duplicates_permille = 100; replay = ""; save = "" }
 
 := default_runner () : runner_options =
-    { executor = FakeExecutor; max_concurrency = 4i32; eviction = NoEviction; pace_ms = 0i32; memo = !-
+    { executor = FakeExecutor; max_concurrency = 4; eviction = NoEviction; pace_ms = 0; memo = !-
         daemon_memory = !- }
 
 := default_run () : run_options =
     { corpus = default_corpus (); schedule = default_schedule (); runner = default_runner () }
 
-:= padded_permille (fraction : string) : string = cut 0i32 3i32 (fraction ++# "000")
+:= padded_permille (fraction : string) : string = cut 0 3 (fraction ++# "000")
 
 := whole_permille (whole : string) : option i32 =
     ?= count_of_text whole ?|
-    | Some w => Some (w * 1000i32)
+    | Some w => Some (w * 1000)
     | None => None
 
 := fraction_permille (whole : string) (fraction : string) : option i32 =
     ?= count_of_text (? whole = "" ?> "0" |: whole), count_of_text (padded_permille fraction) ?|
-    | Some w, Some f ?& sm'::length fraction <= 3i32 => Some (w * 1000i32 + f)
+    | Some w, Some f ?& sm'::length fraction <= 3i32 => Some (w * 1000 + f)
     | _ => None
 
 := permille_of (text : string) : option i32 =
@@ -212,7 +212,7 @@
 := run_option_valued (o : run_options) (name : string) (value : string) : parsed_run =
     ?= any_value o name value ?| Some r => r | None => RunRejected ("unknown option --" ++# name)
 
-:= flag_name (arg : string) : string = ? sm'::starts_with "--" arg ?> rest_from 2i32 arg |: ""
+:= flag_name (arg : string) : string = ? sm'::starts_with "--" arg ?> rest_from 2 arg |: ""
 
 :== flag_rules o = { switched : o -> string -> option o; valued : o -> string -> string -> result o string }
 
@@ -246,7 +246,7 @@
 
 := run_rules () : flag_rules run_options = { switched = switch_value; valued = run_valued }
 
-:= missing_spi (o : run_options) : bool = (listm::length o::corpus::spi : i32) = 0i32 && o::corpus::spi_file = ""
+:= missing_spi (o : run_options) : bool = (listm::length o::corpus::spi : i32) = 0 && o::corpus::spi_file = ""
 
 := run_args (o : run_options) (args : list string) : parsed_run =
     ?= flags_parsed (run_rules ()) o args ?|
@@ -264,8 +264,8 @@
         frames : bool; out : string; expected : string }
 
 := default_events () : events_options =
-    { spi = ""; cells = -1i32; seed = 1i32; users = 3i32; edits = 1i32; personas = "";
-        duplicates_permille = 200i32; frames = !-; out = ""; expected = "" }
+    { spi = ""; cells = -1; seed = 1; users = 3; edits = 1; personas = "";
+        duplicates_permille = 200; frames = !-; out = ""; expected = "" }
 
 := counted (name : string) (value : string) (set : i32 -> events_options) : result events_options string =
     ?= count_of_text value ?|
@@ -325,12 +325,12 @@
         id_base : i32; user_id : string; username : string; lost : i32; lost_cells : i32; base_time : string }
 
 := blank_world () : world_options =
-    { spi = ""; out = ""; expected = ""; cells = -1i32; seed = 1i32; edits = 0i32; personas = ""; id_base = 0i32
-        user_id = ""; username = ""; lost = 0i32; lost_cells = 0i32; base_time = "" }
+    { spi = ""; out = ""; expected = ""; cells = -1; seed = 1; edits = 0; personas = ""; id_base = 0
+        user_id = ""; username = ""; lost = 0; lost_cells = 0; base_time = "" }
 
 := default_world () : world_options =
     := w = blank_world ()
-    { w ?| id_base = 3000000i32; user_id = "500"; username = "spiralposts"; base_time = "2026-10-18T08:00:00Z" }
+    { w ?| id_base = 3000000; user_id = "500"; username = "spiralposts"; base_time = "2026-10-18T08:00:00Z" }
 
 := world_run_number (o : world_options) (name : string) (n : i32) : option world_options =
     ? name = "cells"
@@ -444,7 +444,7 @@
 := diff_rules () : flag_rules diff_options = { switched = \ _ _ => None; valued = diff_valued }
 
 := diff_args (args : list string) : result diff_options string =
-    ?= flags_parsed (diff_rules ()) { spi = ""; cells = 5i32 } args ?|
+    ?= flags_parsed (diff_rules ()) { spi = ""; cells = 5 } args ?|
     | Ok o ?& o::spi = "" => Error "missing --spi"
     | parsed => parsed
 

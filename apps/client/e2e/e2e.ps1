@@ -78,9 +78,10 @@ try {
         $r = Invoke-Step $script $world.token
         $results[$script] = $r
         $outputs.Add($r.Text)
-        $accepted.Add([pscustomobject]@{ Index = $step.Groups[2].Index; Length = $step.Groups[2].Length; Text = $r.Text })
+        $refused = $Accept -and !$AcceptExitSteps -and $script -match 'LASTEXITCODE' -and $r.Text -cne $expected
+        if (!$refused) { $accepted.Add([pscustomobject]@{ Index = $step.Groups[2].Index; Length = $step.Groups[2].Length; Text = $r.Text }) }
         Check ($Accept -or $r.Text -ceq $expected) "tutorial step '$script'`n--- expected`n$expected`n--- actual`n$($r.Text)"
-        Check (!$Accept -or $AcceptExitSteps -or $script -notmatch 'LASTEXITCODE' -or $r.Text -ceq $expected) "accept would rewrite exit-code step '$script' (its exit code is part of the text); rerun with -AcceptExitSteps only if the new behaviour is intended`n--- expected`n$expected`n--- actual`n$($r.Text)"
+        Check (!$refused) "accept would rewrite exit-code step '$script' (its exit code is part of the text); kept as written, rerun with -AcceptExitSteps only if the new behaviour is intended`n--- expected`n$expected`n--- actual`n$($r.Text)"
         if ($script -notmatch 'LASTEXITCODE') { Check ($r.Exit -eq 0) "tutorial step '$script' exited $($r.Exit)" }
         Write-Output "x e2e / tutorial / $script / $(if ($r.Text -ceq $expected) { 'same' } else { 'DIFFERENT' }) / $($r.Requests.Count) request(s)"
     }

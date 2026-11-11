@@ -19,7 +19,7 @@
     sim_serve::text (sim_serve::field "token" (sim_serve::field "access_token" v))
 
 := session_of (base : string) (ca : string) (status : i32) (body : string) : option iggy =
-    ? status = 200i32 ?> Some { base; auth = "Bearer " ++# token_in body; ca } |: None
+    ? status = 200 ?> Some { base; auth = "Bearer " ++# token_in body; ca } |: None
 
 := logged_in (base : string) (ca : string) (o : erlang_http::http_outcome) : option iggy =
     session_of base ca (erlang_http::replied_status o) (erlang_http::replied_body o)

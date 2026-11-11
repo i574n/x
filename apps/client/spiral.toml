@@ -4,7 +4,6 @@ modules = '''
 prelude
 paging
 glyphs
-tlds
 defuse
 protocol
 splitter

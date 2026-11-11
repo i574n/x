@@ -34,11 +34,11 @@
     sync_run f (deliveries events seed { permille; window })
 
 := schedule_holds (events : flow) (schedule : i32) : bool =
-    := s = scheduled_run (plain_faults ()) events schedule 300i32 6i32
-    all_held s && dict::count s::visible_map > 0i32
+    := s = scheduled_run (plain_faults ()) events schedule 300 6
+    all_held s && dict::count s::visible_map > 0
 
 :~ ^ schedules_hold (events : flow) (schedule : i32) (last : i32) : bool =
-    ? schedule > last ?> !+ |: schedule_holds events schedule && schedules_hold events (schedule + 1i32) last
+    ? schedule > last ?> !+ |: schedule_holds events schedule && schedules_hold events (schedule + 1) last
 
 ///> rust -d sha2
 ///> gleam
@@ -47,8 +47,8 @@
     schedules_hold (from_cells (cast 3i32 5i32 3i32) "" cells)::all_events 1i32 6i32 |> _assert_eq !+
 
 := orders_commute (events : flow) : string =
-    := first = scheduled_run (plain_faults ()) events 1i32 100i32 6i32
-    runs_commute first (scheduled_run (plain_faults ()) events 9i32 500i32 12i32) |> verdict_text
+    := first = scheduled_run (plain_faults ()) events 1 100 6
+    runs_commute first (scheduled_run (plain_faults ()) events 9 500 12) |> verdict_text
 
 ///> rust -d sha2
 ///> gleam
@@ -57,17 +57,17 @@
     (from_cells (cast 5i32 4i32 2i32) "" cells)::all_events |> orders_commute |> _assert_eq "ok"
 
 := chain_head (a : string) : list delivery =
-    [ post_at 0i32 a None "inl a = 1"; post_at 1i32 "b" (Some a) "inl b = a + 1"
-      post_at 2i32 "c" (Some "b") "inl c = b + 1" ]
+    [ post_at 0 a None "inl a = 1"; post_at 1 "b" (Some a) "inl b = a + 1"
+      post_at 2 "c" (Some "b") "inl c = b + 1" ]
 
 := liked_chain (a : string) : list delivery =
-    listm::append (chain_head a) [ like_at 3i32 "c" "u1"; like_at 4i32 "b" "u2" ]
+    listm::append (chain_head a) [ like_at 3 "c" "u1"; like_at 4 "b" "u2" ]
 
 := root_edit_shape (before : scheduler) (after : scheduler) : bool * bool * bool =
     all_held after, visible_out after "b" <> visible_out before "b", visible_out after "c" <> visible_out before "c"
 
 := root_edited (a : string) : scheduler =
-    sync_run (plain_faults ()) (listm::append (liked_chain a) [ edited_at 5i32 a "inl a = 2" ])
+    sync_run (plain_faults ()) (listm::append (liked_chain a) [ edited_at 5 a "inl a = 2" ])
 
 ///> rust -d sha2
 ///> gleam
@@ -87,12 +87,12 @@
 := last_of (l : list string) : string = l |> listm::fold (\ _ x => x) ""
 
 := churn_events (cells : list string) : flow =
-    := c = cast 11i32 4i32 0i32
-    (from_cells { c ?| churn = 12i32 } "" cells)::all_events
+    := c = cast 11 4 0
+    (from_cells { c ?| churn = 12 } "" cells)::all_events
 
 := churned_run (events : flow) : scheduler =
     := limited = plain_faults ()
-    scheduled_run { limited ?| limit = 2i32 } events 1i32 200i32 6i32
+    scheduled_run { limited ?| limit = 2 } events 1 200 6
 
 := newest_root (s : scheduler) : string = ?= sources s::in_box "p0" ?| x :: _ => x | [] => ""
 
@@ -107,21 +107,21 @@
     := ~cells = elixir_cells ()
     churn_shape cells |> _assert_eq (12i32, !+, !+)
 
-:= long_cell () : string = sm'::replicate 40i32 "inl long_name_1 = 1\n"
+:= long_cell () : string = sm'::replicate 40 "inl long_name_1 = 1\n"
 
 := cells_and_a_long_one () : list string = listm::append (elixir_cells ()) [ long_cell () ]
 
 := framed_run (s : scenario) : scheduler =
-    scheduled_run (plain_faults ()) (exploded split_named 120i32 s::all_events) 1i32 300i32 20i32
+    scheduled_run (plain_faults ()) (exploded split_named 120 s::all_events) 1 300 20
 
-:= plain_run (s : scenario) : scheduler = scheduled_run (plain_faults ()) s::all_events 1i32 100i32 6i32
+:= plain_run (s : scenario) : scheduler = scheduled_run (plain_faults ()) s::all_events 1 100 6
 
 := framed_shape (s : scenario) : i32 * bool * string =
     := framed = framed_run s
     framed::in_box::tallies::framed, all_held framed, runs_commute framed (plain_run s) |> verdict_text
 
 := framed_vs_posts (cells : list string) : (i32 * bool * string) * (i32 * bool * string) =
-    := s = from_cells (cast 7i32 3i32 2i32) "" cells
+    := s = from_cells (cast 7 3 2) "" cells
     framed_shape s, ((listm::length s::posts : i32), !+, "ok")
 
 ///> rust -d sha2 unicode-segmentation=1.13 unicode-normalization=0.1
@@ -144,14 +144,14 @@
 
 := breaks_assert (events : flow) : bool =
     := breaking = test_edits events
-    (listm::length breaking : i32) > 0i32 && not (has (\ b => not (broken_assert b)) breaking)
+    (listm::length breaking : i32) > 0 && not (has (\ b => not (broken_assert b)) breaking)
 
 := notebooks_scenario (cells : list string) : scenario =
     := other = [ "inl twice x = x + x"; "///- --test\n\ntwice 4 |> _assert_eq 8" ]
-    := c = cast 2i32 3i32 1i32
-    from_corpus { c ?| breaking = 2i32 } [ cells; other ]
+    := c = cast 2 3 1
+    from_corpus { c ?| breaking = 2 } [ cells; other ]
 
-:= notebook_runs_hold (s : scenario) : bool = all_held (scheduled_run (plain_faults ()) s::all_events 1i32 200i32 6i32)
+:= notebook_runs_hold (s : scenario) : bool = all_held (scheduled_run (plain_faults ()) s::all_events 1 200 6)
 
 := post_ids_of (s : scenario) : list string = s::posts |> each \ (r : rooted) => r::post_id
 
@@ -191,15 +191,15 @@
 := persona_run (broken : dict::set string) (events : flow) (schedule : i32) : scheduler =
     := limited = plain_faults ()
     := pace = { permille = 300i32; window = 10i32 }
-    sync_run_with (honest broken) { limited ?| limit = 2i32 } (deliveries events schedule pace)
+    sync_run_with (honest broken) { limited ?| limit = 2 } (deliveries events schedule pace)
 
 :~ ^ persona_runs
     (broken : dict::set string) (events : flow) (schedule : i32) (acc : list scheduler)
     : list scheduler
     =
-    ? schedule > 4i32
+    ? schedule > 4
     ?> listm::rev acc
-    |: persona_runs broken events (schedule + 1i32) (persona_run broken events schedule :: acc)
+    |: persona_runs broken events (schedule + 1) (persona_run broken events schedule :: acc)
 
 :~ ^ neighbours_commute (l : list scheduler) : bool =
     ?= l ?|
@@ -209,7 +209,7 @@
 := fickle_unlike (e : event) : bool = ?= e ?| Reaction (Unliked r) => sm'::starts_with "fickle" r::user | _ => !-
 
 := persona_scenario (cells : list string) : scenario =
-    := c = cast 17i32 2i32 0i32
+    := c = cast 17 2 0
     from_cells { c ?| personas = parsed_personas "lurker=2,fickle=3,editor=2,breaker=2" } "" cells
 
 := broken_set (s : scenario) : dict::set string =
@@ -223,11 +223,11 @@
 
 := persona_signals (s : scenario) : bool * bool * bool =
     := restores = restores_original (originals_of s) s::all_events
-    has fickle_unlike s::all_events, restores, dict::set_count (broken_set s) > 0i32
+    has fickle_unlike s::all_events, restores, dict::set_count (broken_set s) > 0
 
 := persona_runs_hold (s : scenario) : bool * bool =
     := broken = broken_set s
-    persona_runs broken s::all_events 1i32 [] |> personas_hold broken (originals_of s)
+    persona_runs broken s::all_events 1 [] |> personas_hold broken (originals_of s)
 
 ///> rust -d sha2
 ///> gleam
@@ -237,9 +237,9 @@
     (persona_signals s, persona_runs_hold s) |> _assert_eq ((!+, !+, !+), (!+, !+))
 
 := breaker_scenario (unbreakable : string) : scenario =
-    := c = cast 3i32 2i32 0i32
+    := c = cast 3 2 0
     := cells = [ "inl value () = 1i32"; unbreakable ]
-    from_cells { c ?| breaking = 2i32; personas = parsed_personas "breaker=3" } "" cells
+    from_cells { c ?| breaking = 2; personas = parsed_personas "breaker=3" } "" cells
 
 := edited_sources (events : flow) : list string =
     events |> spread \ e => ?= e ?| Revision (Edited r) => [ r::source ] | _ => []
@@ -249,7 +249,7 @@
     break_source unbreakable = unbreakable, (listm::length s::broken : i32), has (\ x => x <> unbreakable) edited
 
 := empty_thread_shape () : i32 * i32 =
-    := e = plain_casting 1i32
+    := e = plain_casting 1
     := empty = from_cells { e ?| personas = parsed_personas "lurker=1,fickle=2,editor=1,breaker=1" } "" []
     (listm::length empty::all_events : i32), (listm::length empty::broken : i32)
 
@@ -266,9 +266,9 @@
     empty_thread_shape () |> _assert_eq (0i32, 0i32)
 
 := fickle_deliveries (cells : list string) : list delivery =
-    := c = cast 29i32 2i32 2i32
+    := c = cast 29 2 2
     := s = from_cells { c ?| personas = parsed_personas "fickle=2" } "" cells
-    deliveries s::all_events 1i32 { permille = 100i32; window = 6i32 }
+    deliveries s::all_events 1 { permille = 100; window = 6 }
 
 := paced_shape (l : list delivery) : bool * string =
     := evicting = plain_faults ()
@@ -282,23 +282,23 @@
     fickle_deliveries cells |> paced_shape |> _assert_eq (!+, "ok")
 
 := edit_count (events : flow) : i32 =
-    events |> listm::fold (\ n e => ?= e ?| Revision (Edited _) => n + 1i32 | _ => n) 0i32
+    events |> listm::fold (\ n e => ?= e ?| Revision (Edited _) => n + 1i32 | _ => n) 0
 
 := second_edit_frames (events : flow) : bool =
-    events |> has \ e => ?= e ?| Revision (FrameEdited r) => r::part::k = 2i32 | _ => !-
+    events |> has \ e => ?= e ?| Revision (FrameEdited r) => r::part::k = 2 | _ => !-
 
 := framing_scenario (cells : list string) : scenario =
-    := c = cast 11i32 3i32 3i32
-    from_cells { c ?| breaking = 1i32 } "" cells
+    := c = cast 11 3 3
+    from_cells { c ?| breaking = 1 } "" cells
 
 := framed_edits_run (s : scenario) : scheduler =
-    scheduled_run (plain_faults ()) (exploded split_named 20i32 s::all_events) 1i32 300i32 12i32
+    scheduled_run (plain_faults ()) (exploded split_named 20 s::all_events) 1 300 12
 
 := framed_edit_count (s : scenario) : i32 = (framed_edits_run s)::in_box::tallies::framed_edits
 
 := frame_edit_shape (s : scenario) : bool * bool * bool =
     := edits = edit_count s::all_events
-    edits > 0i32, second_edit_frames (exploded split_named 20i32 s::all_events), framed_edit_count s = edits
+    edits > 0, second_edit_frames (exploded split_named 20 s::all_events), framed_edit_count s = edits
 
 := framed_ends (s : scenario) : bool * string =
     := framed = framed_edits_run s
